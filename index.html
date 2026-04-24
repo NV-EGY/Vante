@@ -123,6 +123,58 @@ input{
     padding:12px;
     margin:8px 0;
 }
+
+    .drawer{
+    position:fixed;
+    top:0;
+    right:-100%;
+    width:320px;
+    height:100%;
+    background:#fff;
+    box-shadow:-10px 0 30px rgba(0,0,0,.2);
+    padding:20px;
+    transition:.3s;
+    z-index:1000;
+}
+
+.drawer.active{
+    right:0;
+}
+
+.modal{
+    position:fixed;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%) scale(0);
+    background:#fff;
+    padding:20px;
+    width:90%;
+    max-width:400px;
+    box-shadow:0 20px 50px rgba(0,0,0,.3);
+    border-radius:15px;
+    transition:.3s;
+    z-index:2000;
+}
+
+.modal.active{
+    transform:translate(-50%,-50%) scale(1);
+}
+
+#overlay{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:rgba(0,0,0,.5);
+    display:none;
+    z-index:900;
+}
+
+#overlay.active{
+    display:block;
+}
+    
 </style>
 </head>
 
@@ -191,24 +243,6 @@ input{
 </div>
 </section>
 
-<!-- CART -->
-<section class="container">
-<h2>🛒 السلة</h2>
-<div id="cartItems"></div>
-<div class="total">الإجمالي: <span id="total">0</span> جنيه</div>
-</section>
-
-<!-- CHECKOUT -->
-<section class="container">
-<h2>إتمام الطلب</h2>
-
-<input id="name" placeholder="الاسم">
-<input id="phone" placeholder="الهاتف">
-<input id="address" placeholder="العنوان">
-
-<button onclick="checkout()">تأكيد الطلب</button>
-</section>
-
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -264,6 +298,24 @@ function updateCart(){
     document.getElementById("cartCount").innerText = cart.length;
 }
 
+    function openCart(){
+    document.getElementById("cartDrawer").classList.add("active");
+    document.getElementById("overlay").classList.add("active");
+}
+
+function closeCart(){
+    document.getElementById("cartDrawer").classList.remove("active");
+    document.getElementById("overlay").classList.remove("active");
+}
+
+function openCheckout(){
+    document.getElementById("checkoutModal").classList.add("active");
+}
+
+function closeCheckout(){
+    document.getElementById("checkoutModal").classList.remove("active");
+}
+
 window.checkout = async function(){
 
     const name = document.getElementById("name").value;
@@ -301,6 +353,34 @@ window.checkout = async function(){
 }
 
 </script>
+    
+<div id="cartDrawer" class="drawer">
+    <h2>🛒 سلة التسوق</h2>
 
+    <div id="cartItems"></div>
+
+    <div class="total">
+        الإجمالي: <span id="total">0</span> جنيه
+    </div>
+
+    <button onclick="openCheckout()">تأكيد الطلب</button>
+    <button onclick="closeCart()">إغلاق</button>
+</div>
+
+<div id="overlay" onclick="closeCart()"></div>
+
+<div id="checkoutModal" class="modal">
+
+    <h2>إتمام الطلب</h2>
+
+    <input id="name" placeholder="الاسم">
+    <input id="phone" placeholder="الهاتف">
+    <input id="address" placeholder="العنوان">
+
+    <button onclick="checkout()">إرسال الطلب</button>
+    <button onclick="closeCheckout()">رجوع</button>
+
+</div>
+    
 </body>
 </html>
