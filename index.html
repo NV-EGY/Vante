@@ -264,13 +264,31 @@ const db = getFirestore(app);
 /* CART */
 let cart = [];
 
+/* ADD TO CART */
 window.addToCart = function(name, price, size, image){
 
-    cart.push({name, price, size, image, qty:1});
+    let existing = cart.find(item =>
+        item.name === name && item.size === size
+    );
+
+    if(existing){
+        existing.qty += 1;
+    } else {
+        cart.push({
+            name,
+            price,
+            size,
+            image,
+            qty:1
+        });
+    }
 
     updateCart();
+    openCart(); // 🛒 يفتح تلقائي
 }
 
+
+/* UPDATE CART UI */
 function updateCart(){
 
     let html = "";
@@ -282,28 +300,59 @@ function updateCart(){
 
         html += `
         <div class="cart-item">
+
             <div>
                 <b>${item.name}</b><br>
                 ${item.size}
             </div>
 
-            <div>
-                ${item.price} × ${item.qty}
+            <div style="display:flex;align-items:center;gap:10px">
+
+                <button onclick="changeQty(${i},-1)">-</button>
+
+                <span>${item.qty}</span>
+
+                <button onclick="changeQty(${i},1)">+</button>
+
             </div>
+
+            <div>
+                ${item.price * item.qty} ج
+            </div>
+
         </div>`;
     });
 
-    document.getElementById("cartItems").innerHTML = html || "السلة فارغة";
+    document.getElementById("cartItems").innerHTML =
+        cart.length ? html : "السلة فارغة";
+
     document.getElementById("total").innerText = total;
     document.getElementById("cartCount").innerText = cart.length;
 }
 
-   window.openCart = function(){
+
+/* CHANGE QTY */
+window.changeQty = function(index, value){
+
+    cart[index].qty += value;
+
+    if(cart[index].qty <= 0){
+        cart.splice(index,1);
+    }
+
+    updateCart();
+}
+
+
+/* OPEN CART */
+window.openCart = function(){
     document.getElementById("cartDrawer").classList.add("active");
     document.getElementById("overlay").classList.add("active");
 }
 
-   window.closeCart = function(){
+
+/* CLOSE CART */
+window.closeCart = function(){
     document.getElementById("cartDrawer").classList.remove("active");
     document.getElementById("overlay").classList.remove("active");
 }
