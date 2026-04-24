@@ -70,47 +70,86 @@ body{
 }
 
 
-/* TOP BAR */
+/* TOP OFFER BAR */
 .top-offer{
     background:#000;
     color:#D4AF37;
-    padding:8px 12px;
-    font-size:12px;
+    padding:14px 20px;
     display:flex;
-    justify-content:space-between;
+    justify-content:center;
     align-items:center;
+    gap:40px;
     flex-wrap:wrap;
+    text-align:center;
+    font-size:14px;
+    font-weight:700;
+    border-bottom:1px solid rgba(212,175,55,.25);
 }
 
-/* NAV BAR */
-.nav-bar{
+.offer-text{
+    letter-spacing:.5px;
+}
+
+.offer-timer{
     display:flex;
-    justify-content:space-between;
     align-items:center;
-    padding:15px 20px;
+    gap:8px;
+    color:#fff;
+    font-weight:700;
+}
+
+.offer-timer span{
+    background:#D4AF37;
+    color:#000;
+    min-width:34px;
+    padding:6px 8px;
+    border-radius:8px;
+    font-weight:900;
+    display:inline-block;
+}
+
+/* NAVBAR */
+.nav-bar{
     background:#fff;
+    display:grid;
+    grid-template-columns:auto 1fr auto;
+    align-items:center;
+    padding:18px 35px;
     border-bottom:1px solid #eee;
+    position:sticky;
+    top:0;
+    z-index:999;
+    box-shadow:0 5px 20px rgba(0,0,0,.05);
 }
 
 /* LOGO */
 .logo{
-    font-size:22px;
+    order:3;
+    justify-self:end;
+    font-size:34px;
     font-weight:900;
-    color:#000;
-    letter-spacing:2px;
+    letter-spacing:3px;
+    background:linear-gradient(135deg,#D4AF37,#FFD700,#B8860B);
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+    cursor:pointer;
 }
 
 /* MENU */
 .menu{
+    order:2;
     display:flex;
-    gap:20px;
+    justify-content:center;
+    align-items:center;
+    gap:35px;
 }
 
 .menu a{
     text-decoration:none;
     color:#111;
-    font-weight:600;
-    font-size:14px;
+    font-size:15px;
+    font-weight:700;
+    transition:.3s;
 }
 
 .menu a:hover{
@@ -119,29 +158,100 @@ body{
 
 /* ICONS */
 .icons{
+    order:1;
     display:flex;
-    gap:10px;
+    align-items:center;
+    justify-content:flex-start;
+    gap:12px;
 }
 
 .icons button{
-    background:#f5f5f5;
+    width:48px;
+    height:48px;
     border:none;
-    padding:10px;
     border-radius:50%;
+    background:#111;
+    color:#fff;
     cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+    transition:.3s;
+    margin:0;
+    padding:0;
 }
 
-/* HERO IMAGE 9:16 */
+.icons button:hover{
+    background:#D4AF37;
+    color:#000;
+    transform:translateY(-2px);
+}
+
+.icons i{
+    font-size:18px;
+}
+
+/* CART COUNTER */
+.cart-count{
+    position:absolute;
+    top:-6px;
+    right:-6px;
+    width:24px;
+    height:24px;
+    border-radius:50%;
+    background:#D4AF37;
+    color:#000;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:12px;
+    font-weight:900;
+    border:2px solid #fff;
+    line-height:1;
+}
+
+/* MOBILE */
+@media(max-width:768px){
+
+    .nav-bar{
+        grid-template-columns:1fr;
+        gap:20px;
+        text-align:center;
+        padding:20px 15px;
+    }
+
+    .icons,
+    .menu,
+    .logo{
+        order:unset;
+        justify-content:center;
+        justify-self:center;
+    }
+
+    .menu{
+        flex-wrap:wrap;
+        gap:18px;
+    }
+
+    .logo{
+        font-size:30px;
+    }
+}
+
+/* HERO SECTION */
 .hero{
     width:100%;
-    max-height:700px;
     overflow:hidden;
+    background:#fff;
+    line-height:0;
 }
 
 .hero img{
     width:100%;
-    aspect-ratio:9/16;
-    object-fit:cover;
+    height:auto;
+    display:block;
+    object-fit:contain;
 }
   
 /* PRODUCTS */
@@ -178,24 +288,6 @@ button:hover{
     color:#000;
 }
 
-@media(max-width:768px){
-
-.menu{
-    gap:10px;
-    font-size:12px;
-}
-
-.nav-bar{
-    grid-template-columns:1fr;
-    text-align:center;
-    gap:10px;
-}
-
-.icons{
-    justify-content:center;
-}
-}
-  
 /* CART */
 .cart-item{
     display:flex;
@@ -278,18 +370,16 @@ input{
 <!-- TOP OFFER BAR -->
 <div class="top-offer">
 
-<div class="offer-text">
-NEW ARRIVAL SALE | FLAT 10% OFF | PROMO CODE: NEW10
-</div>
+  <div class="offer-text">
+        خصم 10% لفترة محدودة 
+    </div>
 
-<div class="offer-timer">
-OFFER ENDS IN:
-<span id="h">04</span>h
-<span id="m">25</span>m
-<span id="s">50</span>s
-</div>
-
-</div>
+   <div class="offer-timer">
+        s<span id="s">50</span>
+        m<span id="m">25</span>
+        h<span id="h">04</span>
+        :OFFER ENDS IN
+    </div>
 
 </div>
 
@@ -301,23 +391,23 @@ OFFER ENDS IN:
 
 <!-- CENTER MENU -->
 <nav class="menu">
-<a href="#">Home</a>
-<a href="#">Collections</a>
-<a href="#">Clearance Sale</a>
 <a href="#">Contact Us</a>
+<a href="#">Clearance Sale</a>
+<a href="#">Collections</a>
+<a href="#">Home</a>
 </nav>
 
 <!-- RIGHT ICONS -->
 <div class="icons">
 
-<button><i class="fas fa-search"></i></button>
-<button><i class="fas fa-user"></i></button>
-
 <button onclick="openCart()">
 <i class="fas fa-shopping-bag"></i>
 <span class="cart-count" id="cartCount">0</span>
 </button>
-
+  
+<button><i class="fas fa-user"></i></button>
+<button><i class="fas fa-search"></i></button>
+  
 </div>
 
 </header>
