@@ -16,31 +16,148 @@ body{
   color:#111;
 }
 
-.header{
-  background:#000;
-  padding:12px;
-  text-align:center;
+.offer-bar{
+    background:linear-gradient(90deg,#000,#1a1a1a,#000);
+    color:#fff;
+    padding:12px 15px;
+    text-align:center;
+    border-bottom:1px solid rgba(212,175,55,.25);
 }
 
-.brand{
-  font-size:22px;
-  font-weight:bold;
-  background:linear-gradient(45deg,#D4AF37,#FFD700);
-  -webkit-background-clip:text;
-  -webkit-text-fill-color:transparent;
+.offer-content{
+    max-width:1200px;
+    margin:auto;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:20px;
+    flex-wrap:wrap;
 }
 
-.hero{
-  background:#000;
-  color:#fff;
-  text-align:center;
-  padding:40px 15px;
+.offer-text{
+    font-size:15px;
+    font-weight:700;
+    color:#D4AF37;
 }
 
-.hero h1{
-  color:#D4AF37;
+.countdown{
+    background:rgba(212,175,55,.12);
+    border:1px solid rgba(212,175,55,.35);
+    padding:8px 18px;
+    border-radius:50px;
+    font-size:18px;
+    font-weight:800;
+    letter-spacing:2px;
+    color:#fff;
 }
 
+.main-header{
+    background:#000;
+    color:#fff;
+    padding:18px 25px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    position:sticky;
+    top:0;
+    z-index:999;
+    box-shadow:0 10px 30px rgba(0,0,0,.25);
+}
+
+.brand-logo{
+    text-align:center;
+    flex:1;
+}
+
+.brand-logo h1{
+    margin:0;
+    font-size:38px;
+    font-weight:900;
+    letter-spacing:4px;
+    background:linear-gradient(45deg,#D4AF37,#FFD700,#E6C35C);
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+}
+
+.brand-logo span{
+    display:block;
+    margin-top:4px;
+    font-size:11px;
+    letter-spacing:4px;
+    color:#d6d6d6;
+}
+
+.header-icons{
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+
+.icon-btn{
+    width:48px;
+    height:48px;
+    border:none;
+    border-radius:50%;
+    background:rgba(255,255,255,.08);
+    color:#fff;
+    cursor:pointer;
+    transition:.3s;
+    position:relative;
+    font-size:18px;
+}
+
+.icon-btn:hover{
+    background:#D4AF37;
+    color:#000;
+    transform:translateY(-2px);
+}
+
+.cart-btn{
+    position:relative;
+}
+
+.cart-count{
+    position:absolute;
+    top:-5px;
+    right:-5px;
+    width:22px;
+    height:22px;
+    border-radius:50%;
+    background:#D4AF37;
+    color:#000;
+    font-size:12px;
+    font-weight:800;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+@media(max-width:768px){
+    .main-header{
+        padding:15px;
+    }
+
+    .brand-logo h1{
+        font-size:28px;
+        letter-spacing:2px;
+    }
+
+    .brand-logo span{
+        font-size:9px;
+        letter-spacing:2px;
+    }
+
+    .icon-btn{
+        width:42px;
+        height:42px;
+        font-size:16px;
+    }
+
+    .countdown{
+        font-size:16px;
+        padding:7px 14px;
+    }
+  
 .container{
   padding:20px;
   max-width:700px;
@@ -108,14 +225,40 @@ input,select{
 
 <body>
 
-<div class="header">
-  <div class="brand">VANTÉ</div>
+<!-- TOP OFFER BAR -->
+<div class="offer-bar">
+    <div class="offer-content">
+        <span class="offer-text">🔥 خصم خاص اليوم 10% على جميع المنتجات</span>
+        <div class="countdown" id="countdown">
+            <span id="hours">00</span>:
+            <span id="minutes">00</span>:
+            <span id="seconds">00</span>
+        </div>
+    </div>
 </div>
 
-<section class="hero">
-  <h1>Minimal Luxury</h1>
-  <p>أناقة فاخرة بسعر ذكي ✨</p>
-</section>
+<!-- MAIN HEADER -->
+<header class="main-header">
+    <div class="header-icons">
+        <button class="icon-btn" aria-label="تسجيل الدخول">
+            <i class="fas fa-user"></i>
+        </button>
+
+        <button class="icon-btn" aria-label="البحث">
+            <i class="fas fa-search"></i>
+        </button>
+
+        <button class="icon-btn cart-btn" aria-label="سلة التسوق">
+            <i class="fas fa-shopping-bag"></i>
+            <span class="cart-count" id="cartCount">0</span>
+        </button>
+    </div>
+
+    <div class="brand-logo">
+        <h1>VANTÉ</h1>
+        <span>MINIMAL LUXURY</span>
+    </div>
+</header>
 
 <!-- المنتجات -->
 <section class="container">
@@ -253,6 +396,30 @@ window.checkout = async function(){
   window.location.href = "https://wa.me/201106018685?text="+encodeURIComponent(message);
 }
 
+function startCountdown() {
+    const countdownDate = new Date().getTime() + (24 * 60 * 60 * 1000);
+
+    const timer = setInterval(function () {
+        const now = new Date().getTime();
+        const distance = countdownDate - now;
+
+        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+        document.getElementById("hours").textContent = String(hours).padStart(2, "0");
+        document.getElementById("minutes").textContent = String(minutes).padStart(2, "0");
+        document.getElementById("seconds").textContent = String(seconds).padStart(2, "0");
+
+        if (distance < 0) {
+            clearInterval(timer);
+            document.getElementById("countdown").innerHTML = "انتهى العرض";
+        }
+    }, 1000);
+}
+
+startCountdown();
+  
 </script>
 
 </body>
