@@ -189,7 +189,7 @@ input{
 <header class="main-header">
 
 <div class="header-icons">
-<button>
+<button onclick="openCart()">
 <i class="fas fa-shopping-bag"></i>
 <span class="cart-count" id="cartCount">0</span>
 </button>
@@ -298,21 +298,21 @@ function updateCart(){
     document.getElementById("cartCount").innerText = cart.length;
 }
 
-    function openCart(){
+   window.openCart = function(){
     document.getElementById("cartDrawer").classList.add("active");
     document.getElementById("overlay").classList.add("active");
 }
 
-function closeCart(){
+   window.closeCart = function(){
     document.getElementById("cartDrawer").classList.remove("active");
     document.getElementById("overlay").classList.remove("active");
 }
 
-function openCheckout(){
+   window.openCheckout = function(){
     document.getElementById("checkoutModal").classList.add("active");
 }
 
-function closeCheckout(){
+   window.closeCheckout = function(){
     document.getElementById("checkoutModal").classList.remove("active");
 }
 
