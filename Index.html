@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>VANTÉ | Minimal Luxury</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;700&display=swap" rel="stylesheet">
+
+<style>
+body{
+  margin:0;
+  font-family:'Cairo',sans-serif;
+  background:#fff;
+  color:#111;
+}
+
+.header{
+  background:#000;
+  padding:12px;
+  text-align:center;
+}
+
+.brand{
+  font-size:22px;
+  font-weight:bold;
+  background:linear-gradient(45deg,#D4AF37,#FFD700);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+
+.hero{
+  background:#000;
+  color:#fff;
+  text-align:center;
+  padding:40px 15px;
+}
+
+.hero h1{
+  color:#D4AF37;
+}
+
+.container{
+  padding:20px;
+  max-width:700px;
+  margin:auto;
+}
+
+.products{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:15px;
+}
+
+.product{
+  background:#fff;
+  border-radius:15px;
+  padding:12px;
+  box-shadow:0 10px 25px rgba(0,0,0,0.08);
+  text-align:center;
+}
+
+.product img{
+  width:100%;
+  border-radius:10px;
+}
+
+button{
+  width:100%;
+  padding:10px;
+  border:none;
+  border-radius:8px;
+  background:#0F7B65;
+  color:#fff;
+  font-weight:bold;
+  margin-top:8px;
+}
+
+.cart{
+  background:#f9f9f9;
+  padding:15px;
+  border-radius:12px;
+  margin-top:20px;
+}
+
+.cart-item{
+  display:flex;
+  justify-content:space-between;
+  margin:5px 0;
+}
+
+.total{
+  font-weight:bold;
+  color:#0F7B65;
+  margin-top:10px;
+}
+
+input,select{
+  width:100%;
+  padding:10px;
+  margin:6px 0;
+  border-radius:8px;
+  border:1px solid #ccc;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+  <div class="brand">VANTÉ</div>
+</div>
+
+<section class="hero">
+  <h1>Minimal Luxury</h1>
+  <p>أناقة فاخرة بسعر ذكي ✨</p>
+</section>
+
+<!-- المنتجات -->
+<section class="container">
+  <h2>المنتجات</h2>
+
+  <div class="products">
+
+    <div class="product">
+      <img src="images/p1.webp">
+      <h3>سوار فاخر</h3>
+      <p>249 جنيه</p>
+
+      <select id="size1">
+        <option>16cm</option>
+        <option>18cm</option>
+      </select>
+
+      <button onclick="addToCart('سوار فاخر',249,document.getElementById('size1').value)">
+        أضف للسلة
+      </button>
+    </div>
+
+    <div class="product">
+      <img src="images/p2.webp">
+      <h3>خاتم أنيق</h3>
+      <p>199 جنيه</p>
+
+      <select id="size2">
+        <option>7</option>
+        <option>8</option>
+      </select>
+
+      <button onclick="addToCart('خاتم',199,document.getElementById('size2').value)">
+        أضف للسلة
+      </button>
+    </div>
+
+  </div>
+</section>
+
+<!-- السلة -->
+<section class="container">
+  <h2>🛒 سلة الطلب</h2>
+
+  <div class="cart" id="cartItems"></div>
+
+  <div class="total">
+    الإجمالي: <span id="total">0</span> جنيه
+  </div>
+</section>
+
+<!-- بيانات العميل -->
+<section class="container">
+  <h2>إتمام الطلب</h2>
+
+  <input type="text" id="name" placeholder="اسمك">
+  <input type="tel" id="phone" placeholder="رقمك">
+  <input type="text" id="address" placeholder="العنوان">
+
+  <button onclick="checkout()">تأكيد الطلب</button>
+</section>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "PUT-YOUR-KEY",
+  authDomain: "YOUR",
+  projectId: "YOUR"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+window.cart = [];
+
+window.addToCart = function(name,price,size){
+
+  let item = cart.find(i=>i.name===name && i.size===size);
+
+  if(item){
+    item.qty++;
+  }else{
+    cart.push({name,price,size,qty:1});
+  }
+
+  renderCart();
+}
+
+function renderCart(){
+  let box = document.getElementById("cartItems");
+  box.innerHTML="";
+
+  let total=0;
+
+  cart.forEach((item,i)=>{
+    total += item.price * item.qty;
+
+    box.innerHTML += `
+      <div class="cart-item">
+        ${item.name} (${item.size}) × ${item.qty}
+        <span>${item.price*item.qty}</span>
+      </div>
+    `;
+  });
+
+  document.getElementById("total").innerText = total;
+}
+
+window.checkout = async function(){
+
+  let name = document.getElementById("name").value;
+  let phone = document.getElementById("phone").value;
+  let address = document.getElementById("address").value;
+
+  if(cart.length === 0){
+    alert("السلة فاضية");
+    return;
+  }
+
+  await addDoc(collection(db,"orders"),{
+    name,
+    phone,
+    address,
+    cart,
+    createdAt:new Date()
+  });
+
+  let message = `طلب جديد VANTÉ\n\n${cart.map(i=>
+    `${i.name} (${i.size}) × ${i.qty}`
+  ).join("\n")}`;
+
+  window.location.href = "https://wa.me/201106018685?text="+encodeURIComponent(message);
+}
+
+</script>
+
+</body>
+</html>
