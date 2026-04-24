@@ -11,14 +11,15 @@
   
 <style>
 body{
-  margin:0;
-  font-family:'Cairo',sans-serif;
-  background:#fff;
-  color:#111;
+    margin:0;
+    font-family:'Cairo',sans-serif;
+    background:#fff;
+    color:#111;
 }
 
+/* OFFER BAR */
 .offer-bar{
-    background:linear-gradient(90deg,#000,#1a1a1a,#000);
+    background:linear-gradient(90deg,#000,#111,#000);
     color:#fff;
     padding:12px 15px;
     text-align:center;
@@ -52,6 +53,7 @@ body{
     color:#fff;
 }
 
+/* HEADER */
 .main-header{
     background:#000;
     color:#fff;
@@ -66,8 +68,8 @@ body{
 }
 
 .brand-logo{
-    text-align:center;
     flex:1;
+    text-align:center;
 }
 
 .brand-logo h1{
@@ -113,10 +115,6 @@ body{
     transform:translateY(-2px);
 }
 
-.cart-btn{
-    position:relative;
-}
-
 .cart-count{
     position:absolute;
     top:-5px;
@@ -133,7 +131,103 @@ body{
     justify-content:center;
 }
 
+/* CONTENT */
+.container{
+    padding:20px;
+    max-width:900px;
+    margin:auto;
+}
+
+.products{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:20px;
+}
+
+.product{
+    background:#fff;
+    border-radius:20px;
+    padding:15px;
+    box-shadow:0 15px 35px rgba(0,0,0,.08);
+    text-align:center;
+    transition:.3s;
+}
+
+.product:hover{
+    transform:translateY(-8px);
+    box-shadow:0 25px 45px rgba(0,0,0,.12);
+}
+
+.product img{
+    width:100%;
+    border-radius:15px;
+}
+
+.product h3{
+    margin:15px 0 8px;
+    font-size:20px;
+}
+
+.product p{
+    color:#D4AF37;
+    font-size:22px;
+    font-weight:800;
+}
+
+button{
+    width:100%;
+    padding:14px;
+    border:none;
+    border-radius:12px;
+    background:linear-gradient(45deg,#000,#222);
+    color:#fff;
+    font-weight:700;
+    cursor:pointer;
+    transition:.3s;
+    margin-top:10px;
+    font-size:16px;
+}
+
+button:hover{
+    background:linear-gradient(45deg,#D4AF37,#b8962f);
+    color:#000;
+}
+
+.cart{
+    background:#fafafa;
+    padding:20px;
+    border-radius:18px;
+    box-shadow:0 10px 30px rgba(0,0,0,.06);
+}
+
+.cart-item{
+    display:flex;
+    justify-content:space-between;
+    padding:12px 0;
+    border-bottom:1px solid #eee;
+}
+
+.total{
+    font-size:24px;
+    font-weight:800;
+    color:#D4AF37;
+    margin-top:20px;
+    text-align:center;
+}
+
+input,select{
+    width:100%;
+    padding:14px;
+    margin:8px 0;
+    border-radius:12px;
+    border:1px solid #ddd;
+    font-size:16px;
+    box-sizing:border-box;
+}
+
+/* MOBILE */
 @media(max-width:768px){
+
     .main-header{
         padding:15px;
     }
@@ -158,98 +252,42 @@ body{
         font-size:16px;
         padding:7px 14px;
     }
-  
-.container{
-  padding:20px;
-  max-width:700px;
-  margin:auto;
-}
 
-.products{
-  display:grid;
-  grid-template-columns:repeat(2,1fr);
-  gap:15px;
-}
-
-.product{
-  background:#fff;
-  border-radius:15px;
-  padding:12px;
-  box-shadow:0 10px 25px rgba(0,0,0,0.08);
-  text-align:center;
-}
-
-.product img{
-  width:100%;
-  border-radius:10px;
-}
-
-button{
-  width:100%;
-  padding:10px;
-  border:none;
-  border-radius:8px;
-  background:#0F7B65;
-  color:#fff;
-  font-weight:bold;
-  margin-top:8px;
-}
-
-.cart{
-  background:#f9f9f9;
-  padding:15px;
-  border-radius:12px;
-  margin-top:20px;
-}
-
-.cart-item{
-  display:flex;
-  justify-content:space-between;
-  margin:5px 0;
-}
-
-.total{
-  font-weight:bold;
-  color:#0F7B65;
-  margin-top:10px;
-}
-
-input,select{
-  width:100%;
-  padding:10px;
-  margin:6px 0;
-  border-radius:8px;
-  border:1px solid #ccc;
+    .products{
+        grid-template-columns:1fr;
+    }
 }
 </style>
 </head>
 
 <body>
 
-<!-- TOP OFFER BAR -->
+<!-- شريط العرض -->
 <div class="offer-bar">
     <div class="offer-content">
-        <span class="offer-text">🔥 خصم خاص اليوم 10% على جميع المنتجات</span>
+        <span class="offer-text">🔥 خصم 10% لفترة محدودة على جميع منتجات VANTÉ</span>
+
         <div class="countdown" id="countdown">
-            <span id="hours">00</span>:
-            <span id="minutes">00</span>:
+            <span id="hours">00</span> :
+            <span id="minutes">00</span> :
             <span id="seconds">00</span>
         </div>
     </div>
 </div>
 
-<!-- MAIN HEADER -->
+<!-- الهيدر -->
 <header class="main-header">
+
     <div class="header-icons">
         <button class="icon-btn" aria-label="تسجيل الدخول">
             <i class="fas fa-user"></i>
         </button>
 
-        <button class="icon-btn" aria-label="البحث">
+        <button class="icon-btn" aria-label="بحث">
             <i class="fas fa-search"></i>
         </button>
 
-        <button class="icon-btn cart-btn" aria-label="سلة التسوق">
+        <button class="icon-btn" aria-label="السلة">
             <i class="fas fa-shopping-bag"></i>
             <span class="cart-count" id="cartCount">0</span>
         </button>
@@ -259,78 +297,95 @@ input,select{
         <h1>VANTÉ</h1>
         <span>MINIMAL LUXURY</span>
     </div>
+
 </header>
 
 <!-- المنتجات -->
 <section class="container">
-  <h2>المنتجات</h2>
+    <h2 style="text-align:center;margin-bottom:30px;">أحدث المنتجات</h2>
 
-  <div class="products">
+    <div class="products">
 
-    <div class="product">
-      <img src="images/p1.webp">
-      <h3>سوار فاخر</h3>
-      <p>249 جنيه</p>
+        <!-- منتج 1 -->
+        <div class="product">
+            <img src="images/p1.webp" alt="Bracelet">
 
-      <select id="size1">
-        <option>16cm</option>
-        <option>18cm</option>
-      </select>
+            <h3>سوار كارتير فاخر</h3>
+            <p>249 جنيه</p>
 
-      <button onclick="addToCart('سوار فاخر',249,document.getElementById('size1').value)">
-        أضف للسلة
-      </button>
+            <select id="size1">
+                <option value="16cm">16cm</option>
+                <option value="18cm">18cm</option>
+                <option value="20cm">20cm</option>
+            </select>
+
+            <button onclick="addToCart('سوار كارتير فاخر',249,document.getElementById('size1').value)">
+                أضف للسلة
+            </button>
+        </div>
+
+        <!-- منتج 2 -->
+        <div class="product">
+            <img src="images/p2.webp" alt="Ring">
+
+            <h3>خاتم كارتير أنيق</h3>
+            <p>199 جنيه</p>
+
+            <select id="size2">
+                <option value="7">مقاس 7</option>
+                <option value="8">مقاس 8</option>
+                <option value="9">مقاس 9</option>
+            </select>
+
+            <button onclick="addToCart('خاتم كارتير',199,document.getElementById('size2').value)">
+                أضف للسلة
+            </button>
+        </div>
+
     </div>
-
-    <div class="product">
-      <img src="images/p2.webp">
-      <h3>خاتم أنيق</h3>
-      <p>199 جنيه</p>
-
-      <select id="size2">
-        <option>7</option>
-        <option>8</option>
-      </select>
-
-      <button onclick="addToCart('خاتم',199,document.getElementById('size2').value)">
-        أضف للسلة
-      </button>
-    </div>
-
-  </div>
 </section>
 
 <!-- السلة -->
 <section class="container">
-  <h2>🛒 سلة الطلب</h2>
+    <h2 style="text-align:center;">🛒 سلة التسوق</h2>
 
-  <div class="cart" id="cartItems"></div>
+    <div class="cart" id="cartItems">
+        <p style="text-align:center;color:#999;">السلة فارغة</p>
+    </div>
 
-  <div class="total">
-    الإجمالي: <span id="total">0</span> جنيه
-  </div>
+    <div class="total">
+        الإجمالي: <span id="total">0</span> جنيه
+    </div>
 </section>
 
-<!-- بيانات العميل -->
+<!-- نموذج الطلب -->
 <section class="container">
-  <h2>إتمام الطلب</h2>
+    <h2 style="text-align:center;">إتمام الطلب</h2>
 
-  <input type="text" id="name" placeholder="اسمك">
-  <input type="tel" id="phone" placeholder="رقمك">
-  <input type="text" id="address" placeholder="العنوان">
+    <input type="text" id="name" placeholder="الاسم بالكامل">
+    <input type="tel" id="phone" placeholder="رقم الهاتف">
+    <input type="text" id="address" placeholder="العنوان بالكامل">
 
-  <button onclick="checkout()">تأكيد الطلب</button>
+    <button onclick="checkout()">تأكيد الطلب الآن</button>
 </section>
 
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {
+    getFirestore,
+    collection,
+    addDoc,
+    serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "PUT-YOUR-KEY",
-  authDomain: "YOUR",
-  projectId: "YOUR"
+    apiKey: "PUT-YOUR-API-KEY",
+    authDomain: "YOUR-PROJECT.firebaseapp.com",
+    projectId: "YOUR-PROJECT-ID",
+    storageBucket: "YOUR-PROJECT.appspot.com",
+    messagingSenderId: "YOUR-ID",
+    appId: "YOUR-APP-ID"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -338,89 +393,185 @@ const db = getFirestore(app);
 
 window.cart = [];
 
-window.addToCart = function(name,price,size){
+/* إضافة للسلة */
+window.addToCart = function(name, price, size) {
 
-  let item = cart.find(i=>i.name===name && i.size===size);
+    const existing = cart.find(
+        item => item.name === name && item.size === size
+    );
 
-  if(item){
-    item.qty++;
-  }else{
-    cart.push({name,price,size,qty:1});
-  }
+    if (existing) {
+        existing.qty++;
+    } else {
+        cart.push({
+            name,
+            price,
+            size,
+            qty: 1
+        });
+    }
 
-  renderCart();
+    renderCart();
+};
+
+/* تحديث السلة */
+function renderCart() {
+
+    const cartBox = document.getElementById("cartItems");
+    const cartCount = document.getElementById("cartCount");
+
+    if (cart.length === 0) {
+        cartBox.innerHTML = `
+            <p style="text-align:center;color:#999;">
+                السلة فارغة
+            </p>
+        `;
+        document.getElementById("total").innerText = 0;
+        cartCount.innerText = 0;
+        return;
+    }
+
+    let total = 0;
+    let itemsCount = 0;
+    let html = "";
+
+    cart.forEach((item, index) => {
+
+        const itemTotal = item.price * item.qty;
+        total += itemTotal;
+        itemsCount += item.qty;
+
+        html += `
+            <div class="cart-item">
+                <div>
+                    <strong>${item.name}</strong><br>
+                    <small>${item.size} × ${item.qty}</small>
+                </div>
+
+                <div>
+                    ${itemTotal} ج
+                </div>
+            </div>
+        `;
+    });
+
+    cartBox.innerHTML = html;
+    document.getElementById("total").innerText = total;
+    cartCount.innerText = itemsCount;
 }
 
-function renderCart(){
-  let box = document.getElementById("cartItems");
-  box.innerHTML="";
+/* تأكيد الطلب */
+window.checkout = async function() {
 
-  let total=0;
+    const name = document.getElementById("name").value.trim();
+    const phone = document.getElementById("phone").value.trim();
+    const address = document.getElementById("address").value.trim();
 
-  cart.forEach((item,i)=>{
-    total += item.price * item.qty;
+    if (cart.length === 0) {
+        alert("السلة فارغة");
+        return;
+    }
 
-    box.innerHTML += `
-      <div class="cart-item">
-        ${item.name} (${item.size}) × ${item.qty}
-        <span>${item.price*item.qty}</span>
-      </div>
-    `;
-  });
+    if (!name || !phone || !address) {
+        alert("يرجى إدخال جميع البيانات");
+        return;
+    }
 
-  document.getElementById("total").innerText = total;
-}
+    try {
 
-window.checkout = async function(){
+        const total = cart.reduce(
+            (sum, item) => sum + item.price * item.qty,
+            0
+        );
 
-  let name = document.getElementById("name").value;
-  let phone = document.getElementById("phone").value;
-  let address = document.getElementById("address").value;
+        await addDoc(collection(db, "orders"), {
+            customerName: name,
+            phone: phone,
+            address: address,
+            items: cart,
+            total: total,
+            status: "pending",
+            createdAt: serverTimestamp()
+        });
 
-  if(cart.length === 0){
-    alert("السلة فاضية");
-    return;
-  }
+        let message = `✨ طلب جديد من VANTÉ\n\n`;
+        message += `👤 الاسم: ${name}\n`;
+        message += `📞 الهاتف: ${phone}\n`;
+        message += `📍 العنوان: ${address}\n\n`;
 
-  await addDoc(collection(db,"orders"),{
-    name,
-    phone,
-    address,
-    cart,
-    createdAt:new Date()
-  });
+        cart.forEach(item => {
+            message += `• ${item.name}\n`;
+            message += `المقاس: ${item.size}\n`;
+            message += `الكمية: ${item.qty}\n`;
+            message += `السعر: ${item.price * item.qty} ج\n\n`;
+        });
 
-  let message = `طلب جديد VANTÉ\n\n${cart.map(i=>
-    `${i.name} (${i.size}) × ${i.qty}`
-  ).join("\n")}`;
+        message += `💰 الإجمالي: ${total} جنيه`;
 
-  window.location.href = "https://wa.me/201106018685?text="+encodeURIComponent(message);
-}
+        window.open(
+            `https://wa.me/201106018685?text=${encodeURIComponent(message)}`,
+            "_blank"
+        );
 
+        alert("تم إرسال طلبك بنجاح");
+
+        cart = [];
+        renderCart();
+
+        document.getElementById("name").value = "";
+        document.getElementById("phone").value = "";
+        document.getElementById("address").value = "";
+
+    } catch (error) {
+        console.error(error);
+        alert("حدث خطأ أثناء إرسال الطلب");
+    }
+};
+
+/* عداد العرض */
 function startCountdown() {
-    const countdownDate = new Date().getTime() + (24 * 60 * 60 * 1000);
 
-    const timer = setInterval(function () {
+    const target = new Date().getTime() + (24 * 60 * 60 * 1000);
+
+    setInterval(() => {
+
         const now = new Date().getTime();
-        const distance = countdownDate - now;
+        const distance = target - now;
 
-        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-        document.getElementById("hours").textContent = String(hours).padStart(2, "0");
-        document.getElementById("minutes").textContent = String(minutes).padStart(2, "0");
-        document.getElementById("seconds").textContent = String(seconds).padStart(2, "0");
-
-        if (distance < 0) {
-            clearInterval(timer);
+        if (distance <= 0) {
             document.getElementById("countdown").innerHTML = "انتهى العرض";
+            return;
         }
+
+        const hours = Math.floor(
+            (distance % (1000 * 60 * 60 * 24)) /
+            (1000 * 60 * 60)
+        );
+
+        const minutes = Math.floor(
+            (distance % (1000 * 60 * 60)) /
+            (1000 * 60)
+        );
+
+        const seconds = Math.floor(
+            (distance % (1000 * 60)) / 1000
+        );
+
+        document.getElementById("hours").textContent =
+            String(hours).padStart(2, "0");
+
+        document.getElementById("minutes").textContent =
+            String(minutes).padStart(2, "0");
+
+        document.getElementById("seconds").textContent =
+            String(seconds).padStart(2, "0");
+
     }, 1000);
 }
 
 startCountdown();
-  
+renderCart();
+
 </script>
 
 </body>
