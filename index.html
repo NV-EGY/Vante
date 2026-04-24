@@ -391,136 +391,213 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-window.cart = [];
+```javascript id="q7n4ka"
+// ==========================
+// CART DRAWER SYSTEM
+// ==========================
 
-/* إضافة للسلة */
-window.addToCart = function(name, price, size) {
+let cart = [];
 
-    const existing = cart.find(
-        item => item.name === name && item.size === size
-    );
+/* إضافة منتج */
+function addToCart(name, price, image, availableSizes = []) {
+    const existing = cart.find(item => item.name === name);
 
     if (existing) {
         existing.qty++;
     } else {
         cart.push({
+            id: Date.now(),
             name,
             price,
-            size,
-            qty: 1
+            image,
+            qty: 1,
+            size: availableSizes[0] || "",
+            sizes: availableSizes
         });
     }
 
-    renderCart();
-};
+    updateCartCount();
+    renderCartDrawer();
+    openCartDrawer();
+}
 
-/* تحديث السلة */
-function renderCart() {
+/* فتح السلة */
+function openCartDrawer() {
+    document.getElementById("cartDrawer").classList.add("active");
+    document.getElementById("cartOverlay").classList.add("active");
+}
 
-    const cartBox = document.getElementById("cartItems");
-    const cartCount = document.getElementById("cartCount");
+/* غلق السلة */
+function closeCartDrawer() {
+    document.getElementById("cartDrawer").classList.remove("active");
+    document.getElementById("cartOverlay").classList.remove("active");
+}
+
+/* تحديث عدد المنتجات */
+function updateCartCount() {
+    const totalItems = cart.reduce((sum, item) => sum + item.qty, 0);
+    document.getElementById("cartCount").textContent = totalItems;
+}
+
+/* تغيير الكمية */
+function changeQty(index, action) {
+    if (action === 'plus') {
+        cart[index].qty++;
+    } else {
+        cart[index].qty--;
+        if (cart[index].qty <= 0) {
+            cart.splice(index, 1);
+        }
+    }
+
+    updateCartCount();
+    renderCartDrawer();
+}
+
+/* تغيير المقاس */
+function changeSize(index, value) {
+    cart[index].size = value;
+}
+
+/* حساب الإجمالي */
+function getCartTotal() {
+    return cart.reduce((sum, item) => {
+        return sum + (item.price * item.qty);
+    }, 0);
+}
+
+/* رسم السلة */
+function renderCartDrawer() {
+
+    const container = document.getElementById("cartItems");
 
     if (cart.length === 0) {
-        cartBox.innerHTML = `
-            <p style="text-align:center;color:#999;">
-                السلة فارغة
-            </p>
+        container.innerHTML = `
+            <div class="empty-cart">
+                <i class="fas fa-shopping-bag"></i>
+                <h3>السلة فارغة</h3>
+                <p>أضف منتجاتك المفضلة الآن</p>
+            </div>
         `;
-        document.getElementById("total").innerText = 0;
-        cartCount.innerText = 0;
+
+        document.getElementById("cartTotal").innerText = "0";
         return;
     }
 
-    let total = 0;
-    let itemsCount = 0;
-    let html = "";
+    let html = '';
 
     cart.forEach((item, index) => {
-
-        const itemTotal = item.price * item.qty;
-        total += itemTotal;
-        itemsCount += item.qty;
-
         html += `
-            <div class="cart-item">
-                <div>
-                    <strong>${item.name}</strong><br>
-                    <small>${item.size} × ${item.qty}</small>
+            <div class="cart-product">
+
+                <img src="${item.image}" class="cart-product-image">
+
+                <div class="cart-product-info">
+
+                    <h4>${item.name}</h4>
+
+                    <div class="cart-price">
+                        ${item.price} ج
+                    </div>
+
+                    <select class="cart-size-select"
+                        onchange="changeSize(${index}, this.value)">
+                        ${item.sizes.map(size => `
+                            <option value="${size}"
+                                ${size === item.size ? 'selected' : ''}>
+                                ${size}
+                            </option>
+                        `).join('')}
+                    </select>
+
+                    <div class="qty-box">
+                        <button onclick="changeQty(${index}, 'minus')">-</button>
+                        <span>${item.qty}</span>
+                        <button onclick="changeQty(${index}, 'plus')">+</button>
+                    </div>
+
                 </div>
 
-                <div>
-                    ${itemTotal} ج
+                <div class="cart-item-total">
+                    ${item.price * item.qty} ج
                 </div>
+
             </div>
         `;
     });
 
-    cartBox.innerHTML = html;
-    document.getElementById("total").innerText = total;
-    cartCount.innerText = itemsCount;
+    container.innerHTML = html;
+    document.getElementById("cartTotal").innerText = getCartTotal();
 }
 
-/* تأكيد الطلب */
-window.checkout = async function() {
-
-    const name = document.getElementById("name").value.trim();
-    const phone = document.getElementById("phone").value.trim();
-    const address = document.getElementById("address").value.trim();
-
+/* فتح نموذج الطلب */
+function openCheckoutModal() {
     if (cart.length === 0) {
         alert("السلة فارغة");
         return;
     }
+
+    document.getElementById("checkoutModal").classList.add("active");
+}
+
+/* غلق نموذج الطلب */
+function closeCheckoutModal() {
+    document.getElementById("checkoutModal").classList.remove("active");
+}
+
+/* إرسال الطلب */
+async function submitOrder() {
+
+    const name = document.getElementById("customerName").value.trim();
+    const phone = document.getElementById("customerPhone").value.trim();
+    const address = document.getElementById("customerAddress").value.trim();
 
     if (!name || !phone || !address) {
         alert("يرجى إدخال جميع البيانات");
         return;
     }
 
-    try {
+    const order = {
+        customerName: name,
+        customerPhone: phone,
+        customerAddress: address,
+        items: cart,
+        total: getCartTotal(),
+        createdAt: new Date().toISOString(),
+        status: "pending"
+    };
 
-        const total = cart.reduce(
-            (sum, item) => sum + item.price * item.qty,
-            0
-        );
+    // Firebase
+    await addDoc(collection(db, "orders"), order);
 
-        await addDoc(collection(db, "orders"), {
-            customerName: name,
-            phone: phone,
-            address: address,
-            items: cart,
-            total: total,
-            status: "pending",
-            createdAt: serverTimestamp()
-        });
+    // WhatsApp Message
+    let message = `✨ طلب جديد - VANTÉ\n\n`;
+    message += `الاسم: ${name}\n`;
+    message += `الهاتف: ${phone}\n`;
+    message += `العنوان: ${address}\n\n`;
 
-        let message = `✨ طلب جديد من VANTÉ\n\n`;
-        message += `👤 الاسم: ${name}\n`;
-        message += `📞 الهاتف: ${phone}\n`;
-        message += `📍 العنوان: ${address}\n\n`;
+    cart.forEach(item => {
+        message += `• ${item.name}\n`;
+        message += `المقاس: ${item.size}\n`;
+        message += `الكمية: ${item.qty}\n`;
+        message += `الإجمالي: ${item.price * item.qty} ج\n\n`;
+    });
 
-        cart.forEach(item => {
-            message += `• ${item.name}\n`;
-            message += `المقاس: ${item.size}\n`;
-            message += `الكمية: ${item.qty}\n`;
-            message += `السعر: ${item.price * item.qty} ج\n\n`;
-        });
+    message += `💰 الإجمالي النهائي: ${getCartTotal()} ج`;
 
-        message += `💰 الإجمالي: ${total} جنيه`;
+    window.open(
+        `https://wa.me/201106018685?text=${encodeURIComponent(message)}`,
+        "_blank"
+    );
 
-        window.open(
-            `https://wa.me/201106018685?text=${encodeURIComponent(message)}`,
-            "_blank"
-        );
+    alert("تم إرسال طلبك بنجاح");
 
-        alert("تم إرسال طلبك بنجاح");
-
-        cart = [];
-        renderCart();
-
-        document.getElementById("name").value = "";
-        document.getElementById("phone").value = "";
-        document.getElementById("address").value = "";
+    cart = [];
+    renderCartDrawer();
+    updateCartCount();
+    closeCheckoutModal();
+    closeCartDrawer();
+}
 
     } catch (error) {
         console.error(error);
