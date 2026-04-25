@@ -593,6 +593,35 @@ button:hover{
   
 }
 
+.rating-stars{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:8px;
+    margin:22px 0;
+    direction:ltr;
+    user-select:none;
+}
+
+.rating-stars span{
+    font-size:42px;
+    color:#ddd;
+    cursor:pointer;
+    transition:all .25s ease;
+    line-height:1;
+}
+
+.rating-stars span:hover{
+    transform:scale(1.2);
+}
+
+.rating-stars span.active{
+    color:#FFD700;
+    text-shadow:
+        0 0 8px rgba(255,215,0,.8),
+        0 0 18px rgba(255,215,0,.5);
+}
+      
 /* ==================================== SEARCH OVERLAY ==================================== */ .search-overlay{ position:fixed; inset:0; background:rgba(0,0,0,.65); display:flex; align-items:center; justify-content:center; opacity:0; visibility:hidden; transition:.35s; z-index:9999; padding:20px; } .search-overlay.active{ opacity:1; visibility:visible; } .search-box{ width:100%; max-width:550px; background:#fff; padding:20px; border-radius:22px; display:flex; align-items:center; gap:12px; box-shadow:0 25px 60px rgba(0,0,0,.25); animation:searchPopup .35s ease; } .search-box input{ flex:1; border:1px solid #ddd; padding:16px 20px; border-radius:14px; font-size:16px; background:#fafafa; } .search-box input:focus{ border-color:#D4AF37; background:#fff; } .search-box button{ width:auto; padding:16px 26px; border:none; border-radius:14px; background:#111; color:#fff; cursor:pointer; transition:.3s; } .search-box button:hover{ background:#D4AF37; color:#000; } @keyframes searchPopup{ from{ opacity:0; transform:scale(.9); } to{ opacity:1; transform:scale(1); } }     
     
 </style>
@@ -881,44 +910,88 @@ function updateCart() {
 /* =========================================
    PRODUCT MODAL
 ========================================= */
+/* =========================================
+   PRODUCT MODAL + STAR RATING + REVIEWS
+========================================= */
+
 let selectedProduct = null;
 let selectedRating = 5;
 
+/* =========================================
+   OPEN PRODUCT
+========================================= */
 window.openProduct = function(id, title, price, img) {
     selectedProduct = id;
+    selectedRating = 5;
 
     document.getElementById("modalTitle").textContent = title;
     document.getElementById("modalPrice").textContent = price + " جنيه";
     document.getElementById("modalImg").src = img;
 
+    document.getElementById("reviewText").value = "";
+    document.getElementById("reviewText").style.display = "none";
+
+    highlightStars(selectedRating);
+
     document.getElementById("productModal").classList.add("active");
     document.getElementById("overlay").classList.add("active");
-
-    document.getElementById("reviewText").style.display = "none";
-    document.getElementById("reviewText").value = "";
 };
 
+/* =========================================
+   CLOSE PRODUCT
+========================================= */
 window.closeProduct = function() {
     document.getElementById("productModal").classList.remove("active");
     document.getElementById("overlay").classList.remove("active");
 
-    document.getElementById("reviewText").style.display = "none";
     document.getElementById("reviewText").value = "";
+    document.getElementById("reviewText").style.display = "none";
 
     selectedRating = 5;
+    highlightStars(selectedRating);
 };
 
-/* إظهار مربع التقييم عند الضغط على النجوم */
-document.addEventListener("DOMContentLoaded", () => {
-    const stars = document.getElementById("stars");
+/* =========================================
+   STAR RATING SYSTEM
+========================================= */
+function initializeStars() {
+    const stars = document.querySelectorAll("#stars span");
 
-    if (stars) {
-        stars.addEventListener("click", () => {
-            document.getElementById("reviewText").style.display = "block";
-            document.getElementById("reviewText").focus();
+    if (!stars.length) return;
+
+    function highlightStars(rating) {
+        stars.forEach(star => {
+            const value = Number(star.dataset.rate);
+            star.classList.toggle("active", value <= rating);
         });
     }
-});
+
+    window.highlightStars = highlightStars;
+
+    stars.forEach(star => {
+
+        star.addEventListener("mouseenter", () => {
+            highlightStars(Number(star.dataset.rate));
+        });
+
+        star.addEventListener("click", () => {
+            selectedRating = Number(star.dataset.rate);
+            highlightStars(selectedRating);
+
+            const reviewText = document.getElementById("reviewText");
+            reviewText.style.display = "block";
+            reviewText.focus();
+        });
+    });
+
+    document.getElementById("stars").addEventListener("mouseleave", () => {
+        highlightStars(selectedRating);
+    });
+
+    highlightStars(selectedRating);
+}
+
+document.addEventListener("DOMContentLoaded", initializeStars);
 
 /* =========================================
    SUBMIT REVIEW
@@ -927,13 +1000,13 @@ window.submitReview = async function() {
 
     const text = document.getElementById("reviewText").value.trim();
 
-    if (!text) {
-        alert("اكتب رأيك أولاً");
+    if (!currentUser) {
+        alert("يجب تسجيل الدخول أولاً");
         return;
     }
 
-    if (!currentUser) {
-        alert("يجب تسجيل الدخول أولاً");
+    if (!text) {
+        alert("اكتب رأيك أولاً");
         return;
     }
 
@@ -950,7 +1023,7 @@ window.submitReview = async function() {
         closeProduct();
 
     } catch (error) {
-        console.error(error);
+        console.error("Review Error:", error);
         alert("حدث خطأ أثناء إرسال التقييم");
     }
 };
@@ -965,11 +1038,13 @@ onSnapshot(collection(db, "reviews"), (snapshot) => {
     snapshot.forEach((doc) => {
         const r = doc.data();
 
+        const stars = "★".repeat(r.rating) + "☆".repeat(5 - r.rating);
+
         html += `
             <div class="review-card">
                 <div class="review-header">
                     <strong>${r.name}</strong>
-                    <span>⭐ ${r.rating}</span>
+                    <span class="review-stars">${stars}</span>
                 </div>
                 <p>${r.text}</p>
             </div>
@@ -1144,10 +1219,13 @@ window.toggleMobileMenu = function() {
             <span id="modalPrice" style="color:#D4AF37;font-size:22px;font-weight:900"></span>
         </div>
 
-        <!-- ⭐ Stars -->
-        <div id="stars">
-            ⭐⭐⭐⭐⭐
-        </div>
+       <div class="rating-stars" id="stars">
+    <span data-rate="1">★</span>
+    <span data-rate="2">★</span>
+    <span data-rate="3">★</span>
+    <span data-rate="4">★</span>
+    <span data-rate="5">★</span>
+</div>
 
         <textarea id="reviewText" placeholder="اكتب رأيك..." style="width:100%;margin-top:10px;display:none"></textarea>
 
