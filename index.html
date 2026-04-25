@@ -592,6 +592,8 @@ button:hover{
 }
   
 }
+
+/* ==================================== SEARCH OVERLAY ==================================== */ .search-overlay{ position:fixed; inset:0; background:rgba(0,0,0,.65); display:flex; align-items:center; justify-content:center; opacity:0; visibility:hidden; transition:.35s; z-index:9999; padding:20px; } .search-overlay.active{ opacity:1; visibility:visible; } .search-box{ width:100%; max-width:550px; background:#fff; padding:20px; border-radius:22px; display:flex; align-items:center; gap:12px; box-shadow:0 25px 60px rgba(0,0,0,.25); animation:searchPopup .35s ease; } .search-box input{ flex:1; border:1px solid #ddd; padding:16px 20px; border-radius:14px; font-size:16px; background:#fafafa; } .search-box input:focus{ border-color:#D4AF37; background:#fff; } .search-box button{ width:auto; padding:16px 26px; border:none; border-radius:14px; background:#111; color:#fff; cursor:pointer; transition:.3s; } .search-box button:hover{ background:#D4AF37; color:#000; } @keyframes searchPopup{ from{ opacity:0; transform:scale(.9); } to{ opacity:1; transform:scale(1); } }     
     
 </style>
 </head>
@@ -636,9 +638,7 @@ button:hover{
      <button class="mobile-icon left">
         <i class="fas fa-user"></i>
     </button>
-<button class="mobile-icon right">
-        <i class="fas fa-search"></i>
-    </button>
+<button class="mobile-icon" onclick="openSearch(); toggleMobileMenu();"> <i class="fas fa-search"></i> </button>
    
 </div>
 
@@ -665,9 +665,7 @@ button:hover{
 
         <!-- ICONS -->
         <div class="icons">
-            <button type="button">
-                <i class="fas fa-search"></i>
-            </button>
+          <button type="button" onclick="openSearch()"> <i class="fas fa-search"></i> </button>
 
             <button type="button">
                 <i class="fas fa-user"></i>
@@ -805,6 +803,8 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+/* ========================================= SEARCH ========================================= */ window.openSearch = function () { const overlay = document.getElementById("searchOverlay"); const input = document.getElementById("searchInput"); overlay.classList.add("active"); setTimeout(() => { input.focus(); }, 200); }; window.closeSearch = function () { document.getElementById("searchOverlay") .classList.remove("active"); }; /* إغلاق عند الضغط خارج الصندوق */ document.getElementById("searchOverlay") .addEventListener("click", function (e) { if (e.target === this) { closeSearch(); } }); /* زر ESC */ document.addEventListener("keydown", function (e) { if (e.key === "Escape") { closeSearch(); } }); /* ========================================= SEARCH PRODUCTS BY NAME ========================================= */ window.searchProducts = function () { const input = document.getElementById("searchInput"); const filter = input.value.toLowerCase().trim(); const products = document.querySelectorAll(".product"); let found = false; products.forEach(product => { const productName = product .querySelector("h3") .textContent .toLowerCase(); if (productName.includes(filter)) { product.style.display = "block"; found = true; } else { product.style.display = "none"; } }); closeSearch(); if (filter !== "") { document.querySelector(".container") .scrollIntoView({ behavior: "smooth" }); } if (!found && filter !== "") { alert("لم يتم العثور على المنتج"); } }; /* البحث عند الضغط على Enter */ document.getElementById("searchInput") .addEventListener("keydown", function (e) { if (e.key === "Enter") { searchProducts(); } });
+  
 /* =========================================
    CART
 ========================================= */
@@ -1026,5 +1026,8 @@ window.toggleMobileMenu = function() {
 };
 
 </script>
+  <!-- ضع هذا الكود قبل </body> مباشرة --> <div id="searchOverlay" class="search-overlay"> <div class="search-box"> <input type="text" id="searchInput" placeholder="ابحث عن منتج..."> <button onclick="closeSearch()">إغلاق</button>     
+  </div>
+</div>
 </body>
 </html>
