@@ -692,7 +692,7 @@ button:hover{
         <div class="products">
 
             <!-- PRODUCT 1 -->
-            <div class="product">
+           <div class="product" onclick="openProduct('p1','سوار كارتير','249','images/p1.webp')">
                 <img src="images/p1.webp" alt="سوار كارتير">
 
                 <h3>سوار كارتير</h3>
@@ -726,7 +726,7 @@ button:hover{
                     <option>8</option>
                     <option>9</option>
                 </select>
-
+              
                 <button onclick="addToCart(
                     'خاتم كارتير',
                     199,
@@ -785,7 +785,8 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
 import {
     getFirestore,
     collection,
-    addDoc
+    addDoc,
+    onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 /* =========================================
@@ -802,6 +803,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+  let currentUser = null;
 
 /* ========================================= SEARCH ========================================= */ window.openSearch = function () { const overlay = document.getElementById("searchOverlay"); const input = document.getElementById("searchInput"); overlay.classList.add("active"); setTimeout(() => { input.focus(); }, 200); }; window.closeSearch = function () { document.getElementById("searchOverlay") .classList.remove("active"); }; /* إغلاق عند الضغط خارج الصندوق */ document.getElementById("searchOverlay") .addEventListener("click", function (e) { if (e.target === this) { closeSearch(); } }); /* زر ESC */ document.addEventListener("keydown", function (e) { if (e.key === "Escape") { closeSearch(); } }); /* ========================================= SEARCH PRODUCTS BY NAME ========================================= */ window.searchProducts = function () { const input = document.getElementById("searchInput"); const filter = input.value.toLowerCase().trim(); const products = document.querySelectorAll(".product"); let found = false; products.forEach(product => { const productName = product .querySelector("h3") .textContent .toLowerCase(); if (productName.includes(filter)) { product.style.display = "block"; found = true; } else { product.style.display = "none"; } }); closeSearch(); if (filter !== "") { document.querySelector(".container") .scrollIntoView({ behavior: "smooth" }); } if (!found && filter !== "") { alert("لم يتم العثور على المنتج"); } }; /* البحث عند الضغط على Enter */ document.getElementById("searchInput") .addEventListener("keydown", function (e) { if (e.key === "Enter") { searchProducts(); } });
   
@@ -876,7 +878,107 @@ function updateCart() {
     document.getElementById("total").innerText = total;
     document.getElementById("cartCount").innerText = itemsCount;
 }
+/* =========================================
+   PRODUCT MODAL
+========================================= */
+let selectedProduct = null;
+let selectedRating = 5;
 
+window.openProduct = function(id, title, price, img) {
+    selectedProduct = id;
+
+    document.getElementById("modalTitle").textContent = title;
+    document.getElementById("modalPrice").textContent = price + " جنيه";
+    document.getElementById("modalImg").src = img;
+
+    document.getElementById("productModal").classList.add("active");
+    document.getElementById("overlay").classList.add("active");
+
+    document.getElementById("reviewText").style.display = "none";
+    document.getElementById("reviewText").value = "";
+};
+
+window.closeProduct = function() {
+    document.getElementById("productModal").classList.remove("active");
+    document.getElementById("overlay").classList.remove("active");
+
+    document.getElementById("reviewText").style.display = "none";
+    document.getElementById("reviewText").value = "";
+
+    selectedRating = 5;
+};
+
+/* إظهار مربع التقييم عند الضغط على النجوم */
+document.addEventListener("DOMContentLoaded", () => {
+    const stars = document.getElementById("stars");
+
+    if (stars) {
+        stars.addEventListener("click", () => {
+            document.getElementById("reviewText").style.display = "block";
+            document.getElementById("reviewText").focus();
+        });
+    }
+});
+
+/* =========================================
+   SUBMIT REVIEW
+========================================= */
+window.submitReview = async function() {
+
+    const text = document.getElementById("reviewText").value.trim();
+
+    if (!text) {
+        alert("اكتب رأيك أولاً");
+        return;
+    }
+
+    if (!currentUser) {
+        alert("يجب تسجيل الدخول أولاً");
+        return;
+    }
+
+    try {
+        await addDoc(collection(db, "reviews"), {
+            productId: selectedProduct,
+            name: currentUser.displayName || currentUser.email,
+            rating: selectedRating,
+            text: text,
+            createdAt: new Date()
+        });
+
+        alert("تم إرسال تقييمك بنجاح");
+        closeProduct();
+
+    } catch (error) {
+        console.error(error);
+        alert("حدث خطأ أثناء إرسال التقييم");
+    }
+};
+
+/* =========================================
+   LOAD REVIEWS
+========================================= */
+onSnapshot(collection(db, "reviews"), (snapshot) => {
+
+    let html = "";
+
+    snapshot.forEach((doc) => {
+        const r = doc.data();
+
+        html += `
+            <div class="review-card">
+                <div class="review-header">
+                    <strong>${r.name}</strong>
+                    <span>⭐ ${r.rating}</span>
+                </div>
+                <p>${r.text}</p>
+            </div>
+        `;
+    });
+
+    document.getElementById("reviewsSection").innerHTML = html;
+});
+  
 /* =========================================
    CHANGE QUANTITY
 ========================================= */
@@ -988,7 +1090,7 @@ window.checkout = async function() {
         alert("حدث خطأ أثناء إرسال الطلب");
     }
 };
-
+  
 /* =========================================
    OFFER COUNTDOWN
 ========================================= */
@@ -1029,5 +1131,32 @@ window.toggleMobileMenu = function() {
   <!-- ضع هذا الكود قبل </body> مباشرة --> <div id="searchOverlay" class="search-overlay"> <div class="search-box"> <input type="text" id="searchInput" placeholder="ابحث عن منتج..."> <button onclick="closeSearch()">إغلاق</button>     
   </div>
 </div>
+
+<div id="productModal" class="modal">
+    <div style="text-align:center">
+
+        <img id="modalImg" style="width:100%;border-radius:15px;margin-bottom:15px">
+
+        <h2 id="modalTitle"></h2>
+        <p id="modalDesc">منتج فاخر من VANTÉ</p>
+
+        <div style="margin:15px 0">
+            <span id="modalPrice" style="color:#D4AF37;font-size:22px;font-weight:900"></span>
+        </div>
+
+        <!-- ⭐ Stars -->
+        <div id="stars">
+            ⭐⭐⭐⭐⭐
+        </div>
+
+        <textarea id="reviewText" placeholder="اكتب رأيك..." style="width:100%;margin-top:10px;display:none"></textarea>
+
+        <button onclick="submitReview()">إرسال التقييم</button>
+
+        <button onclick="closeProduct()">إغلاق</button>
+
+    </div>
+</div>
+  
 </body>
 </html>
