@@ -1,76 +1,58 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VANTÉ | Minimal Luxury</title>
 
-<title>VANTÉ | Minimal Luxury</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;700;900&display=swap" rel="stylesheet">
 
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
-<style>
+    <!-- Main CSS -->
+    <style>
+/* ====================================
+   RESET
+==================================== */
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+html{
+    scroll-behavior:smooth;
+}
+
 body{
-    margin:0;
     font-family:'Cairo',sans-serif;
-    background:#fff;
-    color:#111;
+    background:#ffffff;
+    color:#111111;
+    line-height:1.6;
+    overflow-x:hidden;
 }
 
-/* OFFER BAR */
-.offer-bar{
-    background:#000;
-    color:#D4AF37;
-    padding:12px;
-    text-align:center;
-    font-weight:700;
+img{
+    max-width:100%;
+    display:block;
 }
 
-/* HEADER */
-.main-header{
-    background:#000;
-    color:#fff;
-    padding:15px;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    position:sticky;
-    top:0;
-    z-index:999;
+a{
+    text-decoration:none;
 }
 
-.brand-logo h1{
-    margin:0;
-    font-size:28px;
-    background:linear-gradient(45deg,#D4AF37,#FFD700);
-    -webkit-background-clip:text;
-    -webkit-text-fill-color:transparent;
+button,
+input,
+select{
+    font-family:inherit;
+    outline:none;
 }
 
-.header-icons button{
-    background:rgba(255,255,255,.1);
-    border:none;
-    color:#fff;
-    padding:10px;
-    border-radius:50%;
-    cursor:pointer;
-    position:relative;
-}
-
-.cart-count{
-    position:absolute;
-    top:-5px;
-    right:-5px;
-    background:#D4AF37;
-    color:#000;
-    width:18px;
-    height:18px;
-    font-size:12px;
-    border-radius:50%;
-}
-
-
-/* TOP OFFER BAR */
+/* ====================================
+   TOP OFFER BAR
+==================================== */
 .top-offer{
     background:#000;
     color:#D4AF37;
@@ -78,12 +60,12 @@ body{
     display:flex;
     justify-content:center;
     align-items:center;
-    gap:40px;
+    gap:35px;
     flex-wrap:wrap;
     text-align:center;
     font-size:14px;
     font-weight:700;
-    border-bottom:1px solid rgba(212,175,55,.25);
+    border-bottom:1px solid rgba(212,175,55,.2);
 }
 
 .offer-text{
@@ -94,6 +76,7 @@ body{
     display:flex;
     align-items:center;
     gap:8px;
+    direction:ltr;
     color:#fff;
     font-weight:700;
 }
@@ -101,54 +84,76 @@ body{
 .offer-timer span{
     background:#D4AF37;
     color:#000;
-    min-width:34px;
-    padding:6px 8px;
-    border-radius:8px;
+    min-width:38px;
+    padding:7px 10px;
+    border-radius:10px;
     font-weight:900;
-    display:inline-block;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    box-shadow:0 4px 15px rgba(212,175,55,.35);
 }
 
-/* NAVBAR */
+/* ====================================
+   NAVBAR
+==================================== */
 .nav-bar{
     background:#fff;
-    display:grid;
-    grid-template-columns:auto 1fr auto;
+    display:flex;
     align-items:center;
-    padding:18px 35px;
+    justify-content:space-between;
+    height:72px;
+    padding:0 35px;
     border-bottom:1px solid #eee;
     position:sticky;
     top:0;
     z-index:999;
     box-shadow:0 5px 20px rgba(0,0,0,.05);
+    direction:ltr;
 }
 
 /* LOGO */
 .logo{
-    order:3;
-    justify-self:end;
-    font-size:34px;
+    grid-column:1;
+    justify-self:start;
+    font-size:30px;
     font-weight:900;
     letter-spacing:3px;
+    cursor:pointer;
     background:linear-gradient(135deg,#D4AF37,#FFD700,#B8860B);
     -webkit-background-clip:text;
     -webkit-text-fill-color:transparent;
-    cursor:pointer;
+    line-height:1;
 }
 
 /* MENU */
 .menu{
-    order:2;
+    grid-column:2;
+    justify-self:center;
     display:flex;
-    justify-content:center;
     align-items:center;
-    gap:35px;
+    gap:28px;
+    transform: translateX(-80px);
 }
 
 .menu a{
-    text-decoration:none;
     color:#111;
-    font-size:15px;
+    font-size:14.5px;
     font-weight:700;
+    transition:.3s;
+    position:relative;
+    line-height:1;
+    padding:6px 2px;
+}
+
+.menu a::after{
+    content:'';
+    position:absolute;
+    bottom:-6px;
+    right:0;
+    width:0;
+    height:2px;
+    background:#D4AF37;
     transition:.3s;
 }
 
@@ -156,18 +161,22 @@ body{
     color:#D4AF37;
 }
 
+.menu a:hover::after{
+    width:100%;
+}
+
 /* ICONS */
 .icons{
-    order:1;
+    grid-column:3;
+    justify-self:end;
     display:flex;
     align-items:center;
-    justify-content:flex-start;
-    gap:12px;
+    gap:10px;
 }
 
 .icons button{
-    width:48px;
-    height:48px;
+    width:44px;
+    height:44px;
     border:none;
     border-radius:50%;
     background:#111;
@@ -176,10 +185,8 @@ body{
     display:flex;
     align-items:center;
     justify-content:center;
-    position:relative;
     transition:.3s;
-    margin:0;
-    padding:0;
+    position:relative;
 }
 
 .icons button:hover{
@@ -189,10 +196,10 @@ body{
 }
 
 .icons i{
-    font-size:18px;
+    font-size:16px;
 }
 
-/* CART COUNTER */
+/* CART COUNT */
 .cart-count{
     position:absolute;
     top:-6px;
@@ -208,79 +215,100 @@ body{
     font-size:12px;
     font-weight:900;
     border:2px solid #fff;
-    line-height:1;
 }
 
-/* MOBILE */
-@media(max-width:768px){
-
-    .nav-bar{
-        grid-template-columns:1fr;
-        gap:20px;
-        text-align:center;
-        padding:20px 15px;
-    }
-
-    .icons,
-    .menu,
-    .logo{
-        order:unset;
-        justify-content:center;
-        justify-self:center;
-    }
-
-    .menu{
-        flex-wrap:wrap;
-        gap:18px;
-    }
-
-    .logo{
-        font-size:30px;
-    }
-}
-
-/* HERO SECTION */
+/* ====================================
+   HERO
+==================================== */
 .hero{
     width:100%;
     overflow:hidden;
-    background:#fff;
     line-height:0;
+    background:#fff;
 }
 
 .hero img{
     width:100%;
     height:auto;
-    display:block;
-    object-fit:contain;
+    object-fit:cover;
 }
-  
-/* PRODUCTS */
-.container{padding:20px; max-width:900px; margin:auto;}
+
+/* ====================================
+   PRODUCTS
+==================================== */
+.container{
+    max-width:1200px;
+    margin:auto;
+    padding:50px 20px;
+}
+
+.container h2{
+    text-align:center;
+    margin-bottom:40px;
+    font-size:34px;
+    color:#111;
+}
 
 .products{
     display:grid;
-    grid-template-columns:repeat(2,1fr);
-    gap:20px;
+    grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+    gap:30px;
 }
 
 .product{
+    background:#fff;
     border:1px solid #eee;
-    padding:15px;
-    border-radius:15px;
+    border-radius:20px;
+    padding:20px;
     text-align:center;
+    transition:.35s;
+    box-shadow:0 10px 25px rgba(0,0,0,.04);
 }
 
-.product img{width:100%; border-radius:10px;}
+.product:hover{
+    transform:translateY(-10px);
+    box-shadow:0 20px 40px rgba(0,0,0,.12);
+}
 
+.product img{
+    border-radius:15px;
+    margin-bottom:20px;
+}
+
+.product h3{
+    font-size:22px;
+    margin-bottom:10px;
+}
+
+.product p{
+    color:#D4AF37;
+    font-size:22px;
+    font-weight:900;
+    margin-bottom:20px;
+}
+
+.product select{
+    width:100%;
+    padding:14px;
+    border:1px solid #ddd;
+    border-radius:12px;
+    margin-bottom:15px;
+    font-size:15px;
+    cursor:pointer;
+}
+
+/* BUTTONS */
 button{
     width:100%;
-    padding:12px;
+    padding:14px;
     border:none;
+    border-radius:12px;
     background:#000;
     color:#fff;
-    margin-top:10px;
-    border-radius:10px;
+    font-size:15px;
+    font-weight:700;
     cursor:pointer;
+    transition:.3s;
 }
 
 button:hover{
@@ -288,77 +316,281 @@ button:hover{
     color:#000;
 }
 
-/* CART */
+/* ====================================
+   CART DRAWER
+==================================== */
+.drawer{
+    position:fixed;
+    top:0;
+    right:-100%;
+    width:380px;
+    max-width:100%;
+    height:100%;
+    background:#fff;
+    box-shadow:-10px 0 40px rgba(0,0,0,.2);
+    padding:25px;
+    transition:.35s ease;
+    z-index:2000;
+    overflow-y:auto;
+}
+
+.drawer.active{
+    right:0;
+}
+
 .cart-item{
     display:flex;
     justify-content:space-between;
-    padding:10px;
+    align-items:center;
+    gap:15px;
+    padding:15px 0;
     border-bottom:1px solid #eee;
 }
 
 .total{
     text-align:center;
-    font-size:22px;
-    margin-top:15px;
+    font-size:24px;
+    margin:25px 0;
     color:#D4AF37;
+    font-weight:900;
 }
 
-input{
-    width:100%;
-    padding:12px;
-    margin:8px 0;
-}
-
-    .drawer{
-    position:fixed;
-    top:0;
-    right:-100%;
-    width:320px;
-    height:100%;
-    background:#fff;
-    box-shadow:-10px 0 30px rgba(0,0,0,.2);
-    padding:20px;
-    transition:.3s;
-    z-index:1000;
-}
-
-.drawer.active{
-    right:0;
-    transition:.35s ease;
-}
-
+/* ====================================
+   MODAL
+==================================== */
 .modal{
     position:fixed;
     top:50%;
     left:50%;
-    transform:translate(-50%,-50%) scale(0);
-    background:#fff;
-    padding:20px;
+    transform:translate(-50%,-50%) scale(.8);
     width:90%;
-    max-width:400px;
-    box-shadow:0 20px 50px rgba(0,0,0,.3);
-    border-radius:15px;
+    max-width:450px;
+    background:#fff;
+    padding:30px;
+    border-radius:20px;
+    box-shadow:0 25px 60px rgba(0,0,0,.3);
+    z-index:3000;
+    opacity:0;
+    visibility:hidden;
     transition:.3s;
-    z-index:2000;
 }
 
 .modal.active{
     transform:translate(-50%,-50%) scale(1);
+    opacity:1;
+    visibility:visible;
 }
 
+.modal h2{
+    text-align:center;
+    margin-bottom:25px;
+}
+
+.modal input{
+    width:100%;
+    padding:15px;
+    margin-bottom:15px;
+    border:1px solid #ddd;
+    border-radius:12px;
+    font-size:15px;
+}
+
+/* OVERLAY */
 #overlay{
     position:fixed;
-    top:0;
-    left:0;
-    width:100%;
-    height:100%;
-    background:rgba(0,0,0,.5);
-    display:none;
-    z-index:900;
+    inset:0;
+    background:rgba(0,0,0,.55);
+    z-index:1500;
+    opacity:0;
+    visibility:hidden;
+    transition:.3s;
 }
 
 #overlay.active{
-    display:block;
+    opacity:1;
+    visibility:visible;
+}
+
+/* ====================================
+   MOBILE HEADER ONLY
+==================================== */
+.mobile-actions,
+.mobile-menu {
+    display: none;
+}
+
+/* ====================================
+   MOBILE DESIGN
+==================================== */
+@media (max-width: 768px) {
+
+    .nav-bar{
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        padding:15px 18px;
+        direction:ltr; /* مهم جداً */
+    }
+
+    /* ترتيب العناصر */
+    .mobile-actions{
+        display:block;
+        order:1;
+    }
+
+    .logo{
+        order:2;
+        font-size:28px;
+        margin:0 auto;
+    }
+
+    .icons{
+        order:3;
+        display:flex;
+        align-items:center;
+        gap:0;
+    }
+
+    /* إخفاء المنيو الديسكتوب */
+    .menu{
+        display:none !important;
+    }
+
+    /* إظهار السلة فقط */
+    .icons button:not(:last-child){
+        display:none;
+    }
+
+    /* زر القائمة */
+    .mobile-btn{
+        width:46px;
+        height:46px;
+        border:none;
+        border-radius:50%;
+        background:#111;
+        color:#fff;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        cursor:pointer;
+        font-size:18px;
+    }
+
+    /* القائمة الجانبية */
+    .mobile-menu{
+        display:flex;
+        flex-direction:column;
+        position:fixed;
+        top:0;
+        left:-100%;
+        right:auto;
+        width:320px;
+        max-width:85%;
+        height:100vh;
+        background:#fff;
+        padding:25px;
+        z-index:5000;
+        box-shadow:-10px 0 40px rgba(0,0,0,.25);
+        transition:.4s ease;
+    }
+
+    .mobile-menu.active{
+        left:0;
+    }
+
+    /* هيدر القائمة */
+    .mobile-menu-header{
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        margin-bottom:30px;
+        padding-bottom:20px;
+        border-bottom:1px solid #eee;
+    }
+
+    .mobile-header-icons{
+        display:flex;
+        gap:12px;
+    }
+  
+.mobile-icons-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    width:100%;
+    margin-top:15px;
+    padding:10px 5px;
+}
+  
+    /* الأيقونات العادية */
+.mobile-icon{
+    width:48px;
+    height:48px;
+    border:none;
+    border-radius:50%;
+    background:#111;
+    color:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:18px;
+}
+
+  .mobile-icon:hover{
+    background:#D4AF37;
+    color:#000;
+    transform:translateY(-2px);
+}
+  
+    .close-menu{
+      position:absolute;
+        top:0;
+        right:0;
+        width:46px;
+        height:46px;
+        border:none;
+        border-radius:50%;
+        background:#f5f5f5;
+        color:#111;
+        box-shadow:none;
+        transition:.3s;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        cursor:pointer;
+        font-size:18px;
+    }
+
+    /* روابط القائمة */
+    .mobile-menu a{
+        padding:18px 0;
+        border-bottom:1px solid #f2f2f2;
+        color:#111;
+        font-size:18px;
+        font-weight:700;
+        transition:.3s;
+    }
+
+    .mobile-menu a:hover{
+        color:#D4AF37;
+        padding-right:12px;
+    }
+  #menuOverlay{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.4);
+    z-index:4000;
+    opacity:0;
+    visibility:hidden;
+    transition:.3s;
+}
+
+/* لما القائمة تفتح */
+#menuOverlay.active{
+    opacity:1;
+    visibility:visible;
+}
+  
 }
     
 </style>
@@ -366,305 +598,433 @@ input{
 
 <body>
 
-<!-- HEADER -->
-<!-- TOP OFFER BAR -->
-<div class="top-offer">
+    <!-- TOP OFFER BAR -->
+    <div class="top-offer">
+        <div class="offer-text">
+            خصم 10% لفترة محدودة
+        </div>
 
-  <div class="offer-text">
-        خصم 10% لفترة محدودة 
+        <div class="offer-timer">
+            OFFER ENDS IN :
+            <span id="h">04</span>h
+            <span id="m">25</span>m
+            <span id="s">50</span>s
+        </div>
     </div>
 
-   <div class="offer-timer">
-        s<span id="s">50</span>
-        m<span id="m">25</span>
-        h<span id="h">04</span>
-        :OFFER ENDS IN
-    </div>
+    <!-- NAVBAR -->
+    <header class="nav-bar">
+
+        <!-- LOGO -->
+        <div class="logo">VANTÉ</div>
+
+      <!-- MOBILE MENU BUTTON -->
+<div class="mobile-actions">
+    <button class="mobile-btn" onclick="toggleMobileMenu()">
+        <i class="fas fa-bars"></i>
+    </button>
+</div>
+
+<div id="menuOverlay" onclick="toggleMobileMenu()"></div>
+<!-- MOBILE SIDE MENU -->
+<nav class="mobile-menu" id="mobileMenu">
+
+   <div class="mobile-menu-header">
+
+  <div class="mobile-icons-row">
+    
+     <button class="mobile-icon left">
+        <i class="fas fa-user"></i>
+    </button>
+<button class="mobile-icon right">
+        <i class="fas fa-search"></i>
+    </button>
+   
+</div>
+
+    <button class="close-menu" onclick="toggleMobileMenu()">
+        <i class="fas fa-times"></i>
+    </button>
 
 </div>
 
-<!-- MAIN NAV -->
-<header class="nav-bar">
+    <a href="#" onclick="toggleMobileMenu()">Home</a>
+    <a href="#" onclick="toggleMobileMenu()">Collections</a>
+    <a href="#" onclick="toggleMobileMenu()">Clearance Sale</a>
+    <a href="#" onclick="toggleMobileMenu()">Contact Us</a>
 
-<!-- LEFT -->
-<div class="logo">VANTÉ</div>
-
-<!-- CENTER MENU -->
-<nav class="menu">
-<a href="#">Contact Us</a>
-<a href="#">Clearance Sale</a>
-<a href="#">Collections</a>
-<a href="#">Home</a>
 </nav>
 
-<!-- RIGHT ICONS -->
-<div class="icons">
+        <!-- MENU -->
+        <nav class="menu">
+            <a href="#">Home</a>
+            <a href="#">Collections</a>
+            <a href="#">Clearance Sale</a>
+            <a href="#">Contact Us</a>
+        </nav>
 
-<button onclick="openCart()">
-<i class="fas fa-shopping-bag"></i>
-<span class="cart-count" id="cartCount">0</span>
-</button>
-  
-<button><i class="fas fa-user"></i></button>
-<button><i class="fas fa-search"></i></button>
-  
-</div>
+        <!-- ICONS -->
+        <div class="icons">
+            <button type="button">
+                <i class="fas fa-search"></i>
+            </button>
 
-</header>
+            <button type="button">
+                <i class="fas fa-user"></i>
+            </button>
 
-<!-- HERO IMAGE -->
-<div class="hero">
-<img src="images/header.webp" alt="VANTÉ Banner">
-</div>
+            <button type="button" onclick="openCart()">
+                <i class="fas fa-shopping-bag"></i>
+                <span class="cart-count" id="cartCount">0</span>
+            </button>
+        </div>
 
-<!-- PRODUCTS -->
-<section class="container">
+    </header>
 
-<h2>المنتجات</h2>
+    <!-- HERO -->
+    <section class="hero">
+        <img src="images/header.webp" alt="VANTÉ Banner">
+    </section>
 
-<div class="products">
+    <!-- PRODUCTS -->
+    <section class="container">
 
-<div class="product">
-<img src="images/p1.webp">
-<h3>سوار كارتير</h3>
-<p>249 جنيه</p>
+        <h2>المنتجات</h2>
 
-<select id="size1">
-<option>16cm</option>
-<option>18cm</option>
-<option>20cm</option>
-</select>
+        <div class="products">
 
-<button onclick="addToCart('سوار كارتير',249,document.getElementById('size1').value,'images/p1.webp')">
-أضف للسلة
-</button>
-</div>
+            <!-- PRODUCT 1 -->
+            <div class="product">
+                <img src="images/p1.webp" alt="سوار كارتير">
 
-<div class="product">
-<img src="images/p2.webp">
-<h3>خاتم كارتير</h3>
-<p>199 جنيه</p>
+                <h3>سوار كارتير</h3>
+                <p>249 جنيه</p>
 
-<select id="size2">
-<option>7</option>
-<option>8</option>
-<option>9</option>
-</select>
+                <select id="size1">
+                    <option>16cm</option>
+                    <option>18cm</option>
+                    <option>20cm</option>
+                </select>
 
-<button onclick="addToCart('خاتم كارتير',199,document.getElementById('size2').value,'images/p2.webp')">
-أضف للسلة
-</button>
-</div>
+                <button onclick="addToCart(
+                    'سوار كارتير',
+                    249,
+                    document.getElementById('size1').value,
+                    'images/p1.webp'
+                )">
+                    أضف للسلة
+                </button>
+            </div>
 
-</div>
-</section>
+            <!-- PRODUCT 2 -->
+            <div class="product">
+                <img src="images/p2.webp" alt="خاتم كارتير">
+
+                <h3>خاتم كارتير</h3>
+                <p>199 جنيه</p>
+
+                <select id="size2">
+                    <option>7</option>
+                    <option>8</option>
+                    <option>9</option>
+                </select>
+
+                <button onclick="addToCart(
+                    'خاتم كارتير',
+                    199,
+                    document.getElementById('size2').value,
+                    'images/p2.webp'
+                )">
+                    أضف للسلة
+                </button>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- CART DRAWER -->
+    <div id="cartDrawer" class="drawer">
+        <h2>🛒 سلة التسوق</h2>
+
+        <div id="cartItems">السلة فارغة</div>
+
+        <div class="total">
+            الإجمالي: <span id="total">0</span> جنيه
+        </div>
+
+        <button onclick="openCheckout()">
+            تأكيد الطلب
+        </button>
+
+        <button onclick="closeCart()">
+            إغلاق
+        </button>
+    </div>
+
+    <!-- OVERLAY -->
+    <div id="overlay" onclick="closeCart()"></div>
+
+    <!-- CHECKOUT MODAL -->
+    <div id="checkoutModal" class="modal">
+        <h2>إتمام الطلب</h2>
+
+        <input id="name" type="text" placeholder="الاسم الكامل">
+        <input id="phone" type="tel" placeholder="رقم الهاتف">
+        <input id="address" type="text" placeholder="العنوان بالكامل">
+
+        <button onclick="checkout()">
+            إرسال الطلب
+        </button>
+
+        <button onclick="closeCheckout()">
+            رجوع
+        </button>
+    </div>
 
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {
+    getFirestore,
+    collection,
+    addDoc
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-/* 🔥 Firebase Config */
+/* =========================================
+   FIREBASE CONFIG
+========================================= */
 const firebaseConfig = {
-  apiKey: "YOUR-API-KEY",
-  authDomain: "YOUR-DOMAIN",
-  projectId: "YOUR-ID",
-  storageBucket: "YOUR-BUCKET",
-  messagingSenderId: "YOUR-ID",
-  appId: "YOUR-APP"
+    apiKey: "YOUR-API-KEY",
+    authDomain: "YOUR-DOMAIN",
+    projectId: "YOUR-PROJECT-ID",
+    storageBucket: "YOUR-BUCKET",
+    messagingSenderId: "YOUR-SENDER-ID",
+    appId: "YOUR-APP-ID"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-/* CART */
+/* =========================================
+   CART
+========================================= */
 let cart = [];
 
-/* ADD TO CART */
-window.addToCart = function(name, price, size, image){
+/* =========================================
+   ADD TO CART
+========================================= */
+window.addToCart = function(name, price, size, image) {
 
-    let existing = cart.find(item =>
+    const existing = cart.find(item =>
         item.name === name && item.size === size
     );
 
-    if(existing){
-        existing.qty += 1;
+    if (existing) {
+        existing.qty++;
     } else {
         cart.push({
             name,
             price,
             size,
             image,
-            qty:1
+            qty: 1
         });
     }
 
     updateCart();
-    openCart(); // 🛒 يفتح تلقائي
-}
+    openCart();
+};
 
-
-/* UPDATE CART UI */
-function updateCart(){
+/* =========================================
+   UPDATE CART
+========================================= */
+function updateCart() {
 
     let html = "";
     let total = 0;
+    let itemsCount = 0;
 
-    cart.forEach((item,i)=>{
+    cart.forEach((item, index) => {
 
-        total += item.price * item.qty;
+        const itemTotal = item.price * item.qty;
+        total += itemTotal;
+        itemsCount += item.qty;
 
         html += `
-        <div class="cart-item">
+            <div class="cart-item">
+                <div>
+                    <strong>${item.name}</strong><br>
+                    <small>المقاس: ${item.size}</small>
+                </div>
 
-            <div>
-                <b>${item.name}</b><br>
-                ${item.size}
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <button onclick="changeQty(${index}, -1)">-</button>
+                    <span>${item.qty}</span>
+                    <button onclick="changeQty(${index}, 1)">+</button>
+                </div>
+
+                <div>
+                    ${itemTotal} ج
+                </div>
             </div>
-
-            <div style="display:flex;align-items:center;gap:10px">
-
-                <button onclick="changeQty(${i},-1)">-</button>
-
-                <span>${item.qty}</span>
-
-                <button onclick="changeQty(${i},1)">+</button>
-
-            </div>
-
-            <div>
-                ${item.price * item.qty} ج
-            </div>
-
-        </div>`;
+        `;
     });
 
     document.getElementById("cartItems").innerHTML =
         cart.length ? html : "السلة فارغة";
 
     document.getElementById("total").innerText = total;
-    document.getElementById("cartCount").innerText = cart.length;
+    document.getElementById("cartCount").innerText = itemsCount;
 }
 
+/* =========================================
+   CHANGE QUANTITY
+========================================= */
+window.changeQty = function(index, change) {
 
-/* CHANGE QTY */
-window.changeQty = function(index, value){
+    cart[index].qty += change;
 
-    cart[index].qty += value;
-
-    if(cart[index].qty <= 0){
-        cart.splice(index,1);
+    if (cart[index].qty <= 0) {
+        cart.splice(index, 1);
     }
 
     updateCart();
-}
+};
 
-
-/* OPEN CART */
-window.openCart = function(){
+/* =========================================
+   CART DRAWER
+========================================= */
+window.openCart = function() {
     document.getElementById("cartDrawer").classList.add("active");
     document.getElementById("overlay").classList.add("active");
-}
+};
 
-
-/* CLOSE CART */
-window.closeCart = function(){
+window.closeCart = function() {
     document.getElementById("cartDrawer").classList.remove("active");
     document.getElementById("overlay").classList.remove("active");
-}
+};
 
-   window.openCheckout = function(){
+/* =========================================
+   CHECKOUT MODAL
+========================================= */
+window.openCheckout = function() {
     document.getElementById("checkoutModal").classList.add("active");
-}
+    document.getElementById("overlay").classList.add("active");
+};
 
-   window.closeCheckout = function(){
+window.closeCheckout = function() {
     document.getElementById("checkoutModal").classList.remove("active");
-}
 
-window.checkout = async function(){
+    if (!document.getElementById("cartDrawer").classList.contains("active")) {
+        document.getElementById("overlay").classList.remove("active");
+    }
+};
 
-    const name = document.getElementById("name").value;
-    const phone = document.getElementById("phone").value;
-    const address = document.getElementById("address").value;
+/* =========================================
+   CHECKOUT
+========================================= */
+window.checkout = async function() {
 
-    if(!name || !phone || !address){
-        alert("املأ البيانات");
+    const name = document.getElementById("name").value.trim();
+    const phone = document.getElementById("phone").value.trim();
+    const address = document.getElementById("address").value.trim();
+
+    if (!name || !phone || !address) {
+        alert("يرجى ملء جميع البيانات");
         return;
     }
 
+    const total = cart.reduce(
+        (sum, item) => sum + (item.price * item.qty),
+        0
+    );
+
     const order = {
-        name,
+        customerName: name,
         phone,
         address,
-        cart,
-        total: cart.reduce((a,b)=>a+b.price,0),
+        items: cart,
+        total,
         createdAt: new Date()
     };
 
-    await addDoc(collection(db,"orders"),order);
+    try {
+        await addDoc(collection(db, "orders"), order);
 
-    let msg = `طلب جديد\n${name}\n${phone}\n${address}\n`;
+        let message = `طلب جديد من متجر VANTÉ\n\n`;
+        message += `الاسم: ${name}\n`;
+        message += `الهاتف: ${phone}\n`;
+        message += `العنوان: ${address}\n\n`;
+        message += `المنتجات:\n`;
 
-    cart.forEach(i=>{
-        msg += `\n${i.name} - ${i.size} - ${i.price}`;
-    });
+        cart.forEach(item => {
+            message += `- ${item.name}\n`;
+            message += `  المقاس: ${item.size}\n`;
+            message += `  الكمية: ${item.qty}\n`;
+            message += `  السعر: ${item.price * item.qty} جنيه\n\n`;
+        });
 
-    window.open(`https://wa.me/201106018685?text=${encodeURIComponent(msg)}`);
+        message += `الإجمالي: ${total} جنيه`;
 
-    alert("تم الطلب");
+        window.open(
+            `https://wa.me/201106018685?text=${encodeURIComponent(message)}`,
+            "_blank"
+        );
 
-    cart = [];
-    updateCart();
-}
+        alert("تم إرسال طلبك بنجاح");
 
-let targetTime = new Date().getTime() + (4*60*60*1000);
+        cart = [];
+        updateCart();
 
-setInterval(()=>{
+        closeCheckout();
+        closeCart();
 
-    let now = new Date().getTime();
-    let diff = targetTime - now;
+        document.getElementById("name").value = "";
+        document.getElementById("phone").value = "";
+        document.getElementById("address").value = "";
 
-    if(diff <= 0) return;
+    } catch (error) {
+        console.error(error);
+        alert("حدث خطأ أثناء إرسال الطلب");
+    }
+};
 
-    let h = Math.floor(diff / (1000*60*60));
-    let m = Math.floor((diff % (1000*60*60)) / (1000*60));
-    let s = Math.floor((diff % (1000*60)) / 1000);
+/* =========================================
+   OFFER COUNTDOWN
+========================================= */
+const targetTime = new Date().getTime() + (4 * 60 * 60 * 1000);
 
-    document.getElementById("h").innerText = String(h).padStart(2,"0");
-    document.getElementById("m").innerText = String(m).padStart(2,"0");
-    document.getElementById("s").innerText = String(s).padStart(2,"0");
+setInterval(() => {
 
-},1000);
-  
+    const now = new Date().getTime();
+    const diff = targetTime - now;
+
+    if (diff <= 0) return;
+
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor(
+        (diff % (1000 * 60 * 60)) / (1000 * 60)
+    );
+    const seconds = Math.floor(
+        (diff % (1000 * 60)) / 1000
+    );
+
+    document.getElementById("h").textContent =
+        String(hours).padStart(2, "0");
+
+    document.getElementById("m").textContent =
+        String(minutes).padStart(2, "0");
+
+    document.getElementById("s").textContent =
+        String(seconds).padStart(2, "0");
+
+}, 1000);
+  /* MOBILE MENU */
+window.toggleMobileMenu = function() {
+    document.getElementById("mobileMenu").classList.toggle("active");
+    document.getElementById("menuOverlay").classList.toggle("active");
+};
+
 </script>
-    
-<div id="cartDrawer" class="drawer">
-    <h2>🛒 سلة التسوق</h2>
-
-    <div id="cartItems"></div>
-
-    <div class="total">
-        الإجمالي: <span id="total">0</span> جنيه
-    </div>
-
-    <button onclick="openCheckout()">تأكيد الطلب</button>
-    <button onclick="closeCart()">إغلاق</button>
-</div>
-
-<div id="overlay" onclick="closeCart()"></div>
-
-<div id="checkoutModal" class="modal">
-
-    <h2>إتمام الطلب</h2>
-
-    <input id="name" placeholder="الاسم">
-    <input id="phone" placeholder="الهاتف">
-    <input id="address" placeholder="العنوان">
-
-    <button onclick="checkout()">إرسال الطلب</button>
-    <button onclick="closeCheckout()">رجوع</button>
-
-</div>
-    
 </body>
 </html>
