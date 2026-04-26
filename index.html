@@ -1044,6 +1044,20 @@ function renderProduct(doc) {
     `;
 }
 
+const products = [];
+
+snapshot.forEach((doc) => {
+    const data = doc.data();
+
+    products.push({
+        id: doc.id,
+        ...data,
+        createdAt: data.createdAt?.seconds || 0
+    });
+});
+
+products.sort((a, b) => b.createdAt - a.createdAt);
+
 /* =========================================
    LOAD PRODUCTS (FIXED)
 ========================================= */
@@ -1396,8 +1410,9 @@ window.checkout = async function() {
         address,
         items: cart,
         total,
-        createdAt: new Date()
-    };
+        createdAt: serverTimestamp()
+        );
+
 
     try {
         await addDoc(collection(db, "orders"), order);
@@ -1439,6 +1454,14 @@ window.checkout = async function() {
         alert("حدث خطأ أثناء إرسال الطلب");
     }
 };
+
+let html = "";
+products.forEach((product) => {
+    html += renderProduct({
+        id: product.id,
+        data: () => product
+    });
+});
   
 /* =========================================
    OFFER COUNTDOWN
