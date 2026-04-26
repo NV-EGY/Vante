@@ -100,7 +100,7 @@ await addDoc(collection(db,"products"),{
     price,
     image,
     sizes,
-    createdAt: Date.now()
+    createdAt: serverTimestamp()
 });
 
 alert("تم إضافة المنتج");
