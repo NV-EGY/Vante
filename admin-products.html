@@ -77,25 +77,29 @@
 </head>
 <body>
 
-<div class="container">
-    <h1>إضافة منتج جديد</h1>
+<div>
+    <h2>إضافة منتج</h2>
 
-    <input type="text" id="name" placeholder="اسم المنتج">
-
-    <input type="number" id="price" placeholder="السعر">
-
-    <input type="text" id="image" placeholder="رابط الصورة">
-
-    <input type="text" id="sizes" placeholder="المقاسات (مثال: 16cm,18cm,20cm)">
-
-    <textarea id="description" placeholder="وصف المنتج"></textarea>
-
-    <button onclick="addProduct()">إضافة المنتج</button>
-
-    <div id="status"></div>
+    <input id="name" placeholder="اسم المنتج">
+    <input id="price" type="number" placeholder="السعر">
+    <input id="image" placeholder="رابط الصورة">
+    <input id="sizes" placeholder="المقاسات (16,18,20)">
+    
+    <button onclick="addProduct()">إضافة</button>
 </div>
+<div id="adminProducts"></div>
 
 <script type="module">
+
+import { updateDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+import { deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+window.deleteProduct = async function(id){
+    await deleteDoc(doc(db, "products", id));
+    alert("تم الحذف");
+};
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
     getFirestore,
@@ -126,49 +130,68 @@ const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 const db = getFirestore(app);
 
+
+const adminBox = document.getElementById("adminProducts");
+
+onSnapshot(collection(db, "products"), (snapshot) => {
+
+    let html = "";
+
+    snapshot.forEach((doc) => {
+        const p = doc.data();
+
+        html += `
+        <div style="border:1px solid #ddd;padding:10px;margin:10px">
+
+            <img src="${p.image}" width="80">
+
+            <h3>${p.name}</h3>
+            <p>${p.price} جنيه</p>
+
+            <button onclick="deleteProduct('${doc.id}')">حذف</button>
+            <button onclick="editProduct('${doc.id}', '${p.name}', ${p.price})">تعديل</button>
+
+        </div>
+        `;
+    });
+
+    adminBox.innerHTML = html;
+});
+
 /* =========================================
    ADD PRODUCT FUNCTION
 ========================================= */
-window.addProduct = async function() {
+window.addProduct = async function () {
 
-    const name = document.getElementById("name").value.trim();
+    const name = document.getElementById("name").value;
     const price = Number(document.getElementById("price").value);
-    const image = document.getElementById("image").value.trim();
+    const image = document.getElementById("image").value;
+    const sizes = document.getElementById("sizes").value.split(",");
 
-    const sizes = document.getElementById("sizes").value
-        .split(",")
-        .map(s => s.trim())
-        .filter(Boolean);
+    await addDoc(collection(db, "products"), {
+        name,
+        price,
+        image,
+        sizes,
+        createdAt: serverTimestamp()
+    });
 
-    const description = document.getElementById("description").value.trim();
+    alert("تم إضافة المنتج");
+};
 
-    if (!name || !price || !image) {
-        document.getElementById("status").innerHTML =
-            "❌ لازم تملأ الاسم + السعر + الصورة";
-        return;
-    }
+window.editProduct = async function(id, oldName, oldPrice){
 
-    try {
-        await addDoc(collection(db, "products"), {
-            name,
-            price,
-            image,
-            sizes,
-            description,
-            createdAt: serverTimestamp()
-        });
+    const newName = prompt("اسم المنتج الجديد", oldName);
+    const newPrice = prompt("السعر الجديد", oldPrice);
 
-        document.getElementById("status").innerHTML =
-            "✅ تم إضافة المنتج بنجاح";
+    if(!newName || !newPrice) return;
 
-        document.querySelectorAll("input, textarea")
-            .forEach(el => el.value = "");
+    await updateDoc(doc(db, "products", id), {
+        name: newName,
+        price: Number(newPrice)
+    });
 
-    } catch (error) {
-        console.error(error);
-        document.getElementById("status").innerHTML =
-            "❌ حصل خطأ في الإضافة";
-    }
+    alert("تم التعديل");
 };
 </script>
 
