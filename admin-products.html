@@ -234,9 +234,9 @@ window.addProduct = async function () {
         document.getElementById("imageFile").value = "";
 
     } catch (error) {
-        console.error(error);
-        alert("حصل خطأ أثناء رفع الصورة");
-    }
+    console.error("Firebase Error:", error);
+    alert("خطأ: " + error.message);
+}
 };
 
 </script>
