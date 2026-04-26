@@ -95,11 +95,11 @@ return;
 }
 
 await addDoc(collection(db,"products"),{
-name,
-price,
-image,
-sizes,
-createdAt: serverTimestamp()
+    name,
+    price,
+    image,
+    sizes,
+    createdAt: Date.now()
 });
 
 alert("تم إضافة المنتج");
