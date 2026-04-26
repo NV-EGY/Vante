@@ -1079,4 +1079,339 @@ if(status === "new"){
     let d = o.createdAt?.toDate?.();
 
 if(date && d){
-  if(d.toDateString() !== new Date
+  if(d.toDateString() !== new Date(date).toDateString()) return;
+}
+
+    count++;
+
+ let msg = `DAHAP
+كود الطلب: ${o.orderID || "-"}
+
+--------------------
+👤 اسم العميل: ${o.customerName || "-"}
+📞 رقم الهاتف: ${o.phone || "-"}
+
+📍 العنوان:
+${o.gov || "-"} - ${o.city || "-"}
+${o.address || "-"}
+
+💎 تفاصيل الطلب:
+${(o.orderDetails || []).map((item,i)=>`
+سلسلة ${i+1}:
+🏷️ ${item.names}
+🎨 ${item.design}
+🌍 ${item.lang}
+`).join("\n")}
+
+📦 الكمية: ${o.quantity}<br>
+💰 السعر: ${o.price}<br>
+🚚 الشحن: ${o.shipping}<br>
+💵 الإجمالي: <b>${o.finalTotal}</b>
+
+🕒 وقت الطلب:
+${o.createdAt?.toDate?.().toLocaleString('ar-EG') || "-"}
+`;
+
+html += `
+<div class="card ${status}" style="position:relative;">
+
+  <!-- ✅ checkbox -->
+  <input type="checkbox" class="selectOrder" 
+  value="${btoa(unescape(encodeURIComponent(JSON.stringify(o))))}">
+
+  <!-- ✅ الهيدر -->
+  <div onclick="toggleOrder('${o.id}')" style="
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    cursor:pointer;
+  ">
+
+    <b>🧾 ${o.orderID}</b>
+    <span class="status ${status}">${status}</span>
+
+  </div>
+
+  <!-- ✅ التفاصيل -->
+  <div id="order-${o.id}" class="order-body">
+
+  <div class="order-info">
+    👤 ${o.customerName} <br>
+    📞 ${o.phone} <br>
+    📍 ${o.gov} - ${o.city} <br>
+    ${o.address} <br><br>
+
+    💎 التفاصيل:<br>
+    ${(o.orderDetails || []).map((item,i)=>`
+      🔹 ${item.names} - ${item.design} - ${item.lang}<br>
+    `).join("")}
+  </div>
+
+  <div class="order-summary">
+
+  📦 الكمية: ${o.quantity}<br>
+💰 السعر: ${o.price}<br>
+🚚 الشحن: ${o.shipping}<br>
+💵 الإجمالي: <b>${o.finalTotal}</b>
+
+  <div style="display:flex; gap:6px; margin-top:10px;">
+
+    <button onclick="editOrder('${o.id}')" style="
+      flex:1;
+      background:#ffc107;
+      border:none;
+      padding:6px;
+      border-radius:8px;
+      cursor:pointer;
+    ">✏️</button>
+
+    <button onclick="deleteOrder('${o.id}')" style="
+      flex:1;
+      background:#dc3545;
+      color:#fff;
+      border:none;
+      padding:6px;
+      border-radius:8px;
+      cursor:pointer;
+    ">🗑️</button>
+
+     </div>
+  </div>
+
+</div>
+
+
+    <div class="actions">
+
+      <a class="action-btn whatsapp" target="_blank"
+      href="https://wa.me/2${o.phone}">
+      💬
+      </a>
+
+      <button class="action-btn copy" onclick='copyText(${JSON.stringify(msg)})'>
+      📋
+      </button>
+
+      <button class="action-btn ship" onclick="update('${o.id}','shipped')">
+      🚚
+      </button>
+
+      <button class="action-btn doneBtn" onclick="update('${o.id}','done')">
+      ✅
+      </button>
+
+      <button class="action-btn" style="background:#999;color:#fff"
+      onclick="update('${o.id}','new')">
+      🔄
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+`;
+});
+  document.getElementById("orders").innerHTML=html;
+  document.getElementById("count").innerText="📊 "+count;
+}
+
+function updateSelectionUI(){
+
+  let selected = document.querySelectorAll(".selectOrder:checked").length;
+
+  // عداد
+  document.getElementById("selectedCount").innerText = "✅ المحدد: " + selected;
+
+  // زرار select all
+  let btn = document.getElementById("selectAllBtn");
+
+  if(selected > 0){
+    btn.style.display = "flex";  // 👈 يظهر
+  }else{
+    btn.style.display = "none";  // 👈 يختفي
+  }
+}
+
+// ⚠️✅ popup
+window.showPopup = (o)=>{
+
+  let box = document.getElementById("msgPopup");
+  let content = document.getElementById("msgContent");
+
+  content.innerHTML = `
+    <div style="text-align:center">
+
+      <h3 style="margin-bottom:10px;">🛒 أوردر جديد</h3>
+
+      <div style="font-size:18px;font-weight:bold;">
+        👤 ${o.customerName || "غير معروف"}
+      </div>
+
+      <div style="margin-top:5px;color:#666;">
+        📞 ${o.phone || "-"}
+      </div>
+
+      <a href="https://wa.me/2${o.phone}" target="_blank"
+      style="
+        display:block;
+        margin-top:15px;
+        background:#25D366;
+        color:#fff;
+        padding:10px;
+        border-radius:10px;
+        text-decoration:none;
+      ">
+        💬 فتح واتساب
+      </a>
+
+    </div>
+  `;
+
+  box.style.display = "block";
+
+// يقفل لوحده بعد 5 ثواني
+  setTimeout(()=>{
+    box.style.display = "none";
+  },5000);
+};
+
+// 📋 copy
+window.copyText = (t)=>{
+  navigator.clipboard.writeText(decodeURIComponent(t));
+}
+
+// 🖨️ PRINT ONLY (NO PDF)
+window.printSelected = () => {
+
+  let selected = document.querySelectorAll(".selectOrder:checked");
+
+  if(selected.length === 0){
+    alert("اختار أوردرات الأول");
+    return;
+  }
+
+  let win = window.open('', '', 'width=900,height=700');
+
+  let html = `
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+
+body{
+  margin:0;
+  font-family: Arial;
+}
+
+/* A4 PAGE */
+.page{
+  width:210mm;
+  height:297mm;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  grid-template-rows:1fr 1fr;
+}
+
+/* INVOICE */
+.invoice{
+  border:1px solid #000;
+  padding:12px;
+  box-sizing:border-box;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+}
+
+/* HEADER */
+.header{
+  display:flex;
+  justify-content:space-between;
+  font-size:12px;
+  font-weight:bold;
+}
+
+/* CONTENT */
+.content{
+  font-size:12px;
+  line-height:1.6;
+  margin-top:10px;
+}
+
+/* CENTER MESSAGE */
+.centerMsg{
+  text-align:center;
+  font-size:13px;
+  font-weight:bold;
+  margin-top:20px;
+}
+
+hr{
+  margin:6px 0;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="page">
+`;
+
+  selected.forEach(el => {
+
+    let o = JSON.parse(decodeURIComponent(escape(atob(el.value))));
+
+    html += `
+    <div class="invoice">
+
+      <div class="header">
+        <div>DAHAP</div>
+        <div>
+          ${o.createdAt?.toDate?.().toLocaleString('en-US') || new Date().toLocaleString('en-US')}
+        </div>
+      </div>
+
+      <hr>
+
+      <div class="content">
+        <div><b>Order ID:</b> ${o.orderID || "-"}</div>
+        <div><b>Name:</b> ${o.customerName || "-"}</div>
+        <div><b>Phone:</b> ${o.phone || "-"}</div>
+
+        <br>
+
+        <div><b>Address:</b></div>
+        <div>${o.gov || "-"} - ${o.city || "-"}</div>
+        <div>${o.address || "-"}</div>
+      </div>
+
+      <div class="centerMsg">
+        Thank you for your order 💛<br>
+        We appreciate your trust in DAHAP
+      </div>
+
+    </div>
+    `;
+  });
+
+html += `
+</div>
+
+<script>
+  window.onload = function(){
+    window.print();
+  };
+<\/script>
+
+</body>
+</html>
+`;
+
+win.document.write(html);
+win.document.close();
+};
+</script>
+
+</body>
+</html>
