@@ -3,65 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>إدارة منتجات VANTÉ</title>
-
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+<title>Admin Products</title>
 
 <style>
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-    font-family:'Cairo',sans-serif;
-}
-
-body{
-    background:#f8f8f8;
-    padding:40px 20px;
-}
-
-.container{
-    max-width:700px;
-    margin:auto;
-    background:#fff;
-    padding:35px;
-    border-radius:25px;
-    box-shadow:0 20px 50px rgba(0,0,0,.1);
-}
-
-h2{
-    text-align:center;
-    margin-bottom:25px;
-}
-
-input{
-    width:100%;
-    padding:15px;
-    margin-bottom:15px;
-    border:1px solid #ddd;
-    border-radius:12px;
-}
-
-button{
-    width:100%;
-    padding:16px;
-    border:none;
-    border-radius:12px;
-    background:#000;
-    color:#fff;
-    font-size:16px;
-    font-weight:700;
-    cursor:pointer;
-}
-
-button:hover{
-    background:#D4AF37;
-    color:#000;
-}
-
-.productBox{
-    margin-top:25px;
-}
+body{font-family:Cairo;background:#f8f8f8;padding:30px}
+.container{max-width:600px;margin:auto;background:#fff;padding:20px;border-radius:15px}
+input,button{width:100%;padding:12px;margin:10px 0;border-radius:10px;border:1px solid #ddd}
+button{background:#000;color:#fff;font-weight:bold;cursor:pointer}
+.product{border:1px solid #ddd;padding:10px;margin-top:10px;border-radius:10px}
+img{width:80px;border-radius:10px}
 </style>
 </head>
 
@@ -73,12 +23,12 @@ button:hover{
 
 <input id="name" placeholder="اسم المنتج">
 <input id="price" type="number" placeholder="السعر">
-<input type="file" id="imageFile">
+<input id="image" placeholder="رابط الصورة (URL)">
 <input id="sizes" placeholder="المقاسات (16,18,20)">
 
-<button onclick="addProduct()">إضافة المنتج</button>
+<button onclick="addProduct()">إضافة</button>
 
-<div id="adminProducts" class="productBox"></div>
+<div id="adminProducts"></div>
 
 </div>
 
@@ -86,116 +36,85 @@ button:hover{
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
-    getFirestore,
-    collection,
-    addDoc,
-    serverTimestamp,
-    onSnapshot,
-    deleteDoc,
-    updateDoc,
-    doc,
-    query,
-    orderBy
+getFirestore,
+collection,
+addDoc,
+serverTimestamp,
+onSnapshot,
+deleteDoc,
+doc,
+query,
+orderBy
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-import {
-    getStorage,
-    ref,
-    uploadBytes,
-    getDownloadURL
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
-
-/* ================= FIREBASE ================= */
-
+/* Firebase */
 const firebaseConfig = {
-  apiKey: "AIzaSyDGL6mZnkD2jL77egf9GHl6l42vrYlSpSo",
-  authDomain: "vante-1.firebaseapp.com",
-  projectId: "vante-1",
-  storageBucket: "vante-1.firebasestorage.app",
-  messagingSenderId: "97830758006",
-  appId: "1:97830758006:web:4e6eda347f8f298de8a157"
+apiKey: "AIzaSyDGL6mZnkD2jL77egf9GHl6l42vrYlSpSo",
+authDomain: "vante-1.firebaseapp.com",
+projectId: "vante-1"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const storage = getStorage(app);
 
-/* ================= LOAD PRODUCTS ================= */
-
+/* LOAD */
 const box = document.getElementById("adminProducts");
 
-onSnapshot(query(collection(db,"products"), orderBy("createdAt","desc")), (snap)=>{
+onSnapshot(query(collection(db,"products"),orderBy("createdAt","desc")),(snap)=>{
 
-    let html = "";
+let html="";
 
-    snap.forEach(docSnap=>{
-        const p = docSnap.data();
+snap.forEach(d=>{
+const p = d.data();
 
-        html += `
-        <div style="border:1px solid #ddd;padding:10px;margin:10px;border-radius:10px">
-            <img src="${p.image}" width="70">
-            <h3>${p.name}</h3>
-            <p>${p.price} جنيه</p>
-
-            <button onclick="deleteProduct('${docSnap.id}')">حذف</button>
-        </div>
-        `;
-    });
-
-    box.innerHTML = html;
+html += `
+<div class="product">
+<img src="${p.image}">
+<h3>${p.name}</h3>
+<p>${p.price} جنيه</p>
+<button onclick="deleteProduct('${d.id}')">حذف</button>
+</div>
+`;
 });
 
-/* ================= ADD PRODUCT ================= */
+box.innerHTML = html;
 
-async function addProduct() {
+});
 
-    const name = document.getElementById("name").value.trim();
-    const price = Number(document.getElementById("price").value);
-    const file = document.getElementById("imageFile").files[0];
-    const sizes = document.getElementById("sizes").value.split(",");
+/* ADD */
+window.addProduct = async function(){
 
-    if(!name || !price || !file){
-        alert("من فضلك أكمل البيانات");
-        return;
-    }
+const name = document.getElementById("name").value.trim();
+const price = Number(document.getElementById("price").value);
+const image = document.getElementById("image").value.trim();
+const sizes = document.getElementById("sizes").value.split(",");
 
-    try{
-
-        const imgRef = ref(storage, `products/${Date.now()}_${file.name}`);
-
-        await uploadBytes(imgRef, file);
-
-        const imageURL = await getDownloadURL(imgRef);
-
-        await addDoc(collection(db,"products"),{
-            name,
-            price,
-            image:imageURL,
-            sizes,
-            createdAt:serverTimestamp()
-        });
-
-        alert("تم إضافة المنتج");
-
-        document.getElementById("name").value = "";
-        document.getElementById("price").value = "";
-        document.getElementById("sizes").value = "";
-        document.getElementById("imageFile").value = "";
-
-    } catch(err){
-        console.error(err);
-        alert("حصل خطأ: " + err.message);
-    }
+if(!name || !price || !image){
+alert("كمل البيانات");
+return;
 }
 
-/* ================= MAKE FUNCTION GLOBAL ================= */
-window.addProduct = addProduct;
+await addDoc(collection(db,"products"),{
+name,
+price,
+image,
+sizes,
+createdAt: serverTimestamp()
+});
 
-/* ================= DELETE ================= */
+alert("تم إضافة المنتج");
 
+document.getElementById("name").value="";
+document.getElementById("price").value="";
+document.getElementById("image").value="";
+document.getElementById("sizes").value="";
+
+}
+
+/* DELETE */
 window.deleteProduct = async function(id){
-    await deleteDoc(doc(db,"products",id));
-    alert("تم الحذف");
+await deleteDoc(doc(db,"products",id));
+alert("تم الحذف");
 };
 
 </script>
