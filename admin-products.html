@@ -1,93 +1,86 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>إدارة منتجات VANTÉ</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>إدارة منتجات VANTÉ</title>
 
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
 
-    <style>
-        *{
-            margin:0;
-            padding:0;
-            box-sizing:border-box;
-            font-family:'Cairo',sans-serif;
-        }
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Cairo',sans-serif;
+}
 
-        body{
-            background:#f8f8f8;
-            padding:40px 20px;
-        }
+body{
+    background:#f8f8f8;
+    padding:40px 20px;
+}
 
-        .container{
-            max-width:700px;
-            margin:auto;
-            background:#fff;
-            padding:35px;
-            border-radius:25px;
-            box-shadow:0 20px 50px rgba(0,0,0,.1);
-        }
+.container{
+    max-width:700px;
+    margin:auto;
+    background:#fff;
+    padding:35px;
+    border-radius:25px;
+    box-shadow:0 20px 50px rgba(0,0,0,.1);
+}
 
-        h1{
-            text-align:center;
-            margin-bottom:30px;
-            font-size:34px;
-            color:#111;
-        }
+h2{
+    text-align:center;
+    margin-bottom:25px;
+}
 
-        input, textarea{
-            width:100%;
-            padding:16px;
-            margin-bottom:18px;
-            border:1px solid #ddd;
-            border-radius:14px;
-            font-size:15px;
-        }
+input{
+    width:100%;
+    padding:15px;
+    margin-bottom:15px;
+    border:1px solid #ddd;
+    border-radius:12px;
+}
 
-        textarea{
-            resize:vertical;
-            min-height:120px;
-        }
+button{
+    width:100%;
+    padding:16px;
+    border:none;
+    border-radius:12px;
+    background:#000;
+    color:#fff;
+    font-size:16px;
+    font-weight:700;
+    cursor:pointer;
+}
 
-        button{
-            width:100%;
-            padding:18px;
-            border:none;
-            border-radius:14px;
-            background:#000;
-            color:#fff;
-            font-size:18px;
-            font-weight:800;
-            cursor:pointer;
-            transition:.3s;
-        }
+button:hover{
+    background:#D4AF37;
+    color:#000;
+}
 
-        button:hover{
-            background:#D4AF37;
-            color:#000;
-        }
-
-        #status{
-            margin-top:20px;
-            text-align:center;
-            font-weight:700;
-        }
-    </style>
+.productBox{
+    margin-top:25px;
+}
+</style>
 </head>
+
 <body>
 
-<div>
-    <h2>إضافة منتج</h2>
+<div class="container">
 
-    <input id="name" placeholder="اسم المنتج">
-    <input id="price" type="number" placeholder="السعر">
-   <input type="file" id="imageFile" accept="image/*">
-    <input id="sizes" placeholder="المقاسات (16,18,20)">
-    
-    <button onclick="addProduct()">إضافة</button>
+<h2>إضافة منتج</h2>
+
+<input id="name" placeholder="اسم المنتج">
+<input id="price" type="number" placeholder="السعر">
+<input type="file" id="imageFile">
+<input id="sizes" placeholder="المقاسات (16,18,20)">
+
+<button onclick="addProduct()">إضافة المنتج</button>
+
+<div id="adminProducts" class="productBox"></div>
+
 </div>
-<div id="adminProducts"></div>
 
 <script type="module">
 
@@ -100,10 +93,10 @@ import {
     onSnapshot,
     deleteDoc,
     updateDoc,
-    doc
+    doc,
+    query,
+    orderBy
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
 
 import {
     getStorage,
@@ -112,131 +105,97 @@ import {
     getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
-/* =========================================
-   FIREBASE CONFIG
-========================================= */
+/* ================= FIREBASE ================= */
+
 const firebaseConfig = {
   apiKey: "AIzaSyDGL6mZnkD2jL77egf9GHl6l42vrYlSpSo",
   authDomain: "vante-1.firebaseapp.com",
   projectId: "vante-1",
   storageBucket: "vante-1.firebasestorage.app",
   messagingSenderId: "97830758006",
-  appId: "1:97830758006:web:4e6eda347f8f298de8a157",
-  measurementId: "G-B06FW6BFT9"
+  appId: "1:97830758006:web:4e6eda347f8f298de8a157"
 };
 
-/* =========================================
-   INIT FIREBASE
-========================================= */
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
-/* =========================================
-   DELETE PRODUCT
-========================================= */
-window.deleteProduct = async function(id){
-    await deleteDoc(doc(db, "products", id));
-    alert("تم الحذف");
-};
 
-/* =========================================
-   EDIT PRODUCT
-========================================= */
-window.editProduct = async function(id, oldName, oldPrice){
+/* ================= LOAD PRODUCTS ================= */
 
-    const newName = prompt("اسم المنتج الجديد", oldName);
-    const newPrice = prompt("السعر الجديد", oldPrice);
+const box = document.getElementById("adminProducts");
 
-    if(!newName || !newPrice) return;
-
-    await updateDoc(doc(db, "products", id), {
-        name: newName,
-        price: Number(newPrice)
-    });
-
-    alert("تم التعديل");
-};
-
-/* =========================================
-   LOAD PRODUCTS
-========================================= */
-const adminBox = document.getElementById("adminProducts");
-
-onSnapshot(collection(db, "products"), (snapshot) => {
+onSnapshot(query(collection(db,"products"), orderBy("createdAt","desc")), (snap)=>{
 
     let html = "";
 
-    snapshot.forEach((docSnap) => {
+    snap.forEach(docSnap=>{
         const p = docSnap.data();
 
         html += `
-        <div style="border:1px solid #ddd;padding:10px;margin:10px">
-
-            <img src="${p.image}" width="80">
-
+        <div style="border:1px solid #ddd;padding:10px;margin:10px;border-radius:10px">
+            <img src="${p.image}" width="70">
             <h3>${p.name}</h3>
             <p>${p.price} جنيه</p>
 
             <button onclick="deleteProduct('${docSnap.id}')">حذف</button>
-            <button onclick="editProduct('${docSnap.id}', '${p.name}', ${p.price})">تعديل</button>
-
         </div>
         `;
     });
 
-    adminBox.innerHTML = html;
+    box.innerHTML = html;
 });
 
-/* =========================================
-   ADD PRODUCT
-========================================= */
-window.addProduct = async function () {
+/* ================= ADD PRODUCT ================= */
+
+async function addProduct() {
 
     const name = document.getElementById("name").value.trim();
     const price = Number(document.getElementById("price").value);
+    const file = document.getElementById("imageFile").files[0];
     const sizes = document.getElementById("sizes").value.split(",");
 
-    const file = document.getElementById("imageFile").files[0];
-
-    if (!name || !price || !file) {
-        alert("من فضلك اكمل البيانات");
+    if(!name || !price || !file){
+        alert("من فضلك أكمل البيانات");
         return;
     }
 
-    try {
-        /* =========================
-           1 - رفع الصورة
-        ========================= */
-        const imageRef = ref(storage, `products/${Date.now()}_${file.name}`);
+    try{
 
-        await uploadBytes(imageRef, file);
+        const imgRef = ref(storage, `products/${Date.now()}_${file.name}`);
 
-        const imageURL = await getDownloadURL(imageRef);
+        await uploadBytes(imgRef, file);
 
-        /* =========================
-           2 - حفظ المنتج
-        ========================= */
-        await addDoc(collection(db, "products"), {
+        const imageURL = await getDownloadURL(imgRef);
+
+        await addDoc(collection(db,"products"),{
             name,
             price,
-            image: imageURL,
+            image:imageURL,
             sizes,
-            createdAt: serverTimestamp()
+            createdAt:serverTimestamp()
         });
 
-        alert("تم إضافة المنتج بنجاح");
+        alert("تم إضافة المنتج");
 
-        /* Reset form */
         document.getElementById("name").value = "";
         document.getElementById("price").value = "";
         document.getElementById("sizes").value = "";
         document.getElementById("imageFile").value = "";
 
-    } catch (error) {
-    console.error("Firebase Error:", error);
-    alert("خطأ: " + error.message);
+    } catch(err){
+        console.error(err);
+        alert("حصل خطأ: " + err.message);
+    }
 }
+
+/* ================= MAKE FUNCTION GLOBAL ================= */
+window.addProduct = addProduct;
+
+/* ================= DELETE ================= */
+
+window.deleteProduct = async function(id){
+    await deleteDoc(doc(db,"products",id));
+    alert("تم الحذف");
 };
 
 </script>
