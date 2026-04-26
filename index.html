@@ -995,6 +995,85 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
   let currentUser = null;
 
+/* =========================================
+   LOAD PRODUCTS FROM FIREBASE
+   ضع هذا الكود داخل <script type="module">
+   بعد تعريف db مباشرة
+========================================= */
+
+import {
+    query,
+    orderBy
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+/* تحميل المنتجات */
+const productsContainer = document.querySelector(".products");
+
+function renderProduct(doc) {
+    const product = doc.data();
+
+    const sizesHTML = (product.sizes || [])
+        .map(size => `<option>${size}</option>`)
+        .join("");
+
+    return `
+        <div class="product"
+             onclick="openProduct(
+                 '${doc.id}',
+                 '${product.name}',
+                 '${product.price}',
+                 '${product.image}'
+             )">
+
+            <div class="product-image">
+                <img src="${product.image}" alt="${product.name}">
+            </div>
+
+            <h3>${product.name}</h3>
+            <p>${product.price} جنيه</p>
+
+            <select id="size-${doc.id}" onclick="event.stopPropagation()">
+                ${sizesHTML}
+            </select>
+
+            <button class="add-cart-btn"
+                onclick="addToCart(
+                    '${product.name}',
+                    ${product.price},
+                    document.getElementById('size-${doc.id}').value,
+                    '${product.image}',
+                    event
+                )">
+                أضف للسلة
+            </button>
+        </div>
+    `;
+}
+
+/* الاستماع المباشر للمنتجات */
+onSnapshot(
+    query(collection(db, "products"), orderBy("createdAt", "desc")),
+    (snapshot) => {
+
+        let html = "";
+
+        snapshot.forEach((doc) => {
+            html += renderProduct(doc);
+        });
+
+        productsContainer.innerHTML = html || `
+            <div style="
+                text-align:center;
+                padding:50px;
+                font-size:22px;
+                color:#999;
+            ">
+                لا توجد منتجات حالياً
+            </div>
+        `;
+    }
+);
+
 /* ========================================= SEARCH ========================================= */ window.openSearch = function () { const overlay = document.getElementById("searchOverlay"); const input = document.getElementById("searchInput"); overlay.classList.add("active"); setTimeout(() => { input.focus(); }, 200); }; window.closeSearch = function () { document.getElementById("searchOverlay") .classList.remove("active"); }; /* إغلاق عند الضغط خارج الصندوق */ document.getElementById("searchOverlay") .addEventListener("click", function (e) { if (e.target === this) { closeSearch(); } }); /* زر ESC */ document.addEventListener("keydown", function (e) { if (e.key === "Escape") { closeSearch(); } }); /* ========================================= SEARCH PRODUCTS BY NAME ========================================= */ window.searchProducts = function () { const input = document.getElementById("searchInput"); const filter = input.value.toLowerCase().trim(); const products = document.querySelectorAll(".product"); let found = false; products.forEach(product => { const productName = product .querySelector("h3") .textContent .toLowerCase(); if (productName.includes(filter)) { product.style.display = "block"; found = true; } else { product.style.display = "none"; } }); closeSearch(); if (filter !== "") { document.querySelector(".container") .scrollIntoView({ behavior: "smooth" }); } if (!found && filter !== "") { alert("لم يتم العثور على المنتج"); } }; /* البحث عند الضغط على Enter */ document.getElementById("searchInput") .addEventListener("keydown", function (e) { if (e.key === "Enter") { searchProducts(); } });
   
 /* =========================================
