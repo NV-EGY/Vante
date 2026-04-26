@@ -91,27 +91,22 @@
 
 <script type="module">
 
-import { updateDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-import { deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-window.deleteProduct = async function(id){
-    await deleteDoc(doc(db, "products", id));
-    alert("تم الحذف");
-};
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
     getFirestore,
     collection,
     addDoc,
-    serverTimestamp
+    serverTimestamp,
+    onSnapshot,
+    deleteDoc,
+    updateDoc,
+    doc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
 
 /* =========================================
-   FIREBASE CONFIG (بتاعتك)
+   FIREBASE CONFIG
 ========================================= */
 const firebaseConfig = {
   apiKey: "AIzaSyDGL6mZnkD2jL77egf9GHl6l42vrYlSpSo",
@@ -130,55 +125,17 @@ const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 const db = getFirestore(app);
 
-
-const adminBox = document.getElementById("adminProducts");
-
-onSnapshot(collection(db, "products"), (snapshot) => {
-
-    let html = "";
-
-    snapshot.forEach((doc) => {
-        const p = doc.data();
-
-        html += `
-        <div style="border:1px solid #ddd;padding:10px;margin:10px">
-
-            <img src="${p.image}" width="80">
-
-            <h3>${p.name}</h3>
-            <p>${p.price} جنيه</p>
-
-            <button onclick="deleteProduct('${doc.id}')">حذف</button>
-            <button onclick="editProduct('${doc.id}', '${p.name}', ${p.price})">تعديل</button>
-
-        </div>
-        `;
-    });
-
-    adminBox.innerHTML = html;
-});
-
 /* =========================================
-   ADD PRODUCT FUNCTION
+   DELETE PRODUCT
 ========================================= */
-window.addProduct = async function () {
-
-    const name = document.getElementById("name").value;
-    const price = Number(document.getElementById("price").value);
-    const image = document.getElementById("image").value;
-    const sizes = document.getElementById("sizes").value.split(",");
-
-    await addDoc(collection(db, "products"), {
-        name,
-        price,
-        image,
-        sizes,
-        createdAt: serverTimestamp()
-    });
-
-    alert("تم إضافة المنتج");
+window.deleteProduct = async function(id){
+    await deleteDoc(doc(db, "products", id));
+    alert("تم الحذف");
 };
 
+/* =========================================
+   EDIT PRODUCT
+========================================= */
 window.editProduct = async function(id, oldName, oldPrice){
 
     const newName = prompt("اسم المنتج الجديد", oldName);
@@ -193,6 +150,63 @@ window.editProduct = async function(id, oldName, oldPrice){
 
     alert("تم التعديل");
 };
+
+/* =========================================
+   LOAD PRODUCTS
+========================================= */
+const adminBox = document.getElementById("adminProducts");
+
+onSnapshot(collection(db, "products"), (snapshot) => {
+
+    let html = "";
+
+    snapshot.forEach((docSnap) => {
+        const p = docSnap.data();
+
+        html += `
+        <div style="border:1px solid #ddd;padding:10px;margin:10px">
+
+            <img src="${p.image}" width="80">
+
+            <h3>${p.name}</h3>
+            <p>${p.price} جنيه</p>
+
+            <button onclick="deleteProduct('${docSnap.id}')">حذف</button>
+            <button onclick="editProduct('${docSnap.id}', '${p.name}', ${p.price})">تعديل</button>
+
+        </div>
+        `;
+    });
+
+    adminBox.innerHTML = html;
+});
+
+/* =========================================
+   ADD PRODUCT
+========================================= */
+window.addProduct = async function () {
+
+    const name = document.getElementById("name").value;
+    const price = Number(document.getElementById("price").value);
+    const image = document.getElementById("image").value;
+
+    const sizes = document.getElementById("sizes").value
+        .split(",")
+        .map(s => s.trim())
+        .filter(Boolean);
+
+    await addDoc(collection(db, "products"), {
+        name,
+        price,
+        image,
+        sizes,
+        createdAt: serverTimestamp()
+    });
+
+    alert("تم إضافة المنتج");
+
+};
+
 </script>
 
 </body>
