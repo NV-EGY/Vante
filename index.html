@@ -1101,57 +1101,36 @@ onSnapshot(collection(db, "products"), (snapshot) => {
 /* =========================================
    LOAD ORDERS
 ========================================= */
-document.addEventListener("DOMContentLoaded", () => {
-
 const ordersBox = document.getElementById("ordersList");
 
-onSnapshot(
-    query(collection(db, "orders"), orderBy("createdAt", "desc")),
-    (snapshot) => {
+if (ordersBox) {
+    onSnapshot(
+        query(collection(db, "orders"), orderBy("createdAt", "desc")),
+        (snapshot) => {
 
-        let html = "";
+            let html = "";
 
-        if (snapshot.empty) {
-            html = `
-                <div style="padding:30px;text-align:center;background:#fff;border-radius:20px;margin-top:20px;">
-                    لا توجد طلبات حالياً
-                </div>
-            `;
-        }
+            if (snapshot.empty) {
+                html = `<div style="padding:20px;text-align:center">لا توجد طلبات</div>`;
+            }
 
-        snapshot.forEach((docSnap) => {
-            const order = docSnap.data();
+            snapshot.forEach((docSnap) => {
+                const order = docSnap.data();
 
-            let itemsHTML = "";
-
-            order.items.forEach(item => {
-                itemsHTML += `
-                    <li style="margin-bottom:10px;">
-                        ${item.name} - ${item.size} × ${item.qty} = ${item.price * item.qty} ج
-                    </li>
+                html += `
+                    <div style="background:#fff;padding:20px;margin:10px 0;border-radius:15px">
+                        <h3>${order.customerName}</h3>
+                        <p>${order.phone}</p>
+                        <p>${order.address}</p>
+                        <p>الإجمالي: ${order.total}</p>
+                    </div>
                 `;
             });
 
-            html += `
-                <div style="background:#fff;padding:25px;margin:20px 0;border-radius:20px;">
-                    <h3>${order.customerName}</h3>
-                    <p>${order.phone}</p>
-                    <p>${order.address}</p>
-
-                    <ul>${itemsHTML}</ul>
-
-                    <h3 style="color:#D4AF37">
-                        الإجمالي: ${order.total} جنيه
-                    </h3>
-                </div>
-            `;
-        });
-
-        ordersBox.innerHTML = html;
-    }
-);
-
-});
+            ordersBox.innerHTML = html;
+        }
+    );
+}
 
 /* =========================================
    SEARCH SYSTEM
