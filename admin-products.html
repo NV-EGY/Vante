@@ -104,32 +104,47 @@ import {
     serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-const firebaseConfig = {
-    apiKey: "AIzaSyDGL6mZnkD2jL77egf9GHl6l42vrYlSpSo",
-    authDomain: "vante-1.firebaseapp.com",
-    projectId: "vante-1",
-    storageBucket: "vante-1.firebasestorage.app",
-    messagingSenderId: "97830758006",
-    appId: "1:97830758006:web:4e6eda347f8f298de8a157",
-    measurementId: "G-B06FW6BFT9"
-  };
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
 
+/* =========================================
+   FIREBASE CONFIG (بتاعتك)
+========================================= */
+const firebaseConfig = {
+  apiKey: "AIzaSyDGL6mZnkD2jL77egf9GHl6l42vrYlSpSo",
+  authDomain: "vante-1.firebaseapp.com",
+  projectId: "vante-1",
+  storageBucket: "vante-1.firebasestorage.app",
+  messagingSenderId: "97830758006",
+  appId: "1:97830758006:web:4e6eda347f8f298de8a157",
+  measurementId: "G-B06FW6BFT9"
+};
+
+/* =========================================
+   INIT FIREBASE
+========================================= */
 const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
 const db = getFirestore(app);
 
+/* =========================================
+   ADD PRODUCT FUNCTION
+========================================= */
 window.addProduct = async function() {
+
     const name = document.getElementById("name").value.trim();
     const price = Number(document.getElementById("price").value);
     const image = document.getElementById("image").value.trim();
+
     const sizes = document.getElementById("sizes").value
         .split(",")
         .map(s => s.trim())
         .filter(Boolean);
+
     const description = document.getElementById("description").value.trim();
 
     if (!name || !price || !image) {
         document.getElementById("status").innerHTML =
-            "يرجى ملء جميع البيانات الأساسية";
+            "❌ لازم تملأ الاسم + السعر + الصورة";
         return;
     }
 
@@ -150,8 +165,9 @@ window.addProduct = async function() {
             .forEach(el => el.value = "");
 
     } catch (error) {
+        console.error(error);
         document.getElementById("status").innerHTML =
-            "❌ حدث خطأ: " + error.message;
+            "❌ حصل خطأ في الإضافة";
     }
 };
 </script>
