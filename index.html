@@ -1053,23 +1053,50 @@ function renderProduct(doc) {
 /* =========================================
    LOAD PRODUCTS (FIXED + SORTED)
 ========================================= */
-onSnapshot(
-    query(collection(db, "products"), orderBy("createdAt", "desc")),
-    (snapshot) => {
+onSnapshot(collection(db, "products"), (snapshot) => {
 
-        let html = "";
+    let products = [];
 
-        snapshot.forEach((doc) => {
-            html += renderProduct(doc);
-        });
+    snapshot.forEach((docSnap) => {
+        products.push({ id: docSnap.id, ...docSnap.data() });
+    });
 
-        productsContainer.innerHTML = html || `
-            <div style="text-align:center;padding:50px;font-size:22px;color:#999;">
-                لا توجد منتجات حالياً
+    // ترتيب يدوي (أقوى من Firestore orderBy)
+    products.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+    let html = "";
+
+    products.forEach((product) => {
+
+        const sizesHTML = (product.sizes || [])
+        .map(size => `<option>${size}</option>`)
+        .join("");
+
+        html += `
+        <div class="product"
+            onclick="openProduct('${product.id}','${product.name}','${product.price}','${product.image}')">
+
+            <div class="product-image">
+                <img src="${product.image}">
             </div>
+
+            <h3>${product.name}</h3>
+            <p>${product.price} جنيه</p>
+
+            <select id="size-${product.id}">
+                ${sizesHTML}
+            </select>
+
+            <button onclick="addToCart('${product.name}',${product.price},document.getElementById('size-${product.id}').value,'${product.image}',event)">
+                أضف للسلة
+            </button>
+
+        </div>
         `;
-    }
-);
+    });
+
+    document.querySelector(".products").innerHTML = html;
+});
 
 /* =========================================
    LOAD ORDERS
