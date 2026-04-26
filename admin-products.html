@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة منتجات VANTÉ</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+            font-family:'Cairo',sans-serif;
+        }
+
+        body{
+            background:#f8f8f8;
+            padding:40px 20px;
+        }
+
+        .container{
+            max-width:700px;
+            margin:auto;
+            background:#fff;
+            padding:35px;
+            border-radius:25px;
+            box-shadow:0 20px 50px rgba(0,0,0,.1);
+        }
+
+        h1{
+            text-align:center;
+            margin-bottom:30px;
+            font-size:34px;
+            color:#111;
+        }
+
+        input, textarea{
+            width:100%;
+            padding:16px;
+            margin-bottom:18px;
+            border:1px solid #ddd;
+            border-radius:14px;
+            font-size:15px;
+        }
+
+        textarea{
+            resize:vertical;
+            min-height:120px;
+        }
+
+        button{
+            width:100%;
+            padding:18px;
+            border:none;
+            border-radius:14px;
+            background:#000;
+            color:#fff;
+            font-size:18px;
+            font-weight:800;
+            cursor:pointer;
+            transition:.3s;
+        }
+
+        button:hover{
+            background:#D4AF37;
+            color:#000;
+        }
+
+        #status{
+            margin-top:20px;
+            text-align:center;
+            font-weight:700;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>إضافة منتج جديد</h1>
+
+    <input type="text" id="name" placeholder="اسم المنتج">
+
+    <input type="number" id="price" placeholder="السعر">
+
+    <input type="text" id="image" placeholder="رابط الصورة">
+
+    <input type="text" id="sizes" placeholder="المقاسات (مثال: 16cm,18cm,20cm)">
+
+    <textarea id="description" placeholder="وصف المنتج"></textarea>
+
+    <button onclick="addProduct()">إضافة المنتج</button>
+
+    <div id="status"></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+    getFirestore,
+    collection,
+    addDoc,
+    serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_PROJECT.firebaseapp.com",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_PROJECT.appspot.com",
+    messagingSenderId: "YOUR_SENDER_ID",
+    appId: "YOUR_APP_ID"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+window.addProduct = async function() {
+    const name = document.getElementById("name").value.trim();
+    const price = Number(document.getElementById("price").value);
+    const image = document.getElementById("image").value.trim();
+    const sizes = document.getElementById("sizes").value
+        .split(",")
+        .map(s => s.trim())
+        .filter(Boolean);
+    const description = document.getElementById("description").value.trim();
+
+    if (!name || !price || !image) {
+        document.getElementById("status").innerHTML =
+            "يرجى ملء جميع البيانات الأساسية";
+        return;
+    }
+
+    try {
+        await addDoc(collection(db, "products"), {
+            name,
+            price,
+            image,
+            sizes,
+            description,
+            createdAt: serverTimestamp()
+        });
+
+        document.getElementById("status").innerHTML =
+            "✅ تم إضافة المنتج بنجاح";
+
+        document.querySelectorAll("input, textarea")
+            .forEach(el => el.value = "");
+
+    } catch (error) {
+        document.getElementById("status").innerHTML =
+            "❌ حدث خطأ: " + error.message;
+    }
+};
+</script>
+
+</body>
+</html>
