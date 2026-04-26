@@ -59,27 +59,57 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 /* LOAD */
-const box = document.getElementById("adminProducts");
+onSnapshot(collection(db, "products"), (snapshot) => {
 
-onSnapshot(query(collection(db,"products"),orderBy("createdAt","desc")),(snap)=>{
+    let products = [];
 
-let html="";
+    snapshot.forEach((docSnap) => {
+        products.push({ id: docSnap.id, ...docSnap.data() });
+    });
 
-snap.forEach(d=>{
-const p = d.data();
+    products.sort((a, b) => {
+        return (b.createdAt?.seconds || b.createdAt || 0) -
+               (a.createdAt?.seconds || a.createdAt || 0);
+    });
 
-html += `
-<div class="product">
-<img src="${p.image}">
-<h3>${p.name}</h3>
-<p>${p.price} جنيه</p>
-<button onclick="deleteProduct('${d.id}')">حذف</button>
-</div>
-`;
-});
+    let html = "";
 
-box.innerHTML = html;
+    products.forEach((product) => {
 
+        const sizesHTML = (product.sizes || [])
+        .map(size => `<option>${size}</option>`)
+        .join("");
+
+        html += `
+        <div class="product"
+            onclick="openProduct('${product.id}','${product.name}','${product.price}','${product.image}')">
+
+            <div class="product-image">
+                <img src="${product.image}">
+            </div>
+
+            <h3>${product.name}</h3>
+            <p>${product.price} جنيه</p>
+
+            <select id="size-${product.id}" onclick="event.stopPropagation()">
+                ${sizesHTML}
+            </select>
+
+            <button onclick="addToCart(
+                '${product.name}',
+                ${product.price},
+                document.getElementById('size-${product.id}').value,
+                '${product.image}',
+                event
+            )">
+                أضف للسلة
+            </button>
+
+        </div>
+        `;
+    });
+
+    document.querySelector(".products").innerHTML = html;
 });
 
 /* ADD */
