@@ -1,1 +1,1082 @@
-.
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<title>VANTE Dashboard</title>
+
+<style>
+body{
+  font-family: Cairo, sans-serif;
+  background:#f4f6f9;
+  padding:10px;
+  margin:0;
+}
+
+html, body{
+  overflow-x:hidden;
+}
+
+.header{
+  position:sticky;
+  top:0;
+  background:#fff;
+  z-index:1000;
+  padding:10px 12px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  align-items:center;
+  justify-content:center;
+  box-shadow:0 2px 10px rgba(0,0,0,0.05);
+}
+
+.header-top{
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  position:relative; /* مهم */
+}
+
+.search-box{
+  width:100%;
+  max-width:420px;
+  margin:0 auto;
+
+  padding:12px;
+  border-radius:12px;
+  border:1px solid #ddd;
+  text-align:center;
+
+  box-sizing: border-box; /* 👈 الحل */
+}
+
+.search-box:focus{
+  border-color:#0F7B65;
+  box-shadow:0 0 0 3px rgba(15,123,101,0.15);
+}
+
+/* مجموعة الأيقونات */
+.header-icons{
+  display:flex;
+  gap:10px;
+  align-items:center;
+}
+
+/* أيقونة */
+.icon-btn{
+  width:40px;
+  height:40px;
+  background:#f1f1f1;
+  border-radius:12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:18px;
+  cursor:pointer;
+  transition:0.2s;
+}
+
+.icon-btn:hover{
+  background:#e0e0e0;
+}
+
+.new-badge{
+  background:red;
+  color:#fff;
+  font-size:10px;
+  padding:3px 6px;
+  border-radius:8px;
+}
+
+/* الايقونة */
+#msgIcon{
+  font-size:22px;
+}
+
+/* inputs */
+input{
+  padding:8px;
+  border-radius:8px;
+  border:1px solid #ccc;
+  min-width:120px;
+}
+
+/* الكارد */
+#orders{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  width:100%;
+  padding:10px;
+  box-sizing:border-box;
+}
+
+  .card{
+  width:100%;
+  max-width:420px;
+
+  margin:0 auto 12px auto;
+
+  display:flex;
+  flex-direction:column;
+
+  background:#fff;
+  border-radius:16px;
+
+  padding:15px;
+  box-sizing:border-box;
+
+  box-shadow:0 5px 20px rgba(0,0,0,0.08);
+
+  font-size:14px;
+  position:relative;
+}
+
+.order-body{
+  display:none; /* 👈 مهم يرجع زي الأول */
+  justify-content:space-between;
+  gap:12px;
+  align-items:flex-start;
+  margin-top:10px;
+}
+
+.order-info{
+  flex:1;
+}
+
+.order-summary{
+  width:140px;
+  background:#f8f9fa;
+  border-radius:12px;
+  padding:10px;
+
+  font-size:14px; /* 👈 كبرناه */
+  font-weight:bold; /* 👈 يخليه أوضح */
+
+  text-align:right;
+}
+.order-summary b{
+  font-size:16px;
+  color:#0F7B65;
+}
+
+.nice-textarea{
+  width:100%;
+  min-height:150px;
+  padding:12px;
+
+  border-radius:12px;
+  border:1px solid #ccc;
+
+  font-size:15px;
+  line-height:1.6;
+
+  resize:vertical;
+
+  background:#fff;
+
+  box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.nice-textarea:focus{
+  border-color:#0F7B65;
+  box-shadow:0 0 0 2px rgba(15,123,101,0.15);
+}
+
+.nice-textarea::selection{
+  background:#0F7B65;
+  color:#fff;
+}
+
+.card.new { border-right:4px solid red; }
+.card.done { border-right:4px solid #28a745; }
+
+/* الأزرار */
+.actions{
+  display:none; /* 👈 مخفية افتراضياً */
+  gap:8px;
+  margin-top:12px;
+  width:100%;
+  flex-wrap:nowrap;
+}
+
+.action-btn{
+  flex:1;
+  min-width:0;
+  padding:10px 0;
+  border-radius:12px;
+  border:none;
+  cursor:pointer;
+  font-size:16px;
+  transition:0.2s;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.action-btn:active{
+  transform:scale(0.95);
+}
+
+/* ألوان */
+.whatsapp{background:#25D366;color:#fff;}
+.copy{background:#333;color:#fff;}
+.ship{background:#0F7B65;color:#fff;}
+.doneBtn{background:#1976d2;color:#fff;}
+
+.inbox-container{
+  display:flex;
+  gap:10px;
+  margin-top:10px;
+}
+
+.inbox-list{
+  width:40%;
+  max-height:60vh;
+  overflow:auto;
+  border-right:1px solid #eee;
+}
+
+.inbox-view{
+  width:60%;
+  padding:10px;
+}
+
+.msg-item{
+  padding:10px;
+  border-bottom:1px solid #eee;
+  cursor:pointer;
+  transition:0.2s;
+}
+
+.msg-item:hover{
+  background:#f5f5f5;
+}
+
+.msg-item.unread{
+  background:#fff3cd;
+  font-weight:bold;
+}
+
+.inbox-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.filters{
+  display:flex;
+  gap:6px;
+  flex-wrap:wrap;
+}
+
+.filter-btn{
+  flex:1;
+  min-width:70px;
+  padding:8px;
+  border:none;
+  border-radius:10px;
+  background:#eee;
+  cursor:pointer;
+}
+
+.filter-btn.active{
+  background:#0F7B65;
+  color:#fff;
+}
+
+#msgPopup{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.4);
+  z-index:99999;
+
+  align-items:center;
+  justify-content:center;
+}
+
+.popup-box{
+  width:95%;
+  max-width:420px;
+  max-height:90vh;
+
+  background:#fff;
+  border-radius:16px;
+  box-shadow:0 10px 30px rgba(0,0,0,0.3);
+
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+
+/* الهيدر */
+.popup-header{
+  padding:12px;
+  font-weight:bold;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  border-bottom:1px solid #eee;
+}
+
+/* المحتوى */
+.popup-body{
+  padding:12px;
+  overflow:auto;
+}
+
+/* الفوتر */
+.popup-footer{
+  padding:10px;
+  border-top:1px solid #eee;
+}
+
+/* الرسائل popup */
+#messagesBox{
+  position:fixed;
+  bottom:15px;
+  right:10px;
+  left:10px;   /* 👈 مهم للموبايل */
+  width:auto;
+  max-height:70vh;
+  overflow:auto;
+  background:#fff;
+  border-radius:12px;
+  box-shadow:0 5px 20px rgba(0,0,0,0.2);
+  padding:10px;
+  z-index:2000;
+transition: all 0.3s ease;
+transform:translateY(-20px);
+display:none;
+  opacity:0;
+}
+
+#messagesBox.show{
+  transform:translateY(0);
+  opacity:1;
+}
+
+.msg-icon{
+  position:relative;
+}
+
+#msgBadge{
+  position:absolute;
+  top:2px;
+  right:2px;
+  background:red;
+  color:#fff;
+  border-radius:50%;
+  font-size:10px;
+  padding:2px 6px;
+  min-width:16px;
+  text-align:center;
+  line-height:1;
+}
+
+/* 📱 موبايل */
+@media (max-width:600px){
+
+  h2{
+    font-size:18px;
+  }
+
+ .actions{
+    flex-direction:row;
+  }
+
+  .action-btn{
+    flex:1;
+    font-size:14px;
+  }
+
+  .search-box{
+    max-width:100%;
+  }
+
+  .header{
+    flex-direction:column;
+    align-items:stretch;
+  }
+
+  input{
+    width:100%;
+  }
+
+  .btn{
+    width:100%;
+    margin-top:5px;
+  }
+
+}
+
+/* checkbox */
+  .selectOrder{
+  position:absolute;
+  top:12px;
+  right:12px;
+  width:22px;
+  height:22px;
+  accent-color:#0F7B65;
+  cursor:pointer;
+  box-shadow:0 0 5px rgba(0,0,0,0.2);
+}
+
+.top-stats{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  width:100%;
+  font-weight:bold;
+  font-size:14px;
+}
+
+#count{
+  color:#333;
+}
+
+#selectedCount{
+  color:#0F7B65;
+}
+
+.select-all-btn{
+  position:fixed;
+  top:15px;
+  right:15px;
+  z-index:2000;
+
+  width:45px;
+  height:45px;
+  border-radius:14px;
+  background:#0F7B65;
+  color:#fff;
+
+  display:none; /* 👈 مهم */
+
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  font-size:20px;
+  box-shadow:0 6px 15px rgba(0,0,0,0.25);
+  transition:0.2s;
+}
+
+.select-all-btn:hover{
+  transform:scale(1.05);
+}
+
+.select-all-btn.active{
+  background:#1976d2;
+}
+
+.status{
+  padding:3px 8px;
+  border-radius:8px;
+  font-size:12px;
+  margin-right:5px;
+}
+
+.status.new{background:#ffc107;}
+.status.shipped{background:#17a2b8;color:#fff;}
+.status.done{background:#28a745;color:#fff;}
+
+*{
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+input, textarea{
+  -webkit-user-select: text !important;
+  user-select: text !important;
+  -webkit-touch-callout: default !important;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="header">
+
+  <div class="header-top">
+
+    <div id="selectAllBtn" class="select-all-btn" onclick="selectAll()">✔</div>
+
+    <h2 style="margin:0;">📦 DAHAP Dashboard</h2>
+
+    <div class="header-icons">
+
+      <div class="icon-btn msg-icon" onclick="toggleInbox()">
+        📩
+        <span id="msgBadge">0</span>
+      </div>
+
+      <div class="icon-btn" onclick="printSelected()">🖨️</div>
+
+      <div class="icon-btn" onclick="openDatePicker()">📅</div>
+
+    </div>
+
+  </div>
+
+  <!-- 🔍 search هنا لوحده -->
+  <input type="text" id="search" class="search-box" placeholder="🔍 بحث">
+
+<input type="date" id="dateFilter" style="display:none;">
+
+  <!-- filters -->
+  <div class="filters">
+    <button onclick="setFilter(event,'')" class="filter-btn active">الكل</button>
+    <button onclick="setFilter(event,'shipped')" class="filter-btn">اتشحن</button>
+    <button onclick="setFilter(event,'done')" class="filter-btn">تم</button>
+    <button onclick="setFilter(event,'new')" class="filter-btn">جديد</button>
+  </div>
+
+</div>
+
+<div class="top-stats">
+  <span id="count"></span>
+  <span id="selectedCount"></span>
+</div>
+  
+<div id="orders"></div>
+
+<hr>
+
+<div id="msgPopup" style="display:none;">
+  <div class="popup-box">
+    <div id="msgContent"></div>
+
+    <button onclick="closeMsg()" style="
+      margin-top:10px;
+      width:100%;
+      padding:10px;
+      border:none;
+      background:#333;
+      color:#fff;
+      border-radius:10px;
+    ">إغلاق</button>
+  </div>
+</div>
+
+<div id="messagesBox">
+
+  <div class="inbox-header">
+    <h3>📩 الرسائل</h3>
+    <span onclick="toggleInbox()">✖</span>
+  </div>
+
+  <div class="inbox-container">
+
+    <!-- القائمة -->
+    <div id="messagesList" class="inbox-list"></div>
+
+    <!-- تفاصيل الرسالة -->
+    <div id="messageView" class="inbox-view">
+      <p style="text-align:center;color:#888;">اختر رسالة</p>
+    </div>
+
+  </div>
+
+</div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getFirestore,
+  collection,
+  query,
+  orderBy,
+  onSnapshot,
+  updateDoc,
+  deleteDoc,
+  doc,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+import {
+  getAuth,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  
+const firebaseConfig = {
+  apiKey: "AIzaSyCitT_L8jC3J-z-zPn4ciOao2YJRoIvnsg",
+  authDomain: "dahap-87e3a.firebaseapp.com",
+  projectId: "dahap-87e3a",
+  storageBucket: "dahap-87e3a.firebasestorage.app",
+  messagingSenderId: "914606801645",
+  appId: "1:914606801645:web:273f6dab0028a42bef02e4",
+  measurementId: "G-ZW99YCTSGY"
+};
+
+window.markRead = async function(id){
+  await updateDoc(doc(db,"messages",id),{
+    status:"done"
+  });
+}
+
+window.openMsg = async (id)=>{
+
+  let m = messages.find(x=>x.id === id);
+  if(!m) return;
+
+  await markRead(id);
+
+  document.getElementById("messageView").innerHTML = `
+  
+  <div style="text-align:right">
+
+    <div style="font-size:18px;font-weight:bold;">
+      👤 ${m.name}
+    </div>
+
+    <div style="color:#666;margin-top:5px;">
+      📞 ${m.phone}
+    </div>
+
+    <hr>
+
+    <div style="line-height:1.7;">
+      💬 ${m.message}
+    </div>
+
+    <a href="https://wa.me/2${m.phone}" target="_blank"
+    style="
+      display:block;
+      margin-top:15px;
+      text-align:center;
+      background:#25D366;
+      color:#fff;
+      padding:10px;
+      border-radius:10px;
+      text-decoration:none;
+    ">
+      💬 رد واتساب
+    </a>
+
+  </div>
+  `;
+};
+
+window.update = async function(id, status){
+
+  try{
+    await updateDoc(doc(db,"orders",id),{
+      status: status
+    });
+  }catch(e){
+    alert("حصل خطأ");
+    console.error(e);
+  }
+
+}
+
+window.deleteOrder = async function(id){
+
+  let confirmDelete = confirm("متأكد إنك عايز تحذف الأوردر؟");
+
+  if(!confirmDelete) return;
+
+  try{
+    await deleteDoc(doc(db,"orders",id));
+  }catch(e){
+    alert("حصل خطأ أثناء الحذف");
+    console.error(e);
+  }
+
+}
+
+window.editOrder = (id)=>{
+
+  let o = orders.find(x=>x.id === id);
+  if(!o) return;
+
+  let box = document.getElementById("msgPopup");
+
+  box.innerHTML = `
+    <div class="popup-box">
+
+      <!-- 🔝 header -->
+      <div class="popup-header">
+        <span>✏️ تعديل الأوردر</span>
+        <span onclick="closeMsg()" style="cursor:pointer;">✖</span>
+      </div>
+
+      <!-- 📄 body -->
+      <div class="popup-body">
+
+        <input id="editName" value="${o.customerName || ''}" placeholder="اسم العميل"><br><br>
+        <input id="editPhone" value="${o.phone || ''}" placeholder="رقم الهاتف"><br><br>
+
+        <input id="editGov" value="${o.gov || ''}" placeholder="المحافظة"><br><br>
+        <input id="editCity" value="${o.city || ''}" placeholder="المدينة"><br><br>
+
+        <input id="editAddress" value="${o.address || ''}" placeholder="العنوان"><br><br>
+
+        <hr>
+
+        <label style="font-weight:bold;">
+        💎 تفاصيل الطلب
+        </label>
+
+        <textarea id="editDetails" class="nice-textarea">
+${(o.orderDetails || []).map(i=>`
+${i.names || ""} | ${i.design || ""} | ${i.lang || ""}
+`.trim()).join("\n")}
+        </textarea>
+
+        <hr>
+
+        <input id="editQuantity" value="${o.quantity || ''}" placeholder="الكمية"><br><br>
+        <input id="editPrice" value="${o.price || ''}" placeholder="السعر"><br><br>
+        <input id="editShipping" value="${o.shipping || ''}" placeholder="الشحن"><br><br>
+        <input id="editTotal" value="${o.finalTotal || ''}" placeholder="الإجمالي">
+
+      </div>
+
+      <!-- 🔻 footer -->
+      <div class="popup-footer">
+
+        <button onclick="saveEdit('${id}')" style="
+          width:100%;
+          padding:10px;
+          background:#0F7B65;
+          color:#fff;
+          border:none;
+          border-radius:10px;
+          margin-bottom:8px;
+        ">
+          حفظ التعديلات
+        </button>
+
+        <button onclick="closeMsg()" style="
+          width:100%;
+          padding:10px;
+          background:#333;
+          color:#fff;
+          border:none;
+          border-radius:10px;
+        ">
+          إغلاق
+        </button>
+
+      </div>
+
+    </div>
+  `;
+
+  box.style.display = "flex"; // 👈 مهم عشان السنتر
+};
+
+window.saveEdit = async function(id){
+
+  let detailsText = document.getElementById("editDetails").value;
+
+  let orderDetails = detailsText.split("\n")
+  .map(line=>{
+    let [names, design, lang] = line.split("|");
+
+    return {
+      names: names?.trim() || "",
+      design: design?.trim() || "",
+      lang: lang?.trim() || ""
+    };
+  })
+  .filter(i => i.names || i.design || i.lang); // 👈 يمنع السطور الفاضية
+
+  try{
+    await updateDoc(doc(db,"orders",id),{
+      customerName: document.getElementById("editName").value,
+      phone: document.getElementById("editPhone").value,
+      gov: document.getElementById("editGov").value,
+      city: document.getElementById("editCity").value,
+      address: document.getElementById("editAddress").value,
+
+      orderDetails: orderDetails,
+
+quantity: Number(document.getElementById("editQuantity").value),
+price: Number(document.getElementById("editPrice").value),
+shipping: Number(document.getElementById("editShipping").value),
+finalTotal: Number(document.getElementById("editTotal").value)
+    });
+
+    closeMsg();
+
+  }catch(e){
+    alert("حصل خطأ");
+    console.error(e);
+  }
+
+}
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+let orders = [];
+let lastCount = 0;
+let currentFilter = "";
+let messages = [];
+
+// 🔐 login
+  
+let authReady = false;
+
+// 🔐 انتظار Firebase بدون طرد غلط
+let loaded = false;
+
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    load();
+  } else {
+    window.location.href = "login.html";
+  }
+});
+
+window.toggleOrder = (id)=>{
+
+let el = document.getElementById("order-"+id);
+if(!el) return;
+
+let actions = el.parentElement.querySelector(".actions");
+
+  let isOpen = el.style.display === "flex";
+
+  el.style.display = isOpen ? "none" : "flex";
+
+  if(actions){
+    actions.style.display = isOpen ? "none" : "flex";
+  }
+
+}
+
+let allSelected = false;
+
+window.selectAll = () => {
+
+  let checkboxes = document.querySelectorAll(".selectOrder");
+
+  allSelected = !allSelected;
+
+  checkboxes.forEach(cb => {
+    let card = cb.closest(".card");
+
+    if(currentFilter){
+      if(!card.classList.contains(currentFilter)) return;
+    }
+
+    cb.checked = allSelected;
+    card.style.background = allSelected ? "#e6fff2" : "#fff";
+  });
+
+  let btn = document.getElementById("selectAllBtn");
+
+  btn.innerText = allSelected ? "✖" : "✔"; // 👈 مهم
+  btn.classList.toggle("active", allSelected);
+updateSelectionUI(); // 👈 ضيفها في آخر الفنكشن
+};
+
+window.closeMsg = () => {
+  document.getElementById("msgPopup").style.display = "none";
+};
+
+window.openDatePicker = ()=>{
+  let d = document.getElementById("dateFilter");
+  d.showPicker(); // 👈 يفتح التقويم مباشرة
+}
+
+window.setFilter = (e, filter) => {
+
+  currentFilter = filter;
+
+  // تغيير شكل الزرار
+  document.querySelectorAll(".filter-btn").forEach(btn=>{
+    btn.classList.remove("active");
+  });
+
+  e.target.classList.add("active");
+
+  render();
+};
+
+window.toggleInbox = () => {
+  let box = document.getElementById("messagesBox");
+
+  if(box.style.display === "none"){
+    box.style.display = "block";
+    setTimeout(()=>box.classList.add("show"),10);
+  }else{
+    box.classList.remove("show");
+    setTimeout(()=>box.style.display="none",200);
+  }
+}
+  
+// 📦 load orders
+function load(){
+
+  // 📩 messages
+  const qMessages = query(
+    collection(db,"messages"),
+    orderBy("createdAt","desc")
+  );
+
+  // 📦 orders (لازم يكون بره)
+  const qOrders = query(
+    collection(db,"orders"),
+    orderBy("createdAt","desc")
+  );
+
+  let unreadCount = 0;
+
+  // 📩 load messages
+  onSnapshot(qMessages,(snap)=>{
+
+    unreadCount = 0;
+
+    let badge = document.getElementById("msgBadge");
+
+    let html = "";
+
+    messages = snap.docs.map(d=>{
+      return {
+        id: d.id,
+        ...d.data()
+      };
+    });
+
+    messages.forEach(m=>{
+      let status = m.status || "new";
+
+      if(status === "new") unreadCount++;
+
+      html += `
+<div class="msg-item ${status === 'new' ? 'unread' : ''}" 
+onclick="openMsg('${m.id}')">
+
+<div style="display:flex;justify-content:space-between;align-items:center;">
+  <div>👤 ${m.name}</div>
+  ${status === 'new' ? `<span class="new-badge">جديد</span>` : ''}
+</div>
+
+<div style="font-size:12px;color:#666;">
+${m.phone}
+</div>
+
+</div>
+`;
+    });
+
+    document.getElementById("messagesList").innerHTML = html;
+
+    badge.style.display = unreadCount > 0 ? "inline-block" : "none";
+    badge.innerText = unreadCount;
+  });
+
+  // 📦 load orders
+  onSnapshot(qOrders,(snap)=>{
+
+    snap.docChanges().forEach(change => {
+
+      if(change.type === "added" && lastCount !== 0){
+
+        let o = change.doc.data();
+
+        sound();
+
+        if(Notification.permission==="granted"){
+          new Notification("طلب جديد 🛒",{
+            body: `${o.customerName || "عميل جديد"} - ${o.phone || ""}`
+          });
+        }
+
+        showPopup(o);
+      }
+
+    });
+
+    lastCount = snap.size;
+
+    orders = snap.docs.map(d=>({
+      id:d.id,
+      ...d.data()
+    }));
+
+    render();
+  });
+
+}
+
+document.getElementById("dateFilter").addEventListener("change", render);
+
+document.getElementById("search").addEventListener("input", render);
+
+document.addEventListener("change", (e)=>{
+  if(e.target.classList.contains("selectOrder")){
+    let card = e.target.closest(".card");
+
+    card.style.background = e.target.checked ? "#e6fff2" : "#fff";
+
+    updateSelectionUI(); // 👈 مهم
+  }
+});
+
+// 🔔 صوت
+const audio = new Audio("https://assets.mixkit.co/sfx/preview/mixkit-bell-notification-933.mp3");
+
+function sound(){
+  audio.currentTime = 0;
+  audio.play().catch(()=>{});
+}
+
+// 🔔 إشعار
+function notify(){
+  if(Notification.permission==="granted"){
+    new Notification("طلب جديد 🛒");
+  }
+}
+Notification.requestPermission();
+
+document.addEventListener("contextmenu", e => {
+  if(!e.target.closest("input, textarea")){
+    e.preventDefault();
+  }
+});
+document.addEventListener("dragstart", e => e.preventDefault());
+
+// 🎯 render
+function render(){
+
+let date = document.getElementById("dateFilter").value;
+  let search = document.getElementById("search").value.toLowerCase();
+
+  let html="";
+  let count=0;
+
+  orders.forEach(o=>{
+if(currentFilter && o.status !== currentFilter) return;
+
+    if(search &&
+  !o.customerName?.toLowerCase().includes(search) &&
+  !o.phone?.includes(search) &&
+  !o.orderID?.toString().toLowerCase().includes(search)
+) return;
+
+let status = o.status || "new";
+
+if(status === "new"){
+  setTimeout(()=>{
+    let el = document.querySelector(`#order-${o.id}`)?.parentElement;
+    if(el){
+      el.style.boxShadow = "0 0 20px #0F7B65";
+    }
+  },100);
+}
+
+    let d = o.createdAt?.toDate?.();
+
+if(date && d){
+  if(d.toDateString() !== new Date
