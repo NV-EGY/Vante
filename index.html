@@ -1378,6 +1378,104 @@ setInterval(() => {
 
     </div>
 </div>
+
+<script>
+/* =========================================
+   MOBILE MENU SYSTEM (FIXED)
+========================================= */
+window.toggleMobileMenu = function () {
+    const menu = document.getElementById("mobileMenu");
+    const overlay = document.getElementById("menuOverlay");
+
+    menu.classList.toggle("active");
+    overlay.classList.toggle("active");
+
+    document.body.style.overflow =
+        menu.classList.contains("active") ? "hidden" : "";
+};
+
+/* =========================================
+   PRODUCT MODAL SYSTEM (FIXED)
+========================================= */
+let currentProduct = null;
+
+window.openProduct = function (id, name, price, image) {
+    currentProduct = {
+        id,
+        name,
+        price: Number(price),
+        image
+    };
+
+    document.getElementById("modalTitle").textContent = name;
+    document.getElementById("modalPrice").textContent = price + " جنيه";
+    document.getElementById("modalImg").src = image;
+    document.getElementById("modalImg").alt = name;
+
+    document.getElementById("productModal").classList.add("active");
+    document.getElementById("overlay").classList.add("active");
+
+    document.body.style.overflow = "hidden";
+};
+
+window.closeProduct = function () {
+    document.getElementById("productModal").classList.remove("active");
+    document.getElementById("overlay").classList.remove("active");
+
+    document.body.style.overflow = "";
+};
+
+/* =========================================
+   ADD CURRENT PRODUCT TO CART
+========================================= */
+window.addCurrentProductToCart = function (event) {
+    if (!currentProduct) return;
+
+    let size = "Default";
+
+    const selector =
+        document.getElementById(`size-${currentProduct.id}`) ||
+        document.getElementById(`size${currentProduct.id.replace(/\D/g, "")}`);
+
+    if (selector) {
+        size = selector.value;
+    }
+
+    addToCart(
+        currentProduct.name,
+        currentProduct.price,
+        size,
+        currentProduct.image,
+        event
+    );
+};
+
+/* =========================================
+   OVERLAY SMART CLOSE
+========================================= */
+document.getElementById("overlay").addEventListener("click", function () {
+    closeCart();
+    closeProduct();
+});
+
+/* =========================================
+   ESC KEY SUPPORT
+========================================= */
+document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") {
+        closeProduct();
+
+        const menu = document.getElementById("mobileMenu");
+        const menuOverlay = document.getElementById("menuOverlay");
+
+        if (menu.classList.contains("active")) {
+            menu.classList.remove("active");
+            menuOverlay.classList.remove("active");
+            document.body.style.overflow = "";
+        }
+    }
+});
+</script>
   
 </body>
 </html>
