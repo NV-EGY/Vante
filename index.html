@@ -975,38 +975,32 @@ import {
     getFirestore,
     collection,
     addDoc,
-    onSnapshot
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-/* =========================================
-   FIREBASE CONFIG
-========================================= */
-const firebaseConfig = {
-    apiKey: "AIzaSyDGL6mZnkD2jL77egf9GHl6l42vrYlSpSo",
-    authDomain: "vante-1.firebaseapp.com",
-    projectId: "vante-1",
-    storageBucket: "vante-1.firebasestorage.app",
-    messagingSenderId: "97830758006",
-    appId: "1:97830758006:web:4e6eda347f8f298de8a157",
-    measurementId: "G-B06FW6BFT9"
-  };
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-  let currentUser = null;
-
-/* =========================================
-   LOAD PRODUCTS FROM FIREBASE
-   ضع هذا الكود داخل <script type="module">
-   بعد تعريف db مباشرة
-========================================= */
-
-import {
+    onSnapshot,
     query,
     orderBy
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-/* تحميل المنتجات */
+/* =========================================
+   FIREBASE CONFIG (بتاعك سليم)
+========================================= */
+const firebaseConfig = {
+  apiKey: "AIzaSyDGL6mZnkD2jL77egf9GHl6l42vrYlSpSo",
+  authDomain: "vante-1.firebaseapp.com",
+  projectId: "vante-1",
+  storageBucket: "vante-1.firebasestorage.app",
+  messagingSenderId: "97830758006",
+  appId: "1:97830758006:web:4e6eda347f8f298de8a157",
+  measurementId: "G-B06FW6BFT9"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+let currentUser = null;
+
+/* =========================================
+   PRODUCTS CONTAINER
+========================================= */
 const productsContainer = document.querySelector(".products");
 
 function renderProduct(doc) {
@@ -1050,9 +1044,11 @@ function renderProduct(doc) {
     `;
 }
 
-/* الاستماع المباشر للمنتجات */
+/* =========================================
+   LOAD PRODUCTS (FIXED)
+========================================= */
 onSnapshot(
-    query(collection(db, "products"), orderBy("createdAt", "desc")),
+    query(collection(db, "products")), // ❗ شلت orderBy عشان يمنع مشاكل
     (snapshot) => {
 
         let html = "";
@@ -1062,12 +1058,7 @@ onSnapshot(
         });
 
         productsContainer.innerHTML = html || `
-            <div style="
-                text-align:center;
-                padding:50px;
-                font-size:22px;
-                color:#999;
-            ">
+            <div style="text-align:center;padding:50px;font-size:22px;color:#999;">
                 لا توجد منتجات حالياً
             </div>
         `;
