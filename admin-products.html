@@ -82,7 +82,7 @@
 
     <input id="name" placeholder="اسم المنتج">
     <input id="price" type="number" placeholder="السعر">
-    <input id="image" placeholder="رابط الصورة">
+   <input type="file" id="imageFile" accept="image/*">
     <input id="sizes" placeholder="المقاسات (16,18,20)">
     
     <button onclick="addProduct()">إضافة</button>
@@ -105,6 +105,13 @@ import {
 
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
 
+import {
+    getStorage,
+    ref,
+    uploadBytes,
+    getDownloadURL
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+
 /* =========================================
    FIREBASE CONFIG
 ========================================= */
@@ -124,7 +131,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 const db = getFirestore(app);
-
+const storage = getStorage(app);
 /* =========================================
    DELETE PRODUCT
 ========================================= */
@@ -186,25 +193,50 @@ onSnapshot(collection(db, "products"), (snapshot) => {
 ========================================= */
 window.addProduct = async function () {
 
-    const name = document.getElementById("name").value;
+    const name = document.getElementById("name").value.trim();
     const price = Number(document.getElementById("price").value);
-    const image = document.getElementById("image").value;
+    const sizes = document.getElementById("sizes").value.split(",");
 
-    const sizes = document.getElementById("sizes").value
-        .split(",")
-        .map(s => s.trim())
-        .filter(Boolean);
+    const file = document.getElementById("imageFile").files[0];
 
-    await addDoc(collection(db, "products"), {
-        name,
-        price,
-        image,
-        sizes,
-        createdAt: serverTimestamp()
-    });
+    if (!name || !price || !file) {
+        alert("من فضلك اكمل البيانات");
+        return;
+    }
 
-    alert("تم إضافة المنتج");
+    try {
+        /* =========================
+           1 - رفع الصورة
+        ========================= */
+        const imageRef = ref(storage, `products/${Date.now()}_${file.name}`);
 
+        await uploadBytes(imageRef, file);
+
+        const imageURL = await getDownloadURL(imageRef);
+
+        /* =========================
+           2 - حفظ المنتج
+        ========================= */
+        await addDoc(collection(db, "products"), {
+            name,
+            price,
+            image: imageURL,
+            sizes,
+            createdAt: serverTimestamp()
+        });
+
+        alert("تم إضافة المنتج بنجاح");
+
+        /* Reset form */
+        document.getElementById("name").value = "";
+        document.getElementById("price").value = "";
+        document.getElementById("sizes").value = "";
+        document.getElementById("imageFile").value = "";
+
+    } catch (error) {
+        console.error(error);
+        alert("حصل خطأ أثناء رفع الصورة");
+    }
 };
 
 </script>
