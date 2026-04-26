@@ -1101,6 +1101,8 @@ onSnapshot(collection(db, "products"), (snapshot) => {
 /* =========================================
    LOAD ORDERS
 ========================================= */
+document.addEventListener("DOMContentLoaded", () => {
+
 const ordersBox = document.getElementById("ordersList");
 
 onSnapshot(
@@ -1111,13 +1113,7 @@ onSnapshot(
 
         if (snapshot.empty) {
             html = `
-                <div style="
-                    padding:30px;
-                    text-align:center;
-                    background:#fff;
-                    border-radius:20px;
-                    margin-top:20px;
-                ">
+                <div style="padding:30px;text-align:center;background:#fff;border-radius:20px;margin-top:20px;">
                     لا توجد طلبات حالياً
                 </div>
             `;
@@ -1131,30 +1127,18 @@ onSnapshot(
             order.items.forEach(item => {
                 itemsHTML += `
                     <li style="margin-bottom:10px;">
-                        ${item.name}
-                        - ${item.size}
-                        × ${item.qty}
-                        = ${item.price * item.qty} ج
+                        ${item.name} - ${item.size} × ${item.qty} = ${item.price * item.qty} ج
                     </li>
                 `;
             });
 
             html += `
-                <div style="
-                    background:#fff;
-                    padding:25px;
-                    margin:20px 0;
-                    border-radius:20px;
-                    box-shadow:0 10px 30px rgba(0,0,0,.08);
-                ">
+                <div style="background:#fff;padding:25px;margin:20px 0;border-radius:20px;">
                     <h3>${order.customerName}</h3>
+                    <p>${order.phone}</p>
+                    <p>${order.address}</p>
 
-                    <p><strong>الهاتف:</strong> ${order.phone}</p>
-                    <p><strong>العنوان:</strong> ${order.address}</p>
-
-                    <ul style="margin:20px 0;padding-right:20px;">
-                        ${itemsHTML}
-                    </ul>
+                    <ul>${itemsHTML}</ul>
 
                     <h3 style="color:#D4AF37">
                         الإجمالي: ${order.total} جنيه
@@ -1166,6 +1150,8 @@ onSnapshot(
         ordersBox.innerHTML = html;
     }
 );
+
+});
 
 /* =========================================
    SEARCH SYSTEM
