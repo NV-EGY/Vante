@@ -359,6 +359,26 @@ button:hover{
     color:#000;
 }
 
+.cart-item button{
+    width:32px;
+    height:32px;
+    border-radius:8px;
+    border:none;
+    background:#111;
+    color:#fff;
+    cursor:pointer;
+}
+
+.cart-item{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    padding:12px;
+    border-bottom:1px solid #eee;
+    font-size:14px;
+}
+
 /* =========================================
    REVIEW SECTION
 ========================================= */
@@ -504,6 +524,10 @@ button:hover{
     font-size:15px;
     font-weight:800;
     color:#111;
+}
+
+body.modal-open{
+    overflow:hidden;
 }
 
 /* النجوم */
@@ -1053,7 +1077,11 @@ function renderProduct(doc) {
 /* =========================================
    LOAD PRODUCTS (FIXED + SORTED)
 ========================================= */
-onSnapshot(collection(db, "products"), (snapshot) => {
+import { query, orderBy } from "firebase/firestore";
+
+const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
+
+onSnapshot(q, (snapshot) => {
 
     let products = [];
 
@@ -1207,32 +1235,32 @@ window.addToCart = function(name, price, size, image, event) {
 /* UPDATE CART */
 function updateCart() {
 
-    let html = "";
     let total = 0;
     let count = 0;
+let selectedRating = 0;
 
-    cart.forEach((item, index) => {
+    const html = cart.map((item, index) => {
 
         total += item.price * item.qty;
         count += item.qty;
 
-        html += `
-            <div class="cart-item">
-                <div>
-                    <strong>${item.name}</strong><br>
-                    <small>${item.size}</small>
-                </div>
-
-                <div>
-                    <button onclick="changeQty(${index},-1)">-</button>
-                    ${item.qty}
-                    <button onclick="changeQty(${index},1)">+</button>
-                </div>
-
-                <div>${item.price * item.qty} ج</div>
+        return `
+        <div class="cart-item">
+            <div>
+                <strong>${item.name}</strong><br>
+                <small>${item.size}</small>
             </div>
+
+            <div>
+                <button onclick="changeQty(${index},-1)">-</button>
+                ${item.qty}
+                <button onclick="changeQty(${index},1)">+</button>
+            </div>
+
+            <div>${item.price * item.qty} ج</div>
+        </div>
         `;
-    });
+    }).join("");
 
     document.getElementById("cartItems").innerHTML =
         cart.length ? html : "السلة فارغة";
@@ -1240,16 +1268,6 @@ function updateCart() {
     document.getElementById("total").innerText = total;
     document.getElementById("cartCount").innerText = count;
 }
-
-/* CHANGE QTY */
-window.changeQty = function(index, change) {
-
-    cart[index].qty += change;
-
-    if (cart[index].qty <= 0) cart.splice(index, 1);
-
-    updateCart();
-};
 
 /* CART UI */
 window.openCart = function () {
@@ -1415,16 +1433,52 @@ window.openProduct = function (id, name, price, image) {
     document.getElementById("productModal").classList.add("active");
     document.getElementById("overlay").classList.add("active");
 
-    document.body.style.overflow = "hidden";
+    document.body.classList.add("modal-open");
 };
 
 window.closeProduct = function () {
     document.getElementById("productModal").classList.remove("active");
     document.getElementById("overlay").classList.remove("active");
 
-    document.body.style.overflow = "";
+    document.body.classList.remove("modal-open");
 };
 
+/* =========================================
+                للنجوم
+========================================= */
+
+document.querySelectorAll(".rating-stars span").forEach(star => {
+    star.addEventListener("click", function () {
+        selectedRating = this.dataset.rate;
+
+        document.querySelectorAll(".rating-stars span")
+            .forEach(s => s.classList.remove("active"));
+
+        for (let i = 0; i < selectedRating; i++) {
+            document.querySelectorAll(".rating-stars span")[i].classList.add("active");
+        }
+    });
+});
+
+/* =========================================
+          تم إرسال التقييم
+========================================= */
+
+window.submitReview = async function () {
+
+    if (!currentProduct) return;
+
+    const text = document.getElementById("reviewText").value;
+
+    await addDoc(collection(db, "reviews"), {
+        productId: currentProduct.id,
+        rating: selectedRating,
+        text,
+        createdAt: serverTimestamp()
+    });
+
+    alert("تم إرسال التقييم");
+};
 /* =========================================
    ADD CURRENT PRODUCT TO CART
 ========================================= */
