@@ -842,7 +842,7 @@ body.modal-open{
 
   <div class="mobile-icons-row">
     
-     <button class="mobile-icon left">
+     <button class="mobile-icon left" onclick="alert('حسابي قريباً')">
         <i class="fas fa-user"></i>
     </button>
 <button class="mobile-icon" onclick="openSearch(); toggleMobileMenu();"> <i class="fas fa-search"></i> </button>
@@ -898,43 +898,46 @@ body.modal-open{
 
         <div class="products">
 
-            <!-- PRODUCT 1 -->
-           <div class="product" onclick="openProduct('p1','سوار كارتير','249','images/p1.webp')">
-                <img src="images/p1.webp" alt="سوار كارتير">
+<!-- PRODUCT 1 -->
+<div class="product"
+     onclick="openProduct('p1','سوار كارتير','249','images/p1.webp')">
 
-                <h3>سوار كارتير</h3>
-                <p>249 جنيه</p>
+    <img src="images/p1.webp" alt="سوار كارتير">
 
-                <select id="size1">
-                    <option>16cm</option>
-                    <option>18cm</option>
-                    <option>20cm</option>
-                </select>
+    <h3>سوار كارتير</h3>
+    <p>249 جنيه</p>
 
-      <!-- استبدل زر أضف للسلة بهذا الشكل -->
-<button class="add-cart-btn"
-    onclick="addToCart(
-        'سوار كارتير',
-        249,
-        document.getElementById('size1').value,
-        'images/p1.webp',
-        event
-    )">
-    أضف للسلة
-</button>
-            </div>
+    <select id="size1" onclick="event.stopPropagation()">
+        <option value="7">7</option>
+        <option value="8">8</option>
+        <option value="9">9</option>
+    </select>
 
-            <!-- PRODUCT 2 -->
-        <div class="product">
+    <button class="add-cart-btn"
+        onclick="addToCart(
+            'سوار كارتير',
+            249,
+            document.getElementById('size1').value,
+            'images/p1.webp',
+            event
+        )">
+        أضف للسلة
+    </button>
+</div>
+
+<!-- PRODUCT 2 -->
+<div class="product"
+     onclick="openProduct('p2','خاتم كارتير','199','images/p2.webp')">
+
     <img src="images/p2.webp" alt="خاتم كارتير">
 
     <h3>خاتم كارتير</h3>
     <p>199 جنيه</p>
 
-    <select id="size2">
-        <option>7</option>
-        <option>8</option>
-        <option>9</option>
+    <select id="size2" onclick="event.stopPropagation()">
+        <option value="7">7</option>
+        <option value="8">8</option>
+        <option value="9">9</option>
     </select>
 
     <button class="add-cart-btn"
@@ -948,9 +951,6 @@ body.modal-open{
         أضف للسلة
     </button>
 </div>
-
-        </div>
-    </section>
 
 <h2 style="margin-top:50px">الطلبات</h2>
 <div id="ordersList"></div>
@@ -1077,7 +1077,6 @@ function renderProduct(doc) {
 /* =========================================
    LOAD PRODUCTS (FIXED + SORTED)
 ========================================= */
-import { query, orderBy } from "firebase/firestore";
 
 const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
 
@@ -1237,7 +1236,6 @@ function updateCart() {
 
     let total = 0;
     let count = 0;
-let selectedRating = 0;
 
     const html = cart.map((item, index) => {
 
@@ -1356,7 +1354,7 @@ setInterval(() => {
 
 </script>
 
-  <!-- ضع هذا الكود قبل </body> مباشرة --> <div id="searchOverlay" class="search-overlay"> <div class="search-box"> <input type="text" id="searchInput" placeholder="ابحث عن منتج..."> <button onclick="closeSearch()">إغلاق</button>     
+  <!-- ضع هذا الكود قبل </body> مباشرة --> <div id="searchOverlay" class="search-overlay"> <div class="search-box"> <input type="text" id="searchInput" placeholder="ابحث عن منتج..."> <button onclick="searchProducts()">بحث</button>     
   </div>
 </div>
 
@@ -1416,6 +1414,7 @@ window.toggleMobileMenu = function () {
    PRODUCT MODAL SYSTEM (FIXED)
 ========================================= */
 let currentProduct = null;
+let selectedRating = 0;
 
 window.openProduct = function (id, name, price, image) {
     currentProduct = {
@@ -1447,16 +1446,17 @@ window.closeProduct = function () {
                 للنجوم
 ========================================= */
 
-document.querySelectorAll(".rating-stars span").forEach(star => {
-    star.addEventListener("click", function () {
-        selectedRating = this.dataset.rate;
+const stars = document.querySelectorAll(".rating-stars span");
 
-        document.querySelectorAll(".rating-stars span")
-            .forEach(s => s.classList.remove("active"));
+stars.forEach((star, index) => {
+    star.addEventListener("click", () => {
+        selectedRating = index + 1;
 
-        for (let i = 0; i < selectedRating; i++) {
-            document.querySelectorAll(".rating-stars span")[i].classList.add("active");
-        }
+        stars.forEach((s, i) => {
+            s.classList.toggle("active", i < selectedRating);
+        });
+
+        document.getElementById("reviewText").style.display = "block";
     });
 });
 
