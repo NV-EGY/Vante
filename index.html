@@ -347,8 +347,10 @@ select{
     letter-spacing:.3px;
 }
       
-/* BUTTONS */
-button{
+/* ====================================
+   GLOBAL BUTTON (ONLY PRIMARY BUTTONS)
+==================================== */
+.btn-primary{
     width:100%;
     padding:14px;
     border:none;
@@ -361,9 +363,27 @@ button{
     transition:.3s;
 }
 
-button:hover{
+.btn-primary:hover{
     background:#D4AF37;
     color:#000;
+}
+
+.btn-secondary{
+    width:100%;
+    padding:14px;
+    border:none;
+    border-radius:12px;
+    background:#f2f2f2;
+    color:#111;
+    font-size:15px;
+    font-weight:700;
+    cursor:pointer;
+    transition:.25s ease;
+    margin-top:10px;
+}
+
+.btn-secondary:hover{
+    background:#ddd;
 }
 
 .cart-item button{
@@ -858,6 +878,20 @@ body.modal-open{
     z-index: 100000;
 }
 
+/* ==============================
+   PRODUCT SELECT FIX
+============================== */
+
+.product select{
+    width:100%;
+    margin-top:10px;
+    padding:12px;
+    border-radius:10px;
+    border:1px solid #eee;
+    font-weight:600;
+    background:#fff;
+}
+
 /* =========================================
    SIZE LABEL
 ========================================= */
@@ -906,6 +940,39 @@ body.modal-open{
     min-width:30px;
     text-align:center;
     font-size:16px;
+}
+
+/* ====================================
+   QTY BUTTON FIX (ISOLATED)
+==================================== */
+
+.qty-box button{
+    all: unset; /* 👈 أهم سطر: يمسح تأثير button العام */
+    width:36px;
+    height:36px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    border-radius:10px;
+    background:linear-gradient(145deg,#1a1a1a,#0d0d0d);
+    color:#D4AF37;
+
+    font-size:20px;
+    font-weight:900;
+    cursor:pointer;
+
+    transition:.25s ease;
+}
+
+.qty-box button:hover{
+    background:#D4AF37;
+    color:#111;
+    transform:scale(1.08);
+}
+
+.qty-box button:active{
+    transform:scale(.95);
 }
       
 /* ==================================== SEARCH OVERLAY ==================================== */ .search-overlay{ position:fixed; inset:0; background:rgba(0,0,0,.65); display:flex; align-items:center; justify-content:center; opacity:0; visibility:hidden; transition:.35s; z-index:9999; padding:20px; } .search-overlay.active{ opacity:1; visibility:visible; } .search-box{ width:100%; max-width:550px; background:#fff; padding:20px; border-radius:22px; display:flex; align-items:center; gap:12px; box-shadow:0 25px 60px rgba(0,0,0,.25); animation:searchPopup .35s ease; } .search-box input{ flex:1; border:1px solid #ddd; padding:16px 20px; border-radius:14px; font-size:16px; background:#fafafa; } .search-box input:focus{ border-color:#D4AF37; background:#fff; } .search-box button{ width:auto; padding:16px 26px; border:none; border-radius:14px; background:#111; color:#fff; cursor:pointer; transition:.3s; } .search-box button:hover{ background:#D4AF37; color:#000; } @keyframes searchPopup{ from{ opacity:0; transform:scale(.9); } to{ opacity:1; transform:scale(1); } }     
@@ -999,72 +1066,77 @@ body.modal-open{
         <img src="images/header.webp" alt="VANTÉ Banner">
     </section>
 
-    <!-- PRODUCTS -->
-    <section class="container">
+<!-- PRODUCTS -->
+<section class="container">
 
-        <h2>المنتجات</h2>
+    <h2>المنتجات</h2>
 
-        <div class="products">
+    <div class="products">
 
-<!-- PRODUCT 1 -->
-<div class="product"
-     onclick="openProduct('p1','سوار كارتير','249','images/p1.webp')">
+        <!-- PRODUCT 1 -->
+        <div class="product"
+            onclick="openProduct('p1','سوار كارتير','249','images/p1.webp')">
 
-    <img src="images/p1.webp" alt="سوار كارتير">
+            <img src="images/p1.webp" alt="سوار كارتير">
 
-    <h3>سوار كارتير</h3>
-    <p>249 جنيه</p>
+            <h3>سوار كارتير</h3>
+            <p>249 جنيه</p>
 
-    <select id="size1" onclick="event.stopPropagation()">
-        <option value="7">7</option>
-        <option value="8">8</option>
-        <option value="9">9</option>
-    </select>
+            <select id="size1" onclick="event.stopPropagation()">
+                <option value="7">المقاس 7</option>
+                <option value="8">المقاس 8</option>
+                <option value="9">المقاس 9</option>
+            </select>
 
-    <button class="add-cart-btn"
-        onclick="addToCart(
-            'سوار كارتير',
-            249,
-            document.getElementById('size1').value,
-            'images/p1.webp',
-            event
-        )">
-        أضف للسلة
-    </button>
-</div>
+            <button class="btn-primary add-cart-btn"
+                onclick="addToCart(
+                    'سوار كارتير',
+                    249,
+                    document.getElementById('size1').value,
+                    'images/p1.webp',
+                    event
+                )">
+                أضف للسلة
+            </button>
 
-<!-- PRODUCT 2 -->
-<div class="product"
-     onclick="openProduct('p2','خاتم كارتير','199','images/p2.webp')">
+        </div>
 
-    <img src="images/p2.webp" alt="خاتم كارتير">
+        <!-- PRODUCT 2 -->
+        <div class="product"
+            onclick="openProduct('p2','خاتم كارتير','199','images/p2.webp')">
 
-    <h3>خاتم كارتير</h3>
-    <p>199 جنيه</p>
+            <img src="images/p2.webp" alt="خاتم كارتير">
 
-    <select id="size2" onclick="event.stopPropagation()">
-        <option value="7">7</option>
-        <option value="8">8</option>
-        <option value="9">9</option>
-    </select>
+            <h3>خاتم كارتير</h3>
+            <p>199 جنيه</p>
 
-    <button class="add-cart-btn"
-        onclick="addToCart(
-            'خاتم كارتير',
-            199,
-            document.getElementById('size2').value,
-            'images/p2.webp',
-            event
-        )">
-        أضف للسلة
-    </button>
-</div>
+            <select id="size2" onclick="event.stopPropagation()">
+                <option value="7">المقاس 7</option>
+                <option value="8">المقاس 8</option>
+                <option value="9">المقاس 9</option>
+            </select>
 
-<h2 style="margin-top:50px">الطلبات</h2>
-<div id="ordersList"></div>
+            <button class="btn-primary add-cart-btn"
+                onclick="addToCart(
+                    'خاتم كارتير',
+                    199,
+                    document.getElementById('size2').value,
+                    'images/p2.webp',
+                    event
+                )">
+                أضف للسلة
+            </button>
+
+        </div>
+
+    </div>
+
+    <h2 style="margin-top:50px">الطلبات</h2>
+    <div id="ordersList"></div>
 
     <!-- CART DRAWER -->
     <div id="cartDrawer" class="drawer">
+
         <h2>🛒 سلة التسوق</h2>
 
         <div id="cartItems">السلة فارغة</div>
@@ -1073,13 +1145,14 @@ body.modal-open{
             الإجمالي: <span id="total">0</span> جنيه
         </div>
 
-        <button onclick="openCheckout()">
+        <button class="btn-primary" onclick="openCheckout()">
             تأكيد الطلب
         </button>
 
-        <button onclick="closeCart()">
+        <button class="btn-secondary" onclick="closeCart()">
             إغلاق
         </button>
+
     </div>
 
     <!-- OVERLAY -->
@@ -1087,19 +1160,21 @@ body.modal-open{
 
     <!-- CHECKOUT MODAL -->
     <div id="checkoutModal" class="modal">
+
         <h2>إتمام الطلب</h2>
 
         <input id="name" type="text" placeholder="الاسم الكامل">
         <input id="phone" type="tel" placeholder="رقم الهاتف">
         <input id="address" type="text" placeholder="العنوان بالكامل">
 
-        <button onclick="checkout()">
+        <button class="btn-primary" onclick="checkout()">
             إرسال الطلب
         </button>
 
-        <button onclick="closeCheckout()">
+        <button class="btn-secondary" onclick="closeCheckout()">
             رجوع
         </button>
+
     </div>
 
 <script type="module">
