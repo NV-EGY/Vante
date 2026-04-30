@@ -1481,11 +1481,16 @@ window.checkout = async function () {
     const address = document.getElementById("address").value.trim();
 
     if (!name || !phone || !address) {
-        alert("يرجى ملء جميع البيانات");
+        alert("من فضلك املأ جميع البيانات");
         return;
     }
 
-    const total = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
+    if (cart.length === 0) {
+        alert("السلة فارغة");
+        return;
+    }
+
+    const total = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
 
     const order = {
         customerName: name,
@@ -1497,29 +1502,50 @@ window.checkout = async function () {
     };
 
     try {
+        // 1️⃣ حفظ الطلب في Firebase
         await addDoc(collection(db, "orders"), order);
 
-        let msg = `طلب جديد\n\nالاسم: ${name}\nالهاتف: ${phone}\n\n`;
+        // 2️⃣ تجهيز رسالة واتساب
+        let msg = `🛍 طلب جديد من VANTÉ\n\n`;
+        msg += `👤 الاسم: ${name}\n`;
+        msg += `📱 الهاتف: ${phone}\n`;
+        msg += `📍 العنوان: ${address}\n\n`;
 
-        cart.forEach(i => {
-            msg += `- ${i.name} (${i.size}) x${i.qty}\n`;
+        cart.forEach(item => {
+            msg += `- ${item.name} (${item.size}) ×${item.qty} = ${item.price * item.qty}\n`;
         });
 
-        msg += `\nالإجمالي: ${total}`;
+        msg += `\n💰 الإجمالي: ${total} جنيه`;
 
+        // 3️⃣ فتح واتساب
         window.open(
             `https://wa.me/201106018685?text=${encodeURIComponent(msg)}`,
             "_blank"
         );
 
-        alert("تم إرسال الطلب");
+const btn = document.querySelector("#checkoutModal .btn-primary");
+btn.innerText = "جاري الإرسال...";
+btn.disabled = true;
 
+btn.innerText = "إرسال الطلب";
+btn.disabled = false;
+
+        // 4️⃣ تنظيف النظام
         cart = [];
         updateCart();
 
-    } catch (err) {
-        console.error(err);
-        alert("خطأ في إرسال الطلب");
+        closeCheckout();
+        closeCart();
+
+        document.getElementById("name").value = "";
+        document.getElementById("phone").value = "";
+        document.getElementById("address").value = "";
+
+        alert("تم إرسال الطلب بنجاح ✔");
+
+    } catch (error) {
+        console.error(error);
+        alert("حدث خطأ أثناء إرسال الطلب");
     }
 };
 
