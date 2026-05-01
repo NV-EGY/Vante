@@ -1223,88 +1223,41 @@ let currentUser = null;
 const productsContainer = document.querySelector(".products");
 
 /* =========================================
-   RENDER PRODUCT
+   LOAD PRODUCT AUTOMATIC 
 ========================================= */
-function renderProduct(doc) {
-    const product = doc.data();
+const productsContainer = document.querySelector(".products");
 
-    const sizesHTML = (product.sizes || [])
-        .map(size => `<option>${size}</option>`)
-        .join("");
-
-    return `
-        <div class="product"
-            onclick="openProduct('${doc.id}','${product.name}','${product.price}','${product.image}')">
-
-            <div class="product-image">
-                <img src="${product.image}" alt="${product.name}">
-            </div>
-
-            <h3>${product.name}</h3>
-            <p>${product.price} جنيه</p>
-
-            <select id="size-${doc.id}" onclick="event.stopPropagation()">
-                ${sizesHTML}
-            </select>
-
-            <button class="add-cart-btn"
-                onclick="addToCart('${product.name}',${product.price},document.getElementById('size-${doc.id}').value,'${product.image}',event)">
-                أضف للسلة
-            </button>
-
-        </div>
-    `;
-}
-
-/* =========================================
-   LOAD PRODUCTS (FIXED + SORTED)
-========================================= */
-
-const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
+const q = query(
+    collection(db, "products"),
+    orderBy("createdAt", "desc")
+);
 
 onSnapshot(q, (snapshot) => {
-
-    let products = [];
-
-    snapshot.forEach((docSnap) => {
-        products.push({ id: docSnap.id, ...docSnap.data() });
-    });
-
-    // ترتيب يدوي (أقوى من Firestore orderBy)
-    products.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-
     let html = "";
 
-    products.forEach((product) => {
-
-        const sizesHTML = (product.sizes || [])
-        .map(size => `<option>${size}</option>`)
-        .join("");
+    snapshot.forEach((doc) => {
+        const p = doc.data();
 
         html += `
         <div class="product"
-            onclick="openProduct('${product.id}','${product.name}','${product.price}','${product.image}')">
+             onclick='openProduct(
+                "${doc.id}",
+                ${JSON.stringify(p.name)},
+                ${p.price},
+                ${JSON.stringify(p.image)},
+                ${JSON.stringify(p.sizes || [])}
+             )'>
 
-            <div class="product-image">
-                <img src="${product.image}">
-            </div>
+            <img src="${p.image}" alt="${p.name}">
+            <h3>${p.name}</h3>
+            <p>${p.price} EGP</p>
 
-            <h3>${product.name}</h3>
-            <p>${product.price} جنيه</p>
-
-            <select id="size-${product.id}">
-                ${sizesHTML}
-            </select>
-
-            <button onclick="addToCart('${product.name}',${product.price},document.getElementById('size-${product.id}').value,'${product.image}',event)">
-                أضف للسلة
-            </button>
-
+            <button class="btn">اطلب الآن</button>
         </div>
         `;
     });
 
-    document.querySelector(".products").innerHTML = html;
+    productsContainer.innerHTML = html;
 });
 
 /* =========================================
@@ -1473,14 +1426,16 @@ window.closeCart = function () {
 /* =========================================
    CHECKOUT (FIXED ERROR)
 ========================================= */
-window.checkout = async function () {
+window.checkout = async function() {
 
     const name = document.getElementById("name").value.trim();
     const phone = document.getElementById("phone").value.trim();
+    const gov = document.getElementById("gov").value.trim();
+    const city = document.getElementById("city").value.trim();
     const address = document.getElementById("address").value.trim();
 
-    if (!name || !phone || !address) {
-        alert("من فضلك املأ جميع البيانات");
+    if (!name || !phone || !gov || !city || !address) {
+        alert("يرجى استكمال جميع البيانات");
         return;
     }
 
@@ -1489,61 +1444,79 @@ window.checkout = async function () {
         return;
     }
 
-    const total = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+    const quantity = cart.reduce((sum, item) => sum + item.qty, 0);
+    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+    const shipping = 70;
+    const finalTotal = subtotal + shipping;
+
+    const orderID = "V" + Date.now();
+
+    const orderDetails = cart.map(item => ({
+        names: item.name,
+        design: item.size || "",
+        lang: ""
+    }));
 
     const order = {
+        orderID,
         customerName: name,
         phone,
+        gov,
+        city,
         address,
-        items: cart,
-        total,
-        createdAt: Date.now()
+        orderDetails,
+        quantity,
+        price: subtotal,
+        shipping,
+        finalTotal,
+        status: "new",
+        createdAt: serverTimestamp()
     };
 
     try {
-        // 1️⃣ حفظ الطلب في Firebase
         await addDoc(collection(db, "orders"), order);
 
-        // 2️⃣ تجهيز رسالة واتساب
-        let msg = `🛍 طلب جديد من VANTÉ\n\n`;
-        msg += `👤 الاسم: ${name}\n`;
-        msg += `📱 الهاتف: ${phone}\n`;
-        msg += `📍 العنوان: ${address}\n\n`;
+        let message = `🛍️ طلب جديد - VANTÉ\n\n`;
+        message += `📦 رقم الطلب: ${orderID}\n`;
+        message += `👤 الاسم: ${name}\n`;
+        message += `📱 الهاتف: ${phone}\n`;
+        message += `📍 العنوان: ${gov} - ${city} - ${address}\n\n`;
 
         cart.forEach(item => {
-            msg += `- ${item.name} (${item.size}) ×${item.qty} = ${item.price * item.qty}\n`;
+            message += `• ${item.name}\n`;
+            message += `المقاس: ${item.size}\n`;
+            message += `الكمية: ${item.qty}\n`;
+            message += `السعر: ${item.price * item.qty} جنيه\n\n`;
         });
 
-        msg += `\n💰 الإجمالي: ${total} جنيه`;
+        message += `🚚 الشحن: ${shipping} جنيه\n`;
+        message += `💰 الإجمالي: ${finalTotal} جنيه`;
 
-        // 3️⃣ فتح واتساب
         window.open(
-            `https://wa.me/201106018685?text=${encodeURIComponent(msg)}`,
+            `https://wa.me/201106018685?text=${encodeURIComponent(message)}`,
             "_blank"
         );
+
+        cart = [];
+        updateCart();
+
+        document.getElementById("name").value = "";
+        document.getElementById("phone").value = "";
+        document.getElementById("gov").value = "";
+        document.getElementById("city").value = "";
+        document.getElementById("address").value = "";
+
+        closeCheckout();
+        closeCart();
+
+        alert("تم إرسال الطلب بنجاح");
 
 const btn = document.querySelector("#checkoutModal .btn-primary");
 btn.innerText = "جاري الإرسال...";
 btn.disabled = true;
 
-btn.innerText = "إرسال الطلب";
-btn.disabled = false;
-
-        // 4️⃣ تنظيف النظام
-        cart = [];
-        updateCart();
-
-        closeCheckout();
-        closeCart();
-
-        document.getElementById("name").value = "";
-        document.getElementById("phone").value = "";
-        document.getElementById("address").value = "";
-
-        alert("تم إرسال الطلب بنجاح ✔");
-
     } catch (error) {
-        console.error(error);
+        console.error("Checkout Error:", error);
         alert("حدث خطأ أثناء إرسال الطلب");
     }
 };
@@ -1643,12 +1616,13 @@ window.toggleMobileMenu = function () {
 let currentProduct = null;
 let selectedRating = 0;
 
-window.openProduct = function (id, name, price, image) {
+window.openProduct = function(id, name, price, image, sizes = []) {
     currentProduct = {
         id,
         name,
         price: Number(price),
-        image
+        image,
+        sizes
     };
 
     document.getElementById("modalTitle").textContent = name;
@@ -1656,7 +1630,13 @@ window.openProduct = function (id, name, price, image) {
     document.getElementById("modalImg").src = image;
     document.getElementById("modalImg").alt = name;
 
-    document.getElementById("modalSize").selectedIndex = 0;
+    const sizeSelect = document.getElementById("modalSize");
+    sizeSelect.innerHTML = "";
+
+    (sizes.length ? sizes : ["7", "8", "9"]).forEach(size => {
+        sizeSelect.innerHTML += `<option value="${size}">${size}</option>`;
+    });
+
     document.getElementById("reviewText").value = "";
     document.getElementById("reviewText").style.display = "none";
 
