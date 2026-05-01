@@ -1225,8 +1225,6 @@ const productsContainer = document.querySelector(".products");
 /* =========================================
    LOAD PRODUCT AUTOMATIC 
 ========================================= */
-const productsContainer = document.querySelector(".products");
-
 const q = query(
     collection(db, "products"),
     orderBy("createdAt", "desc")
@@ -1252,7 +1250,16 @@ onSnapshot(q, (snapshot) => {
             <h3>${p.name}</h3>
             <p>${p.price} EGP</p>
 
-            <button class="btn">اطلب الآن</button>
+ <button class="btn"
+    onclick='event.stopPropagation(); addToCart(
+        ${JSON.stringify(p.name)},
+        ${p.price},
+        ${JSON.stringify((p.sizes && p.sizes.length) ? p.sizes[0] : "16")},
+        ${JSON.stringify(p.image)},
+        event
+    )'>
+    أضف للسلة
+</button>
         </div>
         `;
     });
