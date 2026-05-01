@@ -1433,16 +1433,23 @@ window.closeCart = function () {
 /* =========================================
    CHECKOUT (FIXED ERROR)
 ========================================= */
-window.checkout = async function() {
+window.checkout = async function () {
+    const btn = document.querySelector("#checkoutModal .btn-primary");
 
-    const name = document.getElementById("name").value.trim();
-    const phone = document.getElementById("phone").value.trim();
-    const gov = document.getElementById("gov").value.trim();
-    const city = document.getElementById("city").value.trim();
-    const address = document.getElementById("address").value.trim();
+    const nameInput = document.getElementById("name");
+    const phoneInput = document.getElementById("phone");
+    const govInput = document.getElementById("gov");
+    const cityInput = document.getElementById("city");
+    const addressInput = document.getElementById("address");
+
+    const name = nameInput?.value.trim() || "";
+    const phone = phoneInput?.value.trim() || "";
+    const gov = govInput?.value || "";
+    const city = cityInput?.value || "";
+    const address = addressInput?.value.trim() || "";
 
     if (!name || !phone || !gov || !city || !address) {
-        alert("يرجى استكمال جميع البيانات");
+        alert("يرجى استكمال جميع بيانات الشحن");
         return;
     }
 
@@ -1451,43 +1458,53 @@ window.checkout = async function() {
         return;
     }
 
-    const quantity = cart.reduce((sum, item) => sum + item.qty, 0);
-    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-    const shipping = 70;
-    const finalTotal = subtotal + shipping;
-
-    const orderID = "V" + Date.now();
-
-    const orderDetails = cart.map(item => ({
-        names: item.name,
-        design: item.size || "",
-        lang: ""
-    }));
-
-    const order = {
-        orderID,
-        customerName: name,
-        phone,
-        gov,
-        city,
-        address,
-        orderDetails,
-        quantity,
-        price: subtotal,
-        shipping,
-        finalTotal,
-        status: "new",
-        createdAt: serverTimestamp()
-    };
+    btn.disabled = true;
+    btn.innerText = "جاري إرسال الطلب...";
 
     try {
-        await addDoc(collection(db, "orders"), order);
+        const quantity = cart.reduce((sum, item) => sum + item.qty, 0);
+        const subtotal = cart.reduce(
+            (sum, item) => sum + (item.price * item.qty),
+            0
+        );
+
+        const shipping = 70;
+        const finalTotal = subtotal + shipping;
+        const orderID = "V" + Date.now();
+
+        const orderDetails = cart.map(item => ({
+            name: item.name,
+            size: item.size || "",
+            qty: item.qty,
+            price: item.price,
+            image: item.image || ""
+        }));
+
+        const orderData = {
+            orderID,
+            customerName: name,
+            phone,
+            gov,
+            city,
+            address,
+            orderDetails,
+            quantity,
+            subtotal,
+            shipping,
+            finalTotal,
+            status: "new",
+            createdAt: serverTimestamp()
+        };
+
+        await addDoc(collection(db, "orders"), orderData);
 
         let message = `🛍️ طلب جديد - VANTÉ\n\n`;
         message += `📦 رقم الطلب: ${orderID}\n`;
         message += `👤 الاسم: ${name}\n`;
         message += `📱 الهاتف: ${phone}\n`;
-        message += `📍 العنوان: ${gov} - ${city} - ${address}\n\n`;
+        message += `📍 المحافظة: ${gov}\n`;
+        message += `🏙️ المدينة: ${city}\n`;
+        message += `🏠 العنوان: ${address}\n\n`;
 
         cart.forEach(item => {
             message += `• ${item.name}\n`;
@@ -1499,7 +1516,7 @@ window.checkout = async function() {
         message += `🚚 الشحن: ${shipping} جنيه\n`;
         message += `💰 الإجمالي: ${finalTotal} جنيه`;
 
-        window.open(
+ window.open(
             `https://wa.me/201106018685?text=${encodeURIComponent(message)}`,
             "_blank"
         );
@@ -1507,24 +1524,23 @@ window.checkout = async function() {
         cart = [];
         updateCart();
 
-        document.getElementById("name").value = "";
-        document.getElementById("phone").value = "";
-        document.getElementById("gov").value = "";
-        document.getElementById("city").value = "";
-        document.getElementById("address").value = "";
+        nameInput.value = "";
+        phoneInput.value = "";
+        govInput.selectedIndex = 0;
+        cityInput.selectedIndex = 0;
+        addressInput.value = "";
 
         closeCheckout();
         closeCart();
 
-        alert("تم إرسال الطلب بنجاح");
-
-const btn = document.querySelector("#checkoutModal .btn-primary");
-btn.innerText = "جاري الإرسال...";
-btn.disabled = true;
+        alert("تم إرسال طلبك بنجاح ✨");
 
     } catch (error) {
         console.error("Checkout Error:", error);
-        alert("حدث خطأ أثناء إرسال الطلب");
+        alert("حدث خطأ أثناء إرسال الطلب، حاول مرة أخرى.");
+    } finally {
+        btn.disabled = false;
+        btn.innerText = "تأكيد الطلب";
     }
 };
 
