@@ -1505,30 +1505,50 @@ const govData = {
 const govSelect = document.getElementById("governorate");
 const citySelect = document.getElementById("city");
 
+/* =========================================
+   FILL GOVERNORATES
+========================================= */
 Object.keys(govData).forEach(g => {
-  let opt = document.createElement("option");
-  opt.value = g;
-  opt.textContent = g;
-  govSelect.appendChild(opt);
+    let opt = document.createElement("option");
+    opt.value = g;
+    opt.textContent = g;
+    govSelect.appendChild(opt);
 });
 
+/* =========================================
+   ON GOVERNORATE CHANGE
+========================================= */
 govSelect.addEventListener("change", function () {
 
-    let selectedGov = this.value;
+    const selectedGov = this.value;
 
-    citySelect.innerHTML = `<option value="">اختر المدينة</option>`;
+    // reset cities
+    citySelect.innerHTML = `<option value="" selected disabled>اختر المدينة</option>`;
+    citySelect.value = "";
 
     if (govData[selectedGov]) {
+
         govData[selectedGov].forEach(city => {
             let opt = document.createElement("option");
             opt.value = city;
             opt.textContent = city;
             citySelect.appendChild(opt);
         });
+
+        // ✅ فتح اختيار المدينة
+        citySelect.disabled = false;
+
+    } else {
+        // لو مفيش محافظة
+        citySelect.disabled = true;
     }
 });
 
-govSelect.dispatchEvent(new Event("change"));
+/* =========================================
+   INIT STATE
+========================================= */
+citySelect.disabled = true;
+govSelect.value = "";
 
 </script>
 
