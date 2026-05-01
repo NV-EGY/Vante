@@ -1145,7 +1145,7 @@ body.modal-open{
             الإجمالي: <span id="total">0</span> جنيه
         </div>
 
-   <button class="btn-primary" onclick="checkout()">
+  <button class="btn-primary" onclick="openCheckout()">
     تأكيد الطلب
 </button>
 
@@ -1321,7 +1321,6 @@ govSelect.addEventListener("change", function () {
 
 govSelect.dispatchEvent(new Event("change"));
 
-};
 </script>
 
 <script type="module">
@@ -1657,6 +1656,16 @@ const address = document.getElementById("address").value.trim();
         message += `🚚 الشحن: ${shipping} جنيه\n`;
         message += `💰 الإجمالي: ${finalTotal} جنيه`;
 
+window.openCheckout = function () {
+    document.getElementById("checkoutModal").classList.add("active");
+    document.getElementById("overlay").classList.add("active");
+};
+
+window.closeCheckout = function () {
+    document.getElementById("checkoutModal").classList.remove("active");
+    document.getElementById("overlay").classList.remove("active");
+};
+
  window.open(
             `https://wa.me/201106018685?text=${encodeURIComponent(message)}`,
             "_blank"
@@ -1665,11 +1674,11 @@ const address = document.getElementById("address").value.trim();
         cart = [];
         updateCart();
 
-        nameInput.value = "";
-        phoneInput.value = "";
-        govInput.selectedIndex = 0;
-        cityInput.selectedIndex = 0;
-        addressInput.value = "";
+        document.getElementById("name").value = "";
+document.getElementById("phone").value = "";
+document.getElementById("governorate").selectedIndex = 0;
+document.getElementById("city").innerHTML = "";
+document.getElementById("address").value = "";
 
         closeCheckout();
         closeCart();
