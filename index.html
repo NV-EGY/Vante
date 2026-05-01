@@ -1167,6 +1167,7 @@ body.modal-open{
         <input id="phone" type="tel" placeholder="رقم الهاتف">
   <select id="governorate"></select>
 <select id="city"></select>
+<input id="address" type="text" placeholder="اسم الشارع + رقم المنزل">
 
         <button class="btn-primary" onclick="checkout()">
             إرسال الطلب
@@ -1178,6 +1179,7 @@ body.modal-open{
 
     </div>
 
+<script>
 // المحافظات والمدن
 const govData = {
  "القاهرة": [
@@ -1305,6 +1307,7 @@ govSelect.addEventListener("change", function () {
 
     let selectedGov = this.value;
     citySelect.innerHTML = `<option value="">اختر المدينة</option>`;
+<option disabled selected>اختر المدينة</option>
 
     if (govData[selectedGov]) {
         govData[selectedGov].forEach(city => {
@@ -1315,6 +1318,11 @@ govSelect.addEventListener("change", function () {
         });
     }
 });
+
+govSelect.dispatchEvent(new Event("change"));
+
+};
+</script>
 
 <script type="module">
 
@@ -1575,13 +1583,12 @@ window.closeCart = function () {
 window.checkout = async function () {
     const btn = document.querySelector("#checkoutModal .btn-primary");
 
-    const nameInput = document.getElementById("name");
-    const phoneInput = document.getElementById("phone");
-    const govInput = const gov = document.getElementById("governorate").value;
-const city = document.getElementById("city").value; document.getElementById("address");
+const name = document.getElementById("name").value.trim();
+const phone = document.getElementById("phone").value.trim();
+const gov = document.getElementById("governorate").value;
+const city = document.getElementById("city").value;
+const address = document.getElementById("address")?.value.trim() || "";
 
-    const name = nameInput?.value.trim() || "";
-    const phone = phoneInput?.value.trim() || "";
     const gov = govInput?.value || "";
     const city = cityInput?.value || "";
     const address = addressInput?.value.trim() || "";
