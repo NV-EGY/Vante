@@ -1666,10 +1666,27 @@ const address = document.getElementById("address").value.trim();
         message += `🚚 الشحن: ${shipping} جنيه\n`;
         message += `💰 الإجمالي: ${finalTotal} جنيه`;
 
- window.open(
-            `https://wa.me/201106018685?text=${encodeURIComponent(message)}`,
-            "_blank"
-        );
+ /* =========================================
+   WHATSAPP SMART OPEN
+   استبدل جزء window.open الحالي بهذا الكود
+========================================= */
+
+const phoneNumber = "201106018685";
+const encodedMessage = encodeURIComponent(message);
+
+// رابط التطبيق
+const appUrl = `whatsapp://send?phone=${phoneNumber}&text=${encodedMessage}`;
+
+// رابط الويب
+const webUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
+
+// محاولة فتح التطبيق أولاً
+window.location.href = appUrl;
+
+// إذا لم يكن التطبيق مثبتاً، افتح واتساب ويب
+setTimeout(() => {
+    window.open(webUrl, "_blank");
+}, 1200);
 
         cart = [];
         updateCart();
