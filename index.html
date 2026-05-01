@@ -1344,39 +1344,30 @@ body.modal-open{
         </div>
 
   <!-- المحافظة -->
-<div class="select-group">
-    <label for="governorate">المحافظة</label>
-    <div class="custom-select-wrapper">
-        <select id="governorate" name="governorate" required>
-            <option value="" selected disabled>اختر المحافظة</option>
-        </select>
-        <span class="select-icon">📍</span>
-    </div>
-</div>
+        <div class="select-group">
+            <label>المحافظة</label>
+            <div class="custom-select-wrapper">
+                <select id="governorate" required>
+                    <option value="" selected disabled>اختر المحافظة</option>
+                </select>
+                <span class="select-icon">📍</span>
+            </div>
+        </div>
 
-<!-- المدينة -->
-<div class="select-group">
-    <label for="city">المدينة</label>
-    <div class="custom-select-wrapper">
-        <select id="city" name="city" required disabled>
-            <option value="" selected disabled>اختر المدينة</option>
-        </select>
-        <span class="select-icon">🏙️</span>
-    </div>
-</div>
+        <div class="select-group">
+            <label>المدينة</label>
+            <div class="custom-select-wrapper">
+                <select id="city" required disabled>
+                    <option value="" selected disabled>اختر المدينة</option>
+                </select>
+                <span class="select-icon">🏙️</span>
+            </div>
+        </div>
 
-<!-- العنوان -->
-<div class="input-group">
-    <label for="address">العنوان بالتفصيل</label>
-    <input
-        id="address"
-        name="address"
-        type="text"
-        required
-        autocomplete="street-address"
-        placeholder="اسم الشارع - رقم المنزل - الدور"
-    >
-</div>
+        <div class="input-group">
+            <label>العنوان بالتفصيل</label>
+            <input id="address" type="text" placeholder="اسم الشارع - رقم المنزل - الدور">
+        </div>
 
         <button class="btn-primary" onclick="checkout()">
             تأكيد الطلب
