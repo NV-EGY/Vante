@@ -1306,8 +1306,8 @@ Object.keys(govData).forEach(g=>{
 govSelect.addEventListener("change", function () {
 
     let selectedGov = this.value;
-    citySelect.innerHTML = `<option value="">اختر المدينة</option>`;
-<option disabled selected>اختر المدينة</option>
+
+    citySelect.innerHTML = `<option disabled selected value="">اختر المدينة</option>`;
 
     if (govData[selectedGov]) {
         govData[selectedGov].forEach(city => {
