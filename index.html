@@ -1293,13 +1293,13 @@ const govData = {
 "جنوب سيناء":["دهب","شرم الشيخ","نويبع","طابا","سانت كاترين","الطور","رأس سدر","أحياء أخرى"]
 };
 
-let govSelect = document.getElementById("governorate");
-let citySelect = document.getElementById("city");
+const govSelect = document.getElementById("governorate");
+const citySelect = document.getElementById("city");
 
-Object.keys(govData).forEach(g=>{
-  let opt=document.createElement("option");
-  opt.value=g;
-  opt.text=g;
+Object.keys(govData).forEach(g => {
+  let opt = document.createElement("option");
+  opt.value = g;
+  opt.textContent = g;
   govSelect.appendChild(opt);
 });
 
@@ -1307,7 +1307,7 @@ govSelect.addEventListener("change", function () {
 
     let selectedGov = this.value;
 
-    citySelect.innerHTML = `<option disabled selected value="">اختر المدينة</option>`;
+    citySelect.innerHTML = `<option value="">اختر المدينة</option>`;
 
     if (govData[selectedGov]) {
         govData[selectedGov].forEach(city => {
@@ -1587,14 +1587,10 @@ const name = document.getElementById("name").value.trim();
 const phone = document.getElementById("phone").value.trim();
 const gov = document.getElementById("governorate").value;
 const city = document.getElementById("city").value;
-const address = document.getElementById("address")?.value.trim() || "";
-
-    const gov = govInput?.value || "";
-    const city = cityInput?.value || "";
-    const address = addressInput?.value.trim() || "";
+const address = document.getElementById("address").value.trim();
 
     if (!name || !phone || !gov || !city || !address) {
-        alert("يرجى استكمال جميع بيانات الشحن");
+        alert("يرجى استكمال جميع بيانات الطلب");
         return;
     }
 
