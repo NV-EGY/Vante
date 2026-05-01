@@ -1576,6 +1576,16 @@ window.closeCart = function () {
     document.getElementById("overlay").classList.remove("active");
 };
 
+window.openCheckout = function () {
+    document.getElementById("checkoutModal").classList.add("active");
+    document.getElementById("overlay").classList.add("active");
+};
+
+window.closeCheckout = function () {
+    document.getElementById("checkoutModal").classList.remove("active");
+    document.getElementById("overlay").classList.remove("active");
+};
+
 /* =========================================
    CHECKOUT (FIXED ERROR)
 ========================================= */
@@ -1655,16 +1665,6 @@ const address = document.getElementById("address").value.trim();
 
         message += `🚚 الشحن: ${shipping} جنيه\n`;
         message += `💰 الإجمالي: ${finalTotal} جنيه`;
-
-window.openCheckout = function () {
-    document.getElementById("checkoutModal").classList.add("active");
-    document.getElementById("overlay").classList.add("active");
-};
-
-window.closeCheckout = function () {
-    document.getElementById("checkoutModal").classList.remove("active");
-    document.getElementById("overlay").classList.remove("active");
-};
 
  window.open(
             `https://wa.me/201106018685?text=${encodeURIComponent(message)}`,
