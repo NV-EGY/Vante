@@ -1213,6 +1213,31 @@ body.modal-open{
 .qty-box button:active{
     transform:scale(.95);
 }
+
+.collections-sub{
+    max-height:0;
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+    transition:max-height .4s ease;
+    padding-right:10px;
+}
+
+.collections-sub a{
+    padding:12px 0;
+    font-size:15px;
+    color:#555;
+    border-bottom:1px solid #f2f2f2;
+}
+
+.collections-sub a:hover{
+    color:#D4AF37;
+}
+
+/* لما تفتح */
+.collections-sub.active{
+    max-height:400px;
+}
       
 /* ==================================== SEARCH OVERLAY ==================================== */ .search-overlay{ position:fixed; inset:0; background:rgba(0,0,0,.65); display:flex; align-items:center; justify-content:center; opacity:0; visibility:hidden; transition:.35s; z-index:9999; padding:20px; } .search-overlay.active{ opacity:1; visibility:visible; } .search-box{ width:100%; max-width:550px; background:#fff; padding:20px; border-radius:22px; display:flex; align-items:center; gap:12px; box-shadow:0 25px 60px rgba(0,0,0,.25); animation:searchPopup .35s ease; } .search-box input{ flex:1; border:1px solid #ddd; padding:16px 20px; border-radius:14px; font-size:16px; background:#fafafa; } .search-box input:focus{ border-color:#D4AF37; background:#fff; } .search-box button{ width:auto; padding:16px 26px; border:none; border-radius:14px; background:#111; color:#fff; cursor:pointer; transition:.3s; } .search-box button:hover{ background:#D4AF37; color:#000; } @keyframes searchPopup{ from{ opacity:0; transform:scale(.9); } to{ opacity:1; transform:scale(1); } }     
     
@@ -1271,10 +1296,22 @@ body.modal-open{
 
     <a href="#" onclick="toggleMobileMenu()">Home</a>
 
-    <a href="#collections"
-       onclick="scrollToCollections(); toggleMobileMenu();">
-       Collections
-    </a>
+  <div class="menu-item">
+    <a href="#" onclick="toggleCollectionsSub()">Collections</a>
+
+    <div id="collectionsSub" class="collections-sub">
+
+        <a href="#collections" data-category="all">All</a>
+        <a href="#collections" data-category="سلاسل&كوليات">سلاسل & كوليات</a>
+        <a href="#collections" data-category="اساور&غوايش">أساور & غوايش</a>
+        <a href="#collections" data-category="خواتم&دبل">خواتم & دبل</a>
+        <a href="#collections" data-category="توينز">توينز</a>
+        <a href="#collections" data-category="اطقم">أطقم</a>
+        <a href="#collections" data-category="حلقان">حلقان</a>
+        <a href="#collections" data-category="خلخال">خلخال</a>
+
+    </div>
+</div>
 
     <a href="#" onclick="toggleMobileMenu()">Clearance Sale</a>
     <a href="#" onclick="toggleMobileMenu()">Contact Us</a>
@@ -1719,19 +1756,30 @@ if (
     productsContainer.innerHTML = html;
 });
 
-document.querySelectorAll(".collection-btn").forEach(button => {
-    button.addEventListener("click", function () {
+document.querySelectorAll(".collections-sub a").forEach(link => {
 
-        document.querySelectorAll(".collection-btn")
-            .forEach(btn => btn.classList.remove("active"));
+    link.addEventListener("click", function () {
 
-        this.classList.add("active");
+        const category = this.dataset.category;
 
-        currentCategory = this.dataset.category;
+        currentCategory = category;
 
         loadProducts();
+
+        toggleMobileMenu(); // يقفل المنيو
+
+        document.querySelector(".products")
+            .scrollIntoView({ behavior: "smooth" });
     });
+
 });
+
+window.toggleCollectionsSub = function () {
+
+    const sub = document.getElementById("collectionsSub");
+
+    sub.classList.toggle("active");
+};
 
 /* =========================================
    LOAD ORDERS
