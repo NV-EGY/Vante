@@ -1516,25 +1516,36 @@ const db = getFirestore(app);
 let currentUser = null;
 
 /* =========================================
-   PRODUCTS CONTAINER
-========================================= */
-const productsContainer = document.getElementById("productsContainer");
-
-/* =========================================
    LOAD PRODUCTS FROM FIREBASE
+   (استبدل الكود القديم بالكامل بهذا)
 ========================================= */
-const q = query(
+
+const productsContainer = document.querySelector(".products");
+
+const productsQuery = query(
     collection(db, "products"),
     orderBy("createdAt", "desc")
 );
 
-onSnapshot(q, (snapshot) => {
+onSnapshot(productsQuery, (snapshot) => {
+
+    if (!productsContainer) {
+        console.error("Products container not found");
+        return;
+    }
 
     let html = "";
 
     if (snapshot.empty) {
         productsContainer.innerHTML = `
-            <div class="empty-products">
+            <div style="
+                grid-column:1/-1;
+                text-align:center;
+                padding:50px 20px;
+                font-size:20px;
+                font-weight:700;
+                color:#777;
+            ">
                 لا توجد منتجات حالياً
             </div>
         `;
@@ -1542,42 +1553,34 @@ onSnapshot(q, (snapshot) => {
     }
 
     snapshot.forEach((docSnap) => {
-
         const p = docSnap.data();
 
-        const sizesHTML = (p.sizes && p.sizes.length)
-            ? `
-                <div class="product-sizes">
-                    ${p.sizes.map(size => `
-                        <span class="size-chip">${size}</span>
-                    `).join("")}
-                </div>
-            `
-            : "";
-
         html += `
-        <div class="product"
-             onclick='openProduct(
-                "${docSnap.id}",
-                ${JSON.stringify(p.name)},
-                ${p.price},
-                ${JSON.stringify(p.image)},
-                ${JSON.stringify(p.sizes || [])}
-             )'>
+        <div class="product">
 
-            <img src="${p.image}" alt="${p.name}" loading="lazy">
+            <div class="product-image"
+                 onclick='openProduct(
+                    "${docSnap.id}",
+                    ${JSON.stringify(p.name)},
+                    ${Number(p.price)},
+                    ${JSON.stringify(p.image)},
+                    ${JSON.stringify(p.sizes || [])}
+                 )'>
+
+                <img src="${p.image}"
+                     alt="${p.name}"
+                     loading="lazy">
+            </div>
 
             <h3>${p.name}</h3>
 
-            <p>${p.price} جنيه</p>
+            <p>${Number(p.price)} EGP</p>
 
-            ${sizesHTML}
-
-            <button class="btn"
+            <button class="btn-primary add-cart-btn"
                 onclick='event.stopPropagation(); openProduct(
                     "${docSnap.id}",
                     ${JSON.stringify(p.name)},
-                    ${p.price},
+                    ${Number(p.price)},
                     ${JSON.stringify(p.image)},
                     ${JSON.stringify(p.sizes || [])}
                 )'>
