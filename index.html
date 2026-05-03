@@ -1650,17 +1650,16 @@ html += `
 </div>
 `;
 
-            <!-- ADD TO CART -->
-            <button class="btn-primary"
-                onclick='addToCartFromHome(
-    "${p.name}",
-    ${Number(p.price)},
-    "${p.image}",
-    "${docSnap.id}",
-    event
+ <button class="btn-primary"
+    onclick='addToCartFromHome(
+        "${p.name}",
+        ${Number(p.price)},
+        "${p.image}",
+        "${docSnap.id}",
+        event
     )'>
-                أضف للسلة
-            </button>
+    أضف للسلة
+</button>
 
         </div>
         `;
