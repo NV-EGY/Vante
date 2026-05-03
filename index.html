@@ -1219,8 +1219,23 @@ body.modal-open{
     overflow:hidden;
     display:flex;
     flex-direction:column;
-    transition:max-height .4s ease;
+    transition:all .45s cubic-bezier(.4,0,.2,1);
+    opacity:0;
+    transform:translateY(-8px);
     padding-right:10px;
+}
+
+.collections-sub.active{
+    max-height:500px;
+    opacity:1;
+    transform:translateY(0);
+}
+
+.collection-btn.active{
+    background:#111;
+    color:#fff;
+    transform:scale(1.05);
+    box-shadow:0 10px 25px rgba(0,0,0,.15);
 }
 
 .collections-sub a{
@@ -1756,17 +1771,34 @@ if (
     productsContainer.innerHTML = html;
 });
 
-document.querySelectorAll(".collections-sub a").forEach(link => {
+document.querySelectorAll(".collections-sub a, .collection-btn").forEach(btn => {
 
-    link.addEventListener("click", function () {
+    btn.addEventListener("click", function () {
 
         const category = this.dataset.category;
 
         currentCategory = category;
 
-        loadProducts();
+        // إعادة تحميل العرض (في حالتك snapshot هو اللي بيعمل rerender)
+        document.querySelector(".products")
+            .scrollIntoView({ behavior: "smooth" });
 
-        toggleMobileMenu(); // يقفل المنيو
+        // قفل الموبايل مينيو
+        toggleMobileMenu?.();
+    });
+
+});
+
+document.querySelectorAll(".collection-btn").forEach(btn => {
+
+    btn.addEventListener("click", function () {
+
+        document.querySelectorAll(".collection-btn")
+            .forEach(b => b.classList.remove("active"));
+
+        this.classList.add("active");
+
+        currentCategory = this.dataset.category;
 
         document.querySelector(".products")
             .scrollIntoView({ behavior: "smooth" });
@@ -1778,7 +1810,12 @@ window.toggleCollectionsSub = function () {
 
     const sub = document.getElementById("collectionsSub");
 
-    sub.classList.toggle("active");
+    // لو مفتوح اقفله
+    if (sub.classList.contains("active")) {
+        sub.classList.remove("active");
+    } else {
+        sub.classList.add("active");
+    }
 };
 
 /* =========================================
