@@ -567,6 +567,57 @@ select{
     letter-spacing:1px;
 }
 
+.sizes-wrap{
+    display:flex;
+    justify-content:center;
+    gap:8px;
+    margin:12px 0;
+}
+
+.size-btn{
+    width:38px;
+    height:38px;
+    border:1px solid #ddd;
+    background:#fff;
+    border-radius:10px;
+    font-size:13px;
+    font-weight:800;
+    cursor:pointer;
+    transition:.25s ease;
+}
+
+.size-btn:hover{
+    border-color:#D4AF37;
+    transform:translateY(-2px);
+}
+
+.size-btn.active{
+    background:#111;
+    color:#fff;
+    border-color:#111;
+}
+
+.price-tag{
+    display:flex;
+    justify-content:center;
+    align-items:baseline;
+    gap:6px;
+    margin:6px 0 10px;
+}
+
+.price{
+    font-size:18px;
+    font-weight:900;
+    color:#111;
+}
+
+.currency{
+    font-size:12px;
+    font-weight:700;
+    color:#D4AF37;
+    letter-spacing:1px;
+}
+
 body.modal-open{
     overflow:hidden;
 }
@@ -1573,7 +1624,11 @@ html += `
     </div>
 
     <h3>${p.name}</h3>
-    <p>${Number(p.price)} EGP</p>
+
+   <div class="price-tag">
+    <span class="price">${Number(p.price)}</span>
+    <span class="currency">EGP</span>
+</div>
 
     <!-- 👇 عرض المقاسات بشكل واضح -->
     <div class="size-label">
@@ -1581,20 +1636,29 @@ html += `
         <span class="sizes-text">${sizes.join(" - ")}</span>
     </div>
 
-    <!-- اختيار المقاس السريع -->
-    <select class="product-size-${docSnap.id}">
-        ${sizes.map(size => `<option value="${size}">${size}</option>`).join("")}
-    </select>
+html += `
+<div class="sizes-wrap" id="sizes-${docSnap.id}">
+    ${sizes.map((size, i) => `
+        <button 
+            type="button"
+            class="size-btn ${i === 0 ? 'active' : ''}"
+            onclick="selectSize('${docSnap.id}','${size}',this)"
+        >
+            ${size}
+        </button>
+    `).join("")}
+</div>
+`;
 
             <!-- ADD TO CART -->
             <button class="btn-primary"
                 onclick='addToCartFromHome(
-                    "${p.name}",
-                    ${Number(p.price)},
-                    "${p.image}",
-                    "${docSnap.id}",
-                    event
-                )'>
+    "${p.name}",
+    ${Number(p.price)},
+    "${p.image}",
+    "${docSnap.id}",
+    event
+    )'>
                 أضف للسلة
             </button>
 
@@ -1693,19 +1757,14 @@ window.searchProducts = function () {
 let cart = [];
 
 /* ADD TO CART (FIXED SINGLE VERSION) */
-window.addToCart = function(name, price, size, image, event) {
+window.addToCartFromHome = function(name, price, image, id, event) {
 
     if (event) event.stopPropagation();
 
-    const existing = cart.find(item =>
-        item.name === name && item.size === size
-    );
+    const product = document.querySelector(`[data-size]`);
+    const size = product?.getAttribute("data-size") || "7";
 
-    if (existing) {
-        existing.qty++;
-    } else {
-        cart.push({ name, price, size, image, qty: 1 });
-    }
+    addToCart(name, price, size, image, event);
 
     updateCart();
     openCart();
@@ -1789,6 +1848,19 @@ window.addToCartFromHome = function(name, price, image, id, event) {
 
     // يفتح السلة مباشرة
     openCart();
+};
+
+window.selectSize = function(productId, size, el){
+
+    const container = document.getElementById(`sizes-${productId}`);
+
+    container.querySelectorAll(".size-btn").forEach(btn => {
+        btn.classList.remove("active");
+    });
+
+    el.classList.add("active");
+
+    el.closest(".product").setAttribute("data-size", size);
 };
 
 /* =========================================
