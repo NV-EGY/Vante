@@ -723,6 +723,13 @@ body.modal-open{
     color: #111;
 }
 
+.product-description{
+    margin:15px 0;
+    color:#666;
+    line-height:1.9;
+    font-size:15px;
+}
+
 .close-modal {
     width: 42px;
     height: 42px;
@@ -1613,12 +1620,13 @@ onSnapshot(productsQuery, (snapshot) => {
 
     <div class="product-image"
         onclick='openProduct(
-            "${docSnap.id}",
-            "${p.name}",
-            "${p.price}",
-            "${p.image}",
-            ${JSON.stringify(sizes)}
-        )'
+    "${docSnap.id}",
+    ${JSON.stringify(p.name)},
+    ${Number(p.price)},
+    ${JSON.stringify(p.image)},
+    ${JSON.stringify(p.sizes || [])},
+    ${JSON.stringify(p.description || "")}
+)'
     >
         <img src="${p.image}" alt="${p.name}">
     </div>
@@ -1629,6 +1637,7 @@ onSnapshot(productsQuery, (snapshot) => {
         <span class="price">${Number(p.price)}</span>
         <span class="currency">EGP</span>
     </div>
+<p class="product-description">${description}</p>
 
     <!-- عرض المقاسات -->
    <div class="size-label">
@@ -1840,6 +1849,15 @@ window.changeQty = function(index, change) {
 
     updateCart();
 };
+
+onclick='openProduct(
+    "${id}",
+    ${JSON.stringify(p.name)},
+    ${Number(p.price)},
+    ${JSON.stringify(p.image)},
+    ${JSON.stringify(p.sizes || [])},
+    ${JSON.stringify(p.description || "")}
+)'
 
 /* CART UI */
 window.openCart = function () {
@@ -2095,7 +2113,7 @@ window.toggleMobileMenu = function () {
 let currentProduct = null;
 let selectedRating = 0;
 
-window.openProduct = function(id, name, price, image, sizes = []) {
+function openProduct(id, name, price, image, sizes = [], description = "") {
     currentProduct = {
         id,
         name,
