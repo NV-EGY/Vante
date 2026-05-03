@@ -1321,37 +1321,21 @@ body.modal-open{
 
         <div id="collectionsTabs" class="collections-tabs">
 
-            <button class="collection-btn active" data-category="all">
-                All
-            </button>
+  <button class="collection-btn active" data-category="all">All</button>
 
-            <button class="collection-btn" data-category="سلاسل&كوليات">
-                سلاسل & كوليات
-            </button>
+<button class="collection-btn" data-category="سلاسل&كوليات">سلاسل & كوليات</button>
 
-            <button class="collection-btn" data-category="اساور&غوايش">
-                أساور & غوايش
-            </button>
+<button class="collection-btn" data-category="اساور&غوايش">أساور & غوايش</button>
 
-            <button class="collection-btn" data-category="خواتم&دبل">
-                خواتم & دبل
-            </button>
+<button class="collection-btn" data-category="خواتم&دبل">خواتم & دبل</button>
 
-            <button class="collection-btn" data-category="توينز">
-                توينز
-            </button>
+<button class="collection-btn" data-category="توينز">توينز</button>
 
-            <button class="collection-btn" data-category="اطقم">
-                أطقم
-            </button>
+<button class="collection-btn" data-category="اطقم">أطقم</button>
 
-            <button class="collection-btn" data-category="حلقان">
-                حلقان
-            </button>
+<button class="collection-btn" data-category="حلقان">حلقان</button>
 
-            <button class="collection-btn" data-category="خلخال">
-                خلخال
-            </button>
+<button class="collection-btn" data-category="خلخال">خلخال</button>
 
         </div>
     </div>
@@ -1735,17 +1719,18 @@ if (
     productsContainer.innerHTML = html;
 });
 
-document.addEventListener("click", (e) => {
-    if (!e.target.classList.contains("collection-btn")) return;
+document.querySelectorAll(".collection-btn").forEach(button => {
+    button.addEventListener("click", function () {
 
-    document.querySelectorAll(".collection-btn").forEach(btn => {
-        btn.classList.remove("active");
+        document.querySelectorAll(".collection-btn")
+            .forEach(btn => btn.classList.remove("active"));
+
+        this.classList.add("active");
+
+        currentCategory = this.dataset.category;
+
+        loadProducts();
     });
-
-    e.target.classList.add("active");
-    currentCategory = e.target.dataset.category;
-
-    loadProducts();
 });
 
 /* =========================================
