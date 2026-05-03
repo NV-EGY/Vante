@@ -1243,6 +1243,9 @@ body.modal-open{
     font-size:15px;
     color:#555;
     border-bottom:1px solid #f2f2f2;
+    display:none;
+    flex-direction:column;
+    margin-top:10px;
 }
 
 .collections-sub a:hover{
@@ -1251,6 +1254,7 @@ body.modal-open{
 
 /* لما تفتح */
 .collections-sub.active{
+display:flex;
     max-height:400px;
 }
       
@@ -1311,19 +1315,22 @@ body.modal-open{
 
     <a href="#" onclick="toggleMobileMenu()">Home</a>
 
-  <div class="menu-item">
-   <a href="#" data-category="سلاسل&كوليهات">
+ <div class="menu-item">
+
+    <a href="#" onclick="toggleCollections(event)">
+        Collections
+    </a>
 
     <div id="collectionsSub" class="collections-sub">
 
-        <a href="#collections" data-category="all">All</a>
-        <a href="#collections" data-category="سلاسل&كوليهات">سلاسل & كوليهات</a>
-        <a href="#collections" data-category="اساور&غوايش">أساور & غوايش</a>
-        <a href="#collections" data-category="خواتم&دبل">خواتم & دبل</a>
-        <a href="#collections" data-category="توينز">توينز</a>
-        <a href="#collections" data-category="اطقم">أطقم</a>
-        <a href="#collections" data-category="حلقان">حلقان</a>
-        <a href="#collections" data-category="خلخال">خلخال</a>
+        <a href="#" data-category="all">All</a>
+        <a href="#" data-category="سلاسل&كوليهات">سلاسل & كوليهات</a>
+        <a href="#" data-category="اساور&غوايش">أساور & غوايش</a>
+        <a href="#" data-category="خواتم&دبل">خواتم & دبل</a>
+        <a href="#" data-category="توينز">توينز</a>
+        <a href="#" data-category="اطقم">أطقم</a>
+        <a href="#" data-category="حلقان">حلقان</a>
+        <a href="#" data-category="خلخال">خلخال</a>
 
     </div>
 </div>
@@ -1796,6 +1803,13 @@ document.querySelectorAll(".collection-btn").forEach(btn => {
         setCategory(this.dataset.category, this);
     });
 });
+
+window.toggleCollections = function (e) {
+    e.preventDefault();
+
+    const sub = document.getElementById("collectionsSub");
+    sub.classList.toggle("active");
+};
 
 /* =========================================
    LOAD ORDERS
