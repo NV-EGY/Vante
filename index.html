@@ -1270,7 +1270,9 @@ body.modal-open{
 </div>
 
     <a href="#" onclick="toggleMobileMenu()">Home</a>
-    <a href="#" onclick="toggleMobileMenu()">Collections</a>
+        <a href="#collections" onclick="scrollToCollections()">
+        الكولكشن
+    </a>
     <a href="#" onclick="toggleMobileMenu()">Clearance Sale</a>
     <a href="#" onclick="toggleMobileMenu()">Contact Us</a>
 
@@ -1279,7 +1281,9 @@ body.modal-open{
         <!-- MENU -->
         <nav class="menu">
             <a href="#">Home</a>
-            <a href="#">Collections</a>
+                <a href="#collections" onclick="scrollToCollections()">
+        الكولكشن
+    </a>
             <a href="#">Clearance Sale</a>
             <a href="#">Contact Us</a>
         </nav>
@@ -1304,6 +1308,19 @@ body.modal-open{
     <section class="hero">
         <img src="images/header.webp" alt="VANTÉ Banner">
     </section>
+
+<!-- COLLECTIONS -->
+<section id="collections" class="collections-section">
+    <div class="container">
+        <h2 class="section-title">تسوق حسب الفئة</h2>
+
+        <div id="collectionsTabs" class="collections-tabs">
+            <button class="collection-btn active" data-category="all">
+                جميع المنتجات
+            </button>
+        </div>
+    </div>
+</section>
 
 <section class="container">
     <h2>المنتجات</h2>
@@ -2226,6 +2243,13 @@ window.submitReview = async function() {
         alert("حدث خطأ أثناء إرسال التقييم");
     }
 };
+
+function scrollToCollections() {
+    document.getElementById("collections")
+        .scrollIntoView({
+            behavior: "smooth"
+        });
+}
 
 </script>
   
