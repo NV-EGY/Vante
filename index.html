@@ -1366,33 +1366,6 @@ body.modal-open{
         <img src="images/header.webp" alt="VANTÉ Banner">
     </section>
 
-<section id="collections" class="collections-section">
-    <div class="container">
-
-        <h2 class="section-title">Collections</h2>
-
-        <div id="collectionsTabs" class="collections-tabs">
-
-  <button class="collection-btn active" data-category="all">All</button>
-
-<button class="collection-btn" data-category="سلاسل&كوليات">سلاسل & كوليات</button>
-
-<button class="collection-btn" data-category="اساور&غوايش">أساور & غوايش</button>
-
-<button class="collection-btn" data-category="خواتم&دبل">خواتم & دبل</button>
-
-<button class="collection-btn" data-category="توينز">توينز</button>
-
-<button class="collection-btn" data-category="اطقم">أطقم</button>
-
-<button class="collection-btn" data-category="حلقان">حلقان</button>
-
-<button class="collection-btn" data-category="خلخال">خلخال</button>
-
-        </div>
-    </div>
-</section>
-
 <section class="container">
     <h2>المنتجات</h2>
     <div class="products"></div>
@@ -1701,9 +1674,15 @@ onSnapshot(productsQuery, (snapshot) => {
  snapshot.forEach((docSnap) => {
     const p = docSnap.data();
 
+const normalize = (str) =>
+    (str || "")
+    .toString()
+    .trim()
+    .toLowerCase();
+
 if (
     currentCategory !== "all" &&
-    p.category !== currentCategory
+    normalize(p.category) !== normalize(currentCategory)
 ) {
     return;
 }
@@ -1771,22 +1750,17 @@ if (
     productsContainer.innerHTML = html;
 });
 
-document.querySelectorAll(".collections-sub a, .collection-btn").forEach(btn => {
+function setCategory(category) {
+    currentCategory = category;
 
+    document.querySelector(".products")
+        .scrollIntoView({ behavior: "smooth" });
+}
+
+document.querySelectorAll("[data-category]").forEach(btn => {
     btn.addEventListener("click", function () {
-
-        const category = this.dataset.category;
-
-        currentCategory = category;
-
-        // إعادة تحميل العرض (في حالتك snapshot هو اللي بيعمل rerender)
-        document.querySelector(".products")
-            .scrollIntoView({ behavior: "smooth" });
-
-        // قفل الموبايل مينيو
-        toggleMobileMenu?.();
+        setCategory(this.dataset.category);
     });
-
 });
 
 document.querySelectorAll(".collection-btn").forEach(btn => {
