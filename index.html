@@ -1791,7 +1791,8 @@ function addToCart(name, price, size, image) {
 
     updateCart();
 }
-
+// 👇 مهم جدًا
+window.addToCart = addToCart;
 window.cart = cart;
 window.updateCart = updateCart;
 
