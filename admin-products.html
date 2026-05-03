@@ -184,61 +184,40 @@ const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
    عرض المنتجات
 ========================= */
 onSnapshot(q, (snapshot) => {
+
     let html = "";
 
     snapshot.forEach((docSnap) => {
+
         const p = docSnap.data();
 
-        const defaultSize =
-            (p.sizes && p.sizes.length)
-                ? p.sizes[0]
-                : "";
-
-        const sizesHTML =
-            (p.sizes && p.sizes.length)
-                ? `
-                <div class="product-sizes">
-                    ${p.sizes.map(size => `
-                        <span class="size-chip">${size}</span>
-                    `).join("")}
-                </div>
-                `
-                : "";
-
         html += `
-        <div class="product"
-             onclick='openProduct(
-                "${docSnap.id}",
-                ${JSON.stringify(p.name)},
-                ${p.price},
-                ${JSON.stringify(p.image)},
-                ${JSON.stringify(p.sizes || [])}
-             )'>
+        <div class="product">
 
             <img src="${p.image}" alt="${p.name}">
 
-            <h3>${p.name}</h3>
+            <div class="info">
+                <h3>${p.name}</h3>
+                <p>${p.price} جنيه</p>
+                <small>القسم: ${p.category || "عام"}</small><br>
+                <small>
+                    المقاسات:
+                    ${(p.sizes && p.sizes.length)
+                        ? p.sizes.join(" - ")
+                        : "لا يوجد"}
+                </small>
+            </div>
 
-            <p>${p.price} جنيه</p>
-
-            ${sizesHTML}
-
-            <button class="btn"
-                onclick='event.stopPropagation(); openProduct(
-                    "${docSnap.id}",
-                    ${JSON.stringify(p.name)},
-                    ${p.price},
-                    ${JSON.stringify(p.image)},
-                    ${JSON.stringify(p.sizes || [])}
-                )'>
-                أضف للسلة
+            <button class="delete-btn"
+                onclick="deleteProduct('${docSnap.id}')">
+                حذف
             </button>
 
         </div>
         `;
     });
 
-    productsContainer.innerHTML =
+    document.getElementById("productsList").innerHTML =
         html || "<p style='text-align:center'>لا توجد منتجات حالياً</p>";
 });
 
