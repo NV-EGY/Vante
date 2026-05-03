@@ -1759,10 +1759,13 @@ window.addToCartFromHome = function(name, price, image, id, event) {
 
     if (event) event.stopPropagation();
 
-    const product = document.querySelector(`[data-size]`);
-    const size = product?.getAttribute("data-size") || "7";
+    // نجيب المقاس المختار من الـ product نفسه
+    const productEl = document.getElementById(`sizes-${id}`);
+    const activeBtn = productEl?.querySelector(".size-btn.active");
 
-    addToCart(name, price, size, image, event);
+    const size = activeBtn ? activeBtn.textContent.trim() : "7";
+
+    addToCart(name, price, size, image);
 
     updateCart();
     openCart();
@@ -1833,19 +1836,6 @@ window.openCheckout = function () {
 window.closeCheckout = function () {
     document.getElementById("checkoutModal").classList.remove("active");
     document.getElementById("overlay").classList.remove("active");
-};
-
-window.addToCartFromHome = function(name, price, image, id, event) {
-
-    if (event) event.stopPropagation();
-
-    const select = document.querySelector(`.product-size-${id}`);
-    const size = select ? select.value : "Free";
-
-    addToCart(name, price, size, image, event);
-
-    // يفتح السلة مباشرة
-    openCart();
 };
 
 window.selectSize = function(productId, size, el){
