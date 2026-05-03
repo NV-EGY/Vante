@@ -1312,12 +1312,12 @@ body.modal-open{
     <a href="#" onclick="toggleMobileMenu()">Home</a>
 
   <div class="menu-item">
-    <a href="#" onclick="toggleCollectionsSub()">Collections</a>
+   <a href="#" data-category="سلاسل&كوليهات">
 
     <div id="collectionsSub" class="collections-sub">
 
         <a href="#collections" data-category="all">All</a>
-        <a href="#collections" data-category="سلاسل&كوليات">سلاسل & كوليات</a>
+        <a href="#collections" data-category="سلاسل&كوليهات">سلاسل & كوليهات</a>
         <a href="#collections" data-category="اساور&غوايش">أساور & غوايش</a>
         <a href="#collections" data-category="خواتم&دبل">خواتم & دبل</a>
         <a href="#collections" data-category="توينز">توينز</a>
@@ -1336,10 +1336,7 @@ body.modal-open{
 <nav class="menu">
     <a href="#">Home</a>
 
-    <a href="#collections"
-       onclick="scrollToCollections()">
-       Collections
-    </a>
+   <a href="#" data-category="سلاسل&كوليهات">
 
     <a href="#">Clearance Sale</a>
     <a href="#">Contact Us</a>
@@ -1758,56 +1755,47 @@ function setCategory(category, el = null) {
 
     currentCategory = category;
 
-    // 🔥 تحديث الـ active state لكل الأزرار
-    document.querySelectorAll("[data-category]").forEach(btn => {
+    // 🔥 تحديث الـ active في كل الأزرار
+    document.querySelectorAll("[data-category], .collection-btn").forEach(btn => {
         btn.classList.toggle("active", btn.dataset.category === category);
     });
 
-    document.querySelectorAll(".collection-btn").forEach(btn => {
-        btn.classList.toggle("active", btn.dataset.category === category);
-    });
+    // 🔥 فلترة المنتجات (دي بتيجي من onSnapshot فهتتحدث تلقائي)
 
-    // 🔥 لو فيه عنصر جاي منه الحدث (اختياري)
-    if (el) {
-        el.classList.add("active");
+    // 🔥 قفل الموبايل مينيو لو مفتوح
+    const menu = document.getElementById("mobileMenu");
+    const overlay = document.getElementById("menuOverlay");
+
+    if (menu?.classList.contains("active")) {
+        menu.classList.remove("active");
+        overlay?.classList.remove("active");
+        document.body.style.overflow = "";
     }
 
-    // سكروول للمنتجات
+    // 🔥 قفل sub menu بتاع collections
+    const sub = document.getElementById("collectionsSub");
+    if (sub?.classList.contains("active")) {
+        sub.classList.remove("active");
+    }
+
+    // سكروول
     document.querySelector(".products")
         ?.scrollIntoView({ behavior: "smooth" });
 }
 
-
-/* =========================
-   HANDLE ALL CATEGORY BUTTONS
-========================= */
-
-// الموبايل (data-category)
-document.querySelectorAll("[data-category]").forEach(btn => {
+document.querySelectorAll("#collectionsSub a[data-category]").forEach(btn => {
     btn.addEventListener("click", function (e) {
         e.preventDefault();
         setCategory(this.dataset.category, this);
     });
 });
 
-// الديسكتوب (.collection-btn)
 document.querySelectorAll(".collection-btn").forEach(btn => {
     btn.addEventListener("click", function (e) {
         e.preventDefault();
         setCategory(this.dataset.category, this);
     });
 });
-
-
-/* =========================
-   TOGGLE MOBILE SUB MENU
-========================= */
-window.toggleCollectionsSub = function () {
-
-    const sub = document.getElementById("collectionsSub");
-
-    sub.classList.toggle("active");
-};
 
 /* =========================================
    LOAD ORDERS
