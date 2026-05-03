@@ -1838,18 +1838,26 @@ window.closeCheckout = function () {
     document.getElementById("overlay").classList.remove("active");
 };
 
-window.addToCartFromHome = function(name, price, image, id, event) {
+function addToCart(name, price, size, image) {
 
-    if (event) event.stopPropagation();
+    const existing = cart.find(
+        item => item.name === name && item.size === size
+    );
 
-    const select = document.querySelector(`.product-size-${id}`);
-    const size = select ? select.value : "Free";
+    if (existing) {
+        existing.qty += 1;
+    } else {
+        cart.push({
+            name,
+            price,
+            size,
+            image,
+            qty: 1
+        });
+    }
 
-    addToCart(name, price, size, image, event);
-
-    // يفتح السلة مباشرة
-    openCart();
-};
+    updateCart();
+}
 
 window.selectSize = function(productId, size, el){
 
