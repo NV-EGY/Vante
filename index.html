@@ -1678,7 +1678,8 @@ const normalize = (str) =>
     (str || "")
     .toString()
     .trim()
-    .toLowerCase();
+    .toLowerCase()
+    .replace(/\s+/g, "");
 
 if (
     currentCategory !== "all" &&
@@ -1750,46 +1751,62 @@ if (
     productsContainer.innerHTML = html;
 });
 
-function setCategory(category) {
+/* =========================
+   MAIN CATEGORY FUNCTION
+========================= */
+function setCategory(category, el = null) {
+
     currentCategory = category;
 
+    // 🔥 تحديث الـ active state لكل الأزرار
+    document.querySelectorAll("[data-category]").forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.category === category);
+    });
+
+    document.querySelectorAll(".collection-btn").forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.category === category);
+    });
+
+    // 🔥 لو فيه عنصر جاي منه الحدث (اختياري)
+    if (el) {
+        el.classList.add("active");
+    }
+
+    // سكروول للمنتجات
     document.querySelector(".products")
-        .scrollIntoView({ behavior: "smooth" });
+        ?.scrollIntoView({ behavior: "smooth" });
 }
 
+
+/* =========================
+   HANDLE ALL CATEGORY BUTTONS
+========================= */
+
+// الموبايل (data-category)
 document.querySelectorAll("[data-category]").forEach(btn => {
-    btn.addEventListener("click", function () {
-        setCategory(this.dataset.category);
+    btn.addEventListener("click", function (e) {
+        e.preventDefault();
+        setCategory(this.dataset.category, this);
     });
 });
 
+// الديسكتوب (.collection-btn)
 document.querySelectorAll(".collection-btn").forEach(btn => {
-
-    btn.addEventListener("click", function () {
-
-        document.querySelectorAll(".collection-btn")
-            .forEach(b => b.classList.remove("active"));
-
-        this.classList.add("active");
-
-        currentCategory = this.dataset.category;
-
-        document.querySelector(".products")
-            .scrollIntoView({ behavior: "smooth" });
+    btn.addEventListener("click", function (e) {
+        e.preventDefault();
+        setCategory(this.dataset.category, this);
     });
-
 });
 
+
+/* =========================
+   TOGGLE MOBILE SUB MENU
+========================= */
 window.toggleCollectionsSub = function () {
 
     const sub = document.getElementById("collectionsSub");
 
-    // لو مفتوح اقفله
-    if (sub.classList.contains("active")) {
-        sub.classList.remove("active");
-    } else {
-        sub.classList.add("active");
-    }
+    sub.classList.toggle("active");
 };
 
 /* =========================================
