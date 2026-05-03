@@ -1543,12 +1543,20 @@ onSnapshot(productsQuery, (snapshot) => {
 
         const sizes = (p.sizes && p.sizes.length) ? p.sizes : ["7","8","9"];
 
-        html += `
-        <div class="product">
+html += `
+<div class="product">
 
-            <div class="product-image">
-                <img src="${p.image}" alt="${p.name}">
-            </div>
+    <div class="product-image"
+        onclick='openProduct(
+            "${docSnap.id}",
+            "${p.name}",
+            "${p.price}",
+            "${p.image}",
+            ${JSON.stringify(sizes)}
+        )'
+    >
+        <img src="${p.image}" alt="${p.name}">
+    </div>
 
             <h3>${p.name}</h3>
             <p>${Number(p.price)} EGP</p>
