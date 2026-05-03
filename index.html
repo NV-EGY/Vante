@@ -1267,26 +1267,31 @@ body.modal-open{
         <i class="fas fa-times"></i>
     </button>
 
-</div>
+    </div>
 
     <a href="#" onclick="toggleMobileMenu()">Home</a>
-        <a href="#collections" onclick="scrollToCollections()">
-        الكولكشن
+
+    <a href="#collections"
+       onclick="scrollToCollections(); toggleMobileMenu();">
+       Collections
     </a>
+
     <a href="#" onclick="toggleMobileMenu()">Clearance Sale</a>
     <a href="#" onclick="toggleMobileMenu()">Contact Us</a>
-
 </nav>
 
-        <!-- MENU -->
-        <nav class="menu">
-            <a href="#">Home</a>
-                <a href="#collections" onclick="scrollToCollections()">
-        الكولكشن
+ <!-- DESKTOP MENU -->
+<nav class="menu">
+    <a href="#">Home</a>
+
+    <a href="#collections"
+       onclick="scrollToCollections()">
+       Collections
     </a>
-            <a href="#">Clearance Sale</a>
-            <a href="#">Contact Us</a>
-        </nav>
+
+    <a href="#">Clearance Sale</a>
+    <a href="#">Contact Us</a>
+</nav>
 
         <!-- ICONS -->
         <div class="icons">
@@ -1309,15 +1314,45 @@ body.modal-open{
         <img src="images/header.webp" alt="VANTÉ Banner">
     </section>
 
-<!-- COLLECTIONS -->
 <section id="collections" class="collections-section">
     <div class="container">
-        <h2 class="section-title">تسوق حسب الفئة</h2>
+
+        <h2 class="section-title">Collections</h2>
 
         <div id="collectionsTabs" class="collections-tabs">
+
             <button class="collection-btn active" data-category="all">
-                جميع المنتجات
+                All
             </button>
+
+            <button class="collection-btn" data-category="سلاسل&كوليات">
+                سلاسل & كوليات
+            </button>
+
+            <button class="collection-btn" data-category="اساور&غوايش">
+                أساور & غوايش
+            </button>
+
+            <button class="collection-btn" data-category="خواتم&دبل">
+                خواتم & دبل
+            </button>
+
+            <button class="collection-btn" data-category="توينز">
+                توينز
+            </button>
+
+            <button class="collection-btn" data-category="اطقم">
+                أطقم
+            </button>
+
+            <button class="collection-btn" data-category="حلقان">
+                حلقان
+            </button>
+
+            <button class="collection-btn" data-category="خلخال">
+                خلخال
+            </button>
+
         </div>
     </div>
 </section>
@@ -1608,7 +1643,7 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 let currentUser = null;
-
+let currentCategory = "all";
 /* =========================================
    LOAD PRODUCTS FROM FIREBASE
    (استبدل الكود القديم بالكامل بهذا)
@@ -1629,6 +1664,13 @@ onSnapshot(productsQuery, (snapshot) => {
 
  snapshot.forEach((docSnap) => {
     const p = docSnap.data();
+
+if (
+    currentCategory !== "all" &&
+    p.category !== currentCategory
+) {
+    return;
+}
 
     const sizes = (p.sizes && p.sizes.length)
         ? p.sizes
@@ -1691,6 +1733,19 @@ onSnapshot(productsQuery, (snapshot) => {
 });
 
     productsContainer.innerHTML = html;
+});
+
+document.addEventListener("click", (e) => {
+    if (!e.target.classList.contains("collection-btn")) return;
+
+    document.querySelectorAll(".collection-btn").forEach(btn => {
+        btn.classList.remove("active");
+    });
+
+    e.target.classList.add("active");
+    currentCategory = e.target.dataset.category;
+
+    loadProducts();
 });
 
 /* =========================================
