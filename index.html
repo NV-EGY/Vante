@@ -1233,74 +1233,6 @@ body.modal-open{
         <img src="images/header.webp" alt="VANTÉ Banner">
     </section>
 
-<!-- PRODUCTS -->
-<section class="container">
-
-    <h2>المنتجات</h2>
-
-    <div class="products">
-
-        <!-- PRODUCT 1 -->
-        <div class="product"
-            onclick="openProduct('p1','سوار كارتير','249','images/p1.webp')">
-
-            <img src="images/p1.webp" alt="سوار كارتير">
-
-            <h3>سوار كارتير</h3>
-            <p>249 جنيه</p>
-
-            <select id="size1" onclick="event.stopPropagation()">
-                <option value="7">المقاس 7</option>
-                <option value="8">المقاس 8</option>
-                <option value="9">المقاس 9</option>
-            </select>
-
-            <button class="btn-primary add-cart-btn"
-                onclick="addToCart(
-                    'سوار كارتير',
-                    249,
-                    document.getElementById('size1').value,
-                    'images/p1.webp',
-                    event
-                )">
-                أضف للسلة
-            </button>
-
-        </div>
-
-        <!-- PRODUCT 2 -->
-        <div class="product"
-            onclick="openProduct('p2','خاتم كارتير','199','images/p2.webp')">
-
-            <img src="images/p2.webp" alt="خاتم كارتير">
-
-            <h3>خاتم كارتير</h3>
-            <p>199 جنيه</p>
-
-            <select id="size2" onclick="event.stopPropagation()">
-                <option value="7">المقاس 7</option>
-                <option value="8">المقاس 8</option>
-                <option value="9">المقاس 9</option>
-            </select>
-
-            <button class="btn-primary add-cart-btn"
-                onclick="addToCart(
-                    'خاتم كارتير',
-                    199,
-                    document.getElementById('size2').value,
-                    'images/p2.webp',
-                    event
-                )">
-                أضف للسلة
-            </button>
-
-        </div>
-
-    </div>
-
-    <h2 style="margin-top:50px">الطلبات</h2>
-    <div id="ordersList"></div>
-
     <!-- CART DRAWER -->
     <div id="cartDrawer" class="drawer">
 
@@ -1586,7 +1518,7 @@ let currentUser = null;
 /* =========================================
    PRODUCTS CONTAINER
 ========================================= */
-const productsContainer = document.querySelector(".products");
+const productsContainer = document.getElementById("productsContainer");
 
 /* =========================================
    LOAD PRODUCT AUTOMATIC 
