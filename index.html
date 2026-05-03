@@ -1850,15 +1850,6 @@ window.changeQty = function(index, change) {
     updateCart();
 };
 
-onclick='openProduct(
-    "${id}",
-    ${JSON.stringify(p.name)},
-    ${Number(p.price)},
-    ${JSON.stringify(p.image)},
-    ${JSON.stringify(p.sizes || [])},
-    ${JSON.stringify(p.description || "")}
-)'
-
 /* CART UI */
 window.openCart = function () {
     document.getElementById("cartDrawer").classList.add("active");
