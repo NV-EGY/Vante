@@ -1631,10 +1631,9 @@ onSnapshot(productsQuery, (snapshot) => {
     </div>
 
     <!-- عرض المقاسات -->
-    <div class="size-label">
-        المقاسات المتاحة:
-        <span class="sizes-text">${sizes.join(" - ")}</span>
-    </div>
+   <div class="size-label">
+    المقاسات المتاحة
+</div>
 
     <div class="sizes-wrap" id="sizes-${docSnap.id}">
         ${sizes.map((size, i) => `
