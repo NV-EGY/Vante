@@ -1838,6 +1838,19 @@ window.closeCheckout = function () {
     document.getElementById("overlay").classList.remove("active");
 };
 
+window.addToCartFromHome = function(name, price, image, id, event) {
+
+    if (event) event.stopPropagation();
+
+    const select = document.querySelector(`.product-size-${id}`);
+    const size = select ? select.value : "Free";
+
+    addToCart(name, price, size, image, event);
+
+    // يفتح السلة مباشرة
+    openCart();
+};
+
 window.selectSize = function(productId, size, el){
 
     const container = document.getElementById(`sizes-${productId}`);
