@@ -1603,12 +1603,12 @@ onSnapshot(productsQuery, (snapshot) => {
 
     let html = "";
 
-    snapshot.forEach((docSnap) => {
-        const p = docSnap.data();
+ snapshot.forEach((docSnap) => {
+    const p = docSnap.data();
 
-        const sizes = (p.sizes && p.sizes.length) ? p.sizes : ["7","8","9"];
+    const sizes = (p.sizes && p.sizes.length) ? p.sizes : ["7","8","9"];
 
-html += `
+    html += `
 <div class="product">
 
     <div class="product-image"
@@ -1625,45 +1625,44 @@ html += `
 
     <h3>${p.name}</h3>
 
-   <div class="price-tag">
-    <span class="price">${Number(p.price)}</span>
-    <span class="currency">EGP</span>
-</div>
+    <div class="price-tag">
+        <span class="price">${Number(p.price)}</span>
+        <span class="currency">EGP</span>
+    </div>
 
-    <!-- 👇 عرض المقاسات بشكل واضح -->
+    <!-- عرض المقاسات -->
     <div class="size-label">
         المقاسات المتاحة:
         <span class="sizes-text">${sizes.join(" - ")}</span>
     </div>
 
-html += `
-<div class="sizes-wrap" id="sizes-${docSnap.id}">
-    ${sizes.map((size, i) => `
-        <button 
-            type="button"
-            class="size-btn ${i === 0 ? 'active' : ''}"
-            onclick="selectSize('${docSnap.id}','${size}',this)"
-        >
-            ${size}
-        </button>
-    `).join("")}
+    <div class="sizes-wrap" id="sizes-${docSnap.id}">
+        ${sizes.map((size, i) => `
+            <button 
+                type="button"
+                class="size-btn ${i === 0 ? 'active' : ''}"
+                onclick="selectSize('${docSnap.id}','${size}',this)"
+            >
+                ${size}
+            </button>
+        `).join("")}
+    </div>
+
+    <!-- زر الإضافة للسلة -->
+    <button class="btn-primary"
+        onclick='addToCartFromHome(
+            "${p.name}",
+            ${Number(p.price)},
+            "${p.image}",
+            "${docSnap.id}",
+            event
+        )'>
+        أضف للسلة
+    </button>
+
 </div>
 `;
-
- <button class="btn-primary"
-    onclick='addToCartFromHome(
-    "${p.name}",
-    ${Number(p.price)},
-    "${p.image}",
-    "${docSnap.id}",
-    event
-)'
-    أضف للسلة
-</button>
-
-        </div>
-        `;
-    });
+});
 
     productsContainer.innerHTML = html;
 });
