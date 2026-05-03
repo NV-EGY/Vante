@@ -1771,6 +1771,27 @@ window.addToCartFromHome = function(name, price, image, id, event) {
     openCart();
 };
 
+function addToCart(name, price, size, image) {
+
+    const existing = cart.find(
+        item => item.name === name && item.size === size
+    );
+
+    if (existing) {
+        existing.qty += 1;
+    } else {
+        cart.push({
+            name,
+            price,
+            size,
+            image,
+            qty: 1
+        });
+    }
+
+    updateCart();
+}
+
 /* UPDATE CART */
 function updateCart() {
 
@@ -1837,27 +1858,6 @@ window.closeCheckout = function () {
     document.getElementById("checkoutModal").classList.remove("active");
     document.getElementById("overlay").classList.remove("active");
 };
-
-function addToCart(name, price, size, image) {
-
-    const existing = cart.find(
-        item => item.name === name && item.size === size
-    );
-
-    if (existing) {
-        existing.qty += 1;
-    } else {
-        cart.push({
-            name,
-            price,
-            size,
-            image,
-            qty: 1
-        });
-    }
-
-    updateCart();
-}
 
 window.selectSize = function(productId, size, el){
 
@@ -2136,21 +2136,24 @@ window.closeProduct = function () {
    ADD CURRENT PRODUCT TO CART
 ========================================= */
 window.addCurrentProductToCart = function(event) {
-    if (!currentProduct) return;
 
     if (event) event.stopPropagation();
 
-    const size = document.getElementById("modalSize").value;
+    if (!currentProduct) {
+        alert("خطأ في تحميل المنتج");
+        return;
+    }
+
+    const size = document.getElementById("modalSize")?.value || "7";
 
     addToCart(
         currentProduct.name,
-        currentProduct.price,
+        Number(currentProduct.price),
         size,
-        currentProduct.image,
-        event
+        currentProduct.image
     );
 
-    // 👇 دي الإضافة المهمة: تقفل نافذة المنتج
+    updateCart();   // 👈 مهم جدًا
     closeProduct();
 };
 
