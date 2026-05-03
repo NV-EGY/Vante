@@ -1534,60 +1534,38 @@ const productsQuery = query(
 
 onSnapshot(productsQuery, (snapshot) => {
 
-    if (!productsContainer) {
-        console.error("Products container not found");
-        return;
-    }
+    if (!productsContainer) return;
 
     let html = "";
-
-    if (snapshot.empty) {
-        productsContainer.innerHTML = `
-            <div style="
-                grid-column:1/-1;
-                text-align:center;
-                padding:50px 20px;
-                font-size:20px;
-                font-weight:700;
-                color:#777;
-            ">
-                لا توجد منتجات حالياً
-            </div>
-        `;
-        return;
-    }
 
     snapshot.forEach((docSnap) => {
         const p = docSnap.data();
 
+        const sizes = (p.sizes && p.sizes.length) ? p.sizes : ["7","8","9"];
+
         html += `
         <div class="product">
 
-            <div class="product-image"
-                 onclick='openProduct(
-                    "${docSnap.id}",
-                    ${JSON.stringify(p.name)},
-                    ${Number(p.price)},
-                    ${JSON.stringify(p.image)},
-                    ${JSON.stringify(p.sizes || [])}
-                 )'>
-
-                <img src="${p.image}"
-                     alt="${p.name}"
-                     loading="lazy">
+            <div class="product-image">
+                <img src="${p.image}" alt="${p.name}">
             </div>
 
             <h3>${p.name}</h3>
-
             <p>${Number(p.price)} EGP</p>
 
-            <button class="btn-primary add-cart-btn"
-                onclick='event.stopPropagation(); openProduct(
-                    "${docSnap.id}",
-                    ${JSON.stringify(p.name)},
+            <!-- SIZE SELECT -->
+            <select class="product-size-${docSnap.id}">
+                ${sizes.map(size => `<option value="${size}">${size}</option>`).join("")}
+            </select>
+
+            <!-- ADD TO CART -->
+            <button class="btn-primary"
+                onclick='addToCartFromHome(
+                    "${p.name}",
                     ${Number(p.price)},
-                    ${JSON.stringify(p.image)},
-                    ${JSON.stringify(p.sizes || [])}
+                    "${p.image}",
+                    "${docSnap.id}",
+                    event
                 )'>
                 أضف للسلة
             </button>
@@ -1770,6 +1748,19 @@ window.openCheckout = function () {
 window.closeCheckout = function () {
     document.getElementById("checkoutModal").classList.remove("active");
     document.getElementById("overlay").classList.remove("active");
+};
+
+window.addToCartFromHome = function(name, price, image, id, event) {
+
+    if (event) event.stopPropagation();
+
+    const select = document.querySelector(`.product-size-${id}`);
+    const size = select ? select.value : "Free";
+
+    addToCart(name, price, size, image, event);
+
+    // يفتح السلة مباشرة
+    openCart();
 };
 
 /* =========================================
