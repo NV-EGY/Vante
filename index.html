@@ -1558,13 +1558,19 @@ html += `
         <img src="${p.image}" alt="${p.name}">
     </div>
 
-            <h3>${p.name}</h3>
-            <p>${Number(p.price)} EGP</p>
+    <h3>${p.name}</h3>
+    <p>${Number(p.price)} EGP</p>
 
-            <!-- SIZE SELECT -->
-            <select class="product-size-${docSnap.id}">
-                ${sizes.map(size => `<option value="${size}">${size}</option>`).join("")}
-            </select>
+    <!-- 👇 عرض المقاسات بشكل واضح -->
+    <div class="size-label">
+        المقاسات المتاحة:
+        <span class="sizes-text">${sizes.join(" - ")}</span>
+    </div>
+
+    <!-- اختيار المقاس السريع -->
+    <select class="product-size-${docSnap.id}">
+        ${sizes.map(size => `<option value="${size}">${size}</option>`).join("")}
+    </select>
 
             <!-- ADD TO CART -->
             <button class="btn-primary"
