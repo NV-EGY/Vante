@@ -1830,8 +1830,12 @@ function renderProducts() {
                 <span class="price">${Number(p.price)}</span>
                 <span class="currency">EGP</span>
             </div>
+    <p class="product-description">${description}</p>
 
-            <p class="product-description">${description}</p>
+    <button class="btn-primary add-cart-btn"
+        onclick="event.stopPropagation(); addToCart('${p.name.replace(/'/g, "\\'")}', ${Number(p.price)}, '${sizes[0]}', '${p.image}'); openCart();">
+        أضف للسلة
+    </button>
 
         </div>
         `;
