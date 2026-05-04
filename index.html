@@ -1276,7 +1276,7 @@ display:flex;
         <!-- LOGO -->
         <div class="logo">VANTÉ</div>
 
-      <!-- MOBILE MENU BUTTON -->
+ <!-- MOBILE MENU BUTTON -->
 <div class="mobile-actions">
     <button class="mobile-btn" onclick="toggleMobileMenu()">
         <i class="fas fa-bars"></i>
@@ -1284,62 +1284,89 @@ display:flex;
 </div>
 
 <div id="menuOverlay" onclick="toggleMobileMenu()"></div>
+
 <!-- MOBILE SIDE MENU -->
 <nav class="mobile-menu" id="mobileMenu">
 
-   <div class="mobile-menu-header">
+    <div class="mobile-menu-header">
 
-  <div class="mobile-icons-row">
-    
-     <button class="mobile-icon left" onclick="alert('حسابي قريباً')">
-        <i class="fas fa-user"></i>
-    </button>
-<button class="mobile-icon" onclick="openSearch(); toggleMobileMenu();"> <i class="fas fa-search"></i> </button>
-   
-</div>
+        <div class="mobile-icons-row">
+            <button class="mobile-icon" onclick="alert('حسابي قريباً')">
+                <i class="fas fa-user"></i>
+            </button>
 
-    <button class="close-menu" onclick="toggleMobileMenu()">
-        <i class="fas fa-times"></i>
-    </button>
+            <button class="mobile-icon" onclick="openSearch(); toggleMobileMenu();">
+                <i class="fas fa-search"></i>
+            </button>
+        </div>
 
-    </div>
-
-    <a href="#" onclick="toggleMobileMenu()">Home</a>
-
- <div class="menu-item">
-
-    <a href="#" onclick="toggleCollections(event)">
-        Collections
-    </a>
-
-    <div id="collectionsSub" class="collections-sub">
-
-        <a href="#" data-category="all">All</a>
-        <a href="#" data-category="سلاسل&كوليهات">سلاسل & كوليهات</a>
-        <a href="#" data-category="اساور&غوايش">أساور & غوايش</a>
-        <a href="#" data-category="خواتم&دبل">خواتم & دبل</a>
-        <a href="#" data-category="توينز">توينز</a>
-        <a href="#" data-category="اطقم">أطقم</a>
-        <a href="#" data-category="حلقان">حلقان</a>
-        <a href="#" data-category="خلخال">خلخال</a>
+        <button class="close-menu" onclick="toggleMobileMenu()">
+            <i class="fas fa-times"></i>
+        </button>
 
     </div>
-</div>
+
+    <a href="#" onclick="setCategory('all'); toggleMobileMenu()">Home</a>
+
+    <!-- COLLECTIONS -->
+    <div class="menu-item">
+
+        <a href="#" onclick="toggleCollections(event)">
+            Collections
+        </a>
+
+        <div id="collectionsSub" class="collections-sub">
+
+            <a href="#" onclick="setCategory('all'); toggleMobileMenu()">All</a>
+
+            <a href="#" onclick="setCategory('سلاسل&كوليهات'); toggleMobileMenu()">
+                سلاسل & كوليهات
+            </a>
+
+            <a href="#" onclick="setCategory('اساور&غوايش'); toggleMobileMenu()">
+                أساور & غوايش
+            </a>
+
+            <a href="#" onclick="setCategory('خواتم&دبل'); toggleMobileMenu()">
+                خواتم & دبل
+            </a>
+
+            <a href="#" onclick="setCategory('توينز'); toggleMobileMenu()">
+                توينز
+            </a>
+
+            <a href="#" onclick="setCategory('اطقم'); toggleMobileMenu()">
+                أطقم
+            </a>
+
+            <a href="#" onclick="setCategory('حلقان'); toggleMobileMenu()">
+                حلقان
+            </a>
+
+            <a href="#" onclick="setCategory('خلخال'); toggleMobileMenu()">
+                خلخال
+            </a>
+
+        </div>
+    </div>
 
     <a href="#" onclick="toggleMobileMenu()">Clearance Sale</a>
     <a href="#" onclick="toggleMobileMenu()">Contact Us</a>
+
 </nav>
 
- <!-- DESKTOP MENU -->
+<!-- DESKTOP MENU -->
 <nav class="menu">
-    <a href="#">Home</a>
 
-    <a href="#" data-category="سلاسل&كوليهات">Collections</a>
+    <a href="#" onclick="setCategory('all', this)">Home</a>
 
-    <a href="#">Clearance Sale</a>
-    <a href="#">Contact Us</a>
+    <a href="#" onclick="toggleCollections(event)">Collections</a>
+
+    <a href="#" onclick="setCategory('clearance', this)">Clearance Sale</a>
+
+    <a href="#" onclick="setCategory('contact', this)">Contact Us</a>
+
 </nav>
-
         <!-- ICONS -->
         <div class="icons">
           <button type="button" onclick="openSearch()"> <i class="fas fa-search"></i> </button>
@@ -1680,7 +1707,7 @@ const normalize = (str) =>
 
 if (
     currentCategory !== "all" &&
-    normalize(p.category) !== normalize(currentCategory)
+    !normalize(p.category).includes(normalize(currentCategory))
 ) {
     return;
 }
@@ -1755,14 +1782,14 @@ function setCategory(category, el = null) {
 
     currentCategory = category;
 
-    // 🔥 تحديث الـ active في كل الأزرار
-    document.querySelectorAll("[data-category], .collection-btn").forEach(btn => {
-        btn.classList.toggle("active", btn.dataset.category === category);
+    // تحديث active
+    document.querySelectorAll("[data-category], .menu a").forEach(btn => {
+        btn.classList.remove("active");
     });
 
-    // 🔥 فلترة المنتجات (دي بتيجي من onSnapshot فهتتحدث تلقائي)
+    if (el) el.classList.add("active");
 
-    // 🔥 قفل الموبايل مينيو لو مفتوح
+    // قفل الموبايل
     const menu = document.getElementById("mobileMenu");
     const overlay = document.getElementById("menuOverlay");
 
@@ -1772,13 +1799,10 @@ function setCategory(category, el = null) {
         document.body.style.overflow = "";
     }
 
-    // 🔥 قفل sub menu بتاع collections
-    const sub = document.getElementById("collectionsSub");
-    if (sub?.classList.contains("active")) {
-        sub.classList.remove("active");
-    }
+    // قفل sub menu
+    document.getElementById("collectionsSub")?.classList.remove("active");
 
-    // سكروول
+    // سكرول
     document.querySelector(".products")
         ?.scrollIntoView({ behavior: "smooth" });
 }
