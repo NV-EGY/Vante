@@ -1273,6 +1273,20 @@ display:flex;
 .menu a.active{
     color:#D4AF37;
 }
+
+.discount-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: #D4AF37;
+    color: #000;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 900;
+    z-index: 10;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
       
 /* ==================================== SEARCH OVERLAY ==================================== */ .search-overlay{ position:fixed; inset:0; background:rgba(0,0,0,.65); display:flex; align-items:center; justify-content:center; opacity:0; visibility:hidden; transition:.35s; z-index:9999; padding:20px; } .search-overlay.active{ opacity:1; visibility:visible; } .search-box{ width:100%; max-width:550px; background:#fff; padding:20px; border-radius:22px; display:flex; align-items:center; gap:12px; box-shadow:0 25px 60px rgba(0,0,0,.25); animation:searchPopup .35s ease; } .search-box input{ flex:1; border:1px solid #ddd; padding:16px 20px; border-radius:14px; font-size:16px; background:#fafafa; } .search-box input:focus{ border-color:#D4AF37; background:#fff; } .search-box button{ width:auto; padding:16px 26px; border:none; border-radius:14px; background:#111; color:#fff; cursor:pointer; transition:.3s; } .search-box button:hover{ background:#D4AF37; color:#000; } @keyframes searchPopup{ from{ opacity:0; transform:scale(.9); } to{ opacity:1; transform:scale(1); } }     
     
@@ -1783,9 +1797,7 @@ function renderProducts() {
     const selectedCategory = normalize(currentCategory);
 
     const filtered = allProducts.filter(p => {
-
         const productCategory = normalize(p.category || "all");
-
         return selectedCategory === "all"
             ? true
             : productCategory === selectedCategory;
@@ -1808,9 +1820,25 @@ function renderProducts() {
 
         const description = p.description || "منتج فاخر من VANTÉ";
 
+        // ========= تجهيز بيانات الخصم والكمية =========
+        const hasDiscount = p.comparePrice && p.comparePrice > p.price;
+        let discountBadgeHtml = '';
+        
+        if (hasDiscount) {
+            const discountPercent = Math.round((1 - p.price / p.comparePrice) * 100);
+            discountBadgeHtml = `<span class="discount-badge">-${discountPercent}%</span>`;
+        }
+
+        const stock = p.stock >= 0 ? p.stock : null;
+        const outOfStock = stock === 0;
+        const stockInfo = stock !== null ? `<small>الكمية المتاحة: ${stock}</small>` : '';
+
+        // زر الإضافة يتعطل لو الكمية 0
+        const addBtnDisabled = outOfStock ? 'disabled style="opacity:0.6;cursor:not-allowed"' : '';
+        // =============================================
+
         return `
         <div class="product">
-
             <div class="product-image"
                 onclick='openProduct(
                     "${p.id}",
@@ -1820,23 +1848,26 @@ function renderProducts() {
                     ${JSON.stringify(sizes)},
                     ${JSON.stringify(description)}
                 )'>
-
+                
+                ${discountBadgeHtml} <!-- شارة الخصم فوق الصورة -->
+                
                 <img src="${p.image}" alt="${p.name}">
             </div>
 
             <h3>${p.name}</h3>
-
             <div class="price-tag">
+                ${hasDiscount ? `<span class="price old" style="text-decoration:line-through;color:#999;font-size:14px;">${Number(p.comparePrice)} ج</span>` : ''}
                 <span class="price">${Number(p.price)}</span>
                 <span class="currency">EGP</span>
             </div>
-    <p class="product-description">${description}</p>
-
-    <button class="btn-primary add-cart-btn"
-        onclick="event.stopPropagation(); addToCart('${p.name.replace(/'/g, "\\'")}', ${Number(p.price)}, '${sizes[0]}', '${p.image}'); openCart();">
-        أضف للسلة
-    </button>
-
+            <p class="product-description">${description}</p>
+            
+            ${stockInfo}
+            
+            <button class="btn-primary add-cart-btn" ${addBtnDisabled}
+                onclick="event.stopPropagation(); addToCart('${p.name.replace(/'/g, "\\'")}', ${Number(p.price)}, '${sizes[0]}', '${p.image}'); openCart();">
+                ${outOfStock ? 'نفذت الكمية' : 'أضف للسلة'}
+            </button>
         </div>
         `;
     }).join("");
