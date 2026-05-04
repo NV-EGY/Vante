@@ -159,7 +159,16 @@ window.addProduct = async function () {
     const name = document.getElementById("name").value.trim();
     const price = Number(document.getElementById("price").value);
     const image = document.getElementById("image").value.trim();
-    const category = document.getElementById("category").value.trim();
+    const normalize = (str) =>
+    (str || "")
+    .toString()
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "");
+
+const rawCategory = document.getElementById("category").value;
+
+const category = normalize(rawCategory);
     const description = document.getElementById("description").value.trim();
 
     const sizes = document.getElementById("sizes").value
@@ -173,14 +182,15 @@ window.addProduct = async function () {
     }
 
     await addDoc(collection(db, "products"), {
-        name,
-        price,
-        image,
-        category,
-        description,
-        sizes,
-        createdAt: serverTimestamp()
-    });
+    name,
+    price,
+    image,
+    category,          // 👈 للفلترة (clean)
+    categoryLabel: rawCategory, // 👈 للعرض (شكل حلو)
+    description,
+    sizes,
+    createdAt: serverTimestamp()
+});
 
     alert("تم إضافة المنتج بنجاح");
 
@@ -216,7 +226,7 @@ onSnapshot(q, (snapshot) => {
             <div class="info">
                 <h3>${p.name}</h3>
                 <p>${p.price} جنيه</p>
-                <small>القسم: ${p.category || "عام"}</small><br>
+<small>القسم: ${p.categoryLabel || "عام"}</small>
                 <small>
                     المقاسات:
                     ${(p.sizes && p.sizes.length)
