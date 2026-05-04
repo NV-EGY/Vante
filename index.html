@@ -1234,7 +1234,7 @@ body.modal-open{
     font-size:15px;
     color:#555;
     border-bottom:1px solid #f2f2f2;
-    display:none;
+    display:block;
     flex-direction:column;
     margin-top:10px;
 }
@@ -1276,14 +1276,14 @@ display:flex;
         <!-- LOGO -->
         <div class="logo">VANTÉ</div>
 
- <!-- MOBILE MENU BUTTON -->
+<!-- MOBILE MENU BUTTON -->
 <div class="mobile-actions">
-    <button class="mobile-btn" onclick="toggleMobileMenu()">
+    <button class="mobile-btn" onclick="toggleMobileMenu(event)">
         <i class="fas fa-bars"></i>
     </button>
 </div>
 
-<div id="menuOverlay" onclick="toggleMobileMenu()"></div>
+<div id="menuOverlay" onclick="toggleMobileMenu(event)"></div>
 
 <!-- MOBILE SIDE MENU -->
 <nav class="mobile-menu" id="mobileMenu">
@@ -1295,18 +1295,18 @@ display:flex;
                 <i class="fas fa-user"></i>
             </button>
 
-            <button class="mobile-icon" onclick="openSearch(); toggleMobileMenu();">
+            <button class="mobile-icon" onclick="openSearch(); closeMobileMenu()">
                 <i class="fas fa-search"></i>
             </button>
         </div>
 
-        <button class="close-menu" onclick="toggleMobileMenu()">
+        <button class="close-menu" onclick="closeMobileMenu()">
             <i class="fas fa-times"></i>
         </button>
 
     </div>
 
-    <a href="#" onclick="setCategory('all'); toggleMobileMenu()">Home</a>
+    <a href="#" onclick="handleMenuClick(event, 'all'); closeMobileMenu()">Home</a>
 
     <!-- COLLECTIONS -->
     <div class="menu-item">
@@ -1317,54 +1317,54 @@ display:flex;
 
         <div id="collectionsSub" class="collections-sub">
 
-            <a href="#" onclick="setCategory('all'); toggleMobileMenu()">All</a>
+            <a href="#" onclick="handleMenuClick(event, 'all'); closeMobileMenu()">All</a>
 
-            <a href="#" onclick="setCategory('سلاسل&كوليهات'); toggleMobileMenu()">
+            <a href="#" onclick="handleMenuClick(event, 'سلاسل&كوليهات'); closeMobileMenu()">
                 سلاسل & كوليهات
             </a>
 
-            <a href="#" onclick="setCategory('اساور&غوايش'); toggleMobileMenu()">
+            <a href="#" onclick="handleMenuClick(event, 'اساور&غوايش'); closeMobileMenu()">
                 أساور & غوايش
             </a>
 
-            <a href="#" onclick="setCategory('خواتم&دبل'); toggleMobileMenu()">
+            <a href="#" onclick="handleMenuClick(event, 'خواتم&دبل'); closeMobileMenu()">
                 خواتم & دبل
             </a>
 
-            <a href="#" onclick="setCategory('توينز'); toggleMobileMenu()">
+            <a href="#" onclick="handleMenuClick(event, 'توينز'); closeMobileMenu()">
                 توينز
             </a>
 
-            <a href="#" onclick="setCategory('اطقم'); toggleMobileMenu()">
+            <a href="#" onclick="handleMenuClick(event, 'اطقم'); closeMobileMenu()">
                 أطقم
             </a>
 
-            <a href="#" onclick="setCategory('حلقان'); toggleMobileMenu()">
+            <a href="#" onclick="handleMenuClick(event, 'حلقان'); closeMobileMenu()">
                 حلقان
             </a>
 
-            <a href="#" onclick="setCategory('خلخال'); toggleMobileMenu()">
+            <a href="#" onclick="handleMenuClick(event, 'خلخال'); closeMobileMenu()">
                 خلخال
             </a>
 
         </div>
     </div>
 
-    <a href="#" onclick="toggleMobileMenu()">Clearance Sale</a>
-    <a href="#" onclick="toggleMobileMenu()">Contact Us</a>
+    <a href="#" onclick="handleMenuClick(event, 'clearance'); closeMobileMenu()">Clearance Sale</a>
+    <a href="#" onclick="handleMenuClick(event, 'contact'); closeMobileMenu()">Contact Us</a>
 
 </nav>
 
 <!-- DESKTOP MENU -->
 <nav class="menu">
 
-    <a href="#" onclick="setCategory('all', this)">Home</a>
+    <a href="#" onclick="handleMenuClick(event, 'all', this)">Home</a>
 
     <a href="#" onclick="toggleCollections(event)">Collections</a>
 
-    <a href="#" onclick="setCategory('clearance', this)">Clearance Sale</a>
+    <a href="#" onclick="handleMenuClick(event, 'clearance', this)">Clearance Sale</a>
 
-    <a href="#" onclick="setCategory('contact', this)">Contact Us</a>
+    <a href="#" onclick="handleMenuClick(event, 'contact', this)">Contact Us</a>
 
 </nav>
         <!-- ICONS -->
@@ -1707,7 +1707,7 @@ const normalize = (str) =>
 
 if (
     currentCategory !== "all" &&
-    !normalize(p.category).includes(normalize(currentCategory))
+    normalize(p.category) !== normalize(currentCategory)
 ) {
     return;
 }
@@ -1807,6 +1807,12 @@ function setCategory(category, el = null) {
         ?.scrollIntoView({ behavior: "smooth" });
 }
 
+window.handleMenuClick = function(e, category, el = null) {
+    e.preventDefault(); // 👈 أهم سطر
+
+    setCategory(category, el);
+};
+
 document.querySelectorAll("#collectionsSub a[data-category]").forEach(btn => {
     btn.addEventListener("click", function (e) {
         e.preventDefault();
@@ -1823,6 +1829,7 @@ document.querySelectorAll(".collection-btn").forEach(btn => {
 
 window.toggleCollections = function (e) {
     e.preventDefault();
+    e.stopPropagation(); // 👈 مهم
 
     const sub = document.getElementById("collectionsSub");
     sub.classList.toggle("active");
@@ -2240,7 +2247,9 @@ setInterval(() => {
 /* =========================================
    MOBILE MENU SYSTEM (FIXED)
 ========================================= */
-window.toggleMobileMenu = function () {
+window.toggleMobileMenu = function (e) {
+    if (e) e.preventDefault();
+
     const menu = document.getElementById("mobileMenu");
     const overlay = document.getElementById("menuOverlay");
 
@@ -2249,6 +2258,16 @@ window.toggleMobileMenu = function () {
 
     document.body.style.overflow =
         menu.classList.contains("active") ? "hidden" : "";
+};
+
+window.closeMobileMenu = function () {
+    const menu = document.getElementById("mobileMenu");
+    const overlay = document.getElementById("menuOverlay");
+
+    menu.classList.remove("active");
+    overlay.classList.remove("active");
+
+    document.body.style.overflow = "";
 };
 
 /* =========================================
