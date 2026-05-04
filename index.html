@@ -1300,7 +1300,7 @@ display:flex;
             </button>
         </div>
 
-        <button class="close-menu" onclick="closeMobileMenu()">
+            <button class="close-menu" onclick="closeMobileMenu()">
             <i class="fas fa-times"></i>
         </button>
 
@@ -1308,7 +1308,6 @@ display:flex;
 
     <a href="#" onclick="handleMenuClick(event, 'all'); closeMobileMenu()">Home</a>
 
-    <!-- COLLECTIONS -->
     <div class="menu-item">
 
         <a href="#" onclick="toggleCollections(event)">
@@ -1319,33 +1318,19 @@ display:flex;
 
             <a href="#" onclick="handleMenuClick(event, 'all'); closeMobileMenu()">All</a>
 
-            <a href="#" onclick="handleMenuClick(event, 'سلاسل&كوليهات'); closeMobileMenu()">
-                سلاسل & كوليهات
-            </a>
+            <a href="#" onclick="handleMenuClick(event, 'necklaces'); closeMobileMenu()">سلاسل & كوليهات</a>
 
-            <a href="#" onclick="handleMenuClick(event, 'اساور&غوايش'); closeMobileMenu()">
-                أساور & غوايش
-            </a>
+            <a href="#" onclick="handleMenuClick(event, 'bracelets'); closeMobileMenu()">أساور & غوايش</a>
 
-            <a href="#" onclick="handleMenuClick(event, 'خواتم&دبل'); closeMobileMenu()">
-                خواتم & دبل
-            </a>
+            <a href="#" onclick="handleMenuClick(event, 'rings'); closeMobileMenu()">خواتم & دبل</a>
 
-            <a href="#" onclick="handleMenuClick(event, 'توينز'); closeMobileMenu()">
-                توينز
-            </a>
+            <a href="#" onclick="handleMenuClick(event, 'twins'); closeMobileMenu()">توينز</a>
 
-            <a href="#" onclick="handleMenuClick(event, 'اطقم'); closeMobileMenu()">
-                أطقم
-            </a>
+            <a href="#" onclick="handleMenuClick(event, 'sets'); closeMobileMenu()">أطقم</a>
 
-            <a href="#" onclick="handleMenuClick(event, 'حلقان'); closeMobileMenu()">
-                حلقان
-            </a>
+            <a href="#" onclick="handleMenuClick(event, 'earrings'); closeMobileMenu()">حلقان</a>
 
-            <a href="#" onclick="handleMenuClick(event, 'خلخال'); closeMobileMenu()">
-                خلخال
-            </a>
+            <a href="#" onclick="handleMenuClick(event, 'anklets'); closeMobileMenu()">خلخال</a>
 
         </div>
     </div>
@@ -1700,14 +1685,17 @@ onSnapshot(productsQuery, (snapshot) => {
 
 const normalize = (str) =>
     (str || "")
-    .toString()
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, "");
+        .toString()
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, "");
+
+const category = normalize(currentCategory);
+const productCategory = normalize(p.categorySlug);
 
 if (
-    currentCategory !== "all" &&
-    (p.categorySlug || "").toLowerCase() !== currentCategory
+    category !== "all" &&
+    productCategory !== category
 ) {
     return;
 }
