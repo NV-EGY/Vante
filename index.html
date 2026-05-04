@@ -1707,7 +1707,7 @@ const normalize = (str) =>
 
 if (
     currentCategory !== "all" &&
-    normalize(p.category) !== normalize(currentCategory)
+    (p.categorySlug || "").toLowerCase() !== currentCategory
 ) {
     return;
 }
@@ -1808,10 +1808,15 @@ function setCategory(category, el = null) {
 }
 
 window.handleMenuClick = function(e, category, el = null) {
-    e.preventDefault(); // 👈 أهم سطر
-
+    e.preventDefault();
     setCategory(category, el);
 };
+
+if (html === "") {
+    html = `<div style="text-align:center;padding:40px">
+        لا توجد منتجات في هذا القسم
+    </div>`;
+}
 
 document.querySelectorAll("#collectionsSub a[data-category]").forEach(btn => {
     btn.addEventListener("click", function (e) {
