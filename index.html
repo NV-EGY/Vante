@@ -329,6 +329,45 @@ select{
     transform:translateY(-3px);
 }
 
+
+/* شارة الخصم */
+.discount-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: #D4AF37;
+    color: #000;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 900;
+    z-index: 10;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+/* اختيار المقاس في الكارد */
+        /* تعديل شكل اختيار المقاس على الواجهة */
+        .size-select {
+            width: 100%;
+            padding: 12px 15px;
+            margin-top: 12px;
+            border: 1px solid #eee;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 14px;
+            background: #fff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            appearance: none;
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23111' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>");
+            background-repeat: no-repeat;
+            background-position: left 15px center;
+        }
+        .size-select:focus {
+            border-color: #D4AF37;
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+        }
+
 .add-cart-btn{
     margin-top:15px;
     font-size:16px;
@@ -1238,7 +1277,27 @@ body.modal-open{
 .search-overlay.active{
     opacity:1;
     visibility:visible;
+    position: relative;
 }
+
+}
+       .search-close-btn {
+            position: absolute;
+            top: -15px;
+            right: -15px;
+            background: #fff;
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            cursor: pointer;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #111;
+        }
 
 .search-box{
     width:100%;
@@ -1297,8 +1356,8 @@ body.modal-open{
         <div class="offer-timer">
             OFFER ENDS IN :
             <span id="h">04</span>h
-            <span id="m">25</span>m
-            <span id="s">50</span>s
+            <span id="m">00</span>m
+            <span id="s">00</span>s
         </div>
     </div>
 
@@ -1397,10 +1456,11 @@ body.modal-open{
         </div>
     </div>
 
-    <div id="searchOverlay" class="search-overlay">
+    <!-- SEARCH OVERLAY -->
+        <div id="searchOverlay" class="search-overlay">
         <div class="search-box">
-            <input type="text" id="searchInput" placeholder="ابحث عن منتج...">
-            <button onclick="searchProducts()">بحث</button>
+            <button class="search-close-btn" onclick="closeSearch()">&times;</button>
+            <input type="text" id="searchInput" placeholder="ابحث عن منتج..." oninput="searchProducts()">
         </div>
     </div>
 
@@ -1605,123 +1665,256 @@ function renderProducts() {
         return;
     }
 
-    productsContainer.innerHTML = filtered.map(p => {
-        const sizes = Array.isArray(p.sizes) && p.sizes.length ? p.sizes : ["7", "8", "9"];
-        const description = p.description || "منتج فاخر من VANTÉ";
-        const hasDiscount = p.comparePrice && p.comparePrice > p.price;
-        const discountBadgeHtml = hasDiscount ? `<span class="discount-badge">-${Math.round((1 - p.price / p.comparePrice) * 100)}%</span>` : '';
-        const stock = p.stock >= 0 ? p.stock : null;
-        const outOfStock = stock === 0;
-        const stockInfo = stock !== null ? `<small>الكمية المتاحة: ${stock}</small>` : '';
-        const addBtnDisabled = outOfStock ? 'disabled style="opacity:0.6;cursor:not-allowed"' : '';
+            productsContainer.innerHTML = filtered.map(p => {
+            const sizes = Array.isArray(p.sizes) && p.sizes.length ? p.sizes : ["7", "8", "9"];
+            const hasDiscount = p.comparePrice && p.comparePrice > p.price;
+            const discountBadgeHtml = hasDiscount ? `<span class="discount-badge">-${Math.round((1 - p.price / p.comparePrice) * 100)}%</span>` : '';
+            const stock = p.stock >= 0 ? p.stock : null;
+            const outOfStock = stock === 0;
+            const stockInfo = stock !== null ? `<small>الكمية المتاحة: ${stock}</small>` : '';
+            const addBtnDisabled = outOfStock ? 'disabled style="opacity:0.6;cursor:not-allowed"' : '';
 
-        return `
-        <div class="product">
-            <div class="product-image" onclick='openProduct("${p.id}", ${JSON.stringify(p.name)}, ${Number(p.price)}, ${JSON.stringify(p.image)}, ${JSON.stringify(sizes)}, ${JSON.stringify(description)})'>
-                ${discountBadgeHtml}
-                <img src="${p.image}" alt="${p.name}">
-            </div>
-            <h3>${p.name}</h3>
-            <div class="price-tag">
-                ${hasDiscount ? `<span style="text-decoration:line-through;color:#999;font-size:14px;">${Number(p.comparePrice)} ج</span>` : ''}
-                <span class="price">${Number(p.price)}</span>
-                <span class="currency">EGP</span>
-            </div>
-            <p class="product-description">${description}</p>
-            ${stockInfo}
-            <button class="btn-primary add-cart-btn" ${addBtnDisabled} onclick="event.stopPropagation(); addToCart('${p.name.replace(/'/g, "\\'")}', ${Number(p.price)}, '${sizes[0]}', '${p.image}'); openCart();">${outOfStock ? 'نفذت الكمية' : 'أضف للسلة'}</button>
-        </div>`;
-    }).join("");
-}
+            return `
+            <div class="product">
+                <div class="product-image" onclick='openProduct("${p.id}", ${JSON.stringify(p.name)}, ${Number(p.price)}, ${JSON.stringify(p.image)}, ${JSON.stringify(sizes)}, ${JSON.stringify(p.description || "")})'>
+                    ${discountBadgeHtml}
+                    <img src="${p.image}" alt="${p.name}">
+                </div>
+                <h3>${p.name}</h3>
+                <div class="price-tag">
+                    ${hasDiscount ? `<span style="text-decoration:line-through;color:#999;font-size:14px;">${Number(p.comparePrice)} ج</span>` : ''}
+                    <span class="price">${Number(p.price)}</span>
+                    <span class="currency">EGP</span>
+                </div>
+                
+                <!-- اختيار المقاس مع عنوان احترافي -->
+                <div class="size-selector-wrapper">
+                    <label class="size-label-main">المقاس:</label>
+                    <select class="size-select" data-product-id="${p.id}">
+                        <option value="" disabled selected>اختر المقاس</option>
+                        ${sizes.map(s => `<option value="${s}">${s}</option>`).join('')}
+                    </select>
+                </div>
+                
+                ${stockInfo}
+                <button class="btn-primary add-cart-btn" ${addBtnDisabled} onclick="event.stopPropagation(); window.addToCartFromCard('${p.id}', '${p.name.replace(/'/g, "\\'")}', ${Number(p.price)}, '${p.image}')">
+                    ${outOfStock ? 'نفذت الكمية' : 'أضف للسلة'}
+                </button>
+            </div>`;
+        }).join("");
+    }
 
-const productsRef = collection(db, "products");
-onSnapshot(query(productsRef), (snapshot) => {
-    allProducts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    renderProducts();
-});
+    const productsRef = collection(db, "products");
+    onSnapshot(query(productsRef), (snapshot) => {
+        allProducts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        renderProducts();
+    });
 
-let cart = [];
-function addToCart(name, price, size, image) {
-    const existing = cart.find(item => item.name === name && item.size === size);
-    if (existing) existing.qty += 1;
-    else cart.push({ name, price, size, image, qty: 1 });
-    updateCart();
-}
-window.addToCart = addToCart;
+    // ========== السلة ==========
+    let cart = [];
+    window.addToCart = function(name, price, size, image) {
+        const existing = cart.find(item => item.name === name && item.size === size);
+        if (existing) existing.qty += 1;
+        else cart.push({ name, price, size, image, qty: 1 });
+        updateCart();
+    };
 
-function updateCart() {
-    let total = 0, count = 0;
-    const html = cart.map((item, index) => {
-        total += item.price * item.qty;
-        count += item.qty;
-        return `<div class="cart-item"><div><strong>${item.name}</strong><br><small>${item.size}</small></div><div><button onclick="changeQty(${index},-1)">-</button>${item.qty}<button onclick="changeQty(${index},1)">+</button></div><div>${item.price * item.qty} ج</div></div>`;
-    }).join("");
-    document.getElementById("cartItems").innerHTML = cart.length ? html : "السلة فارغة";
-    document.getElementById("total").innerText = total;
-    document.getElementById("cartCount").innerText = count;
-}
-window.updateCart = updateCart;
-window.changeQty = function(index, change) {
-    cart[index].qty += change;
-    if (cart[index].qty <= 0) cart.splice(index, 1);
-    updateCart();
-};
+    window.addToCartFromCard = function(productId, name, price, image) {
+        const select = document.querySelector(`.size-select[data-product-id="${productId}"]`);
+        if (!select || !select.value) {
+            alert("الرجاء اختيار المقاس أولاً");
+            return;
+        }
+        window.addToCart(name, Number(price), select.value, image);
+        updateCart();
+        openCart();
+    };
 
-window.openCart = () => { document.getElementById("cartDrawer").classList.add("active"); document.getElementById("overlay").classList.add("active"); };
-window.closeCart = () => { document.getElementById("cartDrawer").classList.remove("active"); document.getElementById("overlay").classList.remove("active"); };
-window.openCheckout = () => { document.getElementById("checkoutModal").classList.add("active"); document.getElementById("overlay").classList.add("active"); };
-window.closeCheckout = () => { document.getElementById("checkoutModal").classList.remove("active"); document.getElementById("overlay").classList.remove("active"); };
+    window.updateCart = function() {
+        let total = 0, count = 0;
+        const html = cart.map((item, index) => {
+            total += item.price * item.qty;
+            count += item.qty;
+            return `<div class="cart-item">
+                <div><strong>${item.name}</strong><br><small>${item.size}</small></div>
+                <div><button onclick="window.changeQty(${index},-1)">-</button>${item.qty}<button onclick="window.changeQty(${index},1)">+</button></div>
+                <div>${item.price * item.qty} ج</div>
+            </div>`;
+        }).join("");
+        document.getElementById("cartItems").innerHTML = cart.length ? html : "السلة فارغة";
+        document.getElementById("total").innerText = total;
+        document.getElementById("cartCount").innerText = count;
+    };
 
-window.checkout = async function () {
-    const btn = document.querySelector("#checkoutModal .btn-primary");
-    const name = document.getElementById("name").value.trim();
-    const phone = document.getElementById("phone").value.trim();
-    const gov = document.getElementById("governorate").value;
-    const city = document.getElementById("city").value;
-    const address = document.getElementById("address").value.trim();
-    if (!name || !phone || !gov || !city || !address || cart.length === 0) return alert("تأكد من البيانات ووجود منتجات");
-    btn.disabled = true;
-    try {
-        const orderData = { orderID: "V" + Date.now(), customerName: name, phone, gov, city, address, orderDetails: cart, finalTotal: cart.reduce((s,i)=>s+(i.price*i.qty),0)+70, status: "new", createdAt: serverTimestamp() };
-        await addDoc(collection(db, "orders"), orderData);
-        let message = `طلب جديد...`; // اختصار للطول
-        // WhatsApp code...
-        cart = []; updateCart(); closeCheckout(); closeCart(); alert("تم");
-    } catch (e) { alert("خطأ"); }
-    btn.disabled = false;
-};
+    window.changeQty = function(index, change) {
+        cart[index].qty += change;
+        if (cart[index].qty <= 0) cart.splice(index, 1);
+        updateCart();
+    };
 
-function setCategory(category) {
-    currentCategory = category;
-    const url = new URL(window.location);
-    url.searchParams.set("category", category);
-    window.history.pushState({}, "", url);
-    document.querySelectorAll("[data-category]").forEach(l => l.classList.remove("active"));
-    document.querySelectorAll(`[data-category="${category}"]`).forEach(l => l.classList.add("active"));
-    renderProducts();
-}
-window.handleMenuClick = (e, category, el) => { e.preventDefault(); setCategory(category, el); };
-window.toggleCollections = (e) => { e.preventDefault(); e.stopPropagation(); document.getElementById("collectionsSub").classList.toggle("active"); };
-window.openSearch = () => { document.getElementById("searchOverlay").classList.add("active"); document.getElementById("searchInput").focus(); };
-window.closeSearch = () => { document.getElementById("searchOverlay").classList.remove("active"); };
-window.searchProducts = () => {
-    const filter = document.getElementById("searchInput").value.toLowerCase().trim();
-    document.querySelectorAll(".product").forEach(p => p.style.display = p.querySelector("h3").textContent.toLowerCase().includes(filter) ? "block" : "none");
-    closeSearch();
-};
+    window.openCart = () => { document.getElementById("cartDrawer").classList.add("active"); document.getElementById("overlay").classList.add("active"); };
+    window.closeCart = () => { document.getElementById("cartDrawer").classList.remove("active"); document.getElementById("overlay").classList.remove("active"); };
+    window.openCheckout = () => { document.getElementById("checkoutModal").classList.add("active"); document.getElementById("overlay").classList.add("active"); };
+    window.closeCheckout = () => { document.getElementById("checkoutModal").classList.remove("active"); document.getElementById("overlay").classList.remove("active"); };
 
-window.addEventListener("DOMContentLoaded", () => {
-    const params = new URLSearchParams(window.location.search);
-    setCategory(params.get("category") || "all");
-});
+    // ========== الدفع ==========
+    window.checkout = async function () {
+        const btn = document.querySelector("#checkoutModal .btn-primary");
+        const name = document.getElementById("name").value.trim();
+        const phone = document.getElementById("phone").value.trim();
+        const gov = document.getElementById("governorate").value;
+        const city = document.getElementById("city").value;
+        const address = document.getElementById("address").value.trim();
 
-// Offer Timer
+        if (!name || !phone || !gov || !city || !address) {
+            alert("يرجى استكمال جميع بيانات الطلب");
+            return;
+        }
+        if (cart.length === 0) {
+            alert("السلة فارغة");
+            return;
+        }
+
+        btn.disabled = true;
+        btn.innerText = "جاري إرسال الطلب...";
+
+        try {
+            const quantity = cart.reduce((sum, item) => sum + item.qty, 0);
+            const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            const shipping = 70;
+            const finalTotal = subtotal + shipping;
+            const orderID = "V" + Date.now();
+
+            const orderDetails = cart.map(item => ({
+                name: item.name,
+                size: item.size || "",
+                qty: item.qty,
+                price: item.price,
+                image: item.image || ""
+            }));
+
+            const orderData = {
+                orderID,
+                customerName: name,
+                phone,
+                gov,
+                city,
+                address,
+                orderDetails,
+                quantity,
+                subtotal,
+                shipping,
+                finalTotal,
+                status: "new",
+                createdAt: serverTimestamp()
+            };
+
+            await addDoc(collection(db, "orders"), orderData);
+
+            let message = `🛍️ طلب جديد - VANTÉ\n\n`;
+            message += `📦 رقم الطلب: ${orderID}\n`;
+            message += `👤 الاسم: ${name}\n`;
+            message += `📱 الهاتف: ${phone}\n`;
+            message += `📍 المحافظة: ${gov}\n`;
+            message += `🏙️ المدينة: ${city}\n`;
+            message += `🏠 العنوان: ${address}\n\n`;
+
+            cart.forEach(item => {
+                message += `• ${item.name}\n`;
+                message += `المقاس: ${item.size}\n`;
+                message += `الكمية: ${item.qty}\n`;
+                message += `السعر: ${item.price * item.qty} جنيه\n\n`;
+            });
+
+            message += `🚚 الشحن: ${shipping} جنيه\n`;
+            message += `💰 الإجمالي: ${finalTotal} جنيه`;
+
+            const phoneNumber = "201106018685";
+            const encodedMessage = encodeURIComponent(message);
+            const appUrl = `whatsapp://send?phone=${phoneNumber}&text=${encodedMessage}`;
+            const webUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
+
+            window.location.href = appUrl;
+            setTimeout(() => window.open(webUrl, "_blank"), 1200);
+
+            cart = [];
+            updateCart();
+
+            document.getElementById("name").value = "";
+            document.getElementById("phone").value = "";
+            document.getElementById("governorate").selectedIndex = 0;
+            document.getElementById("city").innerHTML = "";
+            document.getElementById("address").value = "";
+
+            closeCheckout();
+            closeCart();
+            alert("تم إرسال طلبك بنجاح ✨");
+
+        } catch (error) {
+            console.error(error);
+            alert("حدث خطأ أثناء إرسال الطلب.");
+        } finally {
+            btn.disabled = false;
+            btn.innerText = "تأكيد الطلب";
+        }
+    };
+
+    // ========== القوائم والبحث ==========
+    function setCategory(category) {
+        currentCategory = category;
+        const url = new URL(window.location);
+        url.searchParams.set("category", category);
+        window.history.pushState({}, "", url);
+        document.querySelectorAll("[data-category]").forEach(l => l.classList.remove("active"));
+        document.querySelectorAll(`[data-category="${category}"]`).forEach(l => l.classList.add("active"));
+        renderProducts();
+    }
+
+    window.handleMenuClick = (e, category) => { e.preventDefault(); setCategory(category); };
+    window.toggleCollections = (e) => { e.preventDefault(); e.stopPropagation(); document.getElementById("collectionsSub").classList.toggle("active"); };
+    window.openSearch = () => { 
+        document.getElementById("searchOverlay").classList.add("active"); 
+        document.getElementById("searchInput").focus();
+        // تفعيل البحث المباشر
+        document.getElementById("searchInput").addEventListener('input', window.searchProducts);
+    };
+    window.closeSearch = () => { 
+        document.getElementById("searchOverlay").classList.remove("active"); 
+        document.getElementById("searchInput").value = '';
+        // إظهار جميع المنتجات بعد الإغلاق
+        renderProducts();
+    };
+    window.searchProducts = () => {
+        const filter = document.getElementById("searchInput").value.toLowerCase().trim();
+        document.querySelectorAll(".product").forEach(p => {
+            const name = p.querySelector("h3").textContent.toLowerCase();
+            p.style.display = name.includes(filter) ? "block" : "none";
+        });
+    };
+
+    window.addEventListener("DOMContentLoaded", () => {
+        const params = new URLSearchParams(window.location.search);
+        setCategory(params.get("category") || "all");
+    });
+
+ // Offer Timer
+    const targetTime = Date.now() + 4 * 60 * 60 * 1000;
+
 setInterval(() => {
-    const diff = Date.now() + 4*60*60*1000 - Date.now();
+
+    const diff = targetTime - Date.now();
+
     if (diff <= 0) return;
-    document.getElementById("h").textContent = String(Math.floor(diff/3600000)).padStart(2,"0");
-    document.getElementById("m").textContent = String(Math.floor(diff%3600000/60000)).padStart(2,"0");
-    document.getElementById("s").textContent = String(Math.floor(diff%60000/1000)).padStart(2,"0");
+
+    document.getElementById("h").textContent =
+        String(Math.floor(diff / 3600000)).padStart(2,"0");
+
+    document.getElementById("m").textContent =
+        String(Math.floor(diff % 3600000 / 60000)).padStart(2,"0");
+
+    document.getElementById("s").textContent =
+        String(Math.floor(diff % 60000 / 1000)).padStart(2,"0");
+
 }, 1000);
 </script>
 
