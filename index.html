@@ -1662,12 +1662,6 @@ const db = getFirestore(app);
 
 let currentUser = null;
 let currentCategory = "all";
-
-if (html === "") {
-    html = `<div style="text-align:center;padding:40px">
-        لا توجد منتجات في هذا القسم
-    </div>`;
-}
 /* =========================================
    LOAD PRODUCTS FROM FIREBASE
    (استبدل الكود القديم بالكامل بهذا)
@@ -1686,87 +1680,87 @@ onSnapshot(productsQuery, (snapshot) => {
 
     let html = "";
 
- snapshot.forEach((docSnap) => {
-    const p = docSnap.data();
+    snapshot.forEach((docSnap) => {
+        const p = docSnap.data();
 
-const normalize = (str) =>
-    (str || "")
-        .toString()
-        .trim()
-        .toLowerCase()
-        .replace(/\s+/g, "");
+        const normalize = (str) =>
+            (str || "")
+                .toString()
+                .trim()
+                .toLowerCase()
+                .replace(/\s+/g, "");
 
-const category = normalize(currentCategory);
-const productCategory = normalize(p.categorySlug);
+        const category = normalize(currentCategory);
+        const productCategory = normalize(p.categorySlug || "all");
 
-if (
-    category !== "all" &&
-    productCategory !== category
-) {
-    return;
-}
+        // ✅ فلترة الكولكشنز
+        if (category !== "all" && productCategory !== category) {
+            return;
+        }
 
-    const sizes = (p.sizes && p.sizes.length)
-        ? p.sizes
-        : ["7", "8", "9"];
+        const sizes = (p.sizes && p.sizes.length)
+            ? p.sizes
+            : ["7", "8", "9"];
 
-    const description = p.description || "منتج فاخر من VANTÉ";
+        const description = p.description || "منتج فاخر من VANTÉ";
 
-    html += `
-    <div class="product">
+        html += `
+        <div class="product">
 
-        <div class="product-image"
-            onclick='openProduct(
-                "${docSnap.id}",
-                ${JSON.stringify(p.name)},
-                ${Number(p.price)},
-                ${JSON.stringify(p.image)},
-                ${JSON.stringify(sizes)},
-                ${JSON.stringify(description)}
-            )'>
-            <img src="${p.image}" alt="${p.name}">
+            <div class="product-image"
+                onclick='openProduct(
+                    "${docSnap.id}",
+                    ${JSON.stringify(p.name)},
+                    ${Number(p.price)},
+                    ${JSON.stringify(p.image)},
+                    ${JSON.stringify(sizes)},
+                    ${JSON.stringify(description)}
+                )'>
+                <img src="${p.image}" alt="${p.name}">
+            </div>
+
+            <h3>${p.name}</h3>
+
+            <div class="price-tag">
+                <span class="price">${Number(p.price)}</span>
+                <span class="currency">EGP</span>
+            </div>
+
+            <p class="product-description">${description}</p>
+
+            <div class="size-label">المقاسات المتاحة</div>
+
+            <div class="sizes-wrap" id="sizes-${docSnap.id}">
+                ${sizes.map((size, i) => `
+                    <button
+                        type="button"
+                        class="size-btn ${i === 0 ? "active" : ""}"
+                        onclick="selectSize('${docSnap.id}','${size}',this)">
+                        ${size}
+                    </button>
+                `).join("")}
+            </div>
+
+            <button class="btn-primary"
+                onclick='addToCartFromHome(
+                    ${JSON.stringify(p.name)},
+                    ${Number(p.price)},
+                    ${JSON.stringify(p.image)},
+                    "${docSnap.id}",
+                    event
+                )'>
+                أضف للسلة
+            </button>
+
         </div>
+        `;
+    });
 
-        <h3>${p.name}</h3>
-
-        <div class="price-tag">
-            <span class="price">${Number(p.price)}</span>
-            <span class="currency">EGP</span>
+    productsContainer.innerHTML = html || `
+        <div style="text-align:center;padding:40px">
+            لا توجد منتجات في هذا القسم
         </div>
-
-        <p class="product-description">${description}</p>
-
-        <div class="size-label">
-            المقاسات المتاحة
-        </div>
-
-        <div class="sizes-wrap" id="sizes-${docSnap.id}">
-            ${sizes.map((size, i) => `
-                <button
-                    type="button"
-                    class="size-btn ${i === 0 ? "active" : ""}"
-                    onclick="selectSize('${docSnap.id}','${size}',this)">
-                    ${size}
-                </button>
-            `).join("")}
-        </div>
-
-        <button class="btn-primary"
-            onclick='addToCartFromHome(
-                ${JSON.stringify(p.name)},
-                ${Number(p.price)},
-                ${JSON.stringify(p.image)},
-                "${docSnap.id}",
-                event
-            )'>
-            أضف للسلة
-        </button>
-
-    </div>
     `;
-});
-
-    productsContainer.innerHTML = html;
 });
 
 /* =========================
