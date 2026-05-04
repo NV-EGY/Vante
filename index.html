@@ -1662,6 +1662,12 @@ const db = getFirestore(app);
 
 let currentUser = null;
 let currentCategory = "all";
+
+if (html === "") {
+    html = `<div style="text-align:center;padding:40px">
+        لا توجد منتجات في هذا القسم
+    </div>`;
+}
 /* =========================================
    LOAD PRODUCTS FROM FIREBASE
    (استبدل الكود القديم بالكامل بهذا)
@@ -1799,12 +1805,6 @@ window.handleMenuClick = function(e, category, el = null) {
     e.preventDefault();
     setCategory(category, el);
 };
-
-if (html === "") {
-    html = `<div style="text-align:center;padding:40px">
-        لا توجد منتجات في هذا القسم
-    </div>`;
-}
 
 document.querySelectorAll("#collectionsSub a[data-category]").forEach(btn => {
     btn.addEventListener("click", function (e) {
