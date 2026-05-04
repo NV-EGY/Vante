@@ -1739,11 +1739,16 @@ let currentCategory = "all";
    (استبدل الكود القديم بالكامل بهذا)
 ========================================= */
 
+import { collection, onSnapshot, query } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const productsQuery = query(collection(db, "products"));
+
 const productsContainer = document.querySelector(".products");
 
 let allProducts = [];
 
-/* LOAD FROM FIREBASE */
+const productsQuery = query(collection(db, "products"));
+
 onSnapshot(productsQuery, (snapshot) => {
 
     allProducts = snapshot.docs.map(doc => ({
