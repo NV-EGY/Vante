@@ -1741,39 +1741,42 @@ let currentCategory = "all";
 
 const productsContainer = document.querySelector(".products");
 
-const productsQuery = query(
-    collection(db, "products"),
-    orderBy("createdAt", "desc")
-);
+let allProducts = [];
 
+/* LOAD FROM FIREBASE */
 onSnapshot(productsQuery, (snapshot) => {
+
+    allProducts = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+    }));
+
+    renderProducts();
+});
+
+/* RENDER FUNCTION */
+function renderProducts() {
 
     if (!productsContainer) return;
 
+    const normalize = (str) =>
+        (str || "")
+            .toString()
+            .trim()
+            .toLowerCase()
+            .replace(/\s+/g, "");
+
+    const category = normalize(currentCategory);
+
     let html = "";
 
-    snapshot.forEach((docSnap) => {
-        const p = docSnap.data();
+    allProducts.forEach(p => {
 
-        const normalize = (str) =>
-            (str || "")
-                .toString()
-                .trim()
-                .toLowerCase()
-                .replace(/\s+/g, "");
+        const productCategory = normalize(p.category || "all");
 
-        const category = normalize(currentCategory);
-        const productCategory = normalize(p.categorySlug || "all");
+        if (category !== "all" && productCategory !== category) return;
 
-        // ✅ فلترة الكولكشنز
-        if (category !== "all" && productCategory !== category) {
-            return;
-        }
-
-        const sizes = (p.sizes && p.sizes.length)
-            ? p.sizes
-            : ["7", "8", "9"];
-
+        const sizes = p.sizes?.length ? p.sizes : ["7","8","9"];
         const description = p.description || "منتج فاخر من VANTÉ";
 
         html += `
@@ -1781,7 +1784,7 @@ onSnapshot(productsQuery, (snapshot) => {
 
             <div class="product-image"
                 onclick='openProduct(
-                    "${docSnap.id}",
+                    "${p.id}",
                     ${JSON.stringify(p.name)},
                     ${Number(p.price)},
                     ${JSON.stringify(p.image)},
@@ -1800,30 +1803,6 @@ onSnapshot(productsQuery, (snapshot) => {
 
             <p class="product-description">${description}</p>
 
-            <div class="size-label">المقاسات المتاحة</div>
-
-            <div class="sizes-wrap" id="sizes-${docSnap.id}">
-                ${sizes.map((size, i) => `
-                    <button
-                        type="button"
-                        class="size-btn ${i === 0 ? "active" : ""}"
-                        onclick="selectSize('${docSnap.id}','${size}',this)">
-                        ${size}
-                    </button>
-                `).join("")}
-            </div>
-
-            <button class="btn-primary"
-                onclick='addToCartFromHome(
-                    ${JSON.stringify(p.name)},
-                    ${Number(p.price)},
-                    ${JSON.stringify(p.image)},
-                    "${docSnap.id}",
-                    event
-                )'>
-                أضف للسلة
-            </button>
-
         </div>
         `;
     });
@@ -1833,7 +1812,7 @@ onSnapshot(productsQuery, (snapshot) => {
             لا توجد منتجات في هذا القسم
         </div>
     `;
-});
+}
 
 /* =========================
    MAIN CATEGORY FUNCTION
@@ -1841,6 +1820,7 @@ onSnapshot(productsQuery, (snapshot) => {
 function setCategory(category, el = null) {
 
     currentCategory = category;
+   renderProducts();
 
     // ✅ تحديث URL
     const url = new URL(window.location);
