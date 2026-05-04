@@ -115,6 +115,9 @@ button:hover{
 
 <button onclick="addProduct()">إضافة منتج</button>
 
+<input id="comparePrice" type="number" placeholder="السعر قبل الخصم (اختياري)">
+<input id="stock" type="number" placeholder="الكمية المتاحة (اختياري)">
+
 <div id="productsList"></div>
 
 </div>
@@ -158,6 +161,9 @@ window.addProduct = async function () {
     const name = document.getElementById("name").value.trim();
     const price = Number(document.getElementById("price").value);
     const image = document.getElementById("image").value.trim();
+    const comparePrice = Number(document.getElementById("comparePrice").value) || 0;
+    const stock = parseInt(document.getElementById("stock").value) || -1;
+    
     const normalize = (str) =>
     (str || "")
     .toString()
@@ -165,9 +171,8 @@ window.addProduct = async function () {
     .toLowerCase()
     .replace(/\s+/g, "");
 
-const rawCategory = document.getElementById("category").value;
-
-const category = normalize(rawCategory);
+    const rawCategory = document.getElementById("category").value;
+    const category = normalize(rawCategory);
     const description = document.getElementById("description").value.trim();
 
     const sizes = document.getElementById("sizes").value
@@ -176,29 +181,34 @@ const category = normalize(rawCategory);
         .filter(Boolean);
 
     if (!name || !price || !image || !category || !description) {
-        alert("يرجى إدخال جميع البيانات");
+        alert("يرجى إدخال جميع البيانات الأساسية");
         return;
     }
 
     await addDoc(collection(db, "products"), {
-    name,
-    price,
-    image,
-    category,          // 👈 للفلترة (clean)
-    categoryLabel: rawCategory, // 👈 للعرض (شكل حلو)
-    description,
-    sizes,
-    createdAt: serverTimestamp()
-});
+        name,
+        price,
+        image,
+        category,
+        categoryLabel: rawCategory,
+        description,
+        sizes,
+        comparePrice, // <-- السعر القديم
+        stock,        // <-- الكمية
+        createdAt: serverTimestamp()
+    });
 
     alert("تم إضافة المنتج بنجاح");
 
+    // امسح الخانات بعد الإضافة
     document.getElementById("name").value = "";
     document.getElementById("price").value = "";
     document.getElementById("image").value = "";
     document.getElementById("sizes").value = "";
     document.getElementById("category").value = "";
     document.getElementById("description").value = "";
+    document.getElementById("comparePrice").value = "";
+    document.getElementById("stock").value = "";
 };
 
 /* =========================
@@ -224,7 +234,8 @@ onSnapshot(q, (snapshot) => {
 
             <div class="info">
                 <h3>${p.name}</h3>
-                <p>${p.price} جنيه</p>
+ <p>${p.price} جنيه ${p.comparePrice ? `<s style="color:red;font-size:12px;">${p.comparePrice} ج</s>` : ''}</p>
+<small>الكمية: ${p.stock >= 0 ? p.stock : 'غير محدد'}</small>
 <small>القسم: ${p.categoryLabel || "عام"}</small>
                 <small>
                     المقاسات:
