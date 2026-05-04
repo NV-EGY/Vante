@@ -1248,6 +1248,31 @@ body.modal-open{
 display:flex;
     max-height:400px;
 }
+
+.desktop-dropdown{
+    position:relative;
+}
+
+.desktop-sub{
+    position:absolute;
+    top:100%;
+    right:0;
+    background:#fff;
+    border-radius:12px;
+    padding:10px 15px;
+    box-shadow:0 10px 30px rgba(0,0,0,.1);
+    display:none;
+    flex-direction:column;
+    min-width:180px;
+}
+
+.desktop-dropdown:hover .desktop-sub{
+    display:flex;
+}
+
+.menu a.active{
+    color:#D4AF37;
+}
       
 /* ==================================== SEARCH OVERLAY ==================================== */ .search-overlay{ position:fixed; inset:0; background:rgba(0,0,0,.65); display:flex; align-items:center; justify-content:center; opacity:0; visibility:hidden; transition:.35s; z-index:9999; padding:20px; } .search-overlay.active{ opacity:1; visibility:visible; } .search-box{ width:100%; max-width:550px; background:#fff; padding:20px; border-radius:22px; display:flex; align-items:center; gap:12px; box-shadow:0 25px 60px rgba(0,0,0,.25); animation:searchPopup .35s ease; } .search-box input{ flex:1; border:1px solid #ddd; padding:16px 20px; border-radius:14px; font-size:16px; background:#fafafa; } .search-box input:focus{ border-color:#D4AF37; background:#fff; } .search-box button{ width:auto; padding:16px 26px; border:none; border-radius:14px; background:#111; color:#fff; cursor:pointer; transition:.3s; } .search-box button:hover{ background:#D4AF37; color:#000; } @keyframes searchPopup{ from{ opacity:0; transform:scale(.9); } to{ opacity:1; transform:scale(1); } }     
     
@@ -1300,56 +1325,104 @@ display:flex;
             </button>
         </div>
 
-            <button class="close-menu" onclick="closeMobileMenu()">
+        <button class="close-menu" onclick="closeMobileMenu()">
             <i class="fas fa-times"></i>
         </button>
 
     </div>
 
-    <a href="#" onclick="handleMenuClick(event, 'all'); closeMobileMenu()">Home</a>
+    <!-- HOME -->
+    <a href="?category=all" data-category="all"
+       onclick="handleMenuClick(event, 'all', this); closeMobileMenu()">
+       Home
+    </a>
 
+    <!-- COLLECTIONS -->
     <div class="menu-item">
 
-        <a href="#" onclick="toggleCollections(event)">
-            Collections
+        <a href="#" class="collection-toggle" onclick="toggleCollections(event)">
+            Collections <i class="fas fa-chevron-down"></i>
         </a>
 
         <div id="collectionsSub" class="collections-sub">
 
-            <a href="#" onclick="handleMenuClick(event, 'all'); closeMobileMenu()">All</a>
+            <a href="?category=all" data-category="all"
+               onclick="handleMenuClick(event, 'all', this); closeMobileMenu()">All</a>
 
-            <a href="#" onclick="handleMenuClick(event, 'necklaces'); closeMobileMenu()">سلاسل & كوليهات</a>
+            <a href="?category=necklaces" data-category="necklaces"
+               onclick="handleMenuClick(event, 'necklaces', this); closeMobileMenu()">سلاسل & كوليهات</a>
 
-            <a href="#" onclick="handleMenuClick(event, 'bracelets'); closeMobileMenu()">أساور & غوايش</a>
+            <a href="?category=bracelets" data-category="bracelets"
+               onclick="handleMenuClick(event, 'bracelets', this); closeMobileMenu()">أساور & غوايش</a>
 
-            <a href="#" onclick="handleMenuClick(event, 'rings'); closeMobileMenu()">خواتم & دبل</a>
+            <a href="?category=rings" data-category="rings"
+               onclick="handleMenuClick(event, 'rings', this); closeMobileMenu()">خواتم & دبل</a>
 
-            <a href="#" onclick="handleMenuClick(event, 'twins'); closeMobileMenu()">توينز</a>
+            <a href="?category=twins" data-category="twins"
+               onclick="handleMenuClick(event, 'twins', this); closeMobileMenu()">توينز</a>
 
-            <a href="#" onclick="handleMenuClick(event, 'sets'); closeMobileMenu()">أطقم</a>
+            <a href="?category=sets" data-category="sets"
+               onclick="handleMenuClick(event, 'sets', this); closeMobileMenu()">أطقم</a>
 
-            <a href="#" onclick="handleMenuClick(event, 'earrings'); closeMobileMenu()">حلقان</a>
+            <a href="?category=earrings" data-category="earrings"
+               onclick="handleMenuClick(event, 'earrings', this); closeMobileMenu()">حلقان</a>
 
-            <a href="#" onclick="handleMenuClick(event, 'anklets'); closeMobileMenu()">خلخال</a>
+            <a href="?category=anklets" data-category="anklets"
+               onclick="handleMenuClick(event, 'anklets', this); closeMobileMenu()">خلخال</a>
 
         </div>
     </div>
 
-    <a href="#" onclick="handleMenuClick(event, 'clearance'); closeMobileMenu()">Clearance Sale</a>
-    <a href="#" onclick="handleMenuClick(event, 'contact'); closeMobileMenu()">Contact Us</a>
+    <!-- OTHER -->
+    <a href="?category=clearance" data-category="clearance"
+       onclick="handleMenuClick(event, 'clearance', this); closeMobileMenu()">
+       Clearance Sale
+    </a>
+
+    <a href="?category=contact" data-category="contact"
+       onclick="handleMenuClick(event, 'contact', this); closeMobileMenu()">
+       Contact Us
+    </a>
 
 </nav>
 
 <!-- DESKTOP MENU -->
 <nav class="menu">
 
-    <a href="#" onclick="handleMenuClick(event, 'all', this)">Home</a>
+    <a href="?category=all" data-category="all"
+       onclick="handleMenuClick(event, 'all', this)">Home</a>
 
-    <a href="#" onclick="toggleCollections(event)">Collections</a>
+    <div class="menu-item desktop-dropdown">
 
-    <a href="#" onclick="handleMenuClick(event, 'clearance', this)">Clearance Sale</a>
+        <a href="#" onclick="toggleCollections(event)">
+            Collections <i class="fas fa-chevron-down"></i>
+        </a>
 
-    <a href="#" onclick="handleMenuClick(event, 'contact', this)">Contact Us</a>
+        <div class="collections-sub desktop-sub">
+
+            <a href="?category=all" data-category="all"
+               onclick="handleMenuClick(event, 'all', this)">All</a>
+
+            <a href="?category=necklaces" data-category="necklaces"
+               onclick="handleMenuClick(event, 'necklaces', this)">سلاسل</a>
+
+            <a href="?category=bracelets" data-category="bracelets"
+               onclick="handleMenuClick(event, 'bracelets', this)">أساور</a>
+
+            <a href="?category=rings" data-category="rings"
+               onclick="handleMenuClick(event, 'rings', this)">خواتم</a>
+
+            <a href="?category=earrings" data-category="earrings"
+               onclick="handleMenuClick(event, 'earrings', this)">حلقان</a>
+
+        </div>
+    </div>
+
+    <a href="?category=clearance" data-category="clearance"
+       onclick="handleMenuClick(event, 'clearance', this)">Clearance</a>
+
+    <a href="?category=contact" data-category="contact"
+       onclick="handleMenuClick(event, 'contact', this)">Contact</a>
 
 </nav>
         <!-- ICONS -->
@@ -1401,7 +1474,6 @@ display:flex;
 
     <!-- OVERLAY -->
 
-<div id="modalOverlay"></div>  
 <div id="overlay" onclick="closeCart()"></div>
 
     <!-- CHECKOUT MODAL -->
@@ -1770,29 +1842,20 @@ function setCategory(category, el = null) {
 
     currentCategory = category;
 
-    // تحديث active
-    document.querySelectorAll("[data-category], .menu a").forEach(btn => {
-        btn.classList.remove("active");
+    // ✅ تحديث URL
+    const url = new URL(window.location);
+    url.searchParams.set("category", category);
+    window.history.pushState({}, "", url);
+
+    // ✅ active state
+    document.querySelectorAll("[data-category]").forEach(link => {
+        link.classList.remove("active");
     });
 
-    if (el) el.classList.add("active");
+    document.querySelectorAll(`[data-category="${category}"]`)
+        .forEach(link => link.classList.add("active"));
 
-    // قفل الموبايل
-    const menu = document.getElementById("mobileMenu");
-    const overlay = document.getElementById("menuOverlay");
-
-    if (menu?.classList.contains("active")) {
-        menu.classList.remove("active");
-        overlay?.classList.remove("active");
-        document.body.style.overflow = "";
-    }
-
-    // قفل sub menu
-    document.getElementById("collectionsSub")?.classList.remove("active");
-
-    // سكرول
-    document.querySelector(".products")
-        ?.scrollIntoView({ behavior: "smooth" });
+    // ✅ إعادة تحميل المنتجات (Firestore already reactive)
 }
 
 window.handleMenuClick = function(e, category, el = null) {
@@ -1816,11 +1879,23 @@ document.querySelectorAll(".collection-btn").forEach(btn => {
 
 window.toggleCollections = function (e) {
     e.preventDefault();
-    e.stopPropagation(); // 👈 مهم
+    e.stopPropagation();
 
     const sub = document.getElementById("collectionsSub");
     sub.classList.toggle("active");
 };
+
+window.addEventListener("DOMContentLoaded", () => {
+    const params = new URLSearchParams(window.location.search);
+    const category = params.get("category") || "all";
+
+    setCategory(category);
+
+    // فتح dropdown لو المستخدم داخل كولكشن
+    if (category !== "all") {
+        document.getElementById("collectionsSub")?.classList.add("active");
+    }
+});
 
 /* =========================================
    LOAD ORDERS
@@ -1948,7 +2023,7 @@ function addToCart(name, price, size, image) {
 }
 // 👇 مهم جدًا
 window.addToCart = addToCart;
-window.cart = cart;
+cart.length = 0;
 window.updateCart = updateCart;
 
 /* UPDATE CART */
