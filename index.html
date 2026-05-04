@@ -1732,16 +1732,21 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+const params = new URLSearchParams(window.location.search);
+const urlCategory = params.get("category");
+
+if (urlCategory) {
+    currentCategory = urlCategory;
+}
+
 let currentUser = null;
 let currentCategory = "all";
+let allProducts = [];
 
 /* =========================
    REFERENCES
 ========================= */
 const productsContainer = document.querySelector(".products");
-
-let allProducts = [];
-let currentCategory = "all";
 
 const productsRef = collection(db, "products");
 
@@ -1854,7 +1859,7 @@ function setCategory(category, el = null) {
     renderProducts(); // 👈 خليه موجود هنا فقط (تمام)
 }
 
-window.handleMenuClick = function(e, category, el = null) {
+window.handleMenuClick = function(e, category, el) {
     e.preventDefault();
     setCategory(category, el);
 };
