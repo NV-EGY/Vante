@@ -400,8 +400,8 @@ select{
     display:flex;
     align-items:center;
     justify-content:space-between;
-    gap:10px;
-    padding:12px;
+    gap:15px;
+    padding:15px 0;
     border-bottom:1px solid #eee;
     font-size:14px;
 }
@@ -480,15 +480,6 @@ select{
 
 .drawer.active{
     right:0;
-}
-
-.cart-item{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    gap:15px;
-    padding:15px 0;
-    border-bottom:1px solid #eee;
 }
 
 .total{
@@ -1343,7 +1334,7 @@ display:flex;
 <nav class="menu">
     <a href="#">Home</a>
 
-   <a href="#" data-category="سلاسل&كوليهات">
+    <a href="#" data-category="سلاسل&كوليهات">Collections</a>
 
     <a href="#">Clearance Sale</a>
     <a href="#">Contact Us</a>
@@ -1397,7 +1388,9 @@ display:flex;
     </div>
 
     <!-- OVERLAY -->
-    <div id="overlay" onclick="closeCart()"></div>
+
+<div id="modalOverlay"></div>  
+<div id="overlay" onclick="closeCart()"></div>
 
     <!-- CHECKOUT MODAL -->
  <div id="checkoutModal" class="checkout-modal">
