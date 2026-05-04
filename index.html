@@ -1838,66 +1838,6 @@ function renderProducts() {
     }).join("");
 }
 
-/* =========================
-   MAIN CATEGORY FUNCTION
-========================= */
-function setCategory(category, el = null) {
-
-    currentCategory = category;
-
-    const url = new URL(window.location);
-    url.searchParams.set("category", category);
-    window.history.pushState({}, "", url);
-
-    document.querySelectorAll("[data-category]").forEach(link => {
-        link.classList.remove("active");
-    });
-
-    document.querySelectorAll(`[data-category="${category}"]`)
-        .forEach(link => link.classList.add("active"));
-
-    renderProducts(); // 👈 خليه موجود هنا فقط (تمام)
-}
-
-window.handleMenuClick = function(e, category, el) {
-    e.preventDefault();
-    setCategory(category, el);
-};
-
-document.querySelectorAll("#collectionsSub a[data-category]").forEach(btn => {
-    btn.addEventListener("click", function (e) {
-        e.preventDefault();
-        setCategory(this.dataset.category, this);
-    });
-});
-
-document.querySelectorAll(".collection-btn").forEach(btn => {
-    btn.addEventListener("click", function (e) {
-        e.preventDefault();
-        setCategory(this.dataset.category, this);
-    });
-});
-
-window.toggleCollections = function (e) {
-    e.preventDefault();
-    e.stopPropagation();
-
-    const sub = document.getElementById("collectionsSub");
-    sub.classList.toggle("active");
-};
-
-window.addEventListener("DOMContentLoaded", () => {
-    const params = new URLSearchParams(window.location.search);
-    const category = params.get("category") || "all";
-
-    setCategory(category);
-
-    // فتح dropdown لو المستخدم داخل كولكشن
-    if (category !== "all") {
-        document.getElementById("collectionsSub")?.classList.add("active");
-    }
-});
-
 /* =========================================
    LOAD ORDERS
 ========================================= */
@@ -1931,54 +1871,6 @@ if (ordersBox) {
         }
     );
 }
-
-/* =========================================
-   SEARCH SYSTEM
-========================================= */
-window.openSearch = function () {
-    document.getElementById("searchOverlay").classList.add("active");
-    setTimeout(() => document.getElementById("searchInput").focus(), 200);
-};
-
-window.closeSearch = function () {
-    document.getElementById("searchOverlay").classList.remove("active");
-};
-
-document.getElementById("searchOverlay")
-.addEventListener("click", function (e) {
-    if (e.target === this) closeSearch();
-});
-
-document.addEventListener("keydown", function (e) {
-    if (e.key === "Escape") closeSearch();
-});
-
-window.searchProducts = function () {
-
-    const filter = document.getElementById("searchInput")
-        .value.toLowerCase().trim();
-
-    const products = document.querySelectorAll(".product");
-
-    let found = false;
-
-    products.forEach(product => {
-        const name = product.querySelector("h3").textContent.toLowerCase();
-
-        if (name.includes(filter)) {
-            product.style.display = "block";
-            found = true;
-        } else {
-            product.style.display = "none";
-        }
-    });
-
-    closeSearch();
-
-    if (!found && filter) {
-        alert("لم يتم العثور على المنتج");
-    }
-};
 
 /* =========================================
    CART SYSTEM
@@ -2466,6 +2358,114 @@ function scrollToCollections() {
             behavior: "smooth"
         });
 }
+
+/* =========================
+   MAIN CATEGORY FUNCTION
+========================= */
+function setCategory(category, el = null) {
+
+    currentCategory = category;
+
+    const url = new URL(window.location);
+    url.searchParams.set("category", category);
+    window.history.pushState({}, "", url);
+
+    document.querySelectorAll("[data-category]").forEach(link => {
+        link.classList.remove("active");
+    });
+
+    document.querySelectorAll(`[data-category="${category}"]`)
+        .forEach(link => link.classList.add("active"));
+
+    renderProducts(); // 👈 خليه موجود هنا فقط (تمام)
+}
+
+window.handleMenuClick = function(e, category, el) {
+    e.preventDefault();
+    setCategory(category, el);
+};
+
+document.querySelectorAll("#collectionsSub a[data-category]").forEach(btn => {
+    btn.addEventListener("click", function (e) {
+        e.preventDefault();
+        setCategory(this.dataset.category, this);
+    });
+});
+
+document.querySelectorAll(".collection-btn").forEach(btn => {
+    btn.addEventListener("click", function (e) {
+        e.preventDefault();
+        setCategory(this.dataset.category, this);
+    });
+});
+
+window.toggleCollections = function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const sub = document.getElementById("collectionsSub");
+    sub.classList.toggle("active");
+};
+
+window.addEventListener("DOMContentLoaded", () => {
+    const params = new URLSearchParams(window.location.search);
+    const category = params.get("category") || "all";
+
+    setCategory(category);
+
+    // فتح dropdown لو المستخدم داخل كولكشن
+    if (category !== "all") {
+        document.getElementById("collectionsSub")?.classList.add("active");
+    }
+});
+
+/* =========================================
+   SEARCH SYSTEM
+========================================= */
+window.openSearch = function () {
+    document.getElementById("searchOverlay").classList.add("active");
+    setTimeout(() => document.getElementById("searchInput").focus(), 200);
+};
+
+window.closeSearch = function () {
+    document.getElementById("searchOverlay").classList.remove("active");
+};
+
+document.getElementById("searchOverlay")
+.addEventListener("click", function (e) {
+    if (e.target === this) closeSearch();
+});
+
+document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") closeSearch();
+});
+
+window.searchProducts = function () {
+
+    const filter = document.getElementById("searchInput")
+        .value.toLowerCase().trim();
+
+    const products = document.querySelectorAll(".product");
+
+    let found = false;
+
+    products.forEach(product => {
+        const name = product.querySelector("h3").textContent.toLowerCase();
+
+        if (name.includes(filter)) {
+            product.style.display = "block";
+            found = true;
+        } else {
+            product.style.display = "none";
+        }
+    });
+
+    closeSearch();
+
+    if (!found && filter) {
+        alert("لم يتم العثور على المنتج");
+    }
+};
 
 </script>
   
