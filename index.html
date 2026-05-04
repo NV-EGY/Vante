@@ -1734,57 +1734,89 @@ const db = getFirestore(app);
 
 let currentUser = null;
 let currentCategory = "all";
-/* =========================================
-   LOAD PRODUCTS FROM FIREBASE
-   (استبدل الكود القديم بالكامل بهذا)
-========================================= */
+import {
+    collection,
+    onSnapshot,
+    query
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-import { collection, onSnapshot, query } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-const productsQuery = query(collection(db, "products"));
-
+/* =========================
+   REFERENCES
+========================= */
 const productsContainer = document.querySelector(".products");
 
+/* لازم تكون معرفة من بره */
 let allProducts = [];
+let currentCategory = "all"; // default
 
-const productsQuery = query(collection(db, "products"));
+/* =========================
+   REALTIME LISTENER
+========================= */
+const productsRef = collection(db, "products");
+
+const productsQuery = query(productsRef);
 
 onSnapshot(productsQuery, (snapshot) => {
 
-    allProducts = snapshot.docs.map(doc => ({
+    allProducts = snapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data()
     }));
 
     renderProducts();
+
+}, (error) => {
+    console.error("Firestore error:", error);
 });
 
-/* RENDER FUNCTION */
+
+/* =========================
+   NORMALIZE FUNCTION (مرة واحدة فقط)
+========================= */
+const normalize = (str) =>
+    (str || "")
+        .toString()
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, "");
+
+
+/* =========================
+   RENDER PRODUCTS
+========================= */
 function renderProducts() {
 
     if (!productsContainer) return;
 
-    const normalize = (str) =>
-        (str || "")
-            .toString()
-            .trim()
-            .toLowerCase()
-            .replace(/\s+/g, "");
+    const selectedCategory = normalize(currentCategory);
 
-    const category = normalize(currentCategory);
-
-    let html = "";
-
-    allProducts.forEach(p => {
+    const filtered = allProducts.filter(p => {
 
         const productCategory = normalize(p.category || "all");
 
-        if (category !== "all" && productCategory !== category) return;
+        return selectedCategory === "all"
+            ? true
+            : productCategory === selectedCategory;
+    });
 
-        const sizes = p.sizes?.length ? p.sizes : ["7","8","9"];
+    if (filtered.length === 0) {
+        productsContainer.innerHTML = `
+            <div style="text-align:center;padding:40px">
+                لا توجد منتجات في هذا القسم
+            </div>
+        `;
+        return;
+    }
+
+    productsContainer.innerHTML = filtered.map(p => {
+
+        const sizes = Array.isArray(p.sizes) && p.sizes.length
+            ? p.sizes
+            : ["7", "8", "9"];
+
         const description = p.description || "منتج فاخر من VANTÉ";
 
-        html += `
+        return `
         <div class="product">
 
             <div class="product-image"
@@ -1796,6 +1828,7 @@ function renderProducts() {
                     ${JSON.stringify(sizes)},
                     ${JSON.stringify(description)}
                 )'>
+
                 <img src="${p.image}" alt="${p.name}">
             </div>
 
@@ -1810,14 +1843,8 @@ function renderProducts() {
 
         </div>
         `;
-    });
-
-    productsContainer.innerHTML = html || `
-        <div style="text-align:center;padding:40px">
-            لا توجد منتجات في هذا القسم
-        </div>
-      `;
-});
+    }).join("");
+}
 
 /* =========================
    MAIN CATEGORY FUNCTION
