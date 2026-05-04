@@ -1734,31 +1734,20 @@ const db = getFirestore(app);
 
 let currentUser = null;
 let currentCategory = "all";
-import {
-    collection,
-    onSnapshot,
-    query
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 /* =========================
    REFERENCES
 ========================= */
 const productsContainer = document.querySelector(".products");
 
-/* لازم تكون معرفة من بره */
 let allProducts = [];
-let currentCategory = "all"; // default
+let currentCategory = "all";
 
-/* =========================
-   REALTIME LISTENER
-========================= */
 const productsRef = collection(db, "products");
 
-const productsQuery = query(productsRef);
+onSnapshot(query(productsRef), (snapshot) => {
 
-onSnapshot(productsQuery, (snapshot) => {
-
-    allProducts = snapshot.docs.map((doc) => ({
+    allProducts = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
     }));
@@ -1777,9 +1766,7 @@ const normalize = (str) =>
     (str || "")
         .toString()
         .trim()
-        .toLowerCase()
-        .replace(/\s+/g, "");
-
+        .toLowerCase();
 
 /* =========================
    RENDER PRODUCTS
@@ -1852,14 +1839,11 @@ function renderProducts() {
 function setCategory(category, el = null) {
 
     currentCategory = category;
-   renderProducts();
 
-    // ✅ تحديث URL
     const url = new URL(window.location);
     url.searchParams.set("category", category);
     window.history.pushState({}, "", url);
 
-    // ✅ active state
     document.querySelectorAll("[data-category]").forEach(link => {
         link.classList.remove("active");
     });
@@ -1867,7 +1851,7 @@ function setCategory(category, el = null) {
     document.querySelectorAll(`[data-category="${category}"]`)
         .forEach(link => link.classList.add("active"));
 
-    // ✅ إعادة تحميل المنتجات (Firestore already reactive)
+    renderProducts(); // 👈 خليه موجود هنا فقط (تمام)
 }
 
 window.handleMenuClick = function(e, category, el = null) {
@@ -2035,7 +2019,6 @@ function addToCart(name, price, size, image) {
 }
 // 👇 مهم جدًا
 window.addToCart = addToCart;
-cart.length = 0;
 window.updateCart = updateCart;
 
 /* UPDATE CART */
@@ -2360,7 +2343,7 @@ function openProduct(id, name, price, image, sizes = [], description = "") {
     };
 
     document.getElementById("modalTitle").textContent = name;
-    document.getElementById("modalPrice").textContent = price + " جنيه";
+    document.getElementById("modalPrice").textContent = Number(price) + " جنيه";
     document.getElementById("modalImg").src = image;
     document.getElementById("modalImg").alt = name;
 
