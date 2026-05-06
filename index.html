@@ -2103,9 +2103,16 @@ function renderProducts() {
         const address = document.getElementById("address").value.trim();
 
         if (!name || !phone || !gov || !city || !address) {
-            alert("يرجى استكمال جميع بيانات الطلب");
-            return;
-        }
+    alert("يرجى استكمال جميع بيانات الطلب");
+    return;
+}
+
+// التحقق من رقم الهاتف (مصري فقط: 11 رقم ويبدأ بـ 01)
+const phoneRegex = /^01[0125][0-9]{8}$/;
+if (!phoneRegex.test(phone)) {
+    alert("يرجى إدخال رقم هاتف مصري صحيح (11 رقم، يبدأ بـ 01)");
+    return;
+}
         if (cart.length === 0) {
             alert("السلة فارغة");
             return;
@@ -2147,21 +2154,30 @@ function renderProducts() {
 
             await addDoc(collection(db, "orders"), orderData);
             
-            // خصم الكميات من المخزون
-// خصم الكميات من المخزون (حسب المقاس)
-const updatePromises = cart.map(async (item) => {
+            // خصم الكميات من المخزون// تجميع الكميات المطلوبة لكل منتج/مقاس لضمان خصم صحيح
+const stockUpdates = {}; // { productId: { size: totalQty } }
+cart.forEach(item => {
     const product = allProducts.find(p => p.name === item.name);
     if (product && product.stockBySize) {
+        const productId = product.id;
         const size = item.size;
         if (product.stockBySize[size] !== undefined) {
-            const productRef = doc(db, "products", product.id);
-            const newStock = product.stockBySize[size] - item.qty;
-            // تحديث حقل الكمية للمقاس المحدد
-            const updatedStockBySize = { ...product.stockBySize };
-            updatedStockBySize[size] = newStock >= 0 ? newStock : 0;
-            return updateDoc(productRef, { stockBySize: updatedStockBySize });
+            if (!stockUpdates[productId]) stockUpdates[productId] = {};
+            stockUpdates[productId][size] = (stockUpdates[productId][size] || 0) + item.qty;
         }
     }
+});
+
+// تنفيذ التحديثات المجمعة
+const updatePromises = Object.entries(stockUpdates).map(async ([productId, sizes]) => {
+    const product = allProducts.find(p => p.id === productId);
+    if (!product) return;
+    const newStockBySize = { ...product.stockBySize };
+    for (const [size, qty] of Object.entries(sizes)) {
+        newStockBySize[size] = Math.max(0, (newStockBySize[size] || 0) - qty);
+    }
+    const productRef = doc(db, "products", productId);
+    return updateDoc(productRef, { stockBySize: newStockBySize });
 });
 await Promise.all(updatePromises);
 
