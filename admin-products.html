@@ -13,7 +13,7 @@ body{
 }
 
 .container{
-    max-width:700px;
+    max-width:750px;
     margin:auto;
     background:#fff;
     padding:20px;
@@ -26,13 +26,14 @@ h2{
     margin-bottom:20px;
 }
 
-input{
+input, select, textarea{
     width:100%;
     padding:12px;
     margin:8px 0;
     border:1px solid #ddd;
     border-radius:10px;
     font-size:14px;
+    font-family:Cairo;
 }
 
 button{
@@ -63,6 +64,7 @@ button:hover{
     gap:15px;
     align-items:center;
     justify-content:space-between;
+    flex-wrap: wrap;
 }
 
 .product img{
@@ -74,6 +76,7 @@ button:hover{
 
 .info{
     flex:1;
+    min-width: 200px;
 }
 
 .delete-btn{
@@ -83,6 +86,44 @@ button:hover{
     border:none;
     border-radius:8px;
     cursor:pointer;
+}
+
+.edit-btn{
+    background:#D4AF37;
+    color:#000;
+    padding:8px 12px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    margin-right:5px;
+}
+
+.size-stock-group {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin: 5px 0;
+}
+.size-stock-group label {
+    min-width: 50px;
+    font-weight: bold;
+}
+.size-stock-group input {
+    width: 80px;
+    padding: 8px;
+    text-align: center;
+}
+#sizeStockContainer {
+    margin: 10px 0;
+    padding: 10px;
+    background: #f9f9f9;
+    border-radius: 10px;
+    border: 1px solid #eee;
+}
+#sizeStockContainer h4 {
+    margin-bottom: 10px;
+    text-align: center;
+    color: #111;
 }
 </style>
 </head>
@@ -96,7 +137,7 @@ button:hover{
 <input id="name" placeholder="اسم المنتج">
 <input id="price" type="number" placeholder="السعر">
 <input id="image" placeholder="رابط الصورة">
-<input id="sizes" placeholder="المقاسات مثال: 16,18,20">
+<input id="sizes" placeholder="المقاسات مثال: 16,18,20 (افصل بينهم بفاصلة)">
 <select id="category">
     <option value="">اختار الكولكشن</option>
     <option value="necklaces">سلاسل & كوليهات</option>
@@ -108,15 +149,23 @@ button:hover{
     <option value="anklets">خلخال</option>
 </select>
 
-<textarea id="description"
-          placeholder="وصف المنتج"
-          rows="4"
-          style="width:100%;padding:12px;margin:8px 0;border:1px solid #ddd;border-radius:10px;font-family:Cairo;font-size:14px;resize:vertical;"></textarea>
-
-<button onclick="addProduct()">إضافة منتج</button>
+<textarea id="description" placeholder="وصف المنتج" rows="4" style="resize:vertical;"></textarea>
 
 <input id="comparePrice" type="number" placeholder="السعر قبل الخصم (اختياري)">
-<input id="stock" type="number" placeholder="الكمية المتاحة (اختياري)">
+
+<!-- حاوية الكميات حسب المقاس -->
+<div id="sizeStockContainer">
+    <h4>الكمية المتاحة لكل مقاس</h4>
+    <div id="sizeStockInputs">
+        <p style="color:#888; font-size:13px; text-align:center;">أدخل المقاسات أولاً ثم اضغط "تحديث حقول الكميات"</p>
+    </div>
+    <button type="button" onclick="generateSizeStockInputs()" style="background:#D4AF37; color:#000; margin-top:5px;">
+        تحديث حقول الكميات
+    </button>
+</div>
+
+<button onclick="addProduct()" id="addBtn">إضافة منتج</button>
+<button onclick="cancelEdit()" id="cancelBtn" style="display:none; background:#888;">إلغاء التعديل</button>
 
 <div id="productsList"></div>
 
@@ -134,12 +183,11 @@ doc,
 onSnapshot,
 serverTimestamp,
 query,
-orderBy
+orderBy,
+updateDoc,
+setDoc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-/* =========================
-   FIREBASE CONFIG
-========================= */
 const firebaseConfig = {
     apiKey: "AIzaSyCotT8EP2uy_HsgHknxeGBorKoEUORPtmU",
     authDomain: "vante-orders.firebaseapp.com",
@@ -153,39 +201,73 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+let editingProductId = null;
+
 /* =========================
-   ADD PRODUCT
+   توليد حقول الكميات حسب المقاسات
+========================= */
+window.generateSizeStockInputs = function() {
+    const sizesStr = document.getElementById("sizes").value.trim();
+    if (!sizesStr) {
+        alert("أدخل المقاسات أولاً");
+        return;
+    }
+    const sizes = sizesStr.split(",").map(s => s.trim()).filter(Boolean);
+    const container = document.getElementById("sizeStockInputs");
+    container.innerHTML = sizes.map(size => `
+        <div class="size-stock-group">
+            <label>مقاس ${size}:</label>
+            <input type="number" class="size-stock-input" data-size="${size}" 
+                   placeholder="الكمية" min="0" value="${getCurrentStockForSize(size)}">
+        </div>
+    `).join("");
+};
+
+window.getCurrentStockForSize = function(size) {
+    // هذه الدالة تُستخدم عند التعديل لملء القيم الحالية
+    if (window._editingStockBySize && window._editingStockBySize[size] !== undefined) {
+        return window._editingStockBySize[size];
+    }
+    return "";
+};
+
+/* =========================
+   جمع الكميات من الحقول
+========================= */
+function collectSizeStock() {
+    const inputs = document.querySelectorAll(".size-stock-input");
+    const stockBySize = {};
+    inputs.forEach(input => {
+        const size = input.dataset.size;
+        const value = parseInt(input.value) || 0;
+        stockBySize[size] = value;
+    });
+    return stockBySize;
+}
+
+/* =========================
+   ADD / UPDATE PRODUCT
 ========================= */
 window.addProduct = async function () {
-
     const name = document.getElementById("name").value.trim();
     const price = Number(document.getElementById("price").value);
     const image = document.getElementById("image").value.trim();
     const comparePrice = Number(document.getElementById("comparePrice").value) || 0;
-    const stock = parseInt(document.getElementById("stock").value) || -1;
     
-    const normalize = (str) =>
-    (str || "")
-    .toString()
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, "");
-
+    const normalize = (str) => (str || "").toString().trim().toLowerCase().replace(/\s+/g, "");
     const rawCategory = document.getElementById("category").value;
     const category = normalize(rawCategory);
     const description = document.getElementById("description").value.trim();
+    
+    const sizes = document.getElementById("sizes").value.split(",").map(s => s.trim()).filter(Boolean);
+    const stockBySize = collectSizeStock();
 
-    const sizes = document.getElementById("sizes").value
-        .split(",")
-        .map(size => size.trim())
-        .filter(Boolean);
-
-    if (!name || !price || !image || !category || !description) {
-        alert("يرجى إدخال جميع البيانات الأساسية");
+    if (!name || !price || !image || !category || !description || sizes.length === 0) {
+        alert("يرجى إدخال جميع البيانات الأساسية مع مقاس واحد على الأقل");
         return;
     }
 
-    await addDoc(collection(db, "products"), {
+    const productData = {
         name,
         price,
         image,
@@ -193,14 +275,36 @@ window.addProduct = async function () {
         categoryLabel: rawCategory,
         description,
         sizes,
-        comparePrice, // <-- السعر القديم
-        stock,        // <-- الكمية
-        createdAt: serverTimestamp()
-    });
+        comparePrice,
+        stockBySize,
+        updatedAt: serverTimestamp()
+    };
 
-    alert("تم إضافة المنتج بنجاح");
+    if (editingProductId) {
+        // تحديث منتج موجود
+        await updateDoc(doc(db, "products", editingProductId), productData);
+        alert("تم تحديث المنتج بنجاح");
+        editingProductId = null;
+        document.getElementById("addBtn").textContent = "إضافة منتج";
+        document.getElementById("cancelBtn").style.display = "none";
+    } else {
+        // إضافة منتج جديد
+        productData.createdAt = serverTimestamp();
+        await addDoc(collection(db, "products"), productData);
+        alert("تم إضافة المنتج بنجاح");
+    }
 
-    // امسح الخانات بعد الإضافة
+    clearForm();
+};
+
+window.cancelEdit = function() {
+    editingProductId = null;
+    document.getElementById("addBtn").textContent = "إضافة منتج";
+    document.getElementById("cancelBtn").style.display = "none";
+    clearForm();
+};
+
+function clearForm() {
     document.getElementById("name").value = "";
     document.getElementById("price").value = "";
     document.getElementById("image").value = "";
@@ -208,7 +312,31 @@ window.addProduct = async function () {
     document.getElementById("category").value = "";
     document.getElementById("description").value = "";
     document.getElementById("comparePrice").value = "";
-    document.getElementById("stock").value = "";
+    document.getElementById("sizeStockInputs").innerHTML = '<p style="color:#888; font-size:13px; text-align:center;">أدخل المقاسات أولاً ثم اضغط "تحديث حقول الكميات"</p>';
+}
+
+/* =========================
+   EDIT PRODUCT
+========================= */
+window.editProduct = function(id, data) {
+    editingProductId = id;
+    document.getElementById("name").value = data.name || "";
+    document.getElementById("price").value = data.price || "";
+    document.getElementById("image").value = data.image || "";
+    document.getElementById("sizes").value = (data.sizes || []).join(",");
+    document.getElementById("category").value = data.category || "";
+    document.getElementById("description").value = data.description || "";
+    document.getElementById("comparePrice").value = data.comparePrice || "";
+    
+    // تخزين بيانات الكميات الحالية للاستخدام في generateSizeStockInputs
+    window._editingStockBySize = data.stockBySize || {};
+    generateSizeStockInputs();
+    
+    document.getElementById("addBtn").textContent = "حفظ التعديل";
+    document.getElementById("cancelBtn").style.display = "block";
+    
+    // التمرير للأعلى
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
 /* =========================
@@ -216,60 +344,40 @@ window.addProduct = async function () {
 ========================= */
 const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
 
-/* =========================
-   عرض المنتجات
-========================= */
 onSnapshot(q, (snapshot) => {
-
     let html = "";
-
     snapshot.forEach((docSnap) => {
-
         const p = docSnap.data();
-
+        const stockBySize = p.stockBySize || {};
+        const stockSummary = Object.entries(stockBySize).map(([size, qty]) => `${size}: ${qty}`).join(" | ") || "غير محدد";
+        
         html += `
         <div class="product">
-
             <img src="${p.image}" alt="${p.name}">
-
             <div class="info">
                 <h3>${p.name}</h3>
- <p>${p.price} جنيه ${p.comparePrice ? `<s style="color:red;font-size:12px;">${p.comparePrice} ج</s>` : ''}</p>
-<small>الكمية: ${p.stock >= 0 ? p.stock : 'غير محدد'}</small>
-<small>القسم: ${p.categoryLabel || "عام"}</small>
-                <small>
-                    المقاسات:
-                    ${(p.sizes && p.sizes.length)
-                        ? p.sizes.join(" - ")
-                        : "لا يوجد"}
-                </small>
+                <p>${p.price} جنيه ${p.comparePrice ? `<s style="color:red;font-size:12px;">${p.comparePrice} ج</s>` : ''}</p>
+                <small>الكميات: ${stockSummary}</small>
+                <small>القسم: ${p.categoryLabel || "عام"}</small>
+                <small>المقاسات: ${(p.sizes && p.sizes.length) ? p.sizes.join(" - ") : "لا يوجد"}</small>
             </div>
-
-            <button class="delete-btn"
-                onclick="deleteProduct('${docSnap.id}')">
-                حذف
-            </button>
-
-        </div>
-        `;
+            <div>
+                <button class="edit-btn" onclick="editProduct('${docSnap.id}', ${JSON.stringify(p).replace(/"/g, '&quot;')})">✏️ تعديل</button>
+                <button class="delete-btn" onclick="deleteProduct('${docSnap.id}')">🗑️ حذف</button>
+            </div>
+        </div>`;
     });
-
-    document.getElementById("productsList").innerHTML =
-        html || "<p style='text-align:center'>لا توجد منتجات حالياً</p>";
+    document.getElementById("productsList").innerHTML = html || "<p style='text-align:center'>لا توجد منتجات حالياً</p>";
 });
 
 /* =========================
    DELETE PRODUCT
 ========================= */
 window.deleteProduct = async function (id) {
-
-if (!confirm("متأكد من الحذف؟")) return;
-
-await deleteDoc(doc(db, "products", id));
-
-alert("تم الحذف");
+    if (!confirm("متأكد من الحذف؟")) return;
+    await deleteDoc(doc(db, "products", id));
+    alert("تم الحذف");
 };
-
 </script>
 
 </body>
