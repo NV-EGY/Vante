@@ -2200,12 +2200,19 @@ await Promise.all(updatePromises);
             message += `💰 الإجمالي: ${finalTotal} جنيه`;
 
             const phoneNumber = "201106018685";
-            const encodedMessage = encodeURIComponent(message);
-            const appUrl = `whatsapp://send?phone=${phoneNumber}&text=${encodedMessage}`;
-            const webUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
+const encodedMessage = encodeURIComponent(message);
+const appUrl = `whatsapp://send?phone=${phoneNumber}&text=${encodedMessage}`;
+const webUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
 
-            window.location.href = appUrl;
-            setTimeout(() => window.open(webUrl, "_blank"), 1200);
+// فتح التطبيق مباشرة
+window.location.href = appUrl;
+
+// بعد 2.5 ثانية، لو المستخدم لسه في الصفحة (التطبيق متفتحش)، نفتح الويب
+setTimeout(() => {
+    if (!document.hidden) {
+        window.open(webUrl, "_blank");
+    }
+}, 2500);
 
             cart = [];
             updateCart();
