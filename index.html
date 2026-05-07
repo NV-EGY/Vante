@@ -2002,9 +2002,9 @@ function renderProducts() {
     const filtered = allProducts.filter(p => selectedCategory === "all" ? true : normalize(p.category || "all") === selectedCategory);
 
     if (filtered.length === 0) {
-        productsContainer.innerHTML = `<div style="text-align:center;padding:40px">لا توجد منتجات في هذا القسم</div>`;
-        return;
-    }
+    productsContainer.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;min-height:0vh;width:200%;text-align:center;font-size:18px;color:#888;">لا توجد منتجات في هذا القسم</div>`;
+    return;
+}
 
     productsContainer.innerHTML = filtered.map(p => {
         const sizes = Array.isArray(p.sizes) && p.sizes.length ? p.sizes : ["7", "8", "9"];
@@ -2027,7 +2027,7 @@ function renderProducts() {
             <div style="margin: 10px 0; padding: 8px 12px; background: rgba(212,175,55,0.1); border-radius: 20px; font-size: 12px; color: #B8860B; font-weight: 600; text-align: center;">
                 <i class="fas fa-boxes"></i> كمية غير محددة
             </div>`;
-        } else if (totalStock > 15) {
+        } else if (totalStock > 20) {
             // متوفر بكثرة - أخضر
             stockHtml = `
             <div style="margin: 10px 0; padding: 8px 12px; background: rgba(46, 204, 113, 0.1); border-radius: 20px; font-size: 12px; color: #27ae60; font-weight: 600; text-align: center;">
@@ -2035,7 +2035,7 @@ function renderProducts() {
             </div>`;
         } else if (totalStock > 0) {
             // شريط متدرج حسب النسبة المئوية (1-15)
-            const percent = Math.round((totalStock / 15) * 100);
+            const percent = Math.round((totalStock / 20) * 100);
             const barColor = percent > 50 ? '#f39c12' : '#e74c3c';
             stockHtml = `
             <div style="margin: 10px 0;">
