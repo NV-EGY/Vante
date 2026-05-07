@@ -414,13 +414,16 @@ select{
             cursor: pointer;
             transition: all 0.3s ease;
             appearance: none;
+            background-color: #fff;
+    border: 1px solid #e0e0e0;
+    transition: all 0.3s ease;
             background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23111' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>");
             background-repeat: no-repeat;
             background-position: left 15px center;
         }
         .size-select:focus {
             border-color: #D4AF37;
-            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+            box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.15);
         }
 
 .add-cart-btn{
@@ -1316,25 +1319,21 @@ body.modal-open{
     z-index: 10;
     box-shadow: 0 5px 15px rgba(0,0,0,0.2);
 }
-
-/* ====================================
-   SEARCH OVERLAY (عصري وواضح)
-==================================== */
-/* شريط البحث اللاصق */
-/* شريط البحث المطور */
+/* شريط البحث الرئيسي - داكن بحواف دائرية كاملة */
 .sticky-search {
     position: fixed;
-    top: 75px; /* أسفل النافبار */
+    top: 72px;
     left: 50%;
     transform: translateX(-50%) translateY(-120%);
-    width: 90%; max-width: 400px; /* أرفع بكثير */
-    z-index: 998;
-    background: #ffffff;
-    border-radius: 40px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-    padding: 0px;
+    width: 90%;
+    max-width: 650px;
+    z-index: 1000;
+    background: #111;
+    padding: 10px 20px;
+    border-radius: 50px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.3);
     opacity: 0;
-    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     pointer-events: none;
 }
 .sticky-search.active {
@@ -1343,23 +1342,138 @@ body.modal-open{
     pointer-events: auto;
 }
 .sticky-search-box {
-    display: flex; align-items: center; gap: 10px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px;              /* padding خفيف للتهوية */
+}
+.sticky-search-box i {
+    color: #D4AF37;
+    font-size: 18px;
+    cursor: pointer;
 }
 .sticky-search-box input {
-    flex: 1; border: none; border-radius: 40px; padding: 12px 20px;
-    font-size: 15px; background: #f8f9fa; outline: none;
+    flex: 1;
+    border: none;
+    font-size: 16px;
+    padding: 12px 10px;
+    background: transparent;
+    color: #fff;
+    outline: none;
+}
+.sticky-search-box input::placeholder {
+    color: #aaa;
+}
+.sticky-search-btn {
+    background: #D4AF37;
+    color: #000;
+    border: none;
+    padding: 9px 22px;
+    border-radius: 25px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.3s;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+}
+.sticky-search-btn:hover {
+    background: #fff;
+    color: #000;
 }
 .sticky-search-close {
-    background: #111; color: #fff; border: none;
-    width: 34px; height: 34px; border-radius: 50%;
-    font-size: 16px; cursor: pointer; flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center;
-    transition: 0.3s;
+    background: rgba(255,255,255,0.15);
+    border: none;
+    color: #fff;
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    min-height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 1;
+    padding: 0;
+    margin: 0;
+    flex-shrink: 0;
+    transition: background 0.3s, transform 0.3s;
 }
-.sticky-search-close:hover { background: #D4AF37; color: #000; }
-  .products {
+.sticky-search-close:hover {
+    background: #D4AF37;
+    color: #000;
+    transform: scale(1.05);
+}
+
+/* شريط البحث النشط - رفيع، في المنتصف */
+.active-search-bar {
+    position: fixed;
+    top: 72px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-120%);
+    width: auto;
+    z-index: 1000;
+    background: #111;
+    padding: 6px 20px;
+    border-radius: 50px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none;
+}
+.active-search-bar.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+}
+.icon-search-reopen {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: #D4AF37;
+    color: #000;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: 0.3s;
+    font-size: 16px;
+    box-shadow: 0 4px 12px rgba(212,175,55,0.4);
+}
+.icon-search-reopen:hover {
+    background: #fff;
+    transform: scale(1.08);
+}
+.icon-close-search {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: 0.3s;
+    font-size: 18px;
+}
+.icon-close-search:hover {
+    background: #e74c3c;
+    color: #fff;
+    transform: scale(1.08);
+}
+
+.active-search-bar button:hover { color: #c0392b; transform: scale(1.1); }
+ .products {
     display: grid;
-    grid-template-columns: repeat(2, 1fr); /* عمودين متساويين */
+    grid-template-columns: repeat(4, 1fr); /* 4 أعمدة على الشاشات الكبيرة */
     gap: 20px;
 }
 .product {
@@ -1370,7 +1484,12 @@ body.modal-open{
 .product h3 { font-size: 16px; margin-bottom: 4px; }
 .price { font-size: 16px; }
 
-/* عمود واحد على الجوال */
+/* تقليل إلى عمودين على التابلت */
+@media (max-width: 992px) {
+    .products {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
 @media (max-width: 768px) {
     .products {
         grid-template-columns: repeat(2, 1fr);
@@ -1513,6 +1632,24 @@ body.modal-open{
     from { opacity: 0; transform: translateX(-50%) translateY(-20px); }
     to { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
+
+/* بلور البحث */
+.search-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.3);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    z-index: 999; /* أقل من شريط البحث (1000) */
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.4s ease;
+}
+.search-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
     </style>
 </head>
 
@@ -1568,7 +1705,7 @@ body.modal-open{
             <a href="?category=all" data-category="all" onclick="handleMenuClick(event, 'all', this)">Home</a>
             <div class="menu-item desktop-dropdown">
                 <a href="#" onclick="toggleCollections(event)">Collections <i class="fas fa-chevron-down"></i></a>
-                <div class="collections-sub desktop-sub">
+                <div id="collectionsSubDesktop" class="collections-sub desktop-sub">
                     <a href="?category=all" data-category="all" onclick="handleMenuClick(event, 'all', this)">كل المنتجات</a>
                     <a href="?category=necklaces" data-category="necklaces" onclick="handleMenuClick(event, 'necklaces', this)">سلاسل & كوليهات</a>
                     <a href="?category=bracelets" data-category="bracelets" onclick="handleMenuClick(event, 'bracelets', this)">أساور & غوايش</a>
@@ -1666,13 +1803,24 @@ body.modal-open{
     </div>
 </div>
 
-<!-- شريط البحث اللاصق (يظهر تحت النافبار) -->
+<!-- شريط البحث الرئيسي -->
 <div id="stickySearch" class="sticky-search">
     <div class="sticky-search-box">
-        <i class="fas fa-search"></i>
-        <input type="text" id="searchInput" placeholder="ابحث عن منتج..." oninput="searchProducts()">
+        <i class="fas fa-search" onclick="applySearch()"></i>
+        <input type="text" id="searchInput" placeholder="ابحث عن منتج...">
+        <button class="sticky-search-btn" onclick="applySearch()">بحث</button>
         <button class="sticky-search-close" onclick="closeSearch()">✕</button>
     </div>
+</div>
+
+<!-- شريط البحث النشط (رفيع) -->
+<div id="activeSearchBar" class="active-search-bar">
+    <button class="icon-search-reopen" onclick="openSearch()" title="تعديل البحث">
+        <i class="fas fa-search"></i>
+    </button>
+    <button class="icon-close-search" onclick="closeSearch()" title="إلغاء البحث">
+        <i class="fas fa-times"></i>
+    </button>
 </div>
 
 <div id="productModal" class="modal">
@@ -2248,26 +2396,88 @@ setTimeout(() => {
     }
 
     window.handleMenuClick = (e, category) => { e.preventDefault(); setCategory(category); };
-    window.toggleCollections = (e) => { e.preventDefault(); e.stopPropagation(); document.getElementById("collectionsSub").classList.toggle("active"); };
-    window.openSearch = () => { 
-    document.getElementById("stickySearch").classList.add("active"); 
+    window.toggleCollections = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const mobile = document.getElementById("collectionsSub");
+    const desktop = document.getElementById("collectionsSubDesktop");
+    if (mobile) mobile.classList.toggle("active");
+    if (desktop) desktop.classList.toggle("active");
+};
+let lastSearchFilter = '';
+
+window.openSearch = () => {
+    const sticky = document.getElementById("stickySearch");
+    const activeBar = document.getElementById("activeSearchBar");
+    const overlay = document.getElementById("searchOverlay");
     const input = document.getElementById("searchInput");
+    
+    sticky.classList.add("active");
+    activeBar.classList.remove("show");
+    if (overlay) overlay.classList.add("active");
+    
+    input.value = lastSearchFilter;
     input.focus();
-    input.value = ''; // تنظيف الحقل عند الفتح
-    renderProducts(); // عرض كل المنتجات عند الفتح
+    
+    if (!lastSearchFilter) {
+        renderProducts();
+    }
 };
-window.closeSearch = () => { 
-    document.getElementById("stickySearch").classList.remove("active"); 
+
+window.closeSearch = () => {
+    document.getElementById("stickySearch").classList.remove("active");
+    document.getElementById("activeSearchBar").classList.remove("show");
+    const overlay = document.getElementById("searchOverlay");
+    if (overlay) overlay.classList.remove("active");
     document.getElementById("searchInput").value = '';
-    renderProducts(); // إظهار جميع المنتجات بعد الإغلاق
+    lastSearchFilter = '';
+    renderProducts();
 };
-    window.searchProducts = () => {
-        const filter = document.getElementById("searchInput").value.toLowerCase().trim();
-        document.querySelectorAll(".product").forEach(p => {
-            const name = p.querySelector("h3").textContent.toLowerCase();
-            p.style.display = name.includes(filter) ? "block" : "none";
-        });
-    };
+
+window.applySearch = () => {
+    const input = document.getElementById("searchInput");
+    const filter = input.value.trim();
+    lastSearchFilter = filter;
+    
+    searchProducts();
+    
+    document.getElementById("stickySearch").classList.remove("active");
+    const overlay = document.getElementById("searchOverlay");
+    if (overlay) overlay.classList.remove("active");
+    
+    const activeBar = document.getElementById("activeSearchBar");
+    if (filter.length > 0) {
+        activeBar.classList.add("show");
+    } else {
+        activeBar.classList.remove("show");
+        renderProducts();
+    }
+};
+
+window.searchProducts = () => {
+    const filter = lastSearchFilter.toLowerCase();
+    
+    document.querySelectorAll(".product").forEach(p => {
+        const name = p.querySelector("h3").textContent.toLowerCase();
+        p.style.display = name.includes(filter) ? "block" : "none";
+    });
+};
+
+// مستمع Enter لتأكيد البحث
+document.getElementById("searchInput").addEventListener("keydown", function(e) {
+    if (e.key === "Enter") {
+        applySearch();
+    }
+});
+
+// مستمع الإدخال للتصفية المباشرة أثناء الكتابة
+document.getElementById("searchInput").addEventListener("input", function() {
+    const currentFilter = this.value.trim();
+    document.querySelectorAll(".product").forEach(p => {
+        const name = p.querySelector("h3").textContent.toLowerCase();
+        p.style.display = name.includes(currentFilter.toLowerCase()) ? "block" : "none";
+    });
+});
 
  // Offer Timer
     const targetTime = Date.now() + 4 * 60 * 60 * 1000;
