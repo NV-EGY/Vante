@@ -1469,6 +1469,22 @@ body.modal-open{
     color: #fff;
     transform: scale(1.08);
 }
+/* بلور البحث */
+.search-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.45);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    z-index: 999; /* أقل من شريط البحث (1000) */
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.4s ease;
+}
+.search-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
 
 .active-search-bar button:hover { color: #c0392b; transform: scale(1.1); }
  .products {
@@ -1632,24 +1648,6 @@ body.modal-open{
     from { opacity: 0; transform: translateX(-50%) translateY(-20px); }
     to { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
-
-/* بلور البحث */
-.search-overlay {
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0.3);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
-    z-index: 999; /* أقل من شريط البحث (1000) */
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.4s ease;
-}
-.search-overlay.active {
-    opacity: 1;
-    visibility: visible;
-}
-
     </style>
 </head>
 
@@ -1822,6 +1820,8 @@ body.modal-open{
         <i class="fas fa-times"></i>
     </button>
 </div>
+
+<div id="searchOverlay" class="search-overlay" onclick="closeSearch()"></div>
 
 <div id="productModal" class="modal">
     <button class="modal-close" onclick="closeProduct()">✕</button>
