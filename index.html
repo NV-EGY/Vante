@@ -1975,8 +1975,8 @@ body.modal-open{
         <!-- الصورة الكبيرة -->
         <div class="gallery-main" id="galleryMain">
     <img id="modalImg" alt="Product Image">
-    <button class="gallery-nav prev" onclick="navigateGallery(-1)">›</button>
-<button class="gallery-nav next" onclick="navigateGallery(1)">‹</button>
+    <button class="gallery-nav next" onclick="navigateGallery(-1)">‹</button>
+<button class="gallery-nav prev" onclick="navigateGallery(1)">›</button>
 </div>
         
 <!-- داخل productModal، استبدل div gallery-thumbs القديمة بهذا -->
@@ -2108,6 +2108,7 @@ window.closeProduct = function () {
     document.getElementById("productModal").classList.remove("active");
     document.getElementById("overlay").classList.remove("active");
     document.body.classList.remove("modal-open");
+    disableSwipe(); // تنظيف مستمعي السحب
 };
 
 document.querySelectorAll(".rating-stars span").forEach((star, index) => {
@@ -2154,6 +2155,8 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+// متغير لتخزين مراجع مستمعي السحب
+let swipeHandlers = {};
 let currentCategory = "all";
 let allProducts = [];
 const productsContainer = document.querySelector(".products");
@@ -2713,6 +2716,9 @@ function enableSwipe() {
     const container = document.getElementById("galleryMain");
     if (!container) return;
     
+    // إزالة أي مستمعين سابقين (تنظيف)
+    disableSwipe();
+    
     let startX = 0;
     let isDragging = false;
 
@@ -2727,11 +2733,10 @@ function enableSwipe() {
         if (!isDragging) return;
         const dx = clientX - startX;
         if (Math.abs(dx) > 25) {
-            // تم العكس: السحب يمين -> الصورة التالية (1)، السحب يسار -> السابقة (-1)
             if (dx > 0) {
-                window.navigateGallery(1);   // كان -1 فأصبح 1
+                window.navigateGallery(1);
             } else {
-                window.navigateGallery(-1);  // كان 1 فأصبح -1
+                window.navigateGallery(-1);
             }
             isDragging = false;
             container.style.cursor = "grab";
@@ -2747,13 +2752,35 @@ function enableSwipe() {
         }
     };
 
-    container.addEventListener("mousedown", (e) => onStart(e.clientX));
-    container.addEventListener("mousemove", (e) => onMove(e.clientX));
-    window.addEventListener("mouseup", onEnd);
+    // حفظ مراجع المستمعين للإزالة لاحقًا
+    swipeHandlers.mouseDown = (e) => onStart(e.clientX);
+    swipeHandlers.mouseMove = (e) => onMove(e.clientX);
+    swipeHandlers.mouseUp = onEnd;
+    swipeHandlers.touchStart = (e) => onStart(e.touches[0].clientX);
+    swipeHandlers.touchMove = (e) => onMove(e.touches[0].clientX);
+    swipeHandlers.touchEnd = onEnd;
 
-    container.addEventListener("touchstart", (e) => onStart(e.touches[0].clientX), { passive: true });
-    container.addEventListener("touchmove", (e) => onMove(e.touches[0].clientX), { passive: true });
-    container.addEventListener("touchend", onEnd);
+    container.addEventListener("mousedown", swipeHandlers.mouseDown);
+    container.addEventListener("mousemove", swipeHandlers.mouseMove);
+    window.addEventListener("mouseup", swipeHandlers.mouseUp);
+    container.addEventListener("touchstart", swipeHandlers.touchStart, { passive: true });
+    container.addEventListener("touchmove", swipeHandlers.touchMove, { passive: true });
+    container.addEventListener("touchend", swipeHandlers.touchEnd);
+}
+
+function disableSwipe() {
+    const container = document.getElementById("galleryMain");
+    if (!container || !swipeHandlers.mouseDown) return;
+    
+    container.removeEventListener("mousedown", swipeHandlers.mouseDown);
+    container.removeEventListener("mousemove", swipeHandlers.mouseMove);
+    window.removeEventListener("mouseup", swipeHandlers.mouseUp);
+    container.removeEventListener("touchstart", swipeHandlers.touchStart);
+    container.removeEventListener("touchmove", swipeHandlers.touchMove);
+    container.removeEventListener("touchend", swipeHandlers.touchEnd);
+    
+    // إعادة تعيين الكائن بعد الإزالة
+    swipeHandlers = {};
 }
 
 // فتح Lightbox مع فهرس
