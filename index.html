@@ -1648,6 +1648,152 @@ body.modal-open{
     from { opacity: 0; transform: translateX(-50%) translateY(-20px); }
     to { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
+/* معرض الصور */
+.gallery-main {
+    position: relative;
+    width: 100%;
+    border-radius: 15px;
+    overflow: hidden;
+    margin-bottom: 15px;
+    background: #f5f5f5;
+    height: 350px;
+    cursor: grab;
+    user-select: none;
+}
+.gallery-main:active {
+    cursor: grabbing;
+}
+.gallery-main img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: opacity 0.3s;
+    pointer-events: none;
+}
+
+.gallery-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.85);
+    border: none;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+    cursor: pointer;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.3s;
+    z-index: 5;
+    color: #111;
+}
+.gallery-nav:hover {
+    background: #D4AF37;
+    color: #000;
+}
+.gallery-nav.prev { left: 2px; }
+.gallery-nav.next { right: 2px; }
+/* شريط الصور المصغرة */
+.gallery-thumbs {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    padding: 8px 5px 15px;
+    margin: 10px 0 15px;
+    scrollbar-width: thin;
+}
+.gallery-thumbs::-webkit-scrollbar {
+    height: 4px;
+}
+.gallery-thumbs::-webkit-scrollbar-thumb {
+    background: #D4AF37;
+    border-radius: 10px;
+}
+.gallery-thumbs img {
+    width: 55px;
+    height: 55px;
+    object-fit: cover;
+    border-radius: 10px;
+    cursor: pointer;
+    border: 2px solid #eee;
+    transition: 0.3s;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1); /* ظل خفيف */
+}
+.gallery-thumbs img.active,
+.gallery-thumbs img:hover {
+    border-color: #D4AF37;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(212,175,55,0.3);
+}
+
+/* Lightbox محسّن */
+.image-lightbox {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.92);
+    z-index: 100000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: 0.3s;
+}
+.image-lightbox.active {
+    opacity: 1;
+    visibility: visible;
+}
+.image-lightbox img {
+    max-width: 90%;
+    max-height: 85vh;
+    object-fit: contain;
+    border-radius: 8px;
+}
+.lightbox-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    color: #fff;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.3s;
+}
+.lightbox-close:hover { background: #e74c3c; }
+.lightbox-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    border: none;
+    color: #fff;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.3s;
+}
+.lightbox-nav:hover { background: #D4AF37; color: #000; }
+.lightbox-nav.prev { left: 20px; }
+.lightbox-nav.next { right: 20px; }
+
     </style>
 </head>
 
@@ -1826,7 +1972,24 @@ body.modal-open{
 <div id="productModal" class="modal">
     <button class="modal-close" onclick="closeProduct()">✕</button>
     <div class="modal-content">
-        <img id="modalImg" class="modal-product-img" alt="Product Image">
+        <!-- الصورة الكبيرة -->
+        <div class="gallery-main" id="galleryMain">
+    <img id="modalImg" alt="Product Image">
+    <button class="gallery-nav prev" onclick="navigateGallery(-1)">›</button>
+<button class="gallery-nav next" onclick="navigateGallery(1)">‹</button>
+</div>
+        
+<!-- داخل productModal، استبدل div gallery-thumbs القديمة بهذا -->
+<div class="gallery-thumbs" id="galleryThumbs"></div>
+
+<!-- Lightbox محسّن -->
+<div id="imageLightbox" class="image-lightbox">
+    <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+    <button class="lightbox-nav prev" onclick="lightboxNav(-1)">‹</button>
+    <img id="lightboxImg" src="" alt="صورة مكبرة">
+    <button class="lightbox-nav next" onclick="lightboxNav(1)">›</button>
+</div>
+
         <div class="modal-info">
             <h2 id="modalTitle"></h2>
             <p id="modalDesc" class="modal-desc"></p>
@@ -1835,7 +1998,9 @@ body.modal-open{
                 <span id="modalPrice" class="modal-price"></span>
                 <span id="modalOldPrice" class="modal-old-price"></span>
             </div>
-<div id="modalStockInfo" style="text-align:center; margin: 10px 0; font-size: 14px;"></div>
+            
+            <div id="modalStockInfo" style="text-align:center; margin: 10px 0; font-size: 14px;"></div>
+            
             <div class="modal-size">
                 <label>اختر المقاس</label>
                 <select id="modalSize"></select>
@@ -1848,7 +2013,6 @@ body.modal-open{
             <div class="rating-stars" id="stars">
                 <span data-rate="1">★</span><span data-rate="2">★</span><span data-rate="3">★</span><span data-rate="4">★</span><span data-rate="5">★</span>
             </div>
-
             <textarea id="reviewText" placeholder="اكتب رأيك..."></textarea>
             <button class="btn-primary review-submit" onclick="submitReview()">إرسال التقييم</button>
         </div>
@@ -2002,7 +2166,7 @@ function renderProducts() {
     const filtered = allProducts.filter(p => selectedCategory === "all" ? true : normalize(p.category || "all") === selectedCategory);
 
     if (filtered.length === 0) {
-    productsContainer.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;min-height:0vh;width:200%;text-align:center;font-size:18px;color:#888;">لا توجد منتجات في هذا القسم</div>`;
+    productsContainer.innerHTML = `<div style="display:flex; align-items:center; justify-content:center; min-height:60vh; width:100%; text-align:center; font-size:18px; color:#888;">لا توجد منتجات في هذا القسم</div>`;
     return;
 }
 
@@ -2405,6 +2569,8 @@ setTimeout(() => {
     if (desktop) desktop.classList.toggle("active");
 };
 let lastSearchFilter = '';
+let currentImageIndex = 0;
+let galleryImages = [];
 
 window.openSearch = () => {
     const sticky = document.getElementById("stickySearch");
@@ -2538,16 +2704,103 @@ document.addEventListener('change', function(e) {
     }
 });
 
-// ========== دوال المودال (تنقل هنا) ==========
+// ========== دوال المودال (تنقل هنا)// متغيرات عامة للـ Lightbox
+let lightboxImages = [];
+let lightboxIndex = 0;
+
+// تمكين السحب الاحترافي على الصورة الرئيسية
+function enableSwipe() {
+    const container = document.getElementById("galleryMain");
+    if (!container) return;
+    
+    let startX = 0;
+    let isDragging = false;
+
+    const onStart = (clientX) => {
+        startX = clientX;
+        isDragging = true;
+        container.style.cursor = "grabbing";
+        container.style.transition = "none";
+    };
+
+    const onMove = (clientX) => {
+        if (!isDragging) return;
+        const dx = clientX - startX;
+        if (Math.abs(dx) > 25) {
+            // تم العكس: السحب يمين -> الصورة التالية (1)، السحب يسار -> السابقة (-1)
+            if (dx > 0) {
+                window.navigateGallery(1);   // كان -1 فأصبح 1
+            } else {
+                window.navigateGallery(-1);  // كان 1 فأصبح -1
+            }
+            isDragging = false;
+            container.style.cursor = "grab";
+            container.style.transition = "";
+        }
+    };
+
+    const onEnd = () => {
+        if (isDragging) {
+            isDragging = false;
+            container.style.cursor = "grab";
+            container.style.transition = "";
+        }
+    };
+
+    container.addEventListener("mousedown", (e) => onStart(e.clientX));
+    container.addEventListener("mousemove", (e) => onMove(e.clientX));
+    window.addEventListener("mouseup", onEnd);
+
+    container.addEventListener("touchstart", (e) => onStart(e.touches[0].clientX), { passive: true });
+    container.addEventListener("touchmove", (e) => onMove(e.touches[0].clientX), { passive: true });
+    container.addEventListener("touchend", onEnd);
+}
+
+// فتح Lightbox مع فهرس
+window.openLightbox = function(images, index) {
+    lightboxImages = images;
+    lightboxIndex = index;
+    document.getElementById("lightboxImg").src = lightboxImages[lightboxIndex];
+    document.getElementById("imageLightbox").classList.add("active");
+};
+
+window.closeLightbox = function() {
+    document.getElementById("imageLightbox").classList.remove("active");
+};
+
+window.lightboxNav = function(direction) {
+    lightboxIndex = (lightboxIndex + direction + lightboxImages.length) % lightboxImages.length;
+    document.getElementById("lightboxImg").src = lightboxImages[lightboxIndex];
+};
+
+// تحديث openProduct لربط lightbox
 window.openProduct = function(id, name, price, image, sizes = [], description = "") {
     const product = allProducts.find(p => p.id === id);
     const stockBySize = product ? product.stockBySize || {} : {};
-    currentProduct = { id, name, price: Number(price), image, sizes, description, stockBySize };
+    const allImages = [image, ...(product?.additionalImages || [])].filter(Boolean);
     
+    currentProduct = { 
+        id, name, price: Number(price), image, sizes, description, stockBySize, allImages 
+    };
+    galleryImages = allImages;
+currentImageIndex = 0;
+    
+    document.getElementById("modalImg").src = allImages[0];
+    document.getElementById("modalImg").onclick = function() {
+        window.openLightbox(allImages, 0);
+    };
+    
+    const thumbsContainer = document.getElementById("galleryThumbs");
+    thumbsContainer.innerHTML = allImages.map((img, idx) => `
+        <img src="${img}" class="${idx === 0 ? 'active' : ''}" 
+             onclick="window.changeMainImage('${img}', this); window.openLightbox(allImages, ${idx})" 
+             alt="صورة المنتج">
+    `).join("");
+    
+    // باقي الدالة كما هي...
     document.getElementById("modalTitle").textContent = name;
     document.getElementById("modalDesc").textContent = description || "منتج فاخر من VANTÉ";
     document.getElementById("modalPrice").textContent = Number(price) + " جنيه";
-    document.getElementById("modalImg").src = image;
     
     const sizeSelect = document.getElementById("modalSize");
     sizeSelect.innerHTML = "";
@@ -2555,17 +2808,13 @@ window.openProduct = function(id, name, price, image, sizes = [], description = 
         const qty = stockBySize[size] !== undefined ? stockBySize[size] : null;
         let label = `مقاس: ${size}`;
         if (qty !== null) {
-            if (qty > 0) {
-                label += ` (باقى ${qty} قطعه)`;
-            } else {
-                label += ` (نفذت الكميه)`;
-            }
-        }
+            label += qty > 0 ? ` (باقى ${qty} قطعه)` : ' (نفذت الكميه)';
+                    }
         sizeSelect.innerHTML += `<option value="${size}">${label}</option>`;
     });
     
     updateModalStockDisplay();
-    sizeSelect.onchange = updateModalStockDisplay; // استخدام onchange بدلاً من addEventListener لتجنب التراكم
+    sizeSelect.onchange = updateModalStockDisplay;
 
     document.getElementById("reviewText").value = "";
     document.getElementById("reviewText").style.display = "none";
@@ -2574,6 +2823,52 @@ window.openProduct = function(id, name, price, image, sizes = [], description = 
     document.getElementById("productModal").classList.add("active");
     document.getElementById("overlay").classList.add("active");
     document.body.classList.add("modal-open");
+setTimeout(enableSwipe, 100);
+};
+
+window.navigateGallery = function(direction) {
+    if (!galleryImages.length) return;
+    currentImageIndex = (currentImageIndex + direction + galleryImages.length) % galleryImages.length;
+    
+    const img = document.getElementById("modalImg");
+    // تأثير fade
+    img.style.opacity = '0';
+    setTimeout(() => {
+        img.src = galleryImages[currentImageIndex];
+        img.style.opacity = '1';
+    }, 150);
+    
+    // تحديث تمييز المصغرات
+    document.querySelectorAll("#galleryThumbs img").forEach((thumb, idx) => {
+        thumb.classList.toggle("active", idx === currentImageIndex);
+    });
+    
+    // تمرير شريط المصغرات لإظهار المصغرة النشطة
+    const activeThumb = document.querySelector(`#galleryThumbs img:nth-child(${currentImageIndex + 1})`);
+    if (activeThumb) {
+        activeThumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    }
+};
+
+ 
+ window.changeMainImage = function(imgSrc, thumbElement) {
+    const img = document.getElementById("modalImg");
+    // تأثير fade
+    img.style.opacity = '0';
+    setTimeout(() => {
+        img.src = imgSrc;
+        img.style.opacity = '1';
+    }, 150);
+    
+    const thumbs = document.querySelectorAll("#galleryThumbs img");
+    thumbs.forEach(t => t.classList.remove("active"));
+    thumbElement.classList.add("active");
+    
+    const index = Array.from(thumbs).indexOf(thumbElement);
+    if (index !== -1) currentImageIndex = index;
+    
+    // تمرير الشريط لإظهار المصغرة النشطة
+    thumbElement.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
 };
 
 window.updateModalStockDisplay = function() {
@@ -2587,7 +2882,7 @@ window.updateModalStockDisplay = function() {
     if (stockInfoEl) {
         if (stock !== null) {
             if (stock > 0) {
-                stockInfoEl.innerHTML = `<span style="color:#27ae60; font-weight:600;"><i class="fas fa-check-circle"></i> متوفر: ${stock} قطعة</span>`;
+                stockInfoEl.innerHTML = `<span style="color:#27ae60; font-weight:600;"><i class="fas fa-check-circle"></i> متوفر: ${stock} قطعة من المقاس المحدد</span>`;
             } else {
                 stockInfoEl.innerHTML = `<span style="color:#c0392b; font-weight:700;"><i class="fas fa-times-circle"></i> 🚫 نفذت كمية المقاس</span>`;
             }
