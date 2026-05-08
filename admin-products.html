@@ -137,6 +137,7 @@ button:hover{
 <input id="name" placeholder="اسم المنتج">
 <input id="price" type="number" placeholder="السعر">
 <input id="image" placeholder="رابط الصورة">
+<input id="additionalImages" placeholder="روابط الصور الإضافية (اختيارى: افصل بينها بفاصلة , )">
 <input id="sizes" placeholder="المقاسات مثال: 16,18,20 (افصل بينهم بفاصلة)">
 <select id="category">
     <option value="">اختار الكولكشن</option>
@@ -251,6 +252,10 @@ window.addProduct = async function () {
     const name = document.getElementById("name").value.trim();
     const price = Number(document.getElementById("price").value);
     const image = document.getElementById("image").value.trim();
+    const additionalImages = document.getElementById("additionalImages").value
+    .split(",")
+    .map(url => url.trim())
+    .filter(url => url.length > 0);
     const comparePrice = Number(document.getElementById("comparePrice").value) || 0;
     
     const normalize = (str) => (str || "").toString().trim().toLowerCase().replace(/\s+/g, "");
@@ -270,6 +275,7 @@ window.addProduct = async function () {
         name,
         price,
         image,
+        additionalImages,
         category,
         categoryLabel: rawCategory,
         description,
@@ -307,6 +313,7 @@ function clearForm() {
     document.getElementById("name").value = "";
     document.getElementById("price").value = "";
     document.getElementById("image").value = "";
+    document.getElementById("additionalImages").value = "";
     document.getElementById("sizes").value = "";
     document.getElementById("category").value = "";
     document.getElementById("description").value = "";
@@ -322,6 +329,7 @@ window.editProduct = function(id, data) {
     document.getElementById("name").value = data.name || "";
     document.getElementById("price").value = data.price || "";
     document.getElementById("image").value = data.image || "";
+    document.getElementById("additionalImages").value = (data.additionalImages || []).join(", ");
     document.getElementById("sizes").value = (data.sizes || []).join(",");
     document.getElementById("category").value = data.category || "";
     document.getElementById("description").value = data.description || "";
@@ -358,6 +366,7 @@ onSnapshot(q, (snapshot) => {
                 <p>${p.price} جنيه ${p.comparePrice ? `<s style="color:red;font-size:12px;">${p.comparePrice} ج</s>` : ''}</p>
                 <small>الكميات: ${stockSummary}</small>
                 <small>القسم: ${p.categoryLabel || "عام"}</small>
+                <small>صور إضافية: ${(p.additionalImages && p.additionalImages.length) ? p.additionalImages.length + " صور" : "لا يوجد"}</small>
                 <small>المقاسات: ${(p.sizes && p.sizes.length) ? p.sizes.join(" - ") : "لا يوجد"}</small>
             </div>
             <div>
