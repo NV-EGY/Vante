@@ -583,6 +583,19 @@ input, textarea{
 
 </div>
 
+ <!-- Lightbox للصور في لوحة التحكم -->
+<div id="adminLightbox" style="position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:999999; display:none; justify-content:center; align-items:center;">
+  <img id="adminLightboxImg" src="" style="max-width:90%; max-height:90vh; object-fit:contain;">
+  <button onclick="document.getElementById('adminLightbox').style.display='none'" style="position:absolute; top:20px; right:20px; background:#fff; border:none; font-size:24px; width:40px; height:40px; border-radius:50%; cursor:pointer;">✕</button>
+</div>
+
+<script>
+  window.openAdminLightbox = function(src) {
+    document.getElementById('adminLightboxImg').src = src;
+    document.getElementById('adminLightbox').style.display = 'flex';
+  }
+</script>
+
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -758,19 +771,21 @@ window.editOrder = (id)=>{
 
 window.saveEdit = async function(id){
 
-  let detailsText = document.getElementById("editDetails").value;
+  // جمع كل العناصر من orderDetails بناءً على المدخلات الديناميكية
+  let detailsCount = (orders.find(x=>x.id === id)?.orderDetails || []).length; // عدد العناصر الأصلي
+  let orderDetails = [];
 
-  let orderDetails = detailsText.split("\n")
-  .map(line=>{
-    let [names, design, lang] = line.split("|");
-
-    return {
-      names: names?.trim() || "",
-      design: design?.trim() || "",
-      lang: lang?.trim() || ""
-    };
-  })
-  .filter(i => i.names || i.design || i.lang); // 👈 يمنع السطور الفاضية
+  for (let i = 0; i < detailsCount; i++) {
+    let name = document.getElementById(`editDetailName_${i}`)?.value || '';
+    let size = document.getElementById(`editDetailSize_${i}`)?.value || '';
+    let qty = parseInt(document.getElementById(`editDetailQty_${i}`)?.value) || 0;
+    let price = parseFloat(document.getElementById(`editDetailPrice_${i}`)?.value) || 0;
+    let image = document.getElementById(`editDetailImage_${i}`)?.value || '';
+    // تجاهل العناصر الفارغة
+    if (name || size || qty > 0) {
+      orderDetails.push({ name, size, qty, price, image });
+    }
+  }
 
   try{
     await updateDoc(doc(db,"orders",id),{
@@ -782,10 +797,10 @@ window.saveEdit = async function(id){
 
       orderDetails: orderDetails,
 
-quantity: Number(document.getElementById("editQuantity").value),
-price: Number(document.getElementById("editPrice").value),
-shipping: Number(document.getElementById("editShipping").value),
-finalTotal: Number(document.getElementById("editTotal").value)
+      quantity: Number(document.getElementById("editQuantity").value) || 0,
+      price: Number(document.getElementById("editPrice").value) || 0,
+      shipping: Number(document.getElementById("editShipping").value) || 0,
+      finalTotal: Number(document.getElementById("editTotal").value) || 0
     });
 
     closeMsg();
@@ -794,8 +809,7 @@ finalTotal: Number(document.getElementById("editTotal").value)
     alert("حصل خطأ");
     console.error(e);
   }
-
-}
+};
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
@@ -1121,8 +1135,8 @@ html += `
     📞 ${o.phone} <br>
     📍 ${o.gov} - ${o.city} <br>
     ${o.address} <br><br>
-
-   💎 تفاصيل الطلب:
+    
+💎 تفاصيل الطلب:
 <div style="display:flex; flex-direction:column; gap:8px; margin-top:6px;">
   ${(o.orderDetails || []).map((item,i)=>`
     <div style="display:flex; align-items:center; gap:8px; background:#f9f9f9; padding:8px; border-radius:10px;">
@@ -1390,18 +1404,6 @@ html += `
   window.onload = function(){
     window.print();
   };
-  <!-- Lightbox للصور في لوحة التحكم -->
-<div id="adminLightbox" style="position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:999999; display:none; justify-content:center; align-items:center;">
-  <img id="adminLightboxImg" src="" style="max-width:90%; max-height:90vh; object-fit:contain;">
-  <button onclick="document.getElementById('adminLightbox').style.display='none'" style="position:absolute; top:20px; right:20px; background:#fff; border:none; font-size:24px; width:40px; height:40px; border-radius:50%; cursor:pointer;">✕</button>
-</div>
-
-<script>
-  window.openAdminLightbox = function(src) {
-    document.getElementById('adminLightboxImg').src = src;
-    document.getElementById('adminLightbox').style.display = 'flex';
-  }
-  
 </script>
 
 </body>
