@@ -675,72 +675,59 @@ window.update = async function(id, status){
 
 }
 
-window.deleteOrder = async function(id){
-
-  let confirmDelete = confirm("متأكد إنك عايز تحذف الأوردر؟");
-
-  if(!confirmDelete) return;
-
-  try{
-    await deleteDoc(doc(db,"orders",id));
-  }catch(e){
-    alert("حصل خطأ أثناء الحذف");
-    console.error(e);
-  }
-
-}
-
 window.editOrder = (id)=>{
 
   let o = orders.find(x=>x.id === id);
   if(!o) return;
 
   let box = document.getElementById("msgPopup");
+  
+  // بناء HTML لعناصر orderDetails القابلة للتعديل
+  let detailsHtml = '';
+  (o.orderDetails || []).forEach((item, idx) => {
+    detailsHtml += `
+    <div style="background:#f8f8f8; padding:12px; border-radius:12px; margin-bottom:10px;">
+      <b>المنتج ${idx+1}</b>
+      <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:8px;">
+        <input id="editDetailName_${idx}" value="${item.name || ''}" placeholder="اسم المنتج" style="flex:2;">
+        <input id="editDetailSize_${idx}" value="${item.size || ''}" placeholder="المقاس" style="flex:1;">
+        <input id="editDetailQty_${idx}" type="number" value="${item.qty || 1}" placeholder="العدد" style="flex:1;">
+        <input id="editDetailPrice_${idx}" type="number" value="${item.price || 0}" placeholder="السعر" style="flex:1;">
+        <input id="editDetailImage_${idx}" value="${item.image || ''}" placeholder="رابط الصورة" style="flex:2;">
+      </div>
+      ${item.image ? `<img src="${item.image}" style="width:40px; height:40px; border-radius:8px; margin-top:6px;">` : ''}
+    </div>`;
+  });
 
   box.innerHTML = `
     <div class="popup-box">
 
-      <!-- 🔝 header -->
       <div class="popup-header">
-        <span>✏️ تعديل الأوردر</span>
+        <span>✏️ تعديل الأوردر ID: ${o.orderID}</span>
         <span onclick="closeMsg()" style="cursor:pointer;">✖</span>
       </div>
 
-      <!-- 📄 body -->
-      <div class="popup-body">
+      <div class="popup-body" style="max-height:70vh; overflow-y:auto;">
 
         <input id="editName" value="${o.customerName || ''}" placeholder="اسم العميل"><br><br>
         <input id="editPhone" value="${o.phone || ''}" placeholder="رقم الهاتف"><br><br>
-
         <input id="editGov" value="${o.gov || ''}" placeholder="المحافظة"><br><br>
         <input id="editCity" value="${o.city || ''}" placeholder="المدينة"><br><br>
-
         <input id="editAddress" value="${o.address || ''}" placeholder="العنوان"><br><br>
 
         <hr>
-
-        <label style="font-weight:bold;">
-        💎 تفاصيل الطلب
-        </label>
-
-        <textarea id="editDetails" class="nice-textarea">
-${(o.orderDetails || []).map(i=>`
-${i.names || ""} | ${i.design || ""} | ${i.lang || ""}
-`.trim()).join("\n")}
-        </textarea>
+        <label style="font-weight:bold;">💎 تعديل تفاصيل الطلب</label>
+        <div id="editDetailsContainer">${detailsHtml}</div>
 
         <hr>
-
-        <input id="editQuantity" value="${o.quantity || ''}" placeholder="الكمية"><br><br>
-        <input id="editPrice" value="${o.price || ''}" placeholder="السعر"><br><br>
-        <input id="editShipping" value="${o.shipping || ''}" placeholder="الشحن"><br><br>
-        <input id="editTotal" value="${o.finalTotal || ''}" placeholder="الإجمالي">
+        <input id="editQuantity" type="number" value="${o.quantity || ''}" placeholder="الكمية الإجمالية"><br><br>
+        <input id="editPrice" type="number" value="${o.price || ''}" placeholder="السعر الإجمالي"><br><br>
+        <input id="editShipping" type="number" value="${o.shipping || ''}" placeholder="الشحن"><br><br>
+        <input id="editTotal" type="number" value="${o.finalTotal || ''}" placeholder="الإجمالي النهائي">
 
       </div>
 
-      <!-- 🔻 footer -->
       <div class="popup-footer">
-
         <button onclick="saveEdit('${id}')" style="
           width:100%;
           padding:10px;
@@ -752,7 +739,6 @@ ${i.names || ""} | ${i.design || ""} | ${i.lang || ""}
         ">
           حفظ التعديلات
         </button>
-
         <button onclick="closeMsg()" style="
           width:100%;
           padding:10px;
@@ -763,13 +749,11 @@ ${i.names || ""} | ${i.design || ""} | ${i.lang || ""}
         ">
           إغلاق
         </button>
-
       </div>
-
     </div>
   `;
 
-  box.style.display = "flex"; // 👈 مهم عشان السنتر
+  box.style.display = "flex";
 };
 
 window.saveEdit = async function(id){
@@ -1097,10 +1081,7 @@ ${o.address || "-"}
 
 💎 تفاصيل الطلب:
 ${(o.orderDetails || []).map((item,i)=>`
-سلسلة ${i+1}:
-🏷️ ${item.names}
-🎨 ${item.design}
-🌍 ${item.lang}
+${i+1}. المنتج: ${item.name || 'بدون اسم'} | المقاس: ${item.size || '--'} | العدد: ${item.qty || 1} | السعر: ${item.price} EGP
 `).join("\n")}
 
 📦 الكمية: ${o.quantity}<br>
@@ -1141,11 +1122,18 @@ html += `
     📍 ${o.gov} - ${o.city} <br>
     ${o.address} <br><br>
 
-    💎 التفاصيل:<br>
-    ${(o.orderDetails || []).map((item,i)=>`
-      🔹 ${item.names} - ${item.design} - ${item.lang}<br>
-    `).join("")}
-  </div>
+   💎 تفاصيل الطلب:
+<div style="display:flex; flex-direction:column; gap:8px; margin-top:6px;">
+  ${(o.orderDetails || []).map((item,i)=>`
+    <div style="display:flex; align-items:center; gap:8px; background:#f9f9f9; padding:8px; border-radius:10px;">
+      ${item.image ? `<img src="${item.image}" style="width:40px; height:40px; object-fit:cover; border-radius:8px; cursor:pointer;" onclick="event.stopPropagation(); window.openAdminLightbox('${item.image}')">` : '<div style="width:40px; height:40px; background:#eee; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:10px;">📷</div>'}
+      <div style="flex:1;">
+        <b>${item.name || 'بدون اسم'}</b><br>
+        المقاس: ${item.size || '--'} | العدد: ${item.qty || 1} | السعر: ${item.price} EGP
+      </div>
+    </div>
+  `).join("")}
+</div>
 
   <div class="order-summary">
 
@@ -1402,7 +1390,19 @@ html += `
   window.onload = function(){
     window.print();
   };
-<\/script>
+  <!-- Lightbox للصور في لوحة التحكم -->
+<div id="adminLightbox" style="position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:999999; display:none; justify-content:center; align-items:center;">
+  <img id="adminLightboxImg" src="" style="max-width:90%; max-height:90vh; object-fit:contain;">
+  <button onclick="document.getElementById('adminLightbox').style.display='none'" style="position:absolute; top:20px; right:20px; background:#fff; border:none; font-size:24px; width:40px; height:40px; border-radius:50%; cursor:pointer;">✕</button>
+</div>
+
+<script>
+  window.openAdminLightbox = function(src) {
+    document.getElementById('adminLightboxImg').src = src;
+    document.getElementById('adminLightbox').style.display = 'flex';
+  }
+  
+</script>
 
 </body>
 </html>
