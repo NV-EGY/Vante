@@ -1,862 +1,703 @@
 <!DOCTYPE html>
 <html lang="ar">
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta charset="UTF-8">
-<title>VANTE Dashboard</title>
-
-<style>
-body{
-  font-family: Cairo, sans-serif;
-  background:#f4f6f9;
-  padding:10px;
-  margin:0;
-}
-
-html, body{
-  overflow-x:hidden;
-}
-
-.header{
-  position:sticky;
-  top:0;
-  background:#fff;
-  z-index:1000;
-  padding:10px 12px;
-  display:flex;
-  flex-direction:column;
-  gap:10px;
-  align-items:center;
-  justify-content:center;
-  box-shadow:0 2px 10px rgba(0,0,0,0.05);
-}
-
-.header-top{
-  width:100%;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  position:relative;
-}
-
-.search-box{
-  width:100%;
-  max-width:420px;
-  margin:0 auto;
-  padding:12px;
-  border-radius:12px;
-  border:1px solid #ddd;
-  text-align:center;
-  box-sizing: border-box;
-}
-
-.search-box:focus{
-  border-color:#0F7B65;
-  box-shadow:0 0 0 3px rgba(15,123,101,0.15);
-}
-
-.header-icons{
-  display:flex;
-  gap:10px;
-  align-items:center;
-}
-
-.icon-btn{
-  width:40px;
-  height:40px;
-  background:#f1f1f1;
-  border-radius:12px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:18px;
-  cursor:pointer;
-  transition:0.2s;
-}
-
-.icon-btn:hover{
-  background:#e0e0e0;
-}
-
-.new-badge{
-  background:red;
-  color:#fff;
-  font-size:10px;
-  padding:3px 6px;
-  border-radius:8px;
-}
-
-input{
-  padding:8px;
-  border-radius:8px;
-  border:1px solid #ccc;
-  min-width:120px;
-}
-
-#orders{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  width:100%;
-  padding:10px;
-  box-sizing:border-box;
-}
-
-.card{
-  width:100%;
-  max-width:420px;
-  margin:0 auto 12px auto;
-  display:flex;
-  flex-direction:column;
-  background:#fff;
-  border-radius:16px;
-  padding:15px;
-  box-sizing:border-box;
-  box-shadow:0 5px 20px rgba(0,0,0,0.08);
-  font-size:14px;
-  position:relative;
-}
-
-.order-body{
-  display:none;
-  justify-content:space-between;
-  gap:12px;
-  align-items:flex-start;
-  margin-top:10px;
-}
-
-.order-info{
-  flex:1;
-}
-
-.order-summary{
-  width:140px;
-  background:#f8f9fa;
-  border-radius:12px;
-  padding:10px;
-  font-size:14px;
-  font-weight:bold;
-  text-align:right;
-}
-.order-summary b{
-  font-size:16px;
-  color:#0F7B65;
-}
-
-.card.new { border-right:4px solid red; }
-.card.done { border-right:4px solid #28a745; }
-
-.actions{
-  display:none;
-  gap:8px;
-  margin-top:12px;
-  width:100%;
-  flex-wrap:nowrap;
-}
-
-.action-btn{
-  flex:1;
-  min-width:0;
-  padding:10px 0;
-  border-radius:12px;
-  border:none;
-  cursor:pointer;
-  font-size:16px;
-  transition:0.2s;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
-
-.action-btn:active{
-  transform:scale(0.95);
-}
-
-.whatsapp{background:#25D366;color:#fff;}
-.copy{background:#333;color:#fff;}
-.ship{background:#0F7B65;color:#fff;}
-.doneBtn{background:#1976d2;color:#fff;}
-
-.inbox-container{
-  display:flex;
-  gap:10px;
-  margin-top:10px;
-}
-
-.inbox-list{
-  width:40%;
-  max-height:60vh;
-  overflow:auto;
-  border-right:1px solid #eee;
-}
-
-.inbox-view{
-  width:60%;
-  padding:10px;
-}
-
-.msg-item{
-  padding:10px;
-  border-bottom:1px solid #eee;
-  cursor:pointer;
-  transition:0.2s;
-}
-
-.msg-item:hover{
-  background:#f5f5f5;
-}
-
-.msg-item.unread{
-  background:#fff3cd;
-  font-weight:bold;
-}
-
-.inbox-header{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-}
-
-.filters{
-  display:flex;
-  gap:6px;
-  flex-wrap:wrap;
-}
-
-.filter-btn{
-  flex:1;
-  min-width:70px;
-  padding:8px;
-  border:none;
-  border-radius:10px;
-  background:#eee;
-  cursor:pointer;
-}
-
-.filter-btn.active{
-  background:#0F7B65;
-  color:#fff;
-}
-
-#msgPopup{
-  display:none;
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,0.4);
-  z-index:99999;
-  align-items:center;
-  justify-content:center;
-}
-
-.popup-box{
-  width:95%;
-  max-width:420px;
-  max-height:90vh;
-  background:#fff;
-  border-radius:16px;
-  box-shadow:0 10px 30px rgba(0,0,0,0.3);
-  display:flex;
-  flex-direction:column;
-  overflow:hidden;
-}
-
-.popup-header{
-  padding:12px;
-  font-weight:bold;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  border-bottom:1px solid #eee;
-}
-
-.popup-body{
-  padding:12px;
-  overflow:auto;
-}
-
-.popup-footer{
-  padding:10px;
-  border-top:1px solid #eee;
-}
-
-#messagesBox{
-  position:fixed;
-  bottom:15px;
-  right:10px;
-  left:10px;
-  width:auto;
-  max-height:70vh;
-  overflow:auto;
-  background:#fff;
-  border-radius:12px;
-  box-shadow:0 5px 20px rgba(0,0,0,0.2);
-  padding:10px;
-  z-index:2000;
-  transition: all 0.3s ease;
-  transform:translateY(-20px);
-  display:none;
-  opacity:0;
-}
-
-#messagesBox.show{
-  transform:translateY(0);
-  opacity:1;
-}
-
-.msg-icon{
-  position:relative;
-}
-
-#msgBadge{
-  position:absolute;
-  top:2px;
-  right:2px;
-  background:red;
-  color:#fff;
-  border-radius:50%;
-  font-size:10px;
-  padding:2px 6px;
-  min-width:16px;
-  text-align:center;
-  line-height:1;
-}
-
-@media (max-width:600px){
-  h2{font-size:18px;}
-  .actions{flex-direction:row;}
-  .action-btn{flex:1;font-size:14px;}
-  .search-box{max-width:100%;}
-  .header{flex-direction:column;align-items:stretch;}
-  input{width:100%;}
-  .btn{width:100%;margin-top:5px;}
-}
-
-.selectOrder{
-  position:absolute;
-  top:12px;
-  right:12px;
-  width:22px;
-  height:22px;
-  accent-color:#0F7B65;
-  cursor:pointer;
-  box-shadow:0 0 5px rgba(0,0,0,0.2);
-}
-
-.top-stats{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  width:100%;
-  font-weight:bold;
-  font-size:14px;
-}
-
-#count{color:#333;}
-#selectedCount{color:#0F7B65;}
-
-.select-all-btn{
-  position:fixed;
-  top:15px;
-  right:15px;
-  z-index:2000;
-  width:45px;
-  height:45px;
-  border-radius:14px;
-  background:#0F7B65;
-  color:#fff;
-  display:none;
-  align-items:center;
-  justify-content:center;
-  cursor:pointer;
-  font-size:20px;
-  box-shadow:0 6px 15px rgba(0,0,0,0.25);
-  transition:0.2s;
-}
-
-.select-all-btn:hover{transform:scale(1.05);}
-.select-all-btn.active{background:#1976d2;}
-
-.status{
-  padding:3px 8px;
-  border-radius:8px;
-  font-size:12px;
-  margin-right:5px;
-}
-
-.status.new{background:#ffc107;}
-.status.shipped{background:#17a2b8;color:#fff;}
-.status.done{background:#28a745;color:#fff;}
-
-*{
-  -webkit-user-select: none;
-  user-select: none;
-}
-
-input, textarea{
-  -webkit-user-select: text !important;
-  user-select: text !important;
-  -webkit-touch-callout: default !important;
-}
-
-</style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <title>VANTE Dashboard</title>
+  <style>
+    body {
+      font-family: Cairo, sans-serif;
+      background: #f4f6f9;
+      padding: 10px;
+      margin: 0;
+    }
+    html, body { overflow-x: hidden; }
+    .header {
+      position: sticky;
+      top: 0;
+      background: #fff;
+      z-index: 1000;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    .header-top {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    .search-box {
+      width: 100%;
+      max-width: 420px;
+      margin: 0 auto;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid #ddd;
+      text-align: center;
+      box-sizing: border-box;
+    }
+    .search-box:focus {
+      border-color: #0F7B65;
+      box-shadow: 0 0 0 3px rgba(15,123,101,0.15);
+    }
+    .header-icons {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .icon-btn {
+      width: 40px;
+      height: 40px;
+      background: #f1f1f1;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .icon-btn:hover { background: #e0e0e0; }
+    .new-badge {
+      background: red;
+      color: #fff;
+      font-size: 10px;
+      padding: 3px 6px;
+      border-radius: 8px;
+    }
+    input {
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      min-width: 120px;
+    }
+    #orders {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      padding: 10px;
+      box-sizing: border-box;
+    }
+    .card {
+      width: 100%;
+      max-width: 420px;
+      margin: 0 auto 12px auto;
+      display: flex;
+      flex-direction: column;
+      background: #fff;
+      border-radius: 16px;
+      padding: 15px;
+      box-sizing: border-box;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+      font-size: 14px;
+      position: relative;
+    }
+    .order-body {
+      display: none;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+      margin-top: 10px;
+    }
+    .order-info { flex: 1; }
+    .order-summary {
+      width: 140px;
+      background: #f8f9fa;
+      border-radius: 12px;
+      padding: 10px;
+      font-size: 14px;
+      font-weight: bold;
+      text-align: right;
+    }
+    .order-summary b { font-size: 16px; color: #0F7B65; }
+    .card.new { border-right: 4px solid red; }
+    .card.done { border-right: 4px solid #28a745; }
+    .actions {
+      display: none;
+      gap: 8px;
+      margin-top: 12px;
+      width: 100%;
+      flex-wrap: nowrap;
+    }
+    .action-btn {
+      flex: 1;
+      min-width: 0;
+      padding: 10px 0;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      transition: 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .action-btn:active { transform: scale(0.95); }
+    .whatsapp { background: #25D366; color: #fff; }
+    .copy { background: #333; color: #fff; }
+    .ship { background: #0F7B65; color: #fff; }
+    .doneBtn { background: #1976d2; color: #fff; }
+    .inbox-container { display: flex; gap: 10px; margin-top: 10px; }
+    .inbox-list { width: 40%; max-height: 60vh; overflow: auto; border-right: 1px solid #eee; }
+    .inbox-view { width: 60%; padding: 10px; }
+    .msg-item { padding: 10px; border-bottom: 1px solid #eee; cursor: pointer; transition: 0.2s; }
+    .msg-item:hover { background: #f5f5f5; }
+    .msg-item.unread { background: #fff3cd; font-weight: bold; }
+    .inbox-header { display: flex; justify-content: space-between; align-items: center; }
+    .filters { display: flex; gap: 6px; flex-wrap: wrap; }
+    .filter-btn {
+      flex: 1;
+      min-width: 70px;
+      padding: 8px;
+      border: none;
+      border-radius: 10px;
+      background: #eee;
+      cursor: pointer;
+    }
+    .filter-btn.active { background: #0F7B65; color: #fff; }
+    #msgPopup {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      z-index: 99999;
+      align-items: center;
+      justify-content: center;
+    }
+    .popup-box {
+      width: 95%;
+      max-width: 420px;
+      max-height: 90vh;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .popup-header {
+      padding: 12px;
+      font-weight: bold;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #eee;
+    }
+    .popup-body { padding: 12px; overflow: auto; }
+    .popup-footer { padding: 10px; border-top: 1px solid #eee; }
+    #messagesBox {
+      position: fixed;
+      bottom: 15px;
+      right: 10px;
+      left: 10px;
+      width: auto;
+      max-height: 70vh;
+      overflow: auto;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+      padding: 10px;
+      z-index: 2000;
+      transition: all 0.3s ease;
+      transform: translateY(-20px);
+      display: none;
+      opacity: 0;
+    }
+    #messagesBox.show { transform: translateY(0); opacity: 1; }
+    .msg-icon { position: relative; }
+    #msgBadge {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      background: red;
+      color: #fff;
+      border-radius: 50%;
+      font-size: 10px;
+      padding: 2px 6px;
+      min-width: 16px;
+      text-align: center;
+      line-height: 1;
+    }
+    @media (max-width: 600px) {
+      h2 { font-size: 18px; }
+      .actions { flex-direction: row; }
+      .action-btn { flex: 1; font-size: 14px; }
+      .search-box { max-width: 100%; }
+      .header { flex-direction: column; align-items: stretch; }
+      input { width: 100%; }
+    }
+    .selectOrder {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 22px;
+      height: 22px;
+      accent-color: #0F7B65;
+      cursor: pointer;
+      box-shadow: 0 0 5px rgba(0,0,0,0.2);
+    }
+    .top-stats {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      font-weight: bold;
+      font-size: 14px;
+    }
+    #count { color: #333; }
+    #selectedCount { color: #0F7B65; }
+    .select-all-btn {
+      position: fixed;
+      top: 15px;
+      right: 15px;
+      z-index: 2000;
+      width: 45px;
+      height: 45px;
+      border-radius: 14px;
+      background: #0F7B65;
+      color: #fff;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 20px;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.25);
+      transition: 0.2s;
+    }
+    .select-all-btn:hover { transform: scale(1.05); }
+    .select-all-btn.active { background: #1976d2; }
+    .status { padding: 3px 8px; border-radius: 8px; font-size: 12px; margin-right: 5px; }
+    .status.new { background: #ffc107; }
+    .status.shipped { background: #17a2b8; color: #fff; }
+    .status.done { background: #28a745; color: #fff; }
+    * { user-select: none; }
+    input, textarea { user-select: text !important; }
+  </style>
 </head>
-
 <body>
-
-<div class="header">
-  <div class="header-top">
-    <div id="selectAllBtn" class="select-all-btn" onclick="selectAll()">✔</div>
-    <h2 style="margin:0;">📦 DAHAP Dashboard</h2>
-    <div class="header-icons">
-      <div class="icon-btn msg-icon" onclick="toggleInbox()">📩 <span id="msgBadge">0</span></div>
-      <div class="icon-btn" onclick="printSelected()">🖨️</div>
-      <div class="icon-btn" onclick="openDatePicker()">📅</div>
+  <div class="header">
+    <div class="header-top">
+      <div id="selectAllBtn" class="select-all-btn" onclick="selectAll()">✔</div>
+      <h2 style="margin:0;">📦 DAHAP Dashboard</h2>
+      <div class="header-icons">
+        <div class="icon-btn msg-icon" onclick="toggleInbox()">📩 <span id="msgBadge">0</span></div>
+        <div class="icon-btn" onclick="printSelected()">🖨️</div>
+        <div class="icon-btn" onclick="openDatePicker()">📅</div>
+      </div>
+    </div>
+    <input type="text" id="search" class="search-box" placeholder="🔍 بحث">
+    <input type="date" id="dateFilter" style="display:none;">
+    <div class="filters">
+      <button onclick="setFilter(event,'')" class="filter-btn active">الكل</button>
+      <button onclick="setFilter(event,'shipped')" class="filter-btn">اتشحن</button>
+      <button onclick="setFilter(event,'done')" class="filter-btn">تم</button>
+      <button onclick="setFilter(event,'new')" class="filter-btn">جديد</button>
     </div>
   </div>
-  <input type="text" id="search" class="search-box" placeholder="🔍 بحث">
-  <input type="date" id="dateFilter" style="display:none;">
-  <div class="filters">
-    <button onclick="setFilter(event,'')" class="filter-btn active">الكل</button>
-    <button onclick="setFilter(event,'shipped')" class="filter-btn">اتشحن</button>
-    <button onclick="setFilter(event,'done')" class="filter-btn">تم</button>
-    <button onclick="setFilter(event,'new')" class="filter-btn">جديد</button>
+
+  <div class="top-stats">
+    <span id="count"></span>
+    <span id="selectedCount"></span>
   </div>
-</div>
+  <div id="orders"></div>
+  <hr>
 
-<div class="top-stats">
-  <span id="count"></span>
-  <span id="selectedCount"></span>
-</div>
-  
-<div id="orders"></div>
-
-<hr>
-
-<div id="msgPopup" style="display:none;">
-  <div class="popup-box">
-    <div id="msgContent"></div>
-    <button onclick="closeMsg()" style="margin-top:10px;width:100%;padding:10px;border:none;background:#333;color:#fff;border-radius:10px;">إغلاق</button>
-  </div>
-</div>
-
-<div id="messagesBox">
-  <div class="inbox-header">
-    <h3>📩 الرسائل</h3>
-    <span onclick="toggleInbox()">✖</span>
-  </div>
-  <div class="inbox-container">
-    <div id="messagesList" class="inbox-list"></div>
-    <div id="messageView" class="inbox-view"><p style="text-align:center;color:#888;">اختر رسالة</p></div>
-  </div>
-</div>
-
-<!-- Lightbox للصور في لوحة التحكم -->
-<div id="adminLightbox" style="position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:999999; display:none; justify-content:center; align-items:center;">
-  <img id="adminLightboxImg" src="" style="max-width:90%; max-height:90vh; object-fit:contain;">
-  <button onclick="document.getElementById('adminLightbox').style.display='none'" style="position:absolute; top:20px; right:20px; background:#fff; border:none; font-size:24px; width:40px; height:40px; border-radius:50%; cursor:pointer;">✕</button>
-</div>
-
-<script>
-  window.openAdminLightbox = function(src) {
-    document.getElementById('adminLightboxImg').src = src;
-    document.getElementById('adminLightbox').style.display = 'flex';
-  }
-</script>
-
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import {
-  getFirestore,
-  collection,
-  query,
-  orderBy,
-  onSnapshot,
-  updateDoc,
-  deleteDoc,
-  doc,
-  serverTimestamp
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-import {
-  getAuth,
-  onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-  
-const firebaseConfig = {
-    apiKey: "AIzaSyCotT8EP2uy_HsgHknxeGBorKoEUORPtmU",
-    authDomain: "vante-orders.firebaseapp.com",
-    projectId: "vante-orders",
-    storageBucket: "vante-orders.firebasestorage.app",
-    messagingSenderId: "842319700646",
-    appId: "1:842319700646:web:f6afd78ef7038c3be4ca67",
-    measurementId: "G-56ZC1RW0T7"
-  };
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
-
-let orders = [];
-let lastCount = 0;
-let currentFilter = "";
-let messages = [];
-
-window.markRead = async function(id){
-  await updateDoc(doc(db,"messages",id),{ status:"done" });
-}
-
-window.openMsg = async (id)=>{
-  let m = messages.find(x=>x.id === id);
-  if(!m) return;
-  await markRead(id);
-  document.getElementById("messageView").innerHTML = `
-    <div style="text-align:right">
-      <div style="font-size:18px;font-weight:bold;">👤 ${m.name}</div>
-      <div style="color:#666;margin-top:5px;">📞 ${m.phone}</div>
-      <hr>
-      <div style="line-height:1.7;">💬 ${m.message}</div>
-      <a href="https://wa.me/2${m.phone}" target="_blank" style="display:block;margin-top:15px;text-align:center;background:#25D366;color:#fff;padding:10px;border-radius:10px;text-decoration:none;">💬 رد واتساب</a>
-    </div>`;
-}
-
-window.update = async function(id, status){
-  try{
-    await updateDoc(doc(db,"orders",id),{ status: status });
-  }catch(e){
-    alert("حصل خطأ");
-    console.error(e);
-  }
-}
-
-window.deleteOrder = async function(id){
-  let confirmDelete = confirm("متأكد إنك عايز تحذف الأوردر؟");
-  if(!confirmDelete) return;
-  try{
-    await deleteDoc(doc(db,"orders",id));
-  }catch(e){
-    alert("حصل خطأ أثناء الحذف");
-    console.error(e);
-  }
-}
-
-window.editOrder = (id)=>{
-  let o = orders.find(x=>x.id === id);
-  if(!o) return;
-  let box = document.getElementById("msgPopup");
-  
-  let detailsHtml = '';
-  (o.orderDetails || []).forEach((item, idx) => {
-    detailsHtml += `
-    <div style="background:#f8f8f8; padding:12px; border-radius:12px; margin-bottom:10px;">
-      <b>المنتج ${idx+1}</b>
-      <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:8px;">
-        <input id="editDetailName_${idx}" value="${item.name || ''}" placeholder="اسم المنتج" style="flex:2;">
-        <input id="editDetailSize_${idx}" value="${item.size || ''}" placeholder="المقاس" style="flex:1;">
-        <input id="editDetailQty_${idx}" type="number" value="${item.qty || 1}" placeholder="العدد" style="flex:1;">
-        <input id="editDetailPrice_${idx}" type="number" value="${item.price || 0}" placeholder="السعر" style="flex:1;">
-        <input id="editDetailImage_${idx}" value="${item.image || ''}" placeholder="رابط الصورة" style="flex:2;">
-      </div>
-      ${item.image ? `<img src="${item.image}" style="width:40px; height:40px; border-radius:8px; margin-top:6px;">` : ''}
-    </div>`;
-  });
-
-  box.innerHTML = `
+  <div id="msgPopup" style="display:none;">
     <div class="popup-box">
-      <div class="popup-header">
-        <span>✏️ تعديل الأوردر ID: ${o.orderID}</span>
-        <span onclick="closeMsg()" style="cursor:pointer;">✖</span>
-      </div>
-      <div class="popup-body" style="max-height:70vh; overflow-y:auto;">
-        <input id="editName" value="${o.customerName || ''}" placeholder="اسم العميل"><br><br>
-        <input id="editPhone" value="${o.phone || ''}" placeholder="رقم الهاتف"><br><br>
-        <input id="editGov" value="${o.gov || ''}" placeholder="المحافظة"><br><br>
-        <input id="editCity" value="${o.city || ''}" placeholder="المدينة"><br><br>
-        <input id="editAddress" value="${o.address || ''}" placeholder="العنوان"><br><br>
-        <hr>
-        <label style="font-weight:bold;">💎 تعديل تفاصيل الطلب</label>
-        <div id="editDetailsContainer">${detailsHtml}</div>
-        <hr>
-        <input id="editQuantity" type="number" value="${o.quantity || ''}" placeholder="الكمية الإجمالية"><br><br>
-        <input id="editPrice" type="number" value="${o.price || ''}" placeholder="السعر الإجمالي"><br><br>
-        <input id="editShipping" type="number" value="${o.shipping || ''}" placeholder="الشحن"><br><br>
-        <input id="editTotal" type="number" value="${o.finalTotal || ''}" placeholder="الإجمالي النهائي">
-      </div>
-      <div class="popup-footer">
-        <button onclick="saveEdit('${id}')" style="width:100%;padding:10px;background:#0F7B65;color:#fff;border:none;border-radius:10px;margin-bottom:8px;">حفظ التعديلات</button>
-        <button onclick="closeMsg()" style="width:100%;padding:10px;background:#333;color:#fff;border:none;border-radius:10px;">إغلاق</button>
-      </div>
-    </div>`;
-  box.style.display = "flex";
-};
+      <div id="msgContent"></div>
+      <button onclick="closeMsg()" style="margin-top:10px;width:100%;padding:10px;border:none;background:#333;color:#fff;border-radius:10px;">إغلاق</button>
+    </div>
+  </div>
 
-window.saveEdit = async function(id){
-  let detailsCount = (orders.find(x=>x.id === id)?.orderDetails || []).length;
-  let orderDetails = [];
-  for (let i = 0; i < detailsCount; i++) {
-    let name = document.getElementById(`editDetailName_${i}`)?.value || '';
-    let size = document.getElementById(`editDetailSize_${i}`)?.value || '';
-    let qty = parseInt(document.getElementById(`editDetailQty_${i}`)?.value) || 0;
-    let price = parseFloat(document.getElementById(`editDetailPrice_${i}`)?.value) || 0;
-    let image = document.getElementById(`editDetailImage_${i}`)?.value || '';
-    if (name || size || qty > 0) {
-      orderDetails.push({ name, size, qty, price, image });
+  <div id="messagesBox">
+    <div class="inbox-header">
+      <h3>📩 الرسائل</h3>
+      <span onclick="toggleInbox()">✖</span>
+    </div>
+    <div class="inbox-container">
+      <div id="messagesList" class="inbox-list"></div>
+      <div id="messageView" class="inbox-view"><p style="text-align:center;color:#888;">اختر رسالة</p></div>
+    </div>
+  </div>
+
+  <!-- Lightbox للصور في لوحة التحكم -->
+  <div id="adminLightbox" style="position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:999999; display:none; justify-content:center; align-items:center;">
+    <img id="adminLightboxImg" src="" style="max-width:90%; max-height:90vh; object-fit:contain;">
+    <button onclick="document.getElementById('adminLightbox').style.display='none'" style="position:absolute; top:20px; right:20px; background:#fff; border:none; font-size:24px; width:40px; height:40px; border-radius:50%; cursor:pointer;">✕</button>
+  </div>
+
+  <script>
+    window.openAdminLightbox = function(src) {
+      document.getElementById('adminLightboxImg').src = src;
+      document.getElementById('adminLightbox').style.display = 'flex';
     }
-  }
-  try{
-    await updateDoc(doc(db,"orders",id),{
-      customerName: document.getElementById("editName").value,
-      phone: document.getElementById("editPhone").value,
-      gov: document.getElementById("editGov").value,
-      city: document.getElementById("editCity").value,
-      address: document.getElementById("editAddress").value,
-      orderDetails: orderDetails,
-      quantity: Number(document.getElementById("editQuantity").value) || 0,
-      price: Number(document.getElementById("editPrice").value) || 0,
-      shipping: Number(document.getElementById("editShipping").value) || 0,
-      finalTotal: Number(document.getElementById("editTotal").value) || 0
-    });
-    closeMsg();
-  }catch(e){
-    alert("حصل خطأ");
-    console.error(e);
-  }
-};
+  </script>
 
-window.toggleOrder = (id)=>{
-  let el = document.getElementById("order-"+id);
-  if(!el) return;
-  let actions = el.parentElement.querySelector(".actions");
-  let isOpen = el.style.display === "flex";
-  el.style.display = isOpen ? "none" : "flex";
-  if(actions) actions.style.display = isOpen ? "none" : "flex";
-}
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, collection, query, orderBy, onSnapshot, updateDoc, deleteDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-let allSelected = false;
-window.selectAll = () => {
-  let checkboxes = document.querySelectorAll(".selectOrder");
-  allSelected = !allSelected;
-  checkboxes.forEach(cb => {
-    let card = cb.closest(".card");
-    if(currentFilter && !card.classList.contains(currentFilter)) return;
-    cb.checked = allSelected;
-    card.style.background = allSelected ? "#e6fff2" : "#fff";
-  });
-  let btn = document.getElementById("selectAllBtn");
-  btn.innerText = allSelected ? "✖" : "✔";
-  btn.classList.toggle("active", allSelected);
-  updateSelectionUI();
-};
+    const firebaseConfig = {
+      apiKey: "AIzaSyCotT8EP2uy_HsgHknxeGBorKoEUORPtmU",
+      authDomain: "vante-orders.firebaseapp.com",
+      projectId: "vante-orders",
+      storageBucket: "vante-orders.firebasestorage.app",
+      messagingSenderId: "842319700646",
+      appId: "1:842319700646:web:f6afd78ef7038c3be4ca67",
+      measurementId: "G-56ZC1RW0T7"
+    };
 
-window.closeMsg = () => { document.getElementById("msgPopup").style.display = "none"; };
-window.openDatePicker = ()=>{ document.getElementById("dateFilter").showPicker(); }
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
 
-window.setFilter = (e, filter) => {
-  currentFilter = filter;
-  document.querySelectorAll(".filter-btn").forEach(btn=>btn.classList.remove("active"));
-  e.target.classList.add("active");
-  render();
-};
+    let orders = [];
+    let lastCount = 0;
+    let currentFilter = "";
+    let messages = [];
 
-window.toggleInbox = () => {
-  let box = document.getElementById("messagesBox");
-  if(box.style.display === "none"){
-    box.style.display = "block";
-    setTimeout(()=>box.classList.add("show"),10);
-  }else{
-    box.classList.remove("show");
-    setTimeout(()=>box.style.display="none",200);
-  }
-}
+    window.markRead = async function(id) {
+      await updateDoc(doc(db, "messages", id), { status: "done" });
+    }
 
-// 📦 load orders
-function load(){
-  const qMessages = query(collection(db,"messages"), orderBy("createdAt","desc"));
-  const qOrders = query(collection(db,"orders"), orderBy("createdAt","desc"));
-  let unreadCount = 0;
+    window.openMsg = async (id) => {
+      let m = messages.find(x => x.id === id);
+      if (!m) return;
+      await markRead(id);
+      document.getElementById("messageView").innerHTML = `
+        <div style="text-align:right">
+          <div style="font-size:18px;font-weight:bold;">👤 ${m.name}</div>
+          <div style="color:#666;margin-top:5px;">📞 ${m.phone}</div>
+          <hr>
+          <div style="line-height:1.7;">💬 ${m.message}</div>
+          <a href="https://wa.me/2${m.phone}" target="_blank" style="display:block;margin-top:15px;text-align:center;background:#25D366;color:#fff;padding:10px;border-radius:10px;text-decoration:none;">💬 رد واتساب</a>
+        </div>`;
+    }
 
-  onSnapshot(qMessages,(snap)=>{
-    unreadCount = 0;
-    let badge = document.getElementById("msgBadge");
-    let html = "";
-    messages = snap.docs.map(d=>({id:d.id,...d.data()}));
-    messages.forEach(m=>{
-      let status = m.status || "new";
-      if(status === "new") unreadCount++;
-      html += `<div class="msg-item ${status === 'new' ? 'unread' : ''}" onclick="openMsg('${m.id}')">
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-          <div>👤 ${m.name}</div>
-          ${status === 'new' ? '<span class="new-badge">جديد</span>' : ''}
-        </div>
-        <div style="font-size:12px;color:#666;">${m.phone}</div>
-      </div>`;
-    });
-    document.getElementById("messagesList").innerHTML = html;
-    badge.style.display = unreadCount > 0 ? "inline-block" : "none";
-    badge.innerText = unreadCount;
-  });
+    window.update = async function(id, status) {
+      try {
+        await updateDoc(doc(db, "orders", id), { status: status });
+      } catch (e) {
+        alert("حصل خطأ");
+        console.error(e);
+      }
+    }
 
-  onSnapshot(qOrders,(snap)=>{
-    snap.docChanges().forEach(change => {
-      if(change.type === "added" && lastCount !== 0){
-        let o = change.doc.data();
-        sound();
-        if(Notification.permission==="granted")
-          new Notification("طلب جديد 🛒",{ body: `${o.customerName || "عميل جديد"} - ${o.phone || ""}` });
-        showPopup(o);
+    window.deleteOrder = async function(id) {
+      let confirmDelete = confirm("متأكد إنك عايز تحذف الأوردر؟");
+      if (!confirmDelete) return;
+      try {
+        await deleteDoc(doc(db, "orders", id));
+      } catch (e) {
+        alert("حصل خطأ أثناء الحذف");
+        console.error(e);
+      }
+    }
+
+    window.editOrder = (id) => {
+      let o = orders.find(x => x.id === id);
+      if (!o) return;
+      let box = document.getElementById("msgPopup");
+      
+      let detailsHtml = '';
+      (o.orderDetails || []).forEach((item, idx) => {
+        detailsHtml += `
+        <div style="background:#f8f8f8; padding:12px; border-radius:12px; margin-bottom:10px;">
+          <b>المنتج ${idx+1}</b>
+          <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:8px;">
+            <input id="editDetailName_${idx}" value="${item.name || ''}" placeholder="اسم المنتج" style="flex:2;">
+            <input id="editDetailSize_${idx}" value="${item.size || ''}" placeholder="المقاس" style="flex:1;">
+            <input id="editDetailQty_${idx}" type="number" value="${item.qty || 1}" placeholder="العدد" style="flex:1;">
+            <input id="editDetailPrice_${idx}" type="number" value="${item.price || 0}" placeholder="السعر" style="flex:1;">
+            <input id="editDetailImage_${idx}" value="${item.image || ''}" placeholder="رابط الصورة" style="flex:2;">
+          </div>
+          ${item.image ? `<img src="${item.image}" style="width:40px; height:40px; border-radius:8px; margin-top:6px;">` : ''}
+        </div>`;
+      });
+
+      box.innerHTML = `
+        <div class="popup-box">
+          <div class="popup-header">
+            <span>✏️ تعديل الأوردر ID: ${o.orderID}</span>
+            <span onclick="closeMsg()" style="cursor:pointer;">✖</span>
+          </div>
+          <div class="popup-body" style="max-height:70vh; overflow-y:auto;">
+            <input id="editName" value="${o.customerName || ''}" placeholder="اسم العميل"><br><br>
+            <input id="editPhone" value="${o.phone || ''}" placeholder="رقم الهاتف"><br><br>
+            <input id="editGov" value="${o.gov || ''}" placeholder="المحافظة"><br><br>
+            <input id="editCity" value="${o.city || ''}" placeholder="المدينة"><br><br>
+            <input id="editAddress" value="${o.address || ''}" placeholder="العنوان"><br><br>
+            <hr>
+            <label style="font-weight:bold;">💎 تعديل تفاصيل الطلب</label>
+            <div id="editDetailsContainer">${detailsHtml}</div>
+            <hr>
+            <input id="editQuantity" type="number" value="${o.quantity || ''}" placeholder="الكمية الإجمالية"><br><br>
+            <input id="editPrice" type="number" value="${o.price || ''}" placeholder="السعر الإجمالي"><br><br>
+            <input id="editShipping" type="number" value="${o.shipping || ''}" placeholder="الشحن"><br><br>
+            <input id="editTotal" type="number" value="${o.finalTotal || ''}" placeholder="الإجمالي النهائي">
+          </div>
+          <div class="popup-footer">
+            <button onclick="saveEdit('${id}')" style="width:100%;padding:10px;background:#0F7B65;color:#fff;border:none;border-radius:10px;margin-bottom:8px;">حفظ التعديلات</button>
+            <button onclick="closeMsg()" style="width:100%;padding:10px;background:#333;color:#fff;border:none;border-radius:10px;">إغلاق</button>
+          </div>
+        </div>`;
+      box.style.display = "flex";
+    };
+
+    window.saveEdit = async function(id) {
+      let detailsCount = (orders.find(x => x.id === id)?.orderDetails || []).length;
+      let orderDetails = [];
+      for (let i = 0; i < detailsCount; i++) {
+        let name = document.getElementById(`editDetailName_${i}`)?.value || '';
+        let size = document.getElementById(`editDetailSize_${i}`)?.value || '';
+        let qty = parseInt(document.getElementById(`editDetailQty_${i}`)?.value) || 0;
+        let price = parseFloat(document.getElementById(`editDetailPrice_${i}`)?.value) || 0;
+        let image = document.getElementById(`editDetailImage_${i}`)?.value || '';
+        if (name || size || qty > 0) {
+          orderDetails.push({ name, size, qty, price, image });
+        }
+      }
+      try {
+        await updateDoc(doc(db, "orders", id), {
+          customerName: document.getElementById("editName").value,
+          phone: document.getElementById("editPhone").value,
+          gov: document.getElementById("editGov").value,
+          city: document.getElementById("editCity").value,
+          address: document.getElementById("editAddress").value,
+          orderDetails: orderDetails,
+          quantity: Number(document.getElementById("editQuantity").value) || 0,
+          price: Number(document.getElementById("editPrice").value) || 0,
+          shipping: Number(document.getElementById("editShipping").value) || 0,
+          finalTotal: Number(document.getElementById("editTotal").value) || 0
+        });
+        closeMsg();
+      } catch (e) {
+        alert("حصل خطأ");
+        console.error(e);
+      }
+    };
+
+    window.toggleOrder = (id) => {
+      let el = document.getElementById("order-" + id);
+      if (!el) return;
+      let actions = el.parentElement.querySelector(".actions");
+      let isOpen = el.style.display === "flex";
+      el.style.display = isOpen ? "none" : "flex";
+      if (actions) actions.style.display = isOpen ? "none" : "flex";
+    }
+
+    let allSelected = false;
+    window.selectAll = () => {
+      let checkboxes = document.querySelectorAll(".selectOrder");
+      allSelected = !allSelected;
+      checkboxes.forEach(cb => {
+        let card = cb.closest(".card");
+        if (currentFilter && !card.classList.contains(currentFilter)) return;
+        cb.checked = allSelected;
+        card.style.background = allSelected ? "#e6fff2" : "#fff";
+      });
+      let btn = document.getElementById("selectAllBtn");
+      btn.innerText = allSelected ? "✖" : "✔";
+      btn.classList.toggle("active", allSelected);
+      updateSelectionUI();
+    };
+
+    window.closeMsg = () => { document.getElementById("msgPopup").style.display = "none"; };
+    window.openDatePicker = () => { document.getElementById("dateFilter").showPicker(); }
+
+    window.setFilter = (e, filter) => {
+      currentFilter = filter;
+      document.querySelectorAll(".filter-btn").forEach(btn => btn.classList.remove("active"));
+      e.target.classList.add("active");
+      render();
+    };
+
+    window.toggleInbox = () => {
+      let box = document.getElementById("messagesBox");
+      if (box.style.display === "none") {
+        box.style.display = "block";
+        setTimeout(() => box.classList.add("show"), 10);
+      } else {
+        box.classList.remove("show");
+        setTimeout(() => box.style.display = "none", 200);
+      }
+    }
+
+    function load() {
+      const qMessages = query(collection(db, "messages"), orderBy("createdAt", "desc"));
+      const qOrders = query(collection(db, "orders"), orderBy("createdAt", "desc"));
+      let unreadCount = 0;
+
+      onSnapshot(qMessages, (snap) => {
+        unreadCount = 0;
+        let badge = document.getElementById("msgBadge");
+        let html = "";
+        messages = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        messages.forEach(m => {
+          let status = m.status || "new";
+          if (status === "new") unreadCount++;
+          html += `<div class="msg-item ${status === 'new' ? 'unread' : ''}" onclick="openMsg('${m.id}')">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div>👤 ${m.name}</div>
+              ${status === 'new' ? '<span class="new-badge">جديد</span>' : ''}
+            </div>
+            <div style="font-size:12px;color:#666;">${m.phone}</div>
+          </div>`;
+        });
+        document.getElementById("messagesList").innerHTML = html;
+        badge.style.display = unreadCount > 0 ? "inline-block" : "none";
+        badge.innerText = unreadCount;
+      });
+
+      onSnapshot(qOrders, (snap) => {
+        snap.docChanges().forEach(change => {
+          if (change.type === "added" && lastCount !== 0) {
+            let o = change.doc.data();
+            sound();
+            if (Notification.permission === "granted")
+              new Notification("طلب جديد 🛒", { body: `${o.customerName || "عميل جديد"} - ${o.phone || ""}` });
+            showPopup(o);
+          }
+        });
+        lastCount = snap.size;
+        orders = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        render();
+      });
+    }
+
+    document.getElementById("dateFilter").addEventListener("change", render);
+    document.getElementById("search").addEventListener("input", render);
+    document.addEventListener("change", (e) => {
+      if (e.target.classList.contains("selectOrder")) {
+        let card = e.target.closest(".card");
+        card.style.background = e.target.checked ? "#e6fff2" : "#fff";
+        updateSelectionUI();
       }
     });
-    lastCount = snap.size;
-    orders = snap.docs.map(d=>({id:d.id,...d.data()}));
-    render();
-  });
-}
 
-document.getElementById("dateFilter").addEventListener("change", render);
-document.getElementById("search").addEventListener("input", render);
-document.addEventListener("change", (e)=>{
-  if(e.target.classList.contains("selectOrder")){
-    let card = e.target.closest(".card");
-    card.style.background = e.target.checked ? "#e6fff2" : "#fff";
-    updateSelectionUI();
-  }
-});
+    const audio = new Audio("https://assets.mixkit.co/sfx/preview/mixkit-bell-notification-933.mp3");
+    function sound() { audio.currentTime = 0; audio.play().catch(() => {}); }
+    Notification.requestPermission();
 
-const audio = new Audio("https://assets.mixkit.co/sfx/preview/mixkit-bell-notification-933.mp3");
-function sound(){ audio.currentTime = 0; audio.play().catch(()=>{}); }
-Notification.requestPermission();
+    document.addEventListener("contextmenu", e => {
+      if (!e.target.closest("input, textarea")) e.preventDefault();
+    });
+    document.addEventListener("dragstart", e => e.preventDefault());
 
-document.addEventListener("contextmenu", e => {
-  if(!e.target.closest("input, textarea")) e.preventDefault();
-});
-document.addEventListener("dragstart", e => e.preventDefault());
+    function render() {
+      let date = document.getElementById("dateFilter").value;
+      let search = document.getElementById("search").value.toLowerCase();
+      let html = "";
+      let count = 0;
 
-function render(){
-  let date = document.getElementById("dateFilter").value;
-  let search = document.getElementById("search").value.toLowerCase();
-  let html="";
-  let count=0;
+      orders.forEach(o => {
+        if (currentFilter && o.status !== currentFilter) return;
+        if (search && !o.customerName?.toLowerCase().includes(search) && !o.phone?.includes(search) && !o.orderID?.toString().toLowerCase().includes(search)) return;
+        let status = o.status || "new";
+        let d = o.createdAt?.toDate?.();
+        if (date && d && d.toDateString() !== new Date(date).toDateString()) return;
+        count++;
 
-  orders.forEach(o=>{
-    if(currentFilter && o.status !== currentFilter) return;
-    if(search && !o.customerName?.toLowerCase().includes(search) && !o.phone?.includes(search) && !o.orderID?.toString().toLowerCase().includes(search)) return;
-    let status = o.status || "new";
-    let d = o.createdAt?.toDate?.();
-    if(date && d && d.toDateString() !== new Date(date).toDateString()) return;
-    count++;
+        let msg = `DAHAP\nكود الطلب: ${o.orderID || "-"}\n\n--------------------\n👤 اسم العميل: ${o.customerName || "-"}\n📞 رقم الهاتف: ${o.phone || "-"}\n\n📍 العنوان:\n${o.gov || "-"} - ${o.city || "-"}\n${o.address || "-"}\n\n💎 تفاصيل الطلب:\n${(o.orderDetails || []).map((item,i) => `${i+1}. المنتج: ${item.name || 'بدون اسم'} | المقاس: ${item.size || '--'} | العدد: ${item.qty || 1} | السعر: ${item.price} EGP`).join("\n")}\n\n📦 الكمية: ${o.quantity}\n💰 السعر: ${o.price}\n🚚 الشحن: ${o.shipping}\n💵 الإجمالي: ${o.finalTotal}\n\n🕒 وقت الطلب:\n${o.createdAt?.toDate?.().toLocaleString('ar-EG') || "-"}`;
 
-    let msg = `DAHAP
-كود الطلب: ${o.orderID || "-"}
-
---------------------
-👤 اسم العميل: ${o.customerName || "-"}
-📞 رقم الهاتف: ${o.phone || "-"}
-
-📍 العنوان:
-${o.gov || "-"} - ${o.city || "-"}
-${o.address || "-"}
-
-💎 تفاصيل الطلب:
-${(o.orderDetails || []).map((item,i)=>`${i+1}. المنتج: ${item.name || 'بدون اسم'} | المقاس: ${item.size || '--'} | العدد: ${item.qty || 1} | السعر: ${item.price} EGP`).join("\n")}
-
-📦 الكمية: ${o.quantity}<br>
-💰 السعر: ${o.price}<br>
-🚚 الشحن: ${o.shipping}<br>
-💵 الإجمالي: <b>${o.finalTotal}</b>
-
-🕒 وقت الطلب:
-${o.createdAt?.toDate?.().toLocaleString('ar-EG') || "-"}`;
-
-    html += `
-<div class="card ${status}" style="position:relative;">
-  <input type="checkbox" class="selectOrder" value="${btoa(unescape(encodeURIComponent(JSON.stringify(o))))}">
-  <div onclick="toggleOrder('${o.id}')" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;">
-    <b>🧾 ${o.orderID}</b>
-    <span class="status ${status}">${status}</span>
-  </div>
-  <div id="order-${o.id}" class="order-body">
-    <div class="order-info">
-      👤 ${o.customerName}<br>
-      📞 ${o.phone}<br>
-      📍 ${o.gov} - ${o.city}<br>
-      ${o.address}<br><br>
-      💎 تفاصيل الطلب:
-      <div style="display:flex; flex-direction:column; gap:8px; margin-top:6px;">
-        ${(o.orderDetails || []).map((item,i)=>`
-        <div style="display:flex; align-items:center; gap:8px; background:#f9f9f9; padding:8px; border-radius:10px;">
-          ${item.image ? `<img src="${item.image}" style="width:40px; height:40px; object-fit:cover; border-radius:8px; cursor:pointer;" onclick="event.stopPropagation(); window.openAdminLightbox('${item.image}')">` : '<div style="width:40px; height:40px; background:#eee; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:10px;">📷</div>'}
-          <div style="flex:1;">
-            <b>${item.name || 'بدون اسم'}</b><br>
-            المقاس: ${item.size || '--'} | العدد: ${item.qty || 1} | السعر: ${item.price} EGP
+        html += `
+        <div class="card ${status}" style="position:relative;">
+          <input type="checkbox" class="selectOrder" value="${btoa(unescape(encodeURIComponent(JSON.stringify(o))))}">
+          <div onclick="toggleOrder('${o.id}')" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;">
+            <b>🧾 ${o.orderID}</b>
+            <span class="status ${status}">${status}</span>
           </div>
-        </div>`).join("")}
-      </div>
-    </div>
-    <div class="order-summary">
-      📦 الكمية: ${o.quantity}<br>
-      💰 السعر: ${o.price}<br>
-      🚚 الشحن: ${o.shipping}<br>
-      💵 الإجمالي: <b>${o.finalTotal}</b>
-      <div style="display:flex; gap:6px; margin-top:10px;">
-        <button onclick="editOrder('${o.id}')" style="flex:1;background:#ffc107;border:none;padding:6px;border-radius:8px;cursor:pointer;">✏️</button>
-        <button onclick="deleteOrder('${o.id}')" style="flex:1;background:#dc3545;color:#fff;border:none;padding:6px;border-radius:8px;cursor:pointer;">🗑️</button>
-      </div>
-    </div>
-  </div>
-  <div class="actions">
-    <a class="action-btn whatsapp" target="_blank" href="https://wa.me/2${o.phone}">💬</a>
-    <button class="action-btn copy" onclick='copyText(${JSON.stringify(msg)})'>📋</button>
-    <button class="action-btn ship" onclick="update('${o.id}','shipped')">🚚</button>
-    <button class="action-btn doneBtn" onclick="update('${o.id}','done')">✅</button>
-    <button class="action-btn" style="background:#999;color:#fff" onclick="update('${o.id}','new')">🔄</button>
-  </div>
-</div>`;
-  });
-  document.getElementById("orders").innerHTML=html;
-  document.getElementById("count").innerText="📊 "+count;
-}
+          <div id="order-${o.id}" class="order-body">
+            <div class="order-info">
+              👤 ${o.customerName}<br>
+              📞 ${o.phone}<br>
+              📍 ${o.gov} - ${o.city}<br>
+              ${o.address}<br><br>
+              💎 تفاصيل الطلب:
+              <div style="display:flex; flex-direction:column; gap:8px; margin-top:6px;">
+                ${(o.orderDetails || []).map((item,i) => `
+                <div style="display:flex; align-items:center; gap:8px; background:#f9f9f9; padding:8px; border-radius:10px;">
+                  ${item.image ? `<img src="${item.image}" style="width:40px; height:40px; object-fit:cover; border-radius:8px; cursor:pointer;" onclick="event.stopPropagation(); window.openAdminLightbox('${item.image}')">` : '<div style="width:40px; height:40px; background:#eee; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:10px;">📷</div>'}
+                  <div style="flex:1;">
+                    <b>${item.name || 'بدون اسم'}</b><br>
+                    المقاس: ${item.size || '--'} | العدد: ${item.qty || 1} | السعر: ${item.price} EGP
+                  </div>
+                </div>`).join("")}
+              </div>
+            </div>
+            <div class="order-summary">
+              📦 الكمية: ${o.quantity}<br>
+              💰 السعر: ${o.price}<br>
+              🚚 الشحن: ${o.shipping}<br>
+              💵 الإجمالي: <b>${o.finalTotal}</b>
+              <div style="display:flex; gap:6px; margin-top:10px;">
+                <button onclick="editOrder('${o.id}')" style="flex:1;background:#ffc107;border:none;padding:6px;border-radius:8px;cursor:pointer;">✏️</button>
+                <button onclick="deleteOrder('${o.id}')" style="flex:1;background:#dc3545;color:#fff;border:none;padding:6px;border-radius:8px;cursor:pointer;">🗑️</button>
+              </div>
+            </div>
+          </div>
+          <div class="actions">
+            <a class="action-btn whatsapp" target="_blank" href="https://wa.me/2${o.phone}">💬</a>
+            <button class="action-btn copy" onclick='copyText(${JSON.stringify(msg)})'>📋</button>
+            <button class="action-btn ship" onclick="update('${o.id}','shipped')">🚚</button>
+            <button class="action-btn doneBtn" onclick="update('${o.id}','done')">✅</button>
+            <button class="action-btn" style="background:#999;color:#fff" onclick="update('${o.id}','new')">🔄</button>
+          </div>
+        </div>`;
+      });
+      document.getElementById("orders").innerHTML = html;
+      document.getElementById("count").innerText = "📊 " + count;
+    }
 
-function updateSelectionUI(){
-  let selected = document.querySelectorAll(".selectOrder:checked").length;
-  document.getElementById("selectedCount").innerText = "✅ المحدد: " + selected;
-  let btn = document.getElementById("selectAllBtn");
-  btn.style.display = selected > 0 ? "flex" : "none";
-}
+    function updateSelectionUI() {
+      let selected = document.querySelectorAll(".selectOrder:checked").length;
+      document.getElementById("selectedCount").innerText = "✅ المحدد: " + selected;
+      let btn = document.getElementById("selectAllBtn");
+      btn.style.display = selected > 0 ? "flex" : "none";
+    }
 
-window.showPopup = (o)=>{
-  let box = document.getElementById("msgPopup");
-  let content = document.getElementById("msgContent");
-  content.innerHTML = `
-    <div style="text-align:center">
-      <h3 style="margin-bottom:10px;">🛒 أوردر جديد</h3>
-      <div style="font-size:18px;font-weight:bold;">👤 ${o.customerName || "غير معروف"}</div>
-      <div style="margin-top:5px;color:#666;">📞 ${o.phone || "-"}</div>
-      <a href="https://wa.me/2${o.phone}" target="_blank" style="display:block;margin-top:15px;background:#25D366;color:#fff;padding:10px;border-radius:10px;text-decoration:none;">💬 فتح واتساب</a>
-    </div>`;
-  box.style.display = "block";
-  setTimeout(()=>{ box.style.display = "none"; },5000);
-};
+    window.showPopup = (o) => {
+      let box = document.getElementById("msgPopup");
+      let content = document.getElementById("msgContent");
+      content.innerHTML = `
+        <div style="text-align:center">
+          <h3 style="margin-bottom:10px;">🛒 أوردر جديد</h3>
+          <div style="font-size:18px;font-weight:bold;">👤 ${o.customerName || "غير معروف"}</div>
+          <div style="margin-top:5px;color:#666;">📞 ${o.phone || "-"}</div>
+          <a href="https://wa.me/2${o.phone}" target="_blank" style="display:block;margin-top:15px;background:#25D366;color:#fff;padding:10px;border-radius:10px;text-decoration:none;">💬 فتح واتساب</a>
+        </div>`;
+      box.style.display = "block";
+      setTimeout(() => { box.style.display = "none"; }, 5000);
+    };
 
-window.copyText = (t)=>{ navigator.clipboard.writeText(decodeURIComponent(t)); }
+    window.copyText = (t) => { navigator.clipboard.writeText(decodeURIComponent(t)); }
 
-window.printSelected = () => {
-  let selected = document.querySelectorAll(".selectOrder:checked");
-  if(selected.length === 0){ alert("اختار أوردرات الأول"); return; }
-  let win = window.open('', '', 'width=900,height=700');
-  let html = `<html><head><meta charset="UTF-8"><style>body{margin:0;font-family:Arial;}.page{width:210mm;height:297mm;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;}.invoice{border:1px solid #000;padding:12px;box-sizing:border-box;display:flex;flex-direction:column;justify-content:space-between;}.header{display:flex;justify-content:space-between;font-size:12px;font-weight:bold;}.content{font-size:12px;line-height:1.6;margin-top:10px;}.centerMsg{text-align:center;font-size:13px;font-weight:bold;margin-top:20px;}hr{margin:6px 0;}</style></head><body><div class="page">`;
-  selected.forEach(el => {
-    let o = JSON.parse(decodeURIComponent(escape(atob(el.value))));
-    html += `<div class="invoice"><div class="header"><div>DAHAP</div><div>${o.createdAt?.toDate?.().toLocaleString('en-US') || new Date().toLocaleString('en-US')}</div></div><hr><div class="content"><div><b>Order ID:</b> ${o.orderID || "-"}</div><div><b>Name:</b> ${o.customerName || "-"}</div><div><b>Phone:</b> ${o.phone || "-"}</div><br><div><b>Address:</b></div><div>${o.gov || "-"} - ${o.city || "-"}</div><div>${o.address || "-"}</div></div><div class="centerMsg">Thank you for your order 💛<br>We appreciate your trust in DAHAP</div></div>`;
-  });
-  html += `</div><script>window.onload=function(){window.print();};</script></body></html>`;
-  win.document.write(html);
-  win.document.close();
-};
+    window.printSelected = () => {
+      let selected = document.querySelectorAll(".selectOrder:checked");
+      if (selected.length === 0) { alert("اختار أوردرات الأول"); return; }
+      let win = window.open('', '', 'width=900,height=700');
+      let html = `<html><head><meta charset="UTF-8"><style>body{margin:0;font-family:Arial;}.page{width:210mm;height:297mm;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;}.invoice{border:1px solid #000;padding:12px;box-sizing:border-box;display:flex;flex-direction:column;justify-content:space-between;}.header{display:flex;justify-content:space-between;font-size:12px;font-weight:bold;}.content{font-size:12px;line-height:1.6;margin-top:10px;}.centerMsg{text-align:center;font-size:13px;font-weight:bold;margin-top:20px;}hr{margin:6px 0;}</style></head><body><div class="page">`;
+      selected.forEach(el => {
+        let o = JSON.parse(decodeURIComponent(escape(atob(el.value))));
+        html += `<div class="invoice"><div class="header"><div>DAHAP</div><div>${o.createdAt?.toDate?.().toLocaleString('en-US') || new Date().toLocaleString('en-US')}</div></div><hr><div class="content"><div><b>Order ID:</b> ${o.orderID || "-"}</div><div><b>Name:</b> ${o.customerName || "-"}</div><div><b>Phone:</b> ${o.phone || "-"}</div><br><div><b>Address:</b></div><div>${o.gov || "-"} - ${o.city || "-"}</div><div>${o.address || "-"}</div></div><div class="centerMsg">Thank you for your order 💛<br>We appreciate your trust in DAHAP</div></div>`;
+      });
+      html += `</div><script>window.onload=function(){window.print();};<\/script></body></html>`;
+      win.document.write(html);
+      win.document.close();
+    };
 
-onAuthStateChanged(auth, (user) => {
-  if (user) { load(); }
-  else { window.location.href = "login.html"; }
-});
-</script>
-
+    onAuthStateChanged(auth, (user) => {
+      if (user) { load(); }
+      else { window.location.href = "login.html"; }
+    });
+  </script>
 </body>
 </html>
