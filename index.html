@@ -3566,8 +3566,10 @@ window.openProduct = function(id, name, price, image, sizes = [], description = 
     const allImages = [image, ...(product?.additionalImages || [])].filter(Boolean);
     
     currentProduct = { 
-        id, name, price: Number(price), image, sizes, description, stockBySize, allImages 
-    };
+    id, name, price: Number(price), 
+    comparePrice: product?.comparePrice || null,   // ✨ أضفنا هذا السطر
+    image, sizes, description, stockBySize, allImages 
+};
     galleryImages = allImages;
 currentImageIndex = 0;
     
@@ -3587,6 +3589,15 @@ currentImageIndex = 0;
     document.getElementById("modalTitle").textContent = name;
     document.getElementById("modalDesc").textContent = description || "منتج فاخر من VANTÉ";
     document.getElementById("modalPrice").textContent = Number(price) + " جنيه";
+
+// ✨ الكود الجديد
+const oldPriceEl = document.getElementById("modalOldPrice");
+if (product?.comparePrice && product.comparePrice > price) {
+    oldPriceEl.textContent = Number(product.comparePrice) + " جنيه";
+    oldPriceEl.style.display = '';   // أظهر السعر القديم مشطوبًا
+} else {
+    oldPriceEl.style.display = 'none';  // أخفه إذا لم يوجد خصم
+}
     
     const sizeSelect = document.getElementById("modalSize");
     sizeSelect.innerHTML = "";
