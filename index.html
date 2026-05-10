@@ -2144,6 +2144,32 @@ body.modal-open{
         flex: 0 0 calc(33.333% - 11px);
     }
 }
+/* نقاط المعرض */
+.gallery-dots {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 20px;
+    direction: ltr; /* مهم للتحكم */
+}
+
+.gallery-dots span {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #ccc;
+    transition: all 0.3s ease;
+    opacity: 0.5;
+    cursor: pointer;
+}
+
+.gallery-dots span.active {
+    width: 24px;
+    border-radius: 20px;
+    background: #D4AF37;
+    opacity: 1;
+    box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+}
 
     </style>
 </head>
@@ -2235,6 +2261,8 @@ body.modal-open{
             <div class="best-sellers-track" id="track"></div>
         </div>
     </div>
+    
+    <div class="gallery-dots" id="galleryDots"></div>
 </section>
 
     <section class="container">
@@ -2674,6 +2702,7 @@ function renderBestSellers() {
     goToPair(0);
     startAutoplay();
     bindGalleryEvents();
+    createDots();
 }
 
 // ========== التنقل بين الأزواج ==========
@@ -2697,6 +2726,7 @@ function goToPair(index) {
     // حركة أبطأ: 0.8 ثانية بدلاً من 0.5
     track.style.transition = 'transform 0.8s cubic-bezier(0.25, 0.8, 0.25, 1)';
     track.style.transform = `translate3d(${x}px, 0, 0)`;
+    updateDots();
 }
 
 function nextPair() {
@@ -2794,11 +2824,39 @@ onSnapshot(query(productsRef), (snapshot) => {
     renderBestSellers();
 });
 
-// إيقاف المؤقت عند فتح المودال أو السلة للحفاظ على الأداء (اختياري)
-// يمكنك استدعاء stopAutoplay() عند فتح أي نافذة منبثقة وإعادة startAutoplay() عند الإغلاق
-// لكن هذا ليس ضرورياً للتشغيل الأساسي.
+// ========== نقاط المعرض ==========
+function createDots() {
+    const dotsContainer = document.getElementById("galleryDots");
+    if (!dotsContainer) return;
+    
+    const track = document.getElementById("track");
+    const totalPairs = track ? track.querySelectorAll('.pair').length : 0;
+    
+    dotsContainer.innerHTML = '';
+    for (let i = 0; i < totalPairs; i++) {
+        const dot = document.createElement('span');
+        dot.addEventListener('click', () => goToPair(i));
+        dotsContainer.appendChild(dot);
+    }
+    updateDots();
+}
 
-// إجبار CSS snap على العمل
+function updateDots() {
+    const dotsContainer = document.getElementById("galleryDots");
+    if (!dotsContainer) return;
+    
+    const dots = dotsContainer.querySelectorAll('span');
+    // عكس الاتجاه بصرياً للـ RTL
+    const reversedIndex = (dots.length - 1) - currentPairIndex;
+    
+        dots.forEach((dot, i) => {
+        dot.classList.toggle('active', i === currentPairIndex);
+    });
+}
+
+// استدعاء createDots() في renderBestSellers بعد بناء الـ track
+// وأيضاً استدعاء updateDots() في goToPair()
+
 const style = document.createElement('style');
 style.innerHTML = `.pair { scroll-snap-align: start; scroll-snap-stop: always; }`;
 document.head.appendChild(style);
