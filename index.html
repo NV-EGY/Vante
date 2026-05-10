@@ -3312,31 +3312,39 @@ setTimeout(() => {
     // ========== القوائم والبحث ==========
     function setCategory(category) {
     currentCategory = category;
-    const url = new URL(window.location);
-    url.searchParams.set("category", category);
-    window.history.replaceState({}, "", url);   // 👈 استبدلنا pushState بـ replaceState
-
+    // استخدام التجزئة بدلاً من الاستعلام
+    window.location.hash = category === 'all' ? '' : category;
+    
     document.querySelectorAll("[data-category]").forEach(l => l.classList.remove("active"));
     document.querySelectorAll(`[data-category="${category}"]`).forEach(l => l.classList.add("active"));
     renderProducts();
 }
 
 // تنظيف الرابط عند التحميل الأول
+// قراءة التجزئة من الرابط عند التحميل
 (function () {
-    const url = new URL(window.location);
-    if (!url.searchParams.has('category') || url.searchParams.get('category') === '') {
-        url.searchParams.set('category', 'all');
-        window.history.replaceState({}, "", url);
+    const hash = window.location.hash.replace('#', '');
+    currentCategory = hash || 'all';
+    if (typeof filterLabel !== 'undefined' && filterLabel) {
+        const option = document.querySelector(`.filter-option[data-category="${currentCategory}"]`);
+        if (option) filterLabel.textContent = option.textContent;
+        // تحديث الكلاس النشط
+        document.querySelectorAll('.filter-option').forEach(opt => opt.classList.remove('active'));
+        const activeOption = document.querySelector(`.filter-option[data-category="${currentCategory}"]`);
+        if (activeOption) activeOption.classList.add('active');
     }
 })();
 
-window.addEventListener('DOMContentLoaded', () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const cat = urlParams.get('category') || 'all';
-    currentCategory = cat;
+// مستمع لتغير التجزئة (عند الضغط على أزرار المتصفح للأمام/للخلف)
+window.addEventListener('hashchange', () => {
+    const hash = window.location.hash.replace('#', '');
+    currentCategory = hash || 'all';
     if (typeof filterLabel !== 'undefined' && filterLabel) {
-        const option = document.querySelector(`.filter-option[data-category="${cat}"]`);
+        const option = document.querySelector(`.filter-option[data-category="${currentCategory}"]`);
         if (option) filterLabel.textContent = option.textContent;
+        document.querySelectorAll('.filter-option').forEach(opt => opt.classList.remove('active'));
+        const activeOption = document.querySelector(`.filter-option[data-category="${currentCategory}"]`);
+        if (activeOption) activeOption.classList.add('active');
     }
     renderProducts();
 });
