@@ -1794,6 +1794,357 @@ body.modal-open{
 .lightbox-nav.prev { left: 20px; }
 .lightbox-nav.next { right: 20px; }
 
+/* ====================================
+   BEST SELLERS GALLERY
+==================================== */
+.best-seller-card .price-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+}
+.best-seller-card .price-wrapper .old-price {
+    font-size: 13px;
+    color: #999;
+    text-decoration: line-through;
+    font-weight: 400;
+}
+.best-seller-card .price-wrapper .current-price {
+    font-size: 16px;
+    font-weight: 900;
+    color: #D4AF37;
+}
+
+.best-sellers {
+    max-width: 100%;     /* استغلال كامل العرض */
+    padding: 0 5px;      /* مسافة صغيرة جدًا من الجوانب */
+    max-width: 1200px;
+    margin: 30px auto 10px;
+    padding: 0 20px;
+}
+.best-sellers h2 {
+    font-size: 28px;
+    text-align: center;
+    margin-bottom: 20px;
+    color: #111;
+}
+/* ========== تمكين الالتقاط (Snap) ========== */
+.best-sellers-gallery {
+    display: flex;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    scroll-snap-type: x mandatory;      /* الالتقاط الإجباري */
+    -webkit-overflow-scrolling: touch;
+    gap: 0;                            /* فجوة خارجية صفر، المسافة داخل الأزواج */
+    padding: 10px 0 20px;
+}
+
+/* إخفاء overflow */
+.best-sellers-viewport {
+    overflow: hidden;
+    width: 100%;
+    direction: ltr; /* مهم للتحكم بالـ transform */
+}
+
+/* الـ track الذي سيتحرك */
+.best-sellers-track {
+    display: flex;
+    gap: 16px;
+    transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: transform;
+}
+
+/* كل زوج */
+.pair {
+    display: flex;
+    gap: 16px;                         /* المسافة بين البطاقتين */
+    flex-shrink: 0;
+    scroll-snap-align: start;          /* الالتقاط عند بداية الزوج */
+    scroll-snap-stop: always;          /* يمنع تخطي أكثر من زوج */
+}
+
+/* بطاقة داخل الزوج */
+.pair .best-seller-card {
+    flex: 0 0 calc(50% - 8px);         /* عرض نصف الزوج ناقص نصف المسافة */
+}
+.best-sellers-gallery::-webkit-scrollbar {
+    height: 5px;
+}
+.best-sellers-gallery::-webkit-scrollbar-thumb {
+    background: #D4AF37;
+    border-radius: 10px;
+}
+.best-seller-card {
+  position: relative;
+    flex: 0 0 auto;
+    width: 180px;
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+    overflow: hidden;
+    transition: transform 0.3s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 15px 10px;
+    cursor: pointer;
+}
+.best-seller-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.12);
+}
+.best-seller-card img {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 16px;
+    margin-bottom: 10px;
+}
+.best-seller-card .name {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 4px;
+    color: #111;
+    text-align: center;
+}
+.best-seller-card .price {
+    font-size: 16px;
+    font-weight: 900;
+    color: #D4AF37;
+}
+/* عنوان بتأثير لافت */
+/* عنوان بتأثير لافت - احترافي واضح */
+.flame-title {
+    font-size: 36px;
+    font-weight: 900;
+    text-align: center;
+    margin-bottom: 25px;
+    
+    /* لون دهبي ثابت كقاعدة */
+    color: #B8860B;
+    
+    /* طبقة التدرج الذهبي */
+    background: linear-gradient(
+        90deg,
+        #B8860B 0%,
+        #D4AF37 20%,
+        #FFF8DC 40%,
+        #D4AF37 60%,
+        #B8860B 100%
+    );
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    
+    /* ظل خفيف للوضوح */
+    filter: drop-shadow(0 2px 4px rgba(180, 130, 0, 0.3));
+    
+    animation: shimmerClear 4s ease-in-out infinite;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    display: block;
+    width: 100%;
+    position: relative;
+}
+
+/* تأثير underline ذهبي متحرك */
+.flame-title::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, #D4AF37, #FFD700, #D4AF37, transparent);
+    border-radius: 2px;
+    animation: underlineExpand 3s infinite ease-in-out;
+    /* ظل للخط */
+    box-shadow: 0 0 8px rgba(212, 175, 55, 0.5);
+}
+
+@keyframes shimmerClear {
+    0%, 100% { background-position: 200% center; }
+    50% { background-position: 0% center; }
+}
+
+@keyframes underlineExpand {
+    0%, 100% { width: 0; opacity: 0; }
+    50% { width: 60%; opacity: 1; }
+}
+
+/* شارة ذهبية لامعة مع تأثير */
+.best-seller-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: linear-gradient(90deg, #FFD700, #FFF, #FFD700);
+    background-size: 200% 100%;
+    animation: badgeShimmer 2s infinite linear;
+    color: #000;
+    padding: 3px 7px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: 800;
+    z-index: 10;
+    box-shadow: 0 0 8px rgba(255,215,0,0.4);
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+}
+@keyframes badgeShimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* ========== الأزرار الجانبية بدون إطار ========== */
+.gallery-btn {
+    font-size: 28px;
+    color: #D4AF37;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    padding: 5px;
+    transition: all 0.3s ease;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.gallery-btn:hover {
+    color: #FFA500;
+    transform: scale(1.2);
+}
+
+/* ========== هيكل الجاليري ========== */
+.gallery-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 10px;
+}
+
+/* ========== الجاليري الداخلي ========== */
+.best-sellers-gallery {
+    display: flex;
+    gap: 16px;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    padding: 10px 0 20px;
+    -webkit-overflow-scrolling: touch;
+    flex: 1;
+    justify-content: flex-start; /* يبدأ من اليمين في RTL */
+    scrollbar-width: thin;
+}
+.best-sellers-gallery::-webkit-scrollbar {
+    height: 4px;
+}
+.best-sellers-gallery::-webkit-scrollbar-thumb {
+    background: #D4AF37;
+    border-radius: 10px;
+}
+
+/* ========== بطاقة المنتج (تظهر 2 في الصف) ========== */
+/* ========== بطاقة المنتج (افتراضي: عرض 180px للأجهزة الكبيرة) ========== */
+.best-seller-card {
+    position: relative;
+    flex: 0 0 auto;
+    width: 180px;
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+    overflow: hidden;
+    transition: transform 0.3s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 15px 10px;
+    cursor: pointer;
+}
+
+/* على الشاشات المتوسطة (600px فما فوق) نسمح بظهور 2 */
+@media (min-width: 600px) {
+    .best-seller-card {
+        flex: 0 0 calc(50% - 8px);
+        width: auto;
+    }
+}
+
+/* على الشاشات الكبيرة (900px فما فوق) يمكن ظهور 3 */
+@media (min-width: 900px) {
+    .best-seller-card {
+        flex: 0 0 calc(33.333% - 11px);
+        width: auto;
+    }
+}
+
+/* قواعد موحدة للهواتف (أقل من 600px) */
+/* قواعد موحدة للهواتف (أقل من 600px) */
+@media (max-width: 599px) {
+    .best-sellers {
+        padding: 0 5px;
+        margin-top: 20px;
+    }
+    .best-sellers h2 {
+        font-size: 24px;
+        margin-bottom: 15px;
+    }
+    .gallery-wrapper {
+        position: relative; /* ضروري لتموضع الأزرار بشكل مطلق */
+        padding: 0;
+    }
+    .best-sellers-gallery {
+        gap: 8px;
+        padding: 0 5px; /* مسافة صغيرة من الأطراف */
+    }
+    .best-seller-card {
+        flex: 0 0 calc(50% - 4px);
+        max-width: calc(50% - 4px);
+    }
+/* الأزرار تطفو فوق الجاليري بدائرة زجاجية */
+.gallery-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 32px;
+    height: 32px;
+    font-size: 18px;
+    background: rgba(255, 255, 255, 0.75); /* خلفية زجاجية شفافة */
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    border: 1px solid #D4AF37;
+    color: #D4AF37;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border-radius: 50%; /* دائرة كاملة */
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+.gallery-btn.prev {
+    right: 2px;
+}
+.gallery-btn.next {
+    left: 2px;
+}
+.gallery-btn:hover {
+    background: rgba(255, 215, 0, 0.9);
+    color: #000;
+    transform: translateY(-50%) scale(1.1);
+}
+/* على الشاشات الكبيرة يمكن 3 */
+@media (min-width: 900px) {
+    .best-seller-card {
+        flex: 0 0 calc(33.333% - 11px);
+    }
+}
+
     </style>
 </head>
 
@@ -1876,6 +2227,15 @@ body.modal-open{
     <section class="hero">
         <img src="images/header.webp" alt="VANTÉ Banner">
     </section>
+    
+<section class="best-sellers">
+    <h2 class="flame-title">الأكثر مبيعاً</h2>
+    <div class="gallery-wrapper">
+        <div class="best-sellers-viewport" id="viewport">
+            <div class="best-sellers-track" id="track"></div>
+        </div>
+    </div>
+</section>
 
     <section class="container">
         <h2>المنتجات</h2>
@@ -2265,12 +2625,183 @@ function renderProducts() {
         </div>`;
     }).join("");
 }
+// ========== متغيرات المعرض ==========
+let currentPairIndex = 0;
+let autoplayTimer = null;
+let resumeTimer;
+let pairWidth = 0;
 
-    const productsRef = collection(db, "products");
-    onSnapshot(query(productsRef), (snapshot) => {
-        allProducts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        renderProducts();
+// ========== بناء المعرض ==========
+function renderBestSellers() {
+    const track = document.getElementById("track");
+    if (!track || !allProducts.length) return;
+
+    const shuffled = [...allProducts].sort(() => 0.5 - Math.random());
+    const selected = shuffled.slice(0, 10);
+
+    let html = '';
+    for (let i = 0; i < selected.length; i += 2) {
+        const pairProducts = selected.slice(i, i + 2);
+        html += '<div class="pair">';
+        html += pairProducts.map(p => {
+            const hasDiscount = p.comparePrice && p.comparePrice > p.price;
+            const discountPercent = hasDiscount ? Math.round((1 - p.price / p.comparePrice) * 100) : 0;
+            const badgeHtml = hasDiscount 
+                ? `<span class="best-seller-badge">%${discountPercent} خصم</span>` 
+                : `<span class="best-seller-badge">الأكثر مبيعاً</span>`;
+            const priceHtml = hasDiscount 
+                ? `<div class="price-wrapper"><span class="old-price">${p.comparePrice} EGP</span><span class="current-price">${p.price} EGP</span></div>`
+                : `<div class="price-wrapper"><span class="current-price">${p.price} EGP</span></div>`;
+            return `
+            <div class="best-seller-card" onclick='openProduct("${p.id}", ${JSON.stringify(p.name)}, ${Number(p.price)}, ${JSON.stringify(p.image)}, ${JSON.stringify(p.sizes || ["7","8","9"])}, ${JSON.stringify(p.description || "")})'>
+                ${badgeHtml}
+                <img src="${p.image}" alt="${p.name}">
+                <div class="name">${p.name}</div>
+                ${priceHtml}
+            </div>`;
+        }).join('');
+        html += '</div>';
+    }
+    track.innerHTML = html;
+
+    // حساب عرض الزوج الأول (يشمل gap)
+    const firstPair = track.querySelector('.pair');
+    if (firstPair) {
+        pairWidth = firstPair.offsetWidth + 16; // gap = 16px
+    }
+
+    // بدء من الزوج الأول (أقصى اليمين)
+    goToPair(0);
+    startAutoplay();
+    bindGalleryEvents();
+}
+
+// ========== التنقل بين الأزواج ==========
+// ========== التنقل بين الأزواج ==========
+function goToPair(index) {
+    const track = document.getElementById("track");
+    if (!track) return;
+
+    const totalPairs = track.querySelectorAll('.pair').length;
+    const viewportWidth = document.getElementById('viewport').clientWidth;
+    const maxAllowed = Math.max(0, totalPairs - Math.ceil(viewportWidth / pairWidth));
+
+    if (index < 0) index = 0;
+    if (index > maxAllowed) index = maxAllowed;
+
+    currentPairIndex = index;
+
+    const offset = (viewportWidth / 2) - (pairWidth / 2);
+    const x = offset - (currentPairIndex * pairWidth);
+
+    // حركة أبطأ: 0.8 ثانية بدلاً من 0.5
+    track.style.transition = 'transform 0.8s cubic-bezier(0.25, 0.8, 0.25, 1)';
+    track.style.transform = `translate3d(${x}px, 0, 0)`;
+}
+
+function nextPair() {
+    const track = document.getElementById("track");
+    const totalPairs = track.querySelectorAll('.pair').length;
+    const viewportWidth = document.getElementById('viewport').clientWidth;
+    const maxAllowed = Math.max(0, totalPairs - Math.ceil(viewportWidth / pairWidth));
+
+    let next = currentPairIndex + 1;
+    if (next > maxAllowed) {
+        // رجوع ناعم: نذهب للزوج 0 بحركة أبطأ
+        next = 0;
+        // إضافة transition أطول للرجوع من الآخر للأول
+        track.style.transition = 'transform 2s cubic-bezier(0.25, 0.8, 0.25, 1)';
+    }
+    goToPair(next);
+}
+
+function prevPair() {
+    const track = document.getElementById("track");
+    const totalPairs = track.querySelectorAll('.pair').length;
+    const viewportWidth = document.getElementById('viewport').clientWidth;
+    const maxAllowed = Math.max(0, totalPairs - Math.ceil(viewportWidth / pairWidth));
+
+    let prev = currentPairIndex - 1;
+    if (prev < 0) prev = maxAllowed; // رجوع للآخر
+    goToPair(prev);
+}
+
+// ========== الحركة التلقائية ==========
+function startAutoplay() {
+    stopAutoplay();
+    autoplayTimer = setInterval(nextPair, 3000);
+}
+
+function stopAutoplay() {
+    if (autoplayTimer) {
+        clearInterval(autoplayTimer);
+        autoplayTimer = null;
+    }
+}
+
+// ========== السحب اليدوي (مثل دهب) ==========
+let startX = 0;
+let isDragging = false;
+
+function bindGalleryEvents() {
+    const track = document.getElementById("track");
+    if (!track) return;
+
+    track.addEventListener('touchstart', (e) => {
+        isDragging = true;
+        startX = e.touches[0].clientX;
+        stopAutoplay();
+        clearTimeout(resumeTimer);
+    }, { passive: true });
+
+    track.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        startX = e.clientX;
+        stopAutoplay();
+        clearTimeout(resumeTimer);
     });
+
+    track.addEventListener('touchend', (e) => {
+        if (!isDragging) return;
+        isDragging = false;
+
+        const diff = e.changedTouches[0].clientX - startX;
+        if (diff < -50) nextPair();      // سحب لليسار
+        else if (diff > 50) prevPair(); // سحب لليمين
+        else goToPair(currentPairIndex);
+
+        resumeTimer = setTimeout(startAutoplay, 4000);
+    }, { passive: true });
+
+    track.addEventListener('mouseup', (e) => {
+        if (!isDragging) return;
+        isDragging = false;
+
+        const diff = e.clientX - startX;
+        if (diff < -50) nextPair();
+        else if (diff > 50) prevPair();
+        else goToPair(currentPairIndex);
+
+        resumeTimer = setTimeout(startAutoplay, 4000);
+    });
+}
+
+// تحميل البيانات
+const productsRef = collection(db, "products");
+onSnapshot(query(productsRef), (snapshot) => {
+    allProducts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    renderProducts();
+    renderBestSellers();
+});
+
+// إيقاف المؤقت عند فتح المودال أو السلة للحفاظ على الأداء (اختياري)
+// يمكنك استدعاء stopAutoplay() عند فتح أي نافذة منبثقة وإعادة startAutoplay() عند الإغلاق
+// لكن هذا ليس ضرورياً للتشغيل الأساسي.
+
+// إجبار CSS snap على العمل
+const style = document.createElement('style');
+style.innerHTML = `.pair { scroll-snap-align: start; scroll-snap-stop: always; }`;
+document.head.appendChild(style);
     
     window.addCurrentProductToCart = function(event) {
     if (event) event.stopPropagation();
@@ -2290,10 +2821,23 @@ function renderProducts() {
         }
     }
     
-    window.addToCart(currentProduct.name, Number(currentProduct.price), size, currentProduct.image);
-    updateCart();
-    closeProduct();
-    openCart();
+window.addToCart(currentProduct.name, Number(currentProduct.price), size, currentProduct.image);
+updateCart();
+// إغلاق المودال فورياً دون أنيميشن على الـ overlay
+const modal = document.getElementById("productModal");
+modal.classList.remove("active");
+document.body.classList.remove("modal-open");
+disableSwipe();
+
+// إعادة ضبط الـ overlay ليظهر مع السلة بدون تأثير الانتقال السابق
+const overlay = document.getElementById("overlay");
+overlay.style.transition = 'none';
+overlay.classList.remove("active");
+void overlay.offsetWidth; // reflow
+overlay.style.transition = '';
+
+// فتح سلة التسوق الآن
+openCart();
 };
 
     // ========== السلة ==========
@@ -2460,7 +3004,7 @@ if (!phoneRegex.test(phone)) {
                 address,
                 orderDetails,
                 quantity,
-                subtotal,
+                price: subtotal,
                 shipping,
                 finalTotal,
                 status: "new",
