@@ -46,6 +46,20 @@ select{
     outline:none;
 }
 
+/* إلغاء جميع تأثيرات التركيز واللمس الزرقاء من كل العناصر */
+*:focus,
+*:active {
+    outline: none !important;
+    box-shadow: none !important;
+    -webkit-tap-highlight-color: transparent !important;
+    -webkit-focus-ring-color: transparent !important;
+}
+
+/* إزالة تأثير اللمس في أجهزة iOS و Android */
+* {
+    -webkit-tap-highlight-color: transparent;
+}
+
 /* ====================================
    TOP OFFER BAR
 ==================================== */
@@ -327,6 +341,7 @@ select{
 }
 
 .product {
+    cursor: pointer;
     background: #fff;
     border: none;
     border-radius: 24px;
@@ -2612,16 +2627,8 @@ function renderProducts() {
         // ============================================
 
         return `
-        <div class="product ${outOfStock ? 'out-of-stock' : ''}">
-            <div class="product-image"
-                onclick='openProduct(
-                    "${p.id}",
-                    ${JSON.stringify(p.name)},
-                    ${Number(p.price)},
-                    ${JSON.stringify(p.image)},
-                    ${JSON.stringify(sizes)},
-                    ${JSON.stringify(p.description || "")}
-                )'>
+        <div class="product ${outOfStock ? 'out-of-stock' : ''}" onclick='openProduct("${p.id}", ${JSON.stringify(p.name)}, ${Number(p.price)}, ${JSON.stringify(p.image)}, ${JSON.stringify(sizes)}, ${JSON.stringify(p.description || "")})'>
+            <div class="product-image">
                 ${discountBadgeHtml}
                 <img src="${p.image}" alt="${p.name}">
             </div>
@@ -2630,9 +2637,9 @@ function renderProducts() {
                 ${hasDiscount ? `<span style="text-decoration:line-through;color:#999;font-size:14px;">${Number(p.comparePrice)} EGP</span>` : ''}
                 <span class="price">${Number(p.price)}</span>
                 <span class="currency">EGP</span>
-            </div>
+           </div>
             
-            <div class="size-selector-wrapper">
+            <div class="size-selector-wrapper" onclick="event.stopPropagation()">
                 <select class="size-select" data-product-id="${p.id}">
                     <option value="" disabled selected>اختر المقاس</option>
                     ${sizes.map(s => {
@@ -2647,8 +2654,8 @@ function renderProducts() {
             </div>
             
             ${stockHtml}
-            <button class="btn-primary add-cart-btn" ${addBtnDisabled} onclick="event.stopPropagation(); window.addToCartFromCard('${p.id}', '${p.name.replace(/'/g, "\\'")}', ${Number(p.price)}, '${p.image}')">
-                ${outOfStock ? 'نفذت الكمية' : 'أضف للسلة'}
+            <button class="btn-primary add-cart-btn" ${addBtnDisabled} onclick="event.stopPropagation(); window.addToCartFromCard(...)">
+                ${outOfStock ? '<i class="fas fa-times-circle"></i> نفذت الكمية' : '<i class="fas fa-shopping-bag"></i> أضف للسلة'}
             </button>
         </div>`;
     }).join("");
