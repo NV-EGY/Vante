@@ -2729,7 +2729,7 @@ function prevPair() {
 // ========== الحركة التلقائية ==========
 function startAutoplay() {
     stopAutoplay();
-    autoplayTimer = setInterval(nextPair, 3000);
+    autoplayTimer = setInterval(nextPair, 2600);
 }
 
 function stopAutoplay() {
@@ -2770,7 +2770,7 @@ function bindGalleryEvents() {
         else if (diff > 50) prevPair(); // سحب لليمين
         else goToPair(currentPairIndex);
 
-        resumeTimer = setTimeout(startAutoplay, 4000);
+        resumeTimer = setTimeout(startAutoplay, 3000);
     }, { passive: true });
 
     track.addEventListener('mouseup', (e) => {
@@ -2782,7 +2782,7 @@ function bindGalleryEvents() {
         else if (diff > 50) prevPair();
         else goToPair(currentPairIndex);
 
-        resumeTimer = setTimeout(startAutoplay, 4000);
+        resumeTimer = setTimeout(startAutoplay, 3000);
     });
 }
 
