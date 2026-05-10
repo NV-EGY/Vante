@@ -2654,7 +2654,7 @@ function renderProducts() {
             </div>
             
             ${stockHtml}
-            <button class="btn-primary add-cart-btn" ${addBtnDisabled} onclick="event.stopPropagation(); window.addToCartFromCard(...)">
+            <button class="btn-primary add-cart-btn" ${addBtnDisabled} onclick="event.stopPropagation(); window.addToCartFromCard('${p.id}', '${p.name.replace(/'/g, "\\'")}', ${Number(p.price)}, '${p.image}')">
                 ${outOfStock ? '<i class="fas fa-times-circle"></i> نفذت الكمية' : '<i class="fas fa-shopping-bag"></i> أضف للسلة'}
             </button>
         </div>`;
