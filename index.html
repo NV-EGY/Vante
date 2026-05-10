@@ -255,6 +255,94 @@ select{
     color:#111;
 }
 
+/* شريط التصفية المنسدل */
+.filter-bar {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 30px;
+    padding: 0 20px;
+}
+
+.filter-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.filter-selected {
+    background: #111;
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 30px;
+    font-weight: 700;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.3s ease;
+    user-select: none;
+}
+
+.filter-selected:hover {
+    background: #222;
+}
+
+.filter-selected i {
+    font-size: 14px;
+    transition: transform 0.3s ease;
+}
+
+.filter-dropdown.open .filter-selected i {
+    transform: rotate(180deg);
+}
+
+.filter-options {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%) scaleY(0);
+    transform-origin: top center;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+    min-width: 200px;
+    overflow: hidden;
+    opacity: 0;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+    z-index: 100;
+}
+
+.filter-dropdown.open .filter-options {
+    transform: translateX(-50%) scaleY(1);
+    opacity: 1;
+}
+
+.filter-option {
+    padding: 14px 20px;
+    color: #111;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+    border-bottom: 1px solid #f5f5f5;
+}
+
+.filter-option:last-child {
+    border-bottom: none;
+}
+
+.filter-option:hover {
+    background: #f9f9f9;
+    color: #D4AF37;
+}
+
+.filter-option.active {
+    background: #111;
+    color: #fff;
+}
+
 .modal-close{
     position: absolute;
     top: 18px;
@@ -2280,10 +2368,27 @@ body.modal-open{
     <div class="gallery-dots" id="galleryDots"></div>
 </section>
 
-    <section class="container">
-        <h2>المنتجات</h2>
-        <div class="products"></div>
-    </section>
+   <section class="container">
+    <!-- شريط التصفية المنسدل -->
+    <div class="filter-bar">
+        <div class="filter-dropdown" id="filterDropdown">
+            <div class="filter-selected" id="filterSelected">
+                <span id="filterLabel">كل المنتجات</span>
+                <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="filter-options" id="filterOptions">
+                <div class="filter-option active" data-category="all">كل المنتجات</div>
+                <div class="filter-option" data-category="necklaces">سلاسل & كوليهات</div>
+                <div class="filter-option" data-category="bracelets">أساور & غوايش</div>
+                <div class="filter-option" data-category="rings">دبل & خواتم</div>
+                <div class="filter-option" data-category="earrings">حلقان</div>
+                <div class="filter-option" data-category="sets">اطقم</div>
+                <div class="filter-option" data-category="anklets">خلخال</div>
+            </div>
+        </div>
+    </div>
+    <div class="products"></div>
+</section>
 
     <div id="cartDrawer" class="drawer">
         <h2>🛒 سلة التسوق</h2>
@@ -2572,7 +2677,7 @@ function renderProducts() {
     const filtered = allProducts.filter(p => selectedCategory === "all" ? true : normalize(p.category || "all") === selectedCategory);
 
     if (filtered.length === 0) {
-    productsContainer.innerHTML = `<div style="display:flex; align-items:center; justify-content:center; min-height:60vh; width:100%; text-align:center; font-size:18px; color:#888;">لا توجد منتجات في هذا القسم</div>`;
+    productsContainer.innerHTML = `<div style="grid-column:1/-1; display:flex; align-items:center; justify-content:center; min-height:20vh; text-align:center; font-size:18px; color:#888;">لا توجد منتجات في هذا القسم</div>`;
     return;
 }
 
@@ -2660,6 +2765,50 @@ function renderProducts() {
         </div>`;
     }).join("");
 }
+
+// ========== فلترة المنتجات بالقائمة المنسدلة ==========
+const filterSelected = document.getElementById('filterSelected');
+const filterOptions = document.getElementById('filterOptions');
+const filterDropdown = document.getElementById('filterDropdown');
+const filterLabel = document.getElementById('filterLabel');
+
+// فتح/إغلاق القائمة المنسدلة
+filterSelected.addEventListener('click', (e) => {
+    e.stopPropagation();
+    filterDropdown.classList.toggle('open');
+});
+
+// إغلاق القائمة عند النقر خارجها
+document.addEventListener('click', () => {
+    filterDropdown.classList.remove('open');
+});
+
+// منع إغلاق القائمة عند النقر داخلها
+filterOptions.addEventListener('click', (e) => {
+    e.stopPropagation();
+});
+
+// اختيار فئة من القائمة
+filterOptions.addEventListener('click', (e) => {
+    const option = e.target.closest('.filter-option');
+    if (!option) return;
+    
+    const category = option.dataset.category;
+    const categoryName = option.textContent;
+    
+    // تحديث النص الظاهر
+    filterLabel.textContent = categoryName;
+    
+    // إزالة active من الكل وإضافتها للمختار
+    document.querySelectorAll('.filter-option').forEach(opt => opt.classList.remove('active'));
+    option.classList.add('active');
+    
+    // تطبيق الفلتر باستخدام الدالة الموجودة
+    setCategory(category);
+    
+    // إغلاق القائمة
+    filterDropdown.classList.remove('open');
+});
 // ========== متغيرات المعرض ==========
 let currentPairIndex = 0;
 let autoplayTimer = null;
