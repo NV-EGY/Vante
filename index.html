@@ -2598,6 +2598,11 @@ window.toggleMobileMenu = function (e) {
     menu.classList.toggle("active");
     overlay.classList.toggle("active");
     document.body.style.overflow = menu.classList.contains("active") ? "hidden" : "";
+
+    if (menu.classList.contains("active")) {
+        // عند الفتح، القائمة الفرعية لازم تكون مقفولة دايمًا
+        document.getElementById('collectionsSub').classList.remove('active');
+    }
 };
 
 window.closeMobileMenu = function () {
@@ -2796,19 +2801,35 @@ filterOptions.addEventListener('click', (e) => {
     const category = option.dataset.category;
     const categoryName = option.textContent;
     
-    // تحديث النص الظاهر
+    // تحديث نص الفلتر
     filterLabel.textContent = categoryName;
     
-    // إزالة active من الكل وإضافتها للمختار
+    // تحديث التمييز في الخيارات
     document.querySelectorAll('.filter-option').forEach(opt => opt.classList.remove('active'));
     option.classList.add('active');
     
-    // تطبيق الفلتر باستخدام الدالة الموجودة
+    // تطبيق الفلتر على المنتجات
     setCategory(category);
     
-    // إغلاق القائمة
+    // إغلاق القائمة المنسدلة
     filterDropdown.classList.remove('open');
+    
+    // إغلاق القائمة الجانبية (الموبايل) إن كانت مفتوحة
+    closeMobileMenu();
 });
+
+function closeCollectionsSub() {
+    const mobileSub = document.getElementById("collectionsSub");
+    const desktopSub = document.getElementById("collectionsSubDesktop");
+    if (mobileSub) mobileSub.classList.remove("active");
+    if (desktopSub) desktopSub.classList.remove("active");
+}
+window.addEventListener("DOMContentLoaded", () => {
+    const params = new URLSearchParams(window.location.search);
+    const initialCategory = params.get("category") || "all";
+    setCategory(initialCategory);
+});
+
 // ========== متغيرات المعرض ==========
 let currentPairIndex = 0;
 let autoplayTimer = null;
@@ -3309,26 +3330,92 @@ setTimeout(() => {
         }
     };
 
+window.toggleCollections = function(e) {
+    if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    // افتح/اقفل القايمة في الموبايل
+    const mobileSub = document.getElementById("collectionsSub");
+    if (mobileSub) mobileSub.classList.toggle("active");
+
+    // افتح/اقفل القايمة في سطح المكتب (لما يكون عرض الشاشة صغير واللمس شغال)
+    const desktopSub = document.getElementById("collectionsSubDesktop");
+    if (desktopSub) desktopSub.classList.toggle("active");
+};
+
+// السماح بفتح Collections بالضغط على سطح المكتب (للمسات)
+document.querySelectorAll('.desktop-dropdown > a').forEach(link => {
+    link.addEventListener('click', function(e) {
+        if (window.innerWidth <= 992) { // للأجهزة اللي بتشتغل باللمس
+            e.preventDefault();
+            const sub = this.nextElementSibling;
+            if (sub) sub.classList.toggle('active');
+        }
+    });
+});
+
     // ========== القوائم والبحث ==========
     function setCategory(category) {
     currentCategory = category;
     const url = new URL(window.location);
     url.searchParams.set("category", category);
-    window.history.replaceState({}, "", url);   // 👈 استبدلنا pushState بـ replaceState
+    window.history.replaceState({}, "", url);
 
     document.querySelectorAll("[data-category]").forEach(l => l.classList.remove("active"));
     document.querySelectorAll(`[data-category="${category}"]`).forEach(l => l.classList.add("active"));
+
+    const collectionsToggles = document.querySelectorAll('.collection-toggle');
+    const activeCategoryLink = document.querySelector(`[data-category="${category}"]`);
+    
+    if (activeCategoryLink) {
+        const parentSub = activeCategoryLink.closest('.collections-sub');
+        if (parentSub) {
+            const toggle = parentSub.previousElementSibling;
+            if (toggle && toggle.classList.contains('collection-toggle')) {
+                toggle.classList.add('active');
+                const icon = toggle.querySelector('i');
+                const categoryName = activeCategoryLink.textContent.trim();
+                toggle.innerHTML = categoryName + ' ' + (icon ? icon.outerHTML : '');
+            }
+        } else {
+            document.querySelectorAll('.collection-toggle').forEach(t => {
+                t.classList.remove('active');
+                const icon = t.querySelector('i');
+                t.innerHTML = 'Collections ' + (icon ? icon.outerHTML : '');
+            });
+        }
+    } else {
+        document.querySelectorAll('.collection-toggle').forEach(t => {
+            t.classList.remove('active');
+            const icon = t.querySelector('i');
+            t.innerHTML = 'Collections ' + (icon ? icon.outerHTML : '');
+        });
+    }
+
+    const filterLabel = document.getElementById("filterLabel");
+    const filterOptions = document.querySelectorAll(".filter-option");
+    filterOptions.forEach(opt => {
+        opt.classList.remove("active");
+        if (opt.dataset.category === category) {
+            opt.classList.add("active");
+            if (filterLabel) filterLabel.textContent = opt.textContent;
+        }
+    });
+
     renderProducts();
 }
 
-    window.handleMenuClick = (e, category) => { e.preventDefault(); setCategory(category); };
-    window.toggleCollections = (e) => {
+    window.handleMenuClick = (e, category) => {
     e.preventDefault();
-    e.stopPropagation();
-    const mobile = document.getElementById("collectionsSub");
-    const desktop = document.getElementById("collectionsSubDesktop");
-    if (mobile) mobile.classList.toggle("active");
-    if (desktop) desktop.classList.toggle("active");
+    setCategory(category);
+    // إغلاق القائمة الفرعية أولًا عشان الاسم يفضل متغير
+    const mobileSub = document.getElementById("collectionsSub");
+    const desktopSub = document.getElementById("collectionsSubDesktop");
+    if (mobileSub) mobileSub.classList.remove("active");
+    if (desktopSub) desktopSub.classList.remove("active");
+    // بعدين نقفل القائمة الجانبية
+    closeMobileMenu();
 };
 let lastSearchFilter = '';
 let currentImageIndex = 0;
