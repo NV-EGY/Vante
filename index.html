@@ -2280,7 +2280,7 @@ body.modal-open{
 <body>
 
     <div class="top-offer">
-        <div class="offer-text">خصم 10% لفترة محدودة</div>
+        <div class="offer-text">🎁 جارٍ تحضير عرضك الخاص...</div>
         <div class="offer-timer">
             OFFER ENDS IN :
             <span id="h">04</span>h
@@ -3572,7 +3572,7 @@ function initOffer() {
         const visitCount = parseInt(localStorage.getItem(VISIT_COUNT_KEY) || '0', 10);
         let discount = 10, duration = 15; // أول زيارة: خصم 10% لمدة 15 دقيقة
         if (visitCount > 0) {
-            discount = 5;
+            discount = 10;
             duration = 10; // الزيارات التالية: خصم 5% لمدة 10 دقائق
         }
         localStorage.setItem(VISIT_COUNT_KEY, (visitCount + 1).toString());
