@@ -2283,7 +2283,7 @@ body.modal-open{
         <div class="offer-text">🎁 جارٍ تحضير عرضك الخاص...</div>
         <div class="offer-timer">
             OFFER ENDS IN :
-            <span id="h">04</span>h
+            <span id="h">00</span>h
             <span id="m">00</span>m
             <span id="s">00</span>s
         </div>
@@ -3532,15 +3532,22 @@ function updateOfferDisplay(offer) {
     const sEl = document.getElementById('s');
 
     if (!offer) {
-        if (offerTextEl) offerTextEl.textContent = '✨ تسوق الآن واستمتع بأفضل العروض';
+        if (offerTextEl) offerTextEl.textContent = '✨ عروضنا مستمرة - تسوق الآن';
         if (hEl) hEl.textContent = '00';
         if (mEl) mEl.textContent = '00';
         if (sEl) sEl.textContent = '00';
         return;
     }
 
+    // نصوص عامة بدون نسب
+    const messages = {
+        first: '🎁 عرض خاص بك ينتهي خلال',
+        returning: '💎 فرصة أخرى للاستفادة'
+    };
+
     if (offerTextEl) {
-        offerTextEl.textContent = `🎁 عرض خاص بك! خصم ${offer.discount}% لمدة محدودة`;
+        // نحدد الرسالة بناءً على عدد الزيارات (نمررها مع offer)
+        offerTextEl.textContent = offer.isReturning ? messages.returning : messages.first;
     }
 
     function tick() {
@@ -3549,7 +3556,7 @@ function updateOfferDisplay(offer) {
             if (hEl) hEl.textContent = '00';
             if (mEl) mEl.textContent = '00';
             if (sEl) sEl.textContent = '00';
-            if (offerTextEl) offerTextEl.textContent = '⏰ العرض انتهى. اكتشف المزيد';
+            if (offerTextEl) offerTextEl.textContent = '⏰ انتهى العرض - تصفح الجديد';
             localStorage.removeItem(OFFER_STORAGE_KEY);
             return;
         }
@@ -3570,13 +3577,19 @@ function initOffer() {
         updateOfferDisplay(active);
     } else {
         const visitCount = parseInt(localStorage.getItem(VISIT_COUNT_KEY) || '0', 10);
-        let discount = 10, duration = 15; // أول زيارة: خصم 10% لمدة 15 دقيقة
-        if (visitCount > 0) {
-            discount = 10;
-            duration = 10; // الزيارات التالية: خصم 5% لمدة 10 دقائق
+        let discount = 10; // خصم حقيقي لكن غير معلن
+        let duration = 15;
+        let isReturning = visitCount > 0;
+
+        if (isReturning) {
+            discount = 5;
+            duration = 10;
         }
+
         localStorage.setItem(VISIT_COUNT_KEY, (visitCount + 1).toString());
         const newOffer = startNewOffer(discount, duration);
+        newOffer.isReturning = isReturning; // نضيف هذه العلامة
+        
         updateOfferDisplay(newOffer);
     }
 }
