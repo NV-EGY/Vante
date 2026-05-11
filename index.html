@@ -28,11 +28,27 @@ body{
     color:#111111;
     line-height:1.6;
     overflow-x:hidden;
+       -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none; /* iOS */
 }
 
 img{
+  pointer-events: none; /* يمنع سحب الصورة */
+    -webkit-user-drag: none;
+    user-select: none;
+    -webkit-touch-callout: none;
     max-width:100%;
     display:block;
+}
+
+input, textarea, select, [contenteditable] {
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
 }
 
 a{
