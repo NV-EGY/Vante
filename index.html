@@ -2761,7 +2761,7 @@ window.submitReview = async function() {
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, addDoc, serverTimestamp, onSnapshot, query, orderBy, updateDoc, doc, increment } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, addDoc, serverTimestamp, onSnapshot, query, orderBy, where, getDocs, updateDoc, doc, increment, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyCotT8EP2uy_HsgHknxeGBorKoEUORPtmU",
@@ -3305,16 +3305,15 @@ openCart();
         const address = document.getElementById("address").value.trim();
 
         if (!name || !phone || !gov || !city || !address) {
-    alert("يرجى استكمال جميع بيانات الطلب");
-    return;
-}
+            alert("يرجى استكمال جميع بيانات الطلب");
+            return;
+        }
 
-// التحقق من رقم الهاتف (مصري فقط: 11 رقم ويبدأ بـ 01)
-const phoneRegex = /^01[0125][0-9]{8}$/;
-if (!phoneRegex.test(phone)) {
-    alert("يرجى إدخال رقم هاتف مصري صحيح (11 رقم، يبدأ بـ 01)");
-    return;
-}
+        const phoneRegex = /^01[0125][0-9]{8}$/;
+        if (!phoneRegex.test(phone)) {
+            alert("يرجى إدخال رقم هاتف مصري صحيح (11 رقم، يبدأ بـ 01)");
+            return;
+        }
         if (cart.length === 0) {
             alert("السلة فارغة");
             return;
@@ -3323,39 +3322,91 @@ if (!phoneRegex.test(phone)) {
         btn.disabled = true;
         btn.innerText = "جاري إرسال الطلب...";
 
-        try {
-            const quantity = cart.reduce((sum, item) => sum + item.qty, 0);
-            const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-            const shipping = 70;
-            const finalTotal = subtotal + shipping;
-            const orderID = "V" + Date.now();
+try {
+    const ordersRef = collection(db, "orders");
 
-            const orderDetails = cart.map(item => ({
-                name: item.name,
-                size: item.size || "",
-                qty: item.qty,
-                price: item.price,
-                image: item.image || ""
-            }));
+    // تاريخ اليوم
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    const dateStr = `${yyyy}${mm}${dd}`;
 
-            const orderData = {
-                orderID,
-                customerName: name,
-                phone,
-                gov,
-                city,
-                address,
-                orderDetails,
-                quantity,
-                price: subtotal,
-                shipping,
-                finalTotal,
-                status: "new",
-                createdAt: serverTimestamp()
-            };
+    // 1. عدد طلبات العميل الإجمالية (حسب رقم الهاتف)
+    const qCustomer = query(ordersRef, where("phone", "==", phone));
+    const customerSnapshot = await getDocs(qCustomer);
+    const customerOrderCount = customerSnapshot.size + 1;
 
-            await addDoc(collection(db, "orders"), orderData);
-            
+    // 2. رقم الطلب خلال اليوم
+    const qToday = query(ordersRef, where("date", "==", dateStr));
+    const todaySnapshot = await getDocs(qToday);
+    const dailyOrderCount = todaySnapshot.size + 1;
+
+    // 3. الكود التسلسلي للعميل (من مجموعة customers)
+    const customersRef = collection(db, "customers");
+    const qCustomerDoc = query(customersRef, where("phone", "==", phone));
+    const customerDocSnap = await getDocs(qCustomerDoc);
+
+    let customerCode;
+
+    if (!customerDocSnap.empty) {
+        // عميل موجود مسبقًا -> نستخدم كوده القديم
+        customerCode = customerDocSnap.docs[0].data().customerCode;
+    } else {
+        // عميل جديد -> ننشئ كودًا تسلسليًا جديدًا
+        const counterRef = doc(db, "counters", "customers");
+        const counterSnap = await getDoc(counterRef);
+        if (!counterSnap.exists()) {
+            await setDoc(counterRef, { value: 0 });
+        }
+        // زيادة العداد والحصول على القيمة الجديدة
+        await updateDoc(counterRef, { value: increment(1) });
+        const newCustomerNumber = (await getDoc(counterRef)).data().value;
+        customerCode = `V${newCustomerNumber}`;
+
+        // حفظ العميل الجديد
+        await setDoc(doc(db, "customers", phone), {
+            phone,
+            name,
+            customerCode,
+            createdAt: serverTimestamp()
+        });
+    }
+
+    // 4. الصيغة النهائية
+    const orderID = `V-${dateStr}-${customerCode}-${customerOrderCount}-${dailyOrderCount}`;
+    
+    const quantity = cart.reduce((sum, item) => sum + item.qty, 0);
+    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+    const shipping = 70;
+    const finalTotal = subtotal + shipping;
+
+    const orderDetails = cart.map(item => ({
+        name: item.name,
+        size: item.size || "",
+        qty: item.qty,
+        price: item.price,
+        image: item.image || ""
+    }));
+
+    const orderData = {
+        orderID,
+        customerName: name,
+        phone,
+        gov,
+        city,
+        address,
+        orderDetails,
+        quantity,
+        price: subtotal,
+        shipping,
+        finalTotal,
+        status: "new",
+        date: dateStr,          // ✅ حقل التاريخ لتتبُّع الطلبات اليومية
+        createdAt: serverTimestamp()
+    };
+
+    await addDoc(collection(db, "orders"), orderData);
             // خصم الكميات من المخزون// تجميع الكميات المطلوبة لكل منتج/مقاس لضمان خصم صحيح
 const stockUpdates = {}; // { productId: { size: totalQty } }
 cart.forEach(item => {
