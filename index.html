@@ -3494,25 +3494,93 @@ document.getElementById("searchInput").addEventListener("input", function() {
     });
 });
 
- // Offer Timer
-    const targetTime = Date.now() + 4 * 60 * 60 * 1000;
+// ========== OFFER TIMER (عرض شخصي ديناميكي) ==========
+const OFFER_STORAGE_KEY = 'vante_offer_data';
+const VISIT_COUNT_KEY = 'vante_visit_count';
 
-setInterval(() => {
+function getOfferData() {
+    try {
+        return JSON.parse(localStorage.getItem(OFFER_STORAGE_KEY));
+    } catch { return null; }
+}
+function saveOfferData(data) {
+    localStorage.setItem(OFFER_STORAGE_KEY, JSON.stringify(data));
+}
+function getActiveOffer() {
+    const data = getOfferData();
+    if (!data || Date.now() >= data.endTime) {
+        localStorage.removeItem(OFFER_STORAGE_KEY);
+        return null;
+    }
+    return data;
+}
+function startNewOffer(discountPercent, durationMinutes) {
+    const now = Date.now();
+    const data = {
+        discount: discountPercent,
+        endTime: now + durationMinutes * 60 * 1000,
+        startedAt: now
+    };
+    saveOfferData(data);
+    return data;
+}
 
-    const diff = targetTime - Date.now();
+function updateOfferDisplay(offer) {
+    const offerTextEl = document.querySelector('.offer-text');
+    const hEl = document.getElementById('h');
+    const mEl = document.getElementById('m');
+    const sEl = document.getElementById('s');
 
-    if (diff <= 0) return;
+    if (!offer) {
+        if (offerTextEl) offerTextEl.textContent = '✨ تسوق الآن واستمتع بأفضل العروض';
+        if (hEl) hEl.textContent = '00';
+        if (mEl) mEl.textContent = '00';
+        if (sEl) sEl.textContent = '00';
+        return;
+    }
 
-    document.getElementById("h").textContent =
-        String(Math.floor(diff / 3600000)).padStart(2,"0");
+    if (offerTextEl) {
+        offerTextEl.textContent = `🎁 عرض خاص بك! خصم ${offer.discount}% لمدة محدودة`;
+    }
 
-    document.getElementById("m").textContent =
-        String(Math.floor(diff % 3600000 / 60000)).padStart(2,"0");
+    function tick() {
+        const diff = offer.endTime - Date.now();
+        if (diff <= 0) {
+            if (hEl) hEl.textContent = '00';
+            if (mEl) mEl.textContent = '00';
+            if (sEl) sEl.textContent = '00';
+            if (offerTextEl) offerTextEl.textContent = '⏰ العرض انتهى. اكتشف المزيد';
+            localStorage.removeItem(OFFER_STORAGE_KEY);
+            return;
+        }
+        const h = Math.floor(diff / 3600000);
+        const m = Math.floor((diff % 3600000) / 60000);
+        const s = Math.floor((diff % 60000) / 1000);
+        if (hEl) hEl.textContent = String(h).padStart(2, '0');
+        if (mEl) mEl.textContent = String(m).padStart(2, '0');
+        if (sEl) sEl.textContent = String(s).padStart(2, '0');
+        requestAnimationFrame(() => setTimeout(tick, 1000));
+    }
+    tick();
+}
 
-    document.getElementById("s").textContent =
-        String(Math.floor(diff % 60000 / 1000)).padStart(2,"0");
-
-}, 1000);
+function initOffer() {
+    const active = getActiveOffer();
+    if (active) {
+        updateOfferDisplay(active);
+    } else {
+        const visitCount = parseInt(localStorage.getItem(VISIT_COUNT_KEY) || '0', 10);
+        let discount = 10, duration = 15; // أول زيارة: خصم 10% لمدة 15 دقيقة
+        if (visitCount > 0) {
+            discount = 5;
+            duration = 10; // الزيارات التالية: خصم 5% لمدة 10 دقائق
+        }
+        localStorage.setItem(VISIT_COUNT_KEY, (visitCount + 1).toString());
+        const newOffer = startNewOffer(discount, duration);
+        updateOfferDisplay(newOffer);
+    }
+}
+initOffer();
 // استبدال alert التقليدية بنظام Toast فاخر
 const originalAlert = window.alert;
 window.alert = function(message, type = 'success') {
