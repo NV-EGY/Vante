@@ -690,87 +690,127 @@ window.deleteOrder = async function(id){
 
 }
 
-window.editOrder = (id) => {
-  let o = orders.find(x => x.id === id);
-  if (!o) return;
+window.editOrder = (id)=>{
+
+  let o = orders.find(x=>x.id === id);
+  if(!o) return;
 
   let box = document.getElementById("msgPopup");
 
   box.innerHTML = `
     <div class="popup-box">
+
+      <!-- 🔝 header -->
       <div class="popup-header">
         <span>✏️ تعديل الأوردر</span>
         <span onclick="closeMsg()" style="cursor:pointer;">✖</span>
       </div>
+
+      <!-- 📄 body -->
       <div class="popup-body">
+
         <input id="editName" value="${o.customerName || ''}" placeholder="اسم العميل"><br><br>
         <input id="editPhone" value="${o.phone || ''}" placeholder="رقم الهاتف"><br><br>
+
         <input id="editGov" value="${o.gov || ''}" placeholder="المحافظة"><br><br>
         <input id="editCity" value="${o.city || ''}" placeholder="المدينة"><br><br>
+
         <input id="editAddress" value="${o.address || ''}" placeholder="العنوان"><br><br>
+
         <hr>
-        <label style="font-weight:bold;">💎 تفاصيل الطلب</label>
-        <div id="editOrderDetailsContainer">
-          ${(o.orderDetails || []).map((item, i) => `
-            <div style="border:1px solid #ccc; padding:8px; margin:8px 0; border-radius:8px;">
-              <input value="${item.name || ''}" placeholder="اسم المنتج" data-index="${i}" class="detail-name"><br>
-              <input value="${item.size || ''}" placeholder="المقاس" data-index="${i}" class="detail-size"><br>
-              <input value="${item.qty || ''}" placeholder="الكمية" type="number" data-index="${i}" class="detail-qty"><br>
-              <input value="${item.price || ''}" placeholder="السعر" type="number" data-index="${i}" class="detail-price">
-            </div>
-          `).join("")}
-        </div>
+
+        <label style="font-weight:bold;">
+        💎 تفاصيل الطلب
+        </label>
+
+        <textarea id="editDetails" class="nice-textarea">
+${(o.orderDetails || []).map(i=>`
+${i.names || ""} | ${i.design || ""} | ${i.lang || ""}
+`.trim()).join("\n")}
+        </textarea>
+
         <hr>
+
         <input id="editQuantity" value="${o.quantity || ''}" placeholder="الكمية"><br><br>
         <input id="editPrice" value="${o.price || ''}" placeholder="السعر"><br><br>
         <input id="editShipping" value="${o.shipping || ''}" placeholder="الشحن"><br><br>
         <input id="editTotal" value="${o.finalTotal || ''}" placeholder="الإجمالي">
+
       </div>
+
+      <!-- 🔻 footer -->
       <div class="popup-footer">
-        <button onclick="saveEdit('${id}')" style="width:100%; padding:10px; background:#0F7B65; color:#fff; border:none; border-radius:10px; margin-bottom:8px;">حفظ التعديلات</button>
-        <button onclick="closeMsg()" style="width:100%; padding:10px; background:#333; color:#fff; border:none; border-radius:10px;">إغلاق</button>
+
+        <button onclick="saveEdit('${id}')" style="
+          width:100%;
+          padding:10px;
+          background:#0F7B65;
+          color:#fff;
+          border:none;
+          border-radius:10px;
+          margin-bottom:8px;
+        ">
+          حفظ التعديلات
+        </button>
+
+        <button onclick="closeMsg()" style="
+          width:100%;
+          padding:10px;
+          background:#333;
+          color:#fff;
+          border:none;
+          border-radius:10px;
+        ">
+          إغلاق
+        </button>
+
       </div>
+
     </div>
   `;
 
-  box.style.display = "flex";
+  box.style.display = "flex"; // 👈 مهم عشان السنتر
 };
 
-window.saveEdit = async function(id) {
-  // استخراج تفاصيل المنتجات
-  let detailContainers = document.querySelectorAll("#editOrderDetailsContainer > div");
-  let orderDetails = [];
-  
-  detailContainers.forEach(container => {
-    let name = container.querySelector(".detail-name")?.value || "";
-    let size = container.querySelector(".detail-size")?.value || "";
-    let qty = parseInt(container.querySelector(".detail-qty")?.value) || 0;
-    let price = parseInt(container.querySelector(".detail-price")?.value) || 0;
-    
-    if (name || size) {
-      orderDetails.push({ name, size, qty, price });
-    }
-  });
+window.saveEdit = async function(id){
 
-  try {
-    await updateDoc(doc(db, "orders", id), {
+  let detailsText = document.getElementById("editDetails").value;
+
+  let orderDetails = detailsText.split("\n")
+  .map(line=>{
+    let [names, design, lang] = line.split("|");
+
+    return {
+      names: names?.trim() || "",
+      design: design?.trim() || "",
+      lang: lang?.trim() || ""
+    };
+  })
+  .filter(i => i.names || i.design || i.lang); // 👈 يمنع السطور الفاضية
+
+  try{
+    await updateDoc(doc(db,"orders",id),{
       customerName: document.getElementById("editName").value,
       phone: document.getElementById("editPhone").value,
       gov: document.getElementById("editGov").value,
       city: document.getElementById("editCity").value,
       address: document.getElementById("editAddress").value,
+
       orderDetails: orderDetails,
-      quantity: Number(document.getElementById("editQuantity").value),
-      price: Number(document.getElementById("editPrice").value),
-      shipping: Number(document.getElementById("editShipping").value),
-      finalTotal: Number(document.getElementById("editTotal").value)
+
+quantity: Number(document.getElementById("editQuantity").value),
+price: Number(document.getElementById("editPrice").value),
+shipping: Number(document.getElementById("editShipping").value),
+finalTotal: Number(document.getElementById("editTotal").value)
     });
 
     closeMsg();
-  } catch(e) {
+
+  }catch(e){
     alert("حصل خطأ");
     console.error(e);
   }
+
 }
 
 const app = initializeApp(firebaseConfig);
@@ -1057,10 +1097,10 @@ ${o.address || "-"}
 
 💎 تفاصيل الطلب:
 ${(o.orderDetails || []).map((item,i)=>`
-🔹 ${item.name}
-   المقاس: ${item.size}
-   العدد: ${item.qty}
-   السعر: ${item.price} جنيه
+سلسلة ${i+1}:
+🏷️ ${item.names}
+🎨 ${item.design}
+🌍 ${item.lang}
 `).join("\n")}
 
 📦 الكمية: ${o.quantity}<br>
@@ -1101,10 +1141,10 @@ html += `
     📍 ${o.gov} - ${o.city} <br>
     ${o.address} <br><br>
 
-💎 تفاصيل الطلب:<br>
-${(o.orderDetails || []).map((item,i)=>`
-  🔹 ${item.name} | المقاس: ${item.size} | العدد: ${item.qty} | السعر: ${item.price} جنيه<br>
-`).join("")}
+    💎 التفاصيل:<br>
+    ${(o.orderDetails || []).map((item,i)=>`
+      🔹 ${item.names} - ${item.design} - ${item.lang}<br>
+    `).join("")}
   </div>
 
   <div class="order-summary">
