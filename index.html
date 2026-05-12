@@ -3374,7 +3374,7 @@ try {
     }
 
     // 4. الصيغة النهائية
-    const orderID = `${customerCode}-${dateStr}${customerOrderCount}00${String(dailyOrderCount).padStart(3, '0')}`;
+    const orderID = `${customerCode}-${dateStr}${customerOrderCount}${String(dailyOrderCount).padStart(3, '0')}`;
     
     const quantity = cart.reduce((sum, item) => sum + item.qty, 0);
     const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
