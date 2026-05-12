@@ -4316,14 +4316,21 @@ window.showLogin = function() {
             <i class="fab fa-google"></i> تسجيل الدخول بحساب Google
         </button>
     `;
-    // reCAPTCHA
+    
+    // ▼▼▼ الإصلاح هنا بالضبط ▼▼▼
     if (window.recaptchaVerifier) window.recaptchaVerifier.clear();
-    window.recaptchaVerifier = new RecaptchaVerifier(document.getElementById('recaptcha-container'), {
-    size: 'normal',
-    callback: () => { }
-}, auth);
-    window.recaptchaVerifier.render().then(widgetId => {
+    window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+        'size': 'normal',
+        'callback': (response) => {
+            // reCAPTCHA solved, allow signInWithPhoneNumber.
+        }
+    });
+    // ▲▲▲ نهاية الإصلاح ▲▲▲
+
+    window.recaptchaVerifier.render().then((widgetId) => {
         window.recaptchaWidgetId = widgetId;
+    }).catch((error) => {
+        console.error("reCAPTCHA render error:", error);
     });
 };
 
