@@ -2403,33 +2403,44 @@ body.modal-open{
 }
 .auth-modal {
     background: #fff;
-    border-radius: 24px;
-    padding: 30px 25px;
+    border-radius: 28px;
+    padding: 35px 25px;
     width: 90%;
     max-width: 420px;
-    box-shadow: 0 30px 60px rgba(0,0,0,0.2);
+    box-shadow: 0 40px 80px rgba(0,0,0,0.12);
     text-align: center;
     position: relative;
+    border: 1px solid rgba(212,175,55,0.15);
 }
 .auth-modal h2 {
-    margin-bottom: 20px;
-    font-size: 24px;
-    color: #111;
+    margin-bottom: 30px;
+    font-size: 26px;
+    font-weight: 900;
+    background: linear-gradient(135deg, #D4AF37, #B8860B);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 .auth-modal input {
     width: 100%;
     padding: 15px;
     margin-bottom: 15px;
-    border: 1px solid #ddd;
-    border-radius: 12px;
+    border: 2px solid #f0f0f0;
+    border-radius: 14px;
     font-size: 15px;
     text-align: center;
+    background: #fafafa;
+    transition: all 0.3s ease;
+}
+.auth-modal input:focus {
+    border-color: #D4AF37;
+    background: #fff;
+    box-shadow: 0 0 0 4px rgba(212,175,55,0.08);
 }
 .auth-btn {
     width: 100%;
     padding: 14px;
     border: none;
-    border-radius: 12px;
+    border-radius: 14px;
     font-weight: 700;
     font-size: 15px;
     cursor: pointer;
@@ -2437,28 +2448,29 @@ body.modal-open{
     margin-bottom: 12px;
 }
 .auth-btn.primary {
-    background: #111;
+    background: linear-gradient(135deg, #111, #222);
     color: #fff;
+    border: 1px solid #333;
+    font-weight: 800;
+    letter-spacing: 1px;
 }
 .auth-btn.primary:hover {
-    background: #D4AF37;
+    background: linear-gradient(135deg, #D4AF37, #B8860B);
     color: #000;
 }
 .auth-btn.google {
     background: #fff;
-    border: 1px solid #ddd;
+    border: 2px solid #f0f0f0;
     color: #111;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 10px;
+    font-weight: 600;
 }
 .auth-btn.google:hover {
-    background: #f5f5f5;
-}
-.auth-btn.google img {
-    width: 20px;
-    height: 20px;
+    border-color: #D4AF37;
+    background: #fafafa;
 }
 .auth-link {
     color: #D4AF37;
@@ -2468,6 +2480,8 @@ body.modal-open{
 }
 .recaptcha-container {
     margin-bottom: 15px;
+    display: flex;
+    justify-content: center;
 }
 .profile-info {
     text-align: right;
@@ -2480,71 +2494,16 @@ body.modal-open{
     color: #111;
 }
 .discount-code-box {
-    background: #f9f9f9;
-    border: 1px dashed #D4AF37;
-    padding: 12px;
-    border-radius: 12px;
-    margin: 15px 0;
-    font-weight: 700;
-    font-size: 16px;
-    text-align: center;
-}
-/* تحسينات كارت تسجيل الدخول */
-.auth-modal {
-    padding: 35px 25px;
-    background: #ffffff;
-    box-shadow: 0 40px 80px rgba(0,0,0,0.12);
-    border: 1px solid rgba(212,175,55,0.15);
-}
-
-.auth-modal h2 {
-    font-size: 26px;
-    font-weight: 900;
-    background: linear-gradient(135deg, #D4AF37, #B8860B);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    margin-bottom: 30px;
-}
-
-.auth-modal input {
-    border: 2px solid #f0f0f0;
-    transition: all 0.3s ease;
-    background: #fafafa;
-}
-.auth-modal input:focus {
-    border-color: #D4AF37;
-    background: #fff;
-    box-shadow: 0 0 0 4px rgba(212,175,55,0.08);
-}
-
-.auth-btn.primary {
-    background: linear-gradient(135deg, #111, #222);
-    color: #fff;
-    border: 1px solid #333;
-    font-weight: 800;
-    letter-spacing: 1px;
-}
-.auth-btn.primary:hover {
-    background: linear-gradient(135deg, #D4AF37, #B8860B);
-    color: #000;
-}
-
-.auth-btn.google {
-    border: 2px solid #f0f0f0;
-    font-weight: 600;
-    transition: all 0.3s ease;
-}
-.auth-btn.google:hover {
-    border-color: #D4AF37;
-    background: #fafafa;
-}
-
-.discount-code-box {
     background: linear-gradient(135deg, #fff9e6, #fff);
     border: 2px dashed #D4AF37;
+    padding: 12px;
+    border-radius: 14px;
+    margin: 15px 0;
+    font-weight: 700;
     font-size: 18px;
     color: #B8860B;
     letter-spacing: 2px;
+    text-align: center;
 }
 
     </style>
@@ -2948,7 +2907,7 @@ function showProfile(user) {
                 <p><strong>كود الخصم:</strong></p>
                 <div class="discount-code-box">${discount}</div>
             </div>
-            <button class="auth-btn primary" onclick="signOut()">تسجيل الخروج</button>
+            <button class="auth-btn primary" onclick="window.signOutUser()">تسجيل الخروج</button>
         `;
     });
 }
@@ -3440,7 +3399,18 @@ if (typeof updateCart === 'function') updateCart();
     openCart();
 };
 
-    window.updateCart = function() {
+  window.updateCart = async function() {
+      // جلب كود الخصم إذا مسجل الدخول
+let discountCode = null;
+if (auth.currentUser) {
+    const phone = auth.currentUser.phoneNumber || (auth.currentUser.providerData[0]?.phoneNumber) || '';
+    if (phone) {
+        const customerSnap = await getDocs(query(collection(db, "customers"), where("phone", "==", phone)));
+        if (!customerSnap.empty) {
+            discountCode = customerSnap.docs[0].data().discountCode;
+        }
+    }
+}
     let total = 0, count = 0;
     const html = cart.map((item, index) => {
         total += item.price * item.qty;
@@ -3485,7 +3455,15 @@ const discountPercent = hasDiscount ? Math.round((1 - item.price / item.compareP
 </div>
         </div>`;
     }).join("");
-    document.getElementById("cartItems").innerHTML = cart.length ? html : "السلة فارغة";
+    // إضافة كود الخصم إذا وجد
+let discountHtml = '';
+if (discountCode) {
+    discountHtml = `<div style="background:#f9f9f9; border:1px dashed #D4AF37; padding:12px; border-radius:12px; margin-bottom:15px; text-align:center;">
+        <span style="color:#B8860B; font-weight:700;">🎫 كود الخصم: ${discountCode}</span>
+    </div>`;
+}
+// ثم عند تحديث innerHTML، اجعله يبدأ بـ discountHtml:
+document.getElementById("cartItems").innerHTML = discountHtml + (cart.length ? html : "السلة فارغة");
     document.getElementById("total").innerText = total;
     document.getElementById("cartCount").innerText = count;
     localStorage.setItem('vante_cart', JSON.stringify(cart));
@@ -3736,58 +3714,6 @@ document.querySelectorAll('.desktop-dropdown > a').forEach(link => {
 });
 
 // ========== AUTH FUNCTIONS ==========
-window.sendOTP = async function() {
-    const phone = document.getElementById("phoneInput").value.trim();
-    if (!phone || !phone.match(/^01[0125][0-9]{8}$/)) {
-        alert("رقم هاتف غير صحيح");
-        return;
-    }
-    try {
-        const appVerifier = window.recaptchaVerifier;
-        const confirmationResult = await signInWithPhoneNumber(auth, '+2' + phone, appVerifier);
-        window.confirmationResult = confirmationResult;
-        document.getElementById("otpSection").style.display = 'block';
-        document.getElementById("sendOtpBtn").style.display = 'none';
-        alert("تم إرسال كود التحقق");
-    } catch (error) {
-        console.error(error);
-        alert("خطأ: " + error.message);
-    }
-};
-
-window.verifyOTP = async function() {
-    const code = document.getElementById("otpInput").value.trim();
-    if (!code) return alert("أدخل الكود");
-    try {
-        const result = await window.confirmationResult.confirm(code);
-        const user = result.user;
-        window.currentAuthUser = user;
-        await createCustomerIfNeeded(user);
-        closeAccount();
-        alert("تم تسجيل الدخول بنجاح ✨");
-        updateUIForAuth(user);
-    } catch (error) {
-        console.error(error);
-        alert("كود غير صحيح");
-    }
-};
-
-window.signInWithGoogle = async function() {
-    const provider = new GoogleAuthProvider();
-    try {
-        const result = await signInWithPopup(auth, provider);
-        const user = result.user;
-        window.currentAuthUser = user;
-        await createCustomerIfNeeded(user);
-        closeAccount();
-        alert("تم تسجيل الدخول بحساب Google ✨");
-        updateUIForAuth(user);
-    } catch (error) {
-        console.error(error);
-        alert("خطأ: " + error.message);
-    }
-};
-
 window.signOut = async function() {
     await firebaseSignOut(auth);
     window.currentAuthUser = null;
@@ -3797,22 +3723,21 @@ window.signOut = async function() {
 };
 
 // إنشاء ملف العميل إذا لم يكن موجودًا
-async function createCustomerIfNeeded(user) {
-    const phone = user.phoneNumber || '';
+window.createCustomerIfNeeded = async function(user) {
+    const phone = user.phoneNumber || (user.providerData[0]?.phoneNumber) || '';
     if (!phone) return;
     const customersRef = collection(db, "customers");
     const q = query(customersRef, where("phone", "==", phone));
     const snap = await getDocs(q);
-    if (!snap.empty) return; // موجود مسبقًا
+    if (!snap.empty) return; // موجود بالفعل
 
-    // عميل جديد -> إنشاء كود تسلسلي وكود خصم
     const counterRef = doc(db, "counters", "customers");
     const counterSnap = await getDoc(counterRef);
     if (!counterSnap.exists()) await setDoc(counterRef, { value: 0 });
     await updateDoc(counterRef, { value: increment(1) });
     const newNum = (await getDoc(counterRef)).data().value;
     const customerCode = `V${newNum}`;
-    const discountCode = `VANTE${newNum}`; // مثال: VANTE1, VANTE2 ...
+    const discountCode = `VANTE${newNum}`;
 
     await setDoc(doc(db, "customers", phone), {
         phone,
@@ -3820,7 +3745,7 @@ async function createCustomerIfNeeded(user) {
         discountCode,
         createdAt: serverTimestamp()
     });
-}
+};
 
 // جلب بيانات العميل
 window.getCustomerData = async function(phone) {
@@ -3832,17 +3757,16 @@ window.getCustomerData = async function(phone) {
 };
 
 // تحديث واجهة المستخدم بعد تسجيل الدخول/الخروج
-function updateUIForAuth(user) {
+window.updateUIForAuth = function(user) {
     const userIcon = document.getElementById("userIcon");
     if (user) {
         userIcon.style.color = "#D4AF37";
         window.currentAuthUser = user;
-        // يمكن إظهار اسم أو أيقونة مختلفة
     } else {
         userIcon.style.color = "";
         window.currentAuthUser = null;
     }
-}
+};
 
     // ========== القوائم والبحث ==========
     function setCategory(category) {
@@ -4378,10 +4302,12 @@ window.updateModalStockDisplay = function() {
 onAuthStateChanged(auth, (user) => {
     if (user) {
         window.currentAuthUser = user;
-        updateUIForAuth(user);
+        window.updateUIForAuth(user);
+        window.updateCart(); // ← أضف هذا السطر
     } else {
         window.currentAuthUser = null;
-        updateUIForAuth(null);
+        window.updateUIForAuth(null);
+        window.updateCart(); // ← أضف هذا السطر
     }
 });
 
@@ -4389,6 +4315,7 @@ window.renderProducts = renderProducts;
 window.applySearch = applySearch;
 window.allProducts = allProducts;
 
+// ========== AUTH UI ==========
 window.showLogin = function() {
     document.getElementById("accountContent").innerHTML = `
         <h2>تسجيل الدخول</h2>
@@ -4396,13 +4323,14 @@ window.showLogin = function() {
         <input type="tel" id="phoneInput" placeholder="رقم الهاتف (01XXXXXXXXX)">
         <div id="otpSection" style="display:none;">
             <input type="text" id="otpInput" placeholder="كود التحقق">
-            <button class="auth-btn primary" onclick="verifyOTP()">تأكيد الكود</button>
+            <button class="auth-btn primary" onclick="window.verifyOTP()">تأكيد الكود</button>
         </div>
-        <button class="auth-btn primary" id="sendOtpBtn" onclick="sendOTP()">إرسال كود التحقق</button>
-        <button class="auth-btn google" onclick="signInWithGoogle()">
+        <button class="auth-btn primary" id="sendOtpBtn" onclick="window.sendOTP()">إرسال كود التحقق</button>
+        <button class="auth-btn google" onclick="window.signInWithGoogle()">
             <i class="fab fa-google"></i> تسجيل الدخول بحساب Google
         </button>
     `;
+    // reCAPTCHA
     if (window.recaptchaVerifier) window.recaptchaVerifier.clear();
     window.recaptchaVerifier = new RecaptchaVerifier('recaptcha-container', {
         size: 'normal',
@@ -4411,6 +4339,69 @@ window.showLogin = function() {
     window.recaptchaVerifier.render().then(widgetId => {
         window.recaptchaWidgetId = widgetId;
     });
+};
+
+window.sendOTP = async function() {
+    const phone = document.getElementById("phoneInput").value.trim();
+    if (!phone || !phone.match(/^01[0125][0-9]{8}$/)) {
+        alert("رقم هاتف غير صحيح");
+        return;
+    }
+    try {
+        const appVerifier = window.recaptchaVerifier;
+        const confirmationResult = await signInWithPhoneNumber(auth, '+2' + phone, appVerifier);
+        window.confirmationResult = confirmationResult;
+        document.getElementById("otpSection").style.display = 'block';
+        document.getElementById("sendOtpBtn").style.display = 'none';
+        alert("تم إرسال كود التحقق");
+    } catch (error) {
+        console.error(error);
+        alert("خطأ: " + error.message);
+    }
+};
+
+window.verifyOTP = async function() {
+    const code = document.getElementById("otpInput").value.trim();
+    if (!code) return alert("أدخل الكود");
+    try {
+        const result = await window.confirmationResult.confirm(code);
+        const user = result.user;
+        window.currentAuthUser = user;
+        await window.createCustomerIfNeeded(user);
+        document.getElementById("accountModalOverlay").classList.remove("active");
+        alert("تم تسجيل الدخول بنجاح ✨");
+        window.updateUIForAuth(user);
+        window.updateCart(); // لتحديث السلة فوراً وإظهار كود الخصم
+    } catch (error) {
+        console.error(error);
+        alert("كود غير صحيح");
+    }
+};
+
+window.signInWithGoogle = async function() {
+    const provider = new GoogleAuthProvider();
+    try {
+        const result = await signInWithPopup(auth, provider);
+        const user = result.user;
+        window.currentAuthUser = user;
+        await window.createCustomerIfNeeded(user);
+        document.getElementById("accountModalOverlay").classList.remove("active");
+        alert("تم تسجيل الدخول بحساب Google ✨");
+        window.updateUIForAuth(user);
+        window.updateCart();
+    } catch (error) {
+        console.error(error);
+        alert("خطأ: " + error.message);
+    }
+};
+
+window.signOutUser = async function() {
+    await firebaseSignOut(auth);
+    window.currentAuthUser = null;
+    window.updateUIForAuth(null);
+    document.getElementById("accountModalOverlay").classList.remove("active");
+    window.updateCart(); // يخفي كود الخصم
+    alert("تم تسجيل الخروج");
 };
 
 window.submitReview = async function() {
