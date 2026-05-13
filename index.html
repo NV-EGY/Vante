@@ -4305,12 +4305,17 @@ window.allProducts = allProducts;
 window.showLogin = function() {
     document.getElementById("accountContent").innerHTML = `
         <h2>تسجيل الدخول</h2>
-        <p style="color:#666; margin-bottom:20px;">سجل الدخول بحساب Google للمتابعة</p>
+        <p style="color:#666; margin: 15px 0; font-size: 14px;">
+            استخدم حساب Google لتسجيل الدخول والاستفادة بكل مزايا VANTÉ
+        </p>
         
         <button class="auth-btn google" onclick="window.signInWithGoogle()">
             <i class="fab fa-google"></i> تسجيل الدخول بحساب Google
         </button>
-        <p style="margin-top:15px; font-size:13px; color:#888;">سيتم تفعيل تسجيل الدخول برقم الهاتف قريباً</p>
+        
+        <p style="margin-top:18px; font-size:12px; color:#aaa;">
+            🔒 تسجيل دخول آمن بدون كلمات مرور
+        </p>
     `;
 };
 
