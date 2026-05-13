@@ -4383,12 +4383,11 @@ window.signOutUser = async function() {
 };
 
 window.submitReview = async function() {
-    const user = auth.currentUser;
-    if (!user) {
-        alert("يجب تسجيل الدخول لكتابة تقييم");
-        window.openAccount();
-        return;
-    }
+    if (!auth.currentUser) {
+    alert("يرجى تسجيل الدخول أولاً");
+    openAccount();
+    return;
+}
     if (!window.currentProduct || !window.selectedRating) return alert("اختر منتجًا ونجومًا");
     try {
         await addDoc(collection(db, "reviews"), {
