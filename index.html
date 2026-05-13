@@ -4302,6 +4302,7 @@ window.allProducts = allProducts;
 
 // ========== AUTH UI ==========
 // ========== AUTH UI ==========
+// ========== AUTH UI ==========
 window.showLogin = function() {
     document.getElementById("accountContent").innerHTML = `
         <h2>تسجيل الدخول</h2>
@@ -4322,18 +4323,21 @@ window.showLogin = function() {
         try { window.recaptchaVerifier.clear(); } catch(e) {}
     }
     
-    // استخدام invisible reCAPTCHA
+    // ▼▼▼ الإصلاح الحاسم ▼▼▼
+    // استخدم RecaptchaVerifier(auth, containerId, params) وليس العكس
     window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-        'size': 'invisible',
-        'callback': (response) => {
-            // reCAPTCHA solved
+        size: 'invisible',
+        callback: () => {
+            // تحدث عند حل reCAPTCHA
         }
     });
-    
+    // ▲▲▲ نهاية الإصلاح ▲▲▲
+
     window.recaptchaVerifier.render().then((widgetId) => {
         window.recaptchaWidgetId = widgetId;
     }).catch((error) => {
-        console.error("reCAPTCHA render error:", error);
+        console.error("خطأ في reCAPTCHA:", error);
+        // تنبيه المستخدم إذا فشل
     });
 };
 
