@@ -4384,10 +4384,11 @@ window.signOutUser = async function() {
 
 window.submitReview = async function() {
     if (!auth.currentUser) {
-    alert("يرجى تسجيل الدخول أولاً");
-    openAccount();
-    return;
-}
+        alert("يرجى تسجيل الدخول أولاً");
+        openAccount();
+        return;
+    }
+    const user = auth.currentUser; // أضف هذا السطر
     if (!window.currentProduct || !window.selectedRating) return alert("اختر منتجًا ونجومًا");
     try {
         await addDoc(collection(db, "reviews"), {
@@ -4395,7 +4396,7 @@ window.submitReview = async function() {
             productName: window.currentProduct.name,
             rating: window.selectedRating,
             text: document.getElementById("reviewText").value.trim(),
-            userId: user.uid,
+            userId: user.uid,            // الآن user معرف
             userName: user.displayName || "مستخدم VANTÉ",
             createdAt: serverTimestamp()
         });
