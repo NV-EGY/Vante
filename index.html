@@ -4302,43 +4302,16 @@ window.allProducts = allProducts;
 
 // ========== AUTH UI ==========
 // ========== AUTH UI ==========
-// ========== AUTH UI ==========
 window.showLogin = function() {
     document.getElementById("accountContent").innerHTML = `
         <h2>تسجيل الدخول</h2>
-        <div id="recaptcha-container"></div>
-        <input type="tel" id="phoneInput" placeholder="رقم الهاتف (01XXXXXXXXX)">
-        <div id="otpSection" style="display:none;">
-            <input type="text" id="otpInput" placeholder="كود التحقق">
-            <button class="auth-btn primary" onclick="window.verifyOTP()">تأكيد الكود</button>
-        </div>
-        <button class="auth-btn primary" id="sendOtpBtn" onclick="window.sendOTP()">إرسال كود التحقق</button>
+        <p style="color:#666; margin-bottom:20px;">سجل الدخول بحساب Google للمتابعة</p>
+        
         <button class="auth-btn google" onclick="window.signInWithGoogle()">
             <i class="fab fa-google"></i> تسجيل الدخول بحساب Google
         </button>
+        <p style="margin-top:15px; font-size:13px; color:#888;">سيتم تفعيل تسجيل الدخول برقم الهاتف قريباً</p>
     `;
-    
-    // تنظيف أي reCAPTCHA قديم
-    if (window.recaptchaVerifier) {
-        try { window.recaptchaVerifier.clear(); } catch(e) {}
-    }
-    
-    // ▼▼▼ الإصلاح الحاسم ▼▼▼
-    // استخدم RecaptchaVerifier(auth, containerId, params) وليس العكس
-    window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-        size: 'invisible',
-        callback: () => {
-            // تحدث عند حل reCAPTCHA
-        }
-    });
-    // ▲▲▲ نهاية الإصلاح ▲▲▲
-
-    window.recaptchaVerifier.render().then((widgetId) => {
-        window.recaptchaWidgetId = widgetId;
-    }).catch((error) => {
-        console.error("خطأ في reCAPTCHA:", error);
-        // تنبيه المستخدم إذا فشل
-    });
 };
 
 window.sendOTP = async function() {
