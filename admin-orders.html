@@ -81,7 +81,8 @@
       font-size: 14px;
       position: relative;
       transition: 0.2s;
-    }
+      padding: 16px;
+}
     .order-body { display: none; justify-content: space-between; gap: 12px; margin-top: 10px; }
     .order-info { flex: 1; }
     .order-summary {
@@ -286,20 +287,67 @@
     .select-all-wrapper span { font-size: 13px; font-weight: 600; color: #333; }
     #count { color: #333; }
     #selectedCount { color: #0F7B65; }
-    .status { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; display: inline-block; }
-    .status.new { background: #D4AF37; color: #000; }
-    .status.processing { background: #3498db; color: #fff; }
-    .status.shipped { background: #9b59b6; color: #fff; }
-    .status.delivered { background: #2ecc71; color: #fff; }
-    .status.cancelled { background: #e74c3c; color: #fff; }
+    .status {
+  padding: 5px 14px;
+  border-radius: 40px;
+  font-size: 12px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+/* أيقونة للحالة جديدة */
+.status.new::before {
+  content: "✨";
+  font-size: 12px;
+  font-weight: normal;
+}
+/* أيقونات اختيارية لباقي الحالات */
+.status.processing::before {
+  content: "⚙️";
+  font-size: 12px;
+}
+.status.shipped::before {
+  content: "🚚";
+  font-size: 12px;
+}
+.status.delivered::before {
+  content: "✅";
+  font-size: 12px;
+}
+.status.cancelled::before {
+  content: "❌";
+  font-size: 12px;
+}
+
+/* تحسين المسافات على الجوال */
+@media (max-width: 500px) {
+  .order-id {
+    font-size: 13px;
+    padding: 4px 8px;
+  }
+  .status {
+    padding: 4px 10px;
+    font-size: 11px;
+  }
+  .status::before {
+    font-size: 10px;
+  }
+}
     
     /* تنسيق صف الطلب */
     .order-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 0;
+      margin-bottom: 8px;
     }
+    
+    
+    
     .order-header-left {
       display: flex;
       align-items: center;
@@ -307,9 +355,25 @@
       flex: 1;
     }
     .order-id {
-      font-weight: bold;
-      font-size: 14px;
-    }
+  flex: 1;
+  font-weight: 800;
+  font-size: 15px;
+  color: #1a1a1a;
+  text-align: center;
+  cursor: pointer;
+  transition: 0.2s;
+  letter-spacing: 0.3px;
+  background: #fafafa;
+  padding: 6px 12px;
+  border-radius: 40px;
+  display: inline-block;
+  max-width: fit-content;
+  margin: 0 auto;
+}
+.order-id:hover {
+  background: #f0f0f0;
+  color: #0F7B65;
+}
     * { user-select: none; }
     input, textarea { user-select: text !important; }
   </style>
@@ -530,12 +594,10 @@ function render() {
     let msg = `VANTÉ\nكود: ${o.orderID}\n👤 ${o.customerName}\n📞 ${o.phone}\n📍 ${o.gov} - ${o.city}\n${o.address}\n💎 ${(o.orderDetails || []).map(i => `${i.name} (${i.size}) x${i.qty}`).join(', ')}\n💰 ${o.finalTotal} جنيه`;
     html += `<div class="card ${status}" style="position:relative;">
       <div class="order-header">
-        <div class="order-header-left">
-          <input type="checkbox" class="selectOrder" onchange="this.closest('.card').style.background = this.checked ? '#e6fff2' : '#fff'; updateBulkBar();">
-          <span class="order-id" data-id="${o.id}" onclick="toggleOrder('${o.id}')" style="cursor:pointer;">🧾 ${o.orderID}</span>
-        </div>
-        <span class="status ${status}" onclick="toggleOrder('${o.id}')" style="cursor:pointer;">${statusText}</span>
-      </div>
+  <input type="checkbox" class="selectOrder" onchange="this.closest('.card').style.background = this.checked ? '#e6fff2' : '#fff'; updateBulkBar();">
+  <span class="order-id" data-id="${o.id}" onclick="toggleOrder('${o.id}')">🧾 ${o.orderID}</span>
+  <span class="status ${status}" onclick="toggleOrder('${o.id}')">${statusText}</span>
+</div>
       <div id="order-${o.id}" class="order-body">
         <div class="order-info">👤 ${o.customerName}<br>📞 ${o.phone}<br>📍 ${o.gov} - ${o.city}<br>${o.address}<br><br>💎 تفاصيل الطلب:
           <div style="display:flex; flex-direction:column; gap:8px; margin-top:6px;">
