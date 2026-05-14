@@ -698,17 +698,19 @@
       if (user) { load(); }
       else { window.location.href = "login.html"; }
     });
-
+    
+    // استبدال دالة deleteOrder القديمة بهذه النسخة المحسنة
 window.deleteOrder = async function(id) {
-    if (!confirm("متأكد من حذف الطلب وإعادة الكميات للمخزون؟")) return;
+    if (!confirm("⚠️ متأكد من حذف الطلب وإعادة الكميات إلى المخزون؟")) return;
     try {
-        // 1. جلب بيانات الطلب
-        const orderDoc = await getDoc(doc(db, "orders", id));
-        if (!orderDoc.exists()) return;
-        const order = orderDoc.data();
+        const orderRef = doc(db, "orders", id);
+        const orderSnap = await getDoc(orderRef);
+        if (!orderSnap.exists()) throw new Error("الطلب غير موجود");
+        const order = orderSnap.data();
         
-        // 2. إعادة الكميات إلى المخزون لكل منتج
+        // إعادة المخزون لكل منتج في الطلب
         for (const item of (order.orderDetails || [])) {
+            if (!item.name || !item.size) continue;
             const productQuery = query(collection(db, "products"), where("name", "==", item.name));
             const productSnap = await getDocs(productQuery);
             if (!productSnap.empty) {
@@ -717,21 +719,20 @@ window.deleteOrder = async function(id) {
                 const stockBySize = productData.stockBySize || {};
                 const size = item.size;
                 if (stockBySize[size] !== undefined) {
-                    stockBySize[size] = (stockBySize[size] || 0) + item.qty;
+                    stockBySize[size] += item.qty;
                     await updateDoc(productRef, { stockBySize });
                 }
             }
         }
-        // 3. حذف الطلب
-        await deleteDoc(doc(db, "orders", id));
-        alert("تم حذف الطلب وإعادة المخزون بنجاح");
-        loadOrders(currentStatus);
+        // حذف الطلب بعد إعادة المخزون
+        await deleteDoc(orderRef);
+        alert("✅ تم حذف الطلب وإعادة الكميات بنجاح");
     } catch (e) {
         console.error(e);
-        alert("حدث خطأ أثناء الحذف");
+        alert("❌ حدث خطأ أثناء الحذف");
     }
 };
-
+    
   </script>
 </body>
 </html>
