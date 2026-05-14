@@ -2925,26 +2925,80 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
-// معالجة نتيجة تسجيل الدخول عبر redirect
-getRedirectResult(auth).then(async (result) => {
-    if (result) {
-        const user = result.user;
+// ------------------- معالجة المصادقة الموحدة -------------------
+async function handleUser(user) {
+  
+  let isHandling = false;
+async function handleUser(user) {
+    if (isHandling) return;
+    isHandling = true;
+    try {
+        if (user) {
+            console.log("✅ تم تسجيل الدخول:", user.email);
+            window.currentAuthUser = user;
+            const userIcon = document.getElementById("userIcon");
+            if (userIcon) userIcon.style.color = "#D4AF37";
+            await window.createCustomerIfNeeded(user);
+            await window.updateCart();
+            const modal = document.getElementById("accountModalOverlay");
+            if (modal) modal.classList.remove("active");
+            alert("تم تسجيل الدخول بنجاح ✨");
+        } else {
+            console.log("❌ تسجيل الخروج");
+            window.currentAuthUser = null;
+            const userIcon = document.getElementById("userIcon");
+            if (userIcon) userIcon.style.color = "";
+            await window.updateCart();
+        }
+    } finally {
+        isHandling = false;
+    }
+}
+    if (user) {
+        console.log("✅ تم تسجيل الدخول:", user.email);
         window.currentAuthUser = user;
-        window.updateUIForAuth(user);
+        
+        // ✅ تحديث الأيقونة مباشرة (لضمان تغير اللون فوراً)
+        const userIcon = document.getElementById("userIcon");
+        if (userIcon) userIcon.style.color = "#D4AF37";
+        
+        // ✅ العمليات الإضافية (إنشاء العميل، تحديث السلة)
         await window.createCustomerIfNeeded(user);
         await window.updateCart();
-        // إغلاق مودال الحساب إذا كان مفتوحًا
-        document.getElementById("accountModalOverlay")?.classList.remove("active");
+        
+        // ✅ إغلاق مودال الحساب إن كان مفتوحاً
+        const modal = document.getElementById("accountModalOverlay");
+        if (modal) modal.classList.remove("active");
+        
         alert("تم تسجيل الدخول بنجاح ✨");
+    } else {
+        console.log("❌ تسجيل الخروج");
+        window.currentAuthUser = null;
+        const userIcon = document.getElementById("userIcon");
+        if (userIcon) userIcon.style.color = "";
+        await window.updateCart();
+    }
+}
+
+// استقبال نتيجة redirect (الحدث الرئيسي)
+getRedirectResult(auth).then(async (result) => {
+    if (result) {
+        await handleUser(result.user);
+    } else if (auth.currentUser) {
+        // لو لم تكن نتيجة ولكن هناك مستخدم مسجل بالفعل
+        await handleUser(auth.currentUser);
     }
 }).catch((error) => {
-    console.error("Redirect result error:", error);
+    console.error("خطأ في getRedirectResult:", error);
     if (error.code !== 'auth/no-such-provider') {
-        alert("خطأ في تسجيل الدخول: " + error.message);
+        alert("فشل تسجيل الدخول: " + error.message);
     }
 });
-window.auth = auth; // اجعلها متاحة للدوال العامة
-window.googlePopupOpened = false;
+
+// الاستماع لتغيرات حالة المصادقة (احتياطي لتحديث الواجهة عند تسجيل الخروج)
+onAuthStateChanged(auth, async (user) => {
+    await handleUser(user);
+});
 
 // متغير لتخزين مراجع مستمعي السحب
 let swipeHandlers = {};
