@@ -365,12 +365,42 @@
       .bulk-actions-bar { flex-direction: column; align-items: stretch; padding: 12px; }
       .bulk-status-btn, .clear-selection-btn { justify-content: center; }
     }
+    
+   /* تحسين شكل الفلاتر - مربعات أنيقة */
+.filters {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.filter-btn {
+  width: 55px;
+  height: 55px;
+  padding: 0;
+  border-radius: 18px;
+  background: #f0f2f5;
+  font-size: 22px;
+  transition: all 0.25s ease;
+}
+.filter-btn i { font-size: 24px; margin: 0; }
+.filter-btn.active { background: #0F7B65; color: #fff; transform: scale(1.05); box-shadow: 0 5px 12px rgba(15,123,101,0.3); }
+
+/* تحسين شريط الحالات */
+.bulk-status-btn span, .clear-selection-btn span { font-size: 13px; }
+@media (max-width: 600px) {
+  .filter-btn { width: 48px; height: 48px; font-size: 20px; }
+  .filter-btn i { font-size: 20px; }
+  .bulk-status-btn span, .clear-selection-btn span { display: none; }
+  .bulk-status-btn { padding: 8px 14px; }
+  .clear-selection-btn { padding: 8px 14px; }
+} 
+    
   </style>
 </head>
 <body>
   <div class="header">
     <div class="header-top">
-      <div id="selectAllBtn" class="select-all-btn" onclick="selectAll()">✔</div>
+      <div id="selectAllBtn" class="select-all-btn" onclick="selectAll()"><i class="fas fa-check-double"></i></div>
       <h2 style="margin:0;">📦 VANTÉ Dashboard</h2>
       <div class="header-icons">
         <div class="icon-btn msg-icon" onclick="toggleInbox()">📩 <span id="msgBadge">0</span></div>
@@ -381,13 +411,13 @@
     <input type="text" id="search" class="search-box" placeholder="🔍 بحث بالاسم، الهاتف، رقم الطلب">
     <input type="date" id="dateFilter" style="display:none;">
     <div class="filters">
-      <button onclick="setFilter(event, 'all')" class="filter-btn active" data-filter="all"><i class="fas fa-list"></i> الكل</button>
-      <button onclick="setFilter(event, 'new')" class="filter-btn" data-filter="new"><i class="fas fa-sparkles"></i> جديدة</button>
-      <button onclick="setFilter(event, 'processing')" class="filter-btn" data-filter="processing"><i class="fas fa-boxes"></i> قيد التجهيز</button>
-      <button onclick="setFilter(event, 'shipped')" class="filter-btn" data-filter="shipped"><i class="fas fa-truck"></i> تم الشحن</button>
-      <button onclick="setFilter(event, 'delivered')" class="filter-btn" data-filter="delivered"><i class="fas fa-check-circle"></i> تم التسليم</button>
-      <button onclick="setFilter(event, 'cancelled')" class="filter-btn" data-filter="cancelled"><i class="fas fa-ban"></i> ملغاة</button>
-    </div>
+  <button onclick="setFilter(event, 'all')" class="filter-btn active" data-filter="all"><i class="fas fa-list"></i></button>
+  <button onclick="setFilter(event, 'new')" class="filter-btn" data-filter="new"><i class="fas fa-sparkles"></i></button>
+  <button onclick="setFilter(event, 'processing')" class="filter-btn" data-filter="processing"><i class="fas fa-boxes"></i></button>
+  <button onclick="setFilter(event, 'shipped')" class="filter-btn" data-filter="shipped"><i class="fas fa-truck"></i></button>
+  <button onclick="setFilter(event, 'delivered')" class="filter-btn" data-filter="delivered"><i class="fas fa-check-circle"></i></button>
+  <button onclick="setFilter(event, 'cancelled')" class="filter-btn" data-filter="cancelled"><i class="fas fa-ban"></i></button>
+</div>
   </div>
 
   <div class="top-stats">
@@ -397,15 +427,16 @@
   <div id="orders"></div>
 
   <!-- الشريط الثابت لتغيير الحالة الجماعي -->
-  <div id="bulkActionsBar" class="bulk-actions-bar">
-    <div class="selected-info" id="bulkSelectedInfo">0 طلب</div>
-    <button class="bulk-status-btn new" data-status="new" onclick="applyBulkStatus('new')"><i class="fas fa-sparkles"></i> جديدة</button>
-    <button class="bulk-status-btn processing" data-status="processing" onclick="applyBulkStatus('processing')"><i class="fas fa-boxes"></i> قيد التجهيز</button>
-    <button class="bulk-status-btn shipped" data-status="shipped" onclick="applyBulkStatus('shipped')"><i class="fas fa-truck"></i> تم الشحن</button>
-    <button class="bulk-status-btn delivered" data-status="delivered" onclick="applyBulkStatus('delivered')"><i class="fas fa-check-circle"></i> تم التسليم</button>
-    <button class="bulk-status-btn cancelled" data-status="cancelled" onclick="applyBulkStatus('cancelled')"><i class="fas fa-ban"></i> ملغاة</button>
-    <button class="clear-selection-btn" onclick="clearAllSelections()"><i class="fas fa-times"></i> إلغاء التحديد</button>
-  </div>
+  <!-- الشريط الثابت لتغيير الحالة الجماعي -->
+<div id="bulkActionsBar" class="bulk-actions-bar">
+  <div class="selected-info" id="bulkSelectedInfo">0</div>
+  <button class="bulk-status-btn new" data-status="new" onclick="applyBulkStatus('new')"><i class="fas fa-sparkles"></i> <span>جديد</span></button>
+  <button class="bulk-status-btn processing" data-status="processing" onclick="applyBulkStatus('processing')"><i class="fas fa-boxes"></i> <span>تجهيز</span></button>
+  <button class="bulk-status-btn shipped" data-status="shipped" onclick="applyBulkStatus('shipped')"><i class="fas fa-truck"></i> <span>شحن</span></button>
+  <button class="bulk-status-btn delivered" data-status="delivered" onclick="applyBulkStatus('delivered')"><i class="fas fa-check-circle"></i> <span>تسليم</span></button>
+  <button class="bulk-status-btn cancelled" data-status="cancelled" onclick="applyBulkStatus('cancelled')"><i class="fas fa-ban"></i> <span>إلغاء</span></button>
+  <button class="clear-selection-btn" onclick="clearAllSelections()"><i class="fas fa-times"></i> <span>إلغاء</span></button>
+</div>
 
   <div id="msgPopup" style="display:none;">
     <div class="popup-box">
@@ -607,7 +638,7 @@
       const infoSpan = document.getElementById("bulkSelectedInfo");
       if (count > 0) {
         bar.classList.add("show");
-        infoSpan.innerHTML = `${count} طلب`;
+        infoSpan.innerHTML = count;
       } else {
         bar.classList.remove("show");
       }
@@ -680,7 +711,7 @@
         html += `
         <div class="card ${status}" style="position:relative;">
           <input type="checkbox" class="selectOrder" value="${btoa(unescape(encodeURIComponent(JSON.stringify(o))))}">
-          <div onclick="toggleOrder('${o.id}')" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;">
+          <div style="display:flex; justify-content:space-between; align-items:center; padding-right: 28px; cursor:pointer;" onclick="toggleOrder('${o.id}')">
             <b>🧾 ${o.orderID}</b>
             <span class="status ${status}">${status === 'new' ? 'جديد' : status === 'processing' ? 'قيد التجهيز' : status === 'shipped' ? 'تم الشحن' : status === 'delivered' ? 'تم التسليم' : status === 'cancelled' ? 'ملغى' : status}</span>
           </div>
