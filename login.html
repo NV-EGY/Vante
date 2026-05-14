@@ -1,40 +1,262 @@
 <!DOCTYPE html>
-<html dir="rtl">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>تسجيل الدخول - لوحة التحكم</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل الدخول - لوحة تحكم VANTÉ</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
-        body { font-family: 'Cairo', sans-serif; background: #f5f5f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .login-card { background: #fff; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 300px; text-align: center; }
-        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 10px; font-family: inherit; }
-        button { width: 100%; padding: 12px; background: #0F7B65; color: #fff; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; }
-        .error { color: red; margin-top: 10px; font-size: 13px; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .login-container {
+            width: 100%;
+            max-width: 440px;
+        }
+        .login-card {
+            background: #ffffff;
+            border-radius: 32px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+            overflow: hidden;
+            transition: transform 0.3s ease;
+        }
+        .login-header {
+            background: #111;
+            padding: 30px 25px;
+            text-align: center;
+            border-bottom: 1px solid rgba(212,175,55,0.3);
+        }
+        .login-header h1 {
+            font-size: 28px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #D4AF37, #FFD700);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 2px;
+        }
+        .login-header p {
+            color: #aaa;
+            font-size: 14px;
+            margin-top: 8px;
+        }
+        .login-body {
+            padding: 35px 30px;
+        }
+        .input-group {
+            margin-bottom: 24px;
+            position: relative;
+        }
+        .input-group i {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #D4AF37;
+            font-size: 18px;
+            pointer-events: none;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 14px 45px 14px 15px;
+            border: 1.5px solid #e5e5e5;
+            border-radius: 16px;
+            font-size: 15px;
+            font-family: 'Cairo', sans-serif;
+            transition: all 0.3s;
+            outline: none;
+            background: #fff;
+        }
+        .input-group input:focus {
+            border-color: #D4AF37;
+            box-shadow: 0 0 0 3px rgba(212,175,55,0.15);
+        }
+        .btn-login {
+            width: 100%;
+            background: #111;
+            color: #fff;
+            border: none;
+            border-radius: 16px;
+            padding: 14px;
+            font-size: 16px;
+            font-weight: 800;
+            font-family: 'Cairo', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .btn-login:hover {
+            background: #D4AF37;
+            color: #000;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(212,175,55,0.4);
+        }
+        .btn-login:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .error-msg {
+            background: #fff0f0;
+            color: #c0392b;
+            padding: 12px;
+            border-radius: 14px;
+            font-size: 13px;
+            text-align: center;
+            margin-top: 20px;
+            border-right: 3px solid #e74c3c;
+            display: none;
+        }
+        .footer-note {
+            text-align: center;
+            margin-top: 25px;
+            color: #888;
+            font-size: 12px;
+        }
+        .spinner {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 0.6s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        @media (max-width: 480px) {
+            .login-body { padding: 25px 20px; }
+        }
     </style>
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        const firebaseConfig = { /* نفس الإعدادات الموجودة */ };
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        window.login = async () => {
-            const email = document.getElementById("email").value;
-            const pwd = document.getElementById("pwd").value;
-            try {
-                await signInWithEmailAndPassword(auth, email, pwd);
-                window.location.href = "admin-order.html";
-            } catch (e) {
-                document.getElementById("error").innerText = "بيانات الدخول غير صحيحة";
-            }
-        };
-    </script>
 </head>
 <body>
+<div class="login-container">
     <div class="login-card">
-        <h2>🔐 دخول المسؤول</h2>
-        <input type="email" id="email" placeholder="البريد الإلكتروني">
-        <input type="password" id="pwd" placeholder="كلمة المرور">
-        <button onclick="login()">دخول</button>
-        <div id="error" class="error"></div>
+        <div class="login-header">
+            <h1>VANTÉ</h1>
+            <p>لوحة تحكم المدير</p>
+        </div>
+        <div class="login-body">
+            <div class="input-group">
+                <i class="fas fa-envelope"></i>
+                <input type="email" id="email" placeholder="البريد الإلكتروني" autocomplete="email">
+            </div>
+            <div class="input-group">
+                <i class="fas fa-lock"></i>
+                <input type="password" id="password" placeholder="كلمة المرور" autocomplete="current-password">
+            </div>
+            <button class="btn-login" id="loginBtn">
+                <i class="fas fa-key"></i> <span>دخول</span>
+            </button>
+            <div id="errorMsg" class="error-msg"></div>
+        </div>
+        <div class="footer-note">
+            🔒 وصول مقيد للمسؤولين فقط
+        </div>
     </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    // ⚠️ استخدم نفس إعدادات Firebase الموجودة في admin-order.html
+    const firebaseConfig = {
+        apiKey: "AIzaSyCotT8EP2uy_HsgHknxeGBorKoEUORPtmU",
+        authDomain: "vante-orders.firebaseapp.com",
+        projectId: "vante-orders",
+        storageBucket: "vante-orders.firebasestorage.app",
+        messagingSenderId: "842319700646",
+        appId: "1:842319700646:web:f6afd78ef7038c3be4ca67",
+        measurementId: "G-56ZC1RW0T7"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    const loginBtn = document.getElementById('loginBtn');
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+    const errorDiv = document.getElementById('errorMsg');
+
+    // دالة عرض الخطأ
+    function showError(message) {
+        errorDiv.textContent = message;
+        errorDiv.style.display = 'block';
+        setTimeout(() => {
+            errorDiv.style.display = 'none';
+        }, 4000);
+    }
+
+    // دالة تسجيل الدخول
+    async function login() {
+        const email = emailInput.value.trim();
+        const password = passwordInput.value.trim();
+
+        if (!email || !password) {
+            showError("⚠️ الرجاء إدخال البريد الإلكتروني وكلمة المرور");
+            return;
+        }
+
+        // تعطيل الزر وإظهار حالة التحميل
+        loginBtn.disabled = true;
+        const originalHTML = loginBtn.innerHTML;
+        loginBtn.innerHTML = '<div class="spinner"></div> جاري التحقق...';
+
+        try {
+            // تأكيد بقاء الجلسة (مهم لتجنب طلب الدخول كل مرة)
+            await setPersistence(auth, browserLocalPersistence);
+            
+            // محاولة تسجيل الدخول
+            await signInWithEmailAndPassword(auth, email, password);
+            
+            // في حال النجاح، التوجيه إلى لوحة التحكم
+            window.location.href = "admin-order.html";
+        } catch (error) {
+            console.error("Login error:", error);
+            let friendlyMessage = "❌ فشل تسجيل الدخول. تأكد من البريد وكلمة المرور.";
+            if (error.code === 'auth/user-not-found') {
+                friendlyMessage = "❌ لا يوجد حساب بهذا البريد الإلكتروني.";
+            } else if (error.code === 'auth/wrong-password') {
+                friendlyMessage = "❌ كلمة المرور غير صحيحة.";
+            } else if (error.code === 'auth/invalid-email') {
+                friendlyMessage = "❌ صيغة البريد الإلكتروني غير صحيحة.";
+            } else if (error.code === 'auth/too-many-requests') {
+                friendlyMessage = "🚫 تم تعطيل الحساب مؤقتاً بسبب محاولات كثيرة. حاول لاحقاً.";
+            }
+            showError(friendlyMessage);
+        } finally {
+            // إعادة تفعيل الزر
+            loginBtn.disabled = false;
+            loginBtn.innerHTML = originalHTML;
+        }
+    }
+
+    // ربط الحدث بالزر
+    document.getElementById('loginBtn').addEventListener('click', login);
+    
+    // السماح بالضغط على Enter
+    const inputs = [emailInput, passwordInput];
+    inputs.forEach(input => {
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') login();
+        });
+    });
+</script>
 </body>
 </html>
