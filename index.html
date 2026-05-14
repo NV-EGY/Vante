@@ -2911,7 +2911,7 @@ function showProfile(user) {
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, collection, addDoc, serverTimestamp, onSnapshot, query, orderBy, where, getDocs, updateDoc, doc, increment, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { getAuth, signInWithPhoneNumber, signInWithPopup, GoogleAuthProvider, RecaptchaVerifier, signOut as firebaseSignOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getAuth, signInWithPhoneNumber, signInWithPopup, signInWithRedirect, GoogleAuthProvider, RecaptchaVerifier, signOut as firebaseSignOut, onAuthStateChanged, getRedirectResult } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyCotT8EP2uy_HsgHknxeGBorKoEUORPtmU",
@@ -2927,6 +2927,7 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 window.auth = auth; // اجعلها متاحة للدوال العامة
+window.googlePopupOpened = false;
 // متغير لتخزين مراجع مستمعي السحب
 let swipeHandlers = {};
 let currentCategory = "all";
@@ -4284,6 +4285,23 @@ window.updateModalStockDisplay = function() {
     }
 };
 
+// بعد تسجيل الدخول عبر redirect
+getRedirectResult(auth).then(async (result) => {
+    if (result) {
+        const user = result.user;
+        window.currentAuthUser = user;
+        await window.createCustomerIfNeeded(user);
+        window.updateUIForAuth(user);
+        window.updateCart();
+        alert("تم تسجيل الدخول بنجاح ✨");
+        // إغلاق المودال إن كان مفتوحًا
+        document.getElementById("accountModalOverlay")?.classList.remove("active");
+    }
+}).catch((error) => {
+    console.error(error);
+    alert("خطأ: " + error.message);
+});
+
 onAuthStateChanged(auth, (user) => {
     if (user) {
         window.currentAuthUser = user;
@@ -4293,6 +4311,26 @@ onAuthStateChanged(auth, (user) => {
         window.currentAuthUser = null;
         window.updateUIForAuth(null);
         window.updateCart(); // ← أضف هذا السطر
+    }
+});
+
+// استقبال نتيجة redirect بعد العودة من Google
+getRedirectResult(auth).then(async (result) => {
+    window.googlePopupOpened = false;
+    if (result) {
+        const user = result.user;
+        window.currentAuthUser = user;
+        await window.createCustomerIfNeeded(user);
+        window.updateUIForAuth(user);
+        window.updateCart();
+        document.getElementById("accountModalOverlay")?.classList.remove("active");
+        alert("تم تسجيل الدخول بنجاح ✨");
+    }
+}).catch((error) => {
+    window.googlePopupOpened = false;
+    console.error(error);
+    if (error.code !== 'auth/no-such-provider') {
+        alert("فشل تسجيل الدخول: " + error.message);
     }
 });
 
@@ -4357,19 +4395,20 @@ window.verifyOTP = async function() {
 };
 
 window.signInWithGoogle = async function() {
+    if (window.googlePopupOpened) {
+        alert("جاري معالجة طلب سابق...");
+        return;
+    }
+    window.googlePopupOpened = true;
     const provider = new GoogleAuthProvider();
     try {
-        const result = await signInWithPopup(auth, provider);
-        const user = result.user;
-        window.currentAuthUser = user;
-        await window.createCustomerIfNeeded(user);
-        document.getElementById("accountModalOverlay").classList.remove("active");
-        alert("تم تسجيل الدخول بحساب Google ✨");
-        window.updateUIForAuth(user);
-        window.updateCart();
+        // استخدام redirect بدلاً من popup
+        await signInWithRedirect(auth, provider);
+        // لن يصل إلى هنا لأنه سيتم التوجيه
     } catch (error) {
         console.error(error);
         alert("خطأ: " + error.message);
+        window.googlePopupOpened = false;
     }
 };
 
