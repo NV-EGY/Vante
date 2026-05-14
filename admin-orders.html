@@ -6,17 +6,13 @@
   <title>VANTÉ Dashboard</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: 'Cairo', sans-serif;
       background: #f4f6f9;
       padding: 10px;
       margin: 0;
-      padding-bottom: 90px; /* مساحة للشريط الثابت */
+      padding-bottom: 90px;
     }
     html, body { overflow-x: hidden; }
     .header {
@@ -71,82 +67,45 @@
       transition: 0.2s;
     }
     .icon-btn:hover { background: #e0e0e0; }
-    .new-badge {
-      background: red;
-      color: #fff;
-      font-size: 10px;
-      padding: 3px 6px;
-      border-radius: 8px;
-    }
-    input {
-      padding: 8px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      min-width: 120px;
-    }
-    #orders {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      width: 100%;
-      padding: 10px;
-      box-sizing: border-box;
-    }
+    .new-badge { background: red; color: #fff; font-size: 10px; padding: 3px 6px; border-radius: 8px; }
+    input { padding: 8px; border-radius: 8px; border: 1px solid #ccc; min-width: 120px; }
+    #orders { display: flex; flex-direction: column; align-items: center; width: 100%; padding: 10px; box-sizing: border-box; }
     .card {
       width: 100%;
       max-width: 420px;
       margin: 0 auto 12px auto;
-      display: flex;
-      flex-direction: column;
       background: #fff;
       border-radius: 16px;
       padding: 15px;
-      box-sizing: border-box;
       box-shadow: 0 5px 20px rgba(0,0,0,0.08);
       font-size: 14px;
       position: relative;
-      transition: all 0.2s;
+      transition: 0.2s;
     }
-    .order-body {
-      display: none;
-      justify-content: space-between;
-      gap: 12px;
-      align-items: flex-start;
-      margin-top: 10px;
-    }
+    .order-body { display: none; justify-content: space-between; gap: 12px; margin-top: 10px; }
     .order-info { flex: 1; }
     .order-summary {
       width: 140px;
       background: #f8f9fa;
       border-radius: 12px;
       padding: 10px;
-      font-size: 14px;
       font-weight: bold;
       text-align: right;
     }
     .order-summary b { font-size: 16px; color: #0F7B65; }
-    .actions {
-      display: none;
-      gap: 8px;
-      margin-top: 12px;
-      width: 100%;
-      flex-wrap: nowrap;
-    }
+    .actions { display: none; gap: 8px; margin-top: 12px; width: 100%; }
     .action-btn {
       flex: 1;
-      min-width: 0;
       padding: 10px 0;
       border-radius: 12px;
       border: none;
       cursor: pointer;
-      font-size: 16px;
-      transition: 0.2s;
+      font-size: 14px;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 5px;
     }
-    .action-btn:active { transform: scale(0.95); }
     .whatsapp { background: #25D366; color: #fff; }
     .copy { background: #333; color: #fff; }
     .inbox-container { display: flex; gap: 10px; margin-top: 10px; }
@@ -156,31 +115,83 @@
     .msg-item:hover { background: #f5f5f5; }
     .msg-item.unread { background: #fff3cd; font-weight: bold; }
     .inbox-header { display: flex; justify-content: space-between; align-items: center; }
-    .filters { display: flex; gap: 6px; flex-wrap: wrap; }
+    
+    /* الفلاتر - مربعات أفقية متجاورة */
+    .filters {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
     .filter-btn {
-      flex: 1;
-      min-width: 70px;
-      padding: 8px;
+      width: 52px;
+      height: 52px;
+      padding: 0;
+      border-radius: 16px;
+      background: #f0f2f5;
+      font-size: 22px;
       border: none;
-      border-radius: 10px;
-      background: #eee;
       cursor: pointer;
-      transition: 0.3s;
-      font-family: 'Cairo', sans-serif;
-      font-weight: 600;
-      display: inline-flex;
+      transition: all 0.25s ease;
+      display: flex;
       align-items: center;
       justify-content: center;
-      gap: 6px;
     }
-    .filter-btn i { font-size: 14px; }
-    .filter-btn.active { background: #0F7B65; color: #fff; }
-    .filter-btn.active i { color: #fff; }
+    .filter-btn i { font-size: 24px; margin: 0; }
+    .filter-btn.active { background: #0F7B65; color: #fff; transform: scale(1.05); box-shadow: 0 5px 12px rgba(15,123,101,0.3); }
     .filter-btn[data-filter="new"]:hover { background: #D4AF37; color: #000; }
     .filter-btn[data-filter="processing"]:hover { background: #3498db; color: #fff; }
     .filter-btn[data-filter="shipped"]:hover { background: #9b59b6; color: #fff; }
     .filter-btn[data-filter="delivered"]:hover { background: #2ecc71; color: #fff; }
     .filter-btn[data-filter="cancelled"]:hover { background: #e74c3c; color: #fff; }
+
+    /* الشريط الثابت */
+    .bulk-actions-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #fff;
+      box-shadow: 0 -5px 20px rgba(0,0,0,0.1);
+      padding: 10px 16px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      z-index: 1500;
+      transform: translateY(100%);
+      transition: transform 0.3s ease;
+      border-top: 1px solid #eee;
+    }
+    .bulk-actions-bar.show { transform: translateY(0); }
+    .bulk-actions-bar .selected-info {
+      background: #0F7B65;
+      color: #fff;
+      padding: 6px 12px;
+      border-radius: 40px;
+      font-size: 13px;
+      font-weight: bold;
+    }
+    .bulk-status-btn {
+      padding: 6px 14px;
+      border: none;
+      border-radius: 40px;
+      font-weight: bold;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: 'Cairo', sans-serif;
+      font-size: 13px;
+    }
+    .bulk-status-btn.new { background: #D4AF37; color: #000; }
+    .bulk-status-btn.processing { background: #3498db; color: #fff; }
+    .bulk-status-btn.shipped { background: #9b59b6; color: #fff; }
+    .bulk-status-btn.delivered { background: #2ecc71; color: #fff; }
+    .bulk-status-btn.cancelled { background: #e74c3c; color: #fff; }
+    .clear-selection-btn { background: #888; color: #fff; padding: 6px 14px; border-radius: 40px; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; }
+
     #msgPopup {
       display: none;
       position: fixed;
@@ -196,19 +207,11 @@
       max-height: 90vh;
       background: #fff;
       border-radius: 16px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
       display: flex;
       flex-direction: column;
       overflow: hidden;
     }
-    .popup-header {
-      padding: 12px;
-      font-weight: bold;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid #eee;
-    }
+    .popup-header { padding: 12px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; }
     .popup-body { padding: 12px; overflow: auto; }
     .popup-footer { padding: 10px; border-top: 1px solid #eee; }
     #messagesBox {
@@ -239,28 +242,24 @@
       color: #fff;
       border-radius: 50%;
       font-size: 10px;
-      padding: 2px 6px;
+      padding: 2px 5px;
       min-width: 16px;
       text-align: center;
-      line-height: 1;
     }
     @media (max-width: 600px) {
-      h2 { font-size: 18px; }
       .actions { flex-direction: row; }
-      .action-btn { flex: 1; font-size: 14px; }
-      .search-box { max-width: 100%; }
-      .header { flex-direction: column; align-items: stretch; }
-      input { width: 100%; }
+      .action-btn { font-size: 12px; }
+      .filter-btn { width: 44px; height: 44px; }
+      .filter-btn i { font-size: 20px; }
+      .bulk-status-btn span, .clear-selection-btn span { display: none; }
+      .bulk-status-btn, .clear-selection-btn { padding: 6px 12px; }
     }
     .selectOrder {
-      position: absolute;
-      top: 12px;
-      right: 12px;
-      width: 22px;
-      height: 22px;
+      width: 18px;
+      height: 18px;
+      margin-left: 8px;
       accent-color: #0F7B65;
       cursor: pointer;
-      box-shadow: 0 0 5px rgba(0,0,0,0.2);
     }
     .top-stats {
       display: flex;
@@ -269,622 +268,343 @@
       width: 100%;
       font-weight: bold;
       font-size: 14px;
-      margin-bottom: 5px;
+      margin-bottom: 8px;
+      padding: 0 5px;
     }
-    #count { color: #333; }
-    #selectedCount { color: #0F7B65; }
-    .select-all-btn {
-      position: fixed;
-      top: 15px;
-      right: 15px;
-      z-index: 2000;
-      width: 45px;
-      height: 45px;
-      border-radius: 14px;
-      background: #0F7B65;
-      color: #fff;
-      display: none;
+    .select-all-wrapper {
+      display: flex;
       align-items: center;
-      justify-content: center;
+      gap: 6px;
       cursor: pointer;
-      font-size: 20px;
-      box-shadow: 0 6px 15px rgba(0,0,0,0.25);
+      background: #f0f2f5;
+      padding: 5px 12px;
+      border-radius: 30px;
       transition: 0.2s;
     }
-    .select-all-btn:hover { transform: scale(1.05); }
-    .select-all-btn.active { background: #1976d2; }
-    .status { padding: 3px 8px; border-radius: 8px; font-size: 12px; margin-right: 5px; font-weight: bold; }
+    .select-all-wrapper:hover { background: #e0e2e5; }
+    .select-all-wrapper input { width: 18px; height: 18px; margin: 0; cursor: pointer; }
+    .select-all-wrapper span { font-size: 13px; font-weight: 600; color: #333; }
+    #count { color: #333; }
+    #selectedCount { color: #0F7B65; }
+    .status { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; display: inline-block; }
     .status.new { background: #D4AF37; color: #000; }
     .status.processing { background: #3498db; color: #fff; }
     .status.shipped { background: #9b59b6; color: #fff; }
     .status.delivered { background: #2ecc71; color: #fff; }
     .status.cancelled { background: #e74c3c; color: #fff; }
-    * { user-select: none; }
-    input, textarea { user-select: text !important; }
-
-    /* الشريط الثابت لتغيير الحالة الجماعي */
-    .bulk-actions-bar {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: #fff;
-      box-shadow: 0 -5px 20px rgba(0,0,0,0.1);
-      padding: 12px 20px;
+    
+    /* تنسيق صف الطلب */
+    .order-header {
       display: flex;
-      flex-wrap: wrap;
+      justify-content: space-between;
       align-items: center;
-      justify-content: center;
-      gap: 12px;
-      z-index: 1500;
-      transform: translateY(100%);
-      transition: transform 0.3s ease;
-      border-top: 1px solid #eee;
+      cursor: pointer;
     }
-    .bulk-actions-bar.show {
-      transform: translateY(0);
+    .order-header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
     }
-    .bulk-actions-bar .selected-info {
+    .order-id {
       font-weight: bold;
-      background: #0F7B65;
-      color: #fff;
-      padding: 6px 14px;
-      border-radius: 40px;
       font-size: 14px;
     }
-    .bulk-status-btn {
-      padding: 8px 18px;
-      border: none;
-      border-radius: 40px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: 0.2s;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      font-family: 'Cairo', sans-serif;
-    }
-    .bulk-status-btn.new { background: #D4AF37; color: #000; }
-    .bulk-status-btn.processing { background: #3498db; color: #fff; }
-    .bulk-status-btn.shipped { background: #9b59b6; color: #fff; }
-    .bulk-status-btn.delivered { background: #2ecc71; color: #fff; }
-    .bulk-status-btn.cancelled { background: #e74c3c; color: #fff; }
-    .bulk-status-btn:hover { transform: translateY(-2px); filter: brightness(0.95); }
-    .clear-selection-btn {
-      background: #888;
-      color: #fff;
-      padding: 8px 18px;
-      border: none;
-      border-radius: 40px;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-    }
-    @media (max-width: 700px) {
-      .bulk-actions-bar { flex-direction: column; align-items: stretch; padding: 12px; }
-      .bulk-status-btn, .clear-selection-btn { justify-content: center; }
-    }
-    
-   /* تحسين شكل الفلاتر - مربعات أنيقة */
-.filters {
-  display: flex;
-  gap: 10px;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-.filter-btn {
-  width: 55px;
-  height: 55px;
-  padding: 0;
-  border-radius: 18px;
-  background: #f0f2f5;
-  font-size: 22px;
-  transition: all 0.25s ease;
-}
-.filter-btn i { font-size: 24px; margin: 0; }
-.filter-btn.active { background: #0F7B65; color: #fff; transform: scale(1.05); box-shadow: 0 5px 12px rgba(15,123,101,0.3); }
-
-/* تحسين شريط الحالات */
-.bulk-status-btn span, .clear-selection-btn span { font-size: 13px; }
-@media (max-width: 600px) {
-  .filter-btn { width: 48px; height: 48px; font-size: 20px; }
-  .filter-btn i { font-size: 20px; }
-  .bulk-status-btn span, .clear-selection-btn span { display: none; }
-  .bulk-status-btn { padding: 8px 14px; }
-  .clear-selection-btn { padding: 8px 14px; }
-} 
-    
+    * { user-select: none; }
+    input, textarea { user-select: text !important; }
   </style>
 </head>
 <body>
-  <div class="header">
-    <div class="header-top">
-      <div id="selectAllBtn" class="select-all-btn" onclick="selectAll()"><i class="fas fa-check-double"></i></div>
-      <h2 style="margin:0;">📦 VANTÉ Dashboard</h2>
-      <div class="header-icons">
-        <div class="icon-btn msg-icon" onclick="toggleInbox()">📩 <span id="msgBadge">0</span></div>
-        <div class="icon-btn" onclick="printSelected()">🖨️</div>
-        <div class="icon-btn" onclick="openDatePicker()">📅</div>
-      </div>
+<div class="header">
+  <div class="header-top">
+    <h2 style="margin:0;">📦 VANTÉ Dashboard</h2>
+    <div class="header-icons">
+      <div class="icon-btn msg-icon" onclick="toggleInbox()">📩 <span id="msgBadge">0</span></div>
+      <div class="icon-btn" onclick="printSelected()">🖨️</div>
+      <div class="icon-btn" onclick="openDatePicker()">📅</div>
     </div>
-    <input type="text" id="search" class="search-box" placeholder="🔍 بحث بالاسم، الهاتف، رقم الطلب">
-    <input type="date" id="dateFilter" style="display:none;">
-    <div class="filters">
-  <button onclick="setFilter(event, 'all')" class="filter-btn active" data-filter="all"><i class="fas fa-list"></i></button>
-  <button onclick="setFilter(event, 'new')" class="filter-btn" data-filter="new"><i class="fas fa-sparkles"></i></button>
-  <button onclick="setFilter(event, 'processing')" class="filter-btn" data-filter="processing"><i class="fas fa-boxes"></i></button>
-  <button onclick="setFilter(event, 'shipped')" class="filter-btn" data-filter="shipped"><i class="fas fa-truck"></i></button>
-  <button onclick="setFilter(event, 'delivered')" class="filter-btn" data-filter="delivered"><i class="fas fa-check-circle"></i></button>
-  <button onclick="setFilter(event, 'cancelled')" class="filter-btn" data-filter="cancelled"><i class="fas fa-ban"></i></button>
+  </div>
+  <input type="text" id="search" class="search-box" placeholder="🔍 بحث بالاسم، الهاتف، رقم الطلب">
+  <input type="date" id="dateFilter" style="display:none;">
+  <div class="filters">
+    <button onclick="setFilter(event, 'all')" class="filter-btn active" data-filter="all"><i class="fas fa-list"></i></button>
+    <button onclick="setFilter(event, 'new')" class="filter-btn" data-filter="new"><i class="fas fa-sparkles"></i></button>
+    <button onclick="setFilter(event, 'processing')" class="filter-btn" data-filter="processing"><i class="fas fa-boxes"></i></button>
+    <button onclick="setFilter(event, 'shipped')" class="filter-btn" data-filter="shipped"><i class="fas fa-truck"></i></button>
+    <button onclick="setFilter(event, 'delivered')" class="filter-btn" data-filter="delivered"><i class="fas fa-check-circle"></i></button>
+    <button onclick="setFilter(event, 'cancelled')" class="filter-btn" data-filter="cancelled"><i class="fas fa-ban"></i></button>
+  </div>
 </div>
-  </div>
 
-  <div class="top-stats">
-    <span id="count"></span>
-    <span id="selectedCount"></span>
+<div class="top-stats">
+  <div class="select-all-wrapper" onclick="toggleSelectAll()">
+    <input type="checkbox" id="selectAllCheckbox"> <span>ALL</span>
   </div>
-  <div id="orders"></div>
+  <span id="count"></span>
+  <span id="selectedCount">✅ المحدد: 0</span>
+</div>
+<div id="orders"></div>
 
-  <!-- الشريط الثابت لتغيير الحالة الجماعي -->
-  <!-- الشريط الثابت لتغيير الحالة الجماعي -->
+<!-- الشريط الثابت -->
 <div id="bulkActionsBar" class="bulk-actions-bar">
   <div class="selected-info" id="bulkSelectedInfo">0</div>
-  <button class="bulk-status-btn new" data-status="new" onclick="applyBulkStatus('new')"><i class="fas fa-sparkles"></i> <span>جديد</span></button>
-  <button class="bulk-status-btn processing" data-status="processing" onclick="applyBulkStatus('processing')"><i class="fas fa-boxes"></i> <span>تجهيز</span></button>
-  <button class="bulk-status-btn shipped" data-status="shipped" onclick="applyBulkStatus('shipped')"><i class="fas fa-truck"></i> <span>شحن</span></button>
-  <button class="bulk-status-btn delivered" data-status="delivered" onclick="applyBulkStatus('delivered')"><i class="fas fa-check-circle"></i> <span>تسليم</span></button>
-  <button class="bulk-status-btn cancelled" data-status="cancelled" onclick="applyBulkStatus('cancelled')"><i class="fas fa-ban"></i> <span>إلغاء</span></button>
+  <button class="bulk-status-btn new" onclick="applyBulkStatus('new')"><i class="fas fa-sparkles"></i> <span>جديد</span></button>
+  <button class="bulk-status-btn processing" onclick="applyBulkStatus('processing')"><i class="fas fa-boxes"></i> <span>تجهيز</span></button>
+  <button class="bulk-status-btn shipped" onclick="applyBulkStatus('shipped')"><i class="fas fa-truck"></i> <span>شحن</span></button>
+  <button class="bulk-status-btn delivered" onclick="applyBulkStatus('delivered')"><i class="fas fa-check-circle"></i> <span>تسليم</span></button>
+  <button class="bulk-status-btn cancelled" onclick="applyBulkStatus('cancelled')"><i class="fas fa-ban"></i> <span>إلغاء</span></button>
   <button class="clear-selection-btn" onclick="clearAllSelections()"><i class="fas fa-times"></i> <span>إلغاء</span></button>
 </div>
 
-  <div id="msgPopup" style="display:none;">
-    <div class="popup-box">
-      <div id="msgContent"></div>
-      <button onclick="closeMsg()" style="margin-top:10px;width:100%;padding:10px;border:none;background:#333;color:#fff;border-radius:10px;">إغلاق</button>
-    </div>
-  </div>
+<div id="msgPopup" style="display:none;"><div class="popup-box"><div id="msgContent"></div><button onclick="closeMsg()" style="margin-top:10px;width:100%;padding:10px;border:none;background:#333;color:#fff;border-radius:10px;">إغلاق</button></div></div>
+<div id="messagesBox"><div class="inbox-header"><h3>📩 الرسائل</h3><span onclick="toggleInbox()">✖</span></div><div class="inbox-container"><div id="messagesList" class="inbox-list"></div><div id="messageView" class="inbox-view"><p style="text-align:center;color:#888;">اختر رسالة</p></div></div></div>
+<div id="adminLightbox" style="position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:999999; display:none; justify-content:center; align-items:center;"><img id="adminLightboxImg" src="" style="max-width:90%; max-height:90vh; object-fit:contain;"><button onclick="document.getElementById('adminLightbox').style.display='none'" style="position:absolute; top:20px; right:20px; background:#fff; border:none; font-size:24px; width:40px; height:40px; border-radius:50%; cursor:pointer;">✕</button></div>
 
-  <div id="messagesBox">
-    <div class="inbox-header">
-      <h3>📩 الرسائل</h3>
-      <span onclick="toggleInbox()">✖</span>
-    </div>
-    <div class="inbox-container">
-      <div id="messagesList" class="inbox-list"></div>
-      <div id="messageView" class="inbox-view"><p style="text-align:center;color:#888;">اختر رسالة</p></div>
-    </div>
-  </div>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, query, orderBy, onSnapshot, updateDoc, deleteDoc, doc, serverTimestamp, getDoc, getDocs, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-  <!-- Lightbox للصور في لوحة التحكم -->
-  <div id="adminLightbox" style="position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:999999; display:none; justify-content:center; align-items:center;">
-    <img id="adminLightboxImg" src="" style="max-width:90%; max-height:90vh; object-fit:contain;">
-    <button onclick="document.getElementById('adminLightbox').style.display='none'" style="position:absolute; top:20px; right:20px; background:#fff; border:none; font-size:24px; width:40px; height:40px; border-radius:50%; cursor:pointer;">✕</button>
-  </div>
+const firebaseConfig = {
+  apiKey: "AIzaSyCotT8EP2uy_HsgHknxeGBorKoEUORPtmU",
+  authDomain: "vante-orders.firebaseapp.com",
+  projectId: "vante-orders",
+  storageBucket: "vante-orders.firebasestorage.app",
+  messagingSenderId: "842319700646",
+  appId: "1:842319700646:web:f6afd78ef7038c3be4ca67"
+};
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getFirestore, collection, query, orderBy, onSnapshot, updateDoc, deleteDoc, doc, serverTimestamp, getDoc, getDocs, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyCotT8EP2uy_HsgHknxeGBorKoEUORPtmU",
-      authDomain: "vante-orders.firebaseapp.com",
-      projectId: "vante-orders",
-      storageBucket: "vante-orders.firebasestorage.app",
-      messagingSenderId: "842319700646",
-      appId: "1:842319700646:web:f6afd78ef7038c3be4ca67",
-      measurementId: "G-56ZC1RW0T7"
-    };
+let orders = [], lastCount = 0, currentFilter = "all", messages = [];
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const auth = getAuth(app);
+window.markRead = async (id) => updateDoc(doc(db, "messages", id), { status: "done" });
+window.openMsg = async (id) => {
+  let m = messages.find(x => x.id === id);
+  if (!m) return;
+  await markRead(id);
+  document.getElementById("messageView").innerHTML = `<div style="text-align:right"><div style="font-size:18px;font-weight:bold;">👤 ${m.name}</div><div style="color:#666;">📞 ${m.phone}</div><hr><div>💬 ${m.message}</div><a href="https://wa.me/2${m.phone}" target="_blank" style="display:block;margin-top:15px;background:#25D366;color:#fff;padding:10px;border-radius:10px;text-align:center;">💬 رد واتساب</a></div>`;
+};
 
-    let orders = [];
-    let lastCount = 0;
-    let currentFilter = "all";
-    let messages = [];
+window.update = async (id, status) => { try { await updateDoc(doc(db, "orders", id), { status }); } catch(e) { alert("خطأ"); } };
 
-    // ----- دوال الرسائل -----
-    window.markRead = async function(id) {
-      await updateDoc(doc(db, "messages", id), { status: "done" });
-    }
-
-    window.openMsg = async (id) => {
-      let m = messages.find(x => x.id === id);
-      if (!m) return;
-      await markRead(id);
-      document.getElementById("messageView").innerHTML = `
-        <div style="text-align:right">
-          <div style="font-size:18px;font-weight:bold;">👤 ${m.name}</div>
-          <div style="color:#666;margin-top:5px;">📞 ${m.phone}</div>
-          <hr>
-          <div style="line-height:1.7;">💬 ${m.message}</div>
-          <a href="https://wa.me/2${m.phone}" target="_blank" style="display:block;margin-top:15px;text-align:center;background:#25D366;color:#fff;padding:10px;border-radius:10px;text-decoration:none;">💬 رد واتساب</a>
-        </div>`;
-    }
-
-    // ----- دوال الطلبات -----
-    window.update = async function(id, status) {
-      try {
-        await updateDoc(doc(db, "orders", id), { status: status });
-      } catch (e) {
-        alert("حصل خطأ");
-        console.error(e);
-      }
-    }
-
-    // حذف فردي (مع إعادة المخزون)
-    window.deleteOrder = async function(id) {
-      if (!confirm("⚠️ متأكد من حذف الطلب وإعادة الكميات إلى المخزون؟")) return;
-      try {
-        const orderRef = doc(db, "orders", id);
-        const orderSnap = await getDoc(orderRef);
-        if (!orderSnap.exists()) throw new Error("الطلب غير موجود");
-        const order = orderSnap.data();
-        
-        // إعادة المخزون لكل منتج في الطلب
-        for (const item of (order.orderDetails || [])) {
-          if (!item.name || !item.size) continue;
-          const productQuery = query(collection(db, "products"), where("name", "==", item.name));
-          const productSnap = await getDocs(productQuery);
-          if (!productSnap.empty) {
-            const productRef = doc(db, "products", productSnap.docs[0].id);
-            const productData = productSnap.docs[0].data();
-            const stockBySize = productData.stockBySize || {};
-            const size = item.size;
-            if (stockBySize[size] !== undefined) {
-              stockBySize[size] += item.qty;
-              await updateDoc(productRef, { stockBySize });
-            }
-          }
-        }
-        await deleteDoc(orderRef);
-        alert("✅ تم حذف الطلب وإعادة الكميات بنجاح");
-      } catch (e) {
-        console.error(e);
-        alert("❌ حدث خطأ أثناء الحذف");
-      }
-    };
-
-    // تعديل الطلب (نافذة منبثقة)
-    window.editOrder = (id) => {
-      let o = orders.find(x => x.id === id);
-      if (!o) return;
-      let box = document.getElementById("msgPopup");
-      let detailsHtml = '';
-      (o.orderDetails || []).forEach((item, idx) => {
-        detailsHtml += `
-        <div style="background:#f8f8f8; padding:12px; border-radius:12px; margin-bottom:10px;">
-          <b>المنتج ${idx+1}</b>
-          <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:8px;">
-            <input id="editDetailName_${idx}" value="${item.name || ''}" placeholder="اسم المنتج" style="flex:2;">
-            <input id="editDetailSize_${idx}" value="${item.size || ''}" placeholder="المقاس" style="flex:1;">
-            <input id="editDetailQty_${idx}" type="number" value="${item.qty || 1}" placeholder="العدد" style="flex:1;">
-            <input id="editDetailPrice_${idx}" type="number" value="${item.price || 0}" placeholder="السعر" style="flex:1;">
-            <input id="editDetailImage_${idx}" value="${item.image || ''}" placeholder="رابط الصورة" style="flex:2;">
-          </div>
-          ${item.image ? `<img src="${item.image}" style="width:40px; height:40px; border-radius:8px; margin-top:6px;">` : ''}
-        </div>`;
-      });
-      box.innerHTML = `
-        <div class="popup-box">
-          <div class="popup-header">
-            <span>✏️ تعديل الأوردر ID: ${o.orderID}</span>
-            <span onclick="closeMsg()" style="cursor:pointer;">✖</span>
-          </div>
-          <div class="popup-body" style="max-height:70vh; overflow-y:auto;">
-            <input id="editName" value="${o.customerName || ''}" placeholder="اسم العميل"><br><br>
-            <input id="editPhone" value="${o.phone || ''}" placeholder="رقم الهاتف"><br><br>
-            <input id="editGov" value="${o.gov || ''}" placeholder="المحافظة"><br><br>
-            <input id="editCity" value="${o.city || ''}" placeholder="المدينة"><br><br>
-            <input id="editAddress" value="${o.address || ''}" placeholder="العنوان"><br><br>
-            <hr>
-            <label style="font-weight:bold;">💎 تعديل تفاصيل الطلب</label>
-            <div id="editDetailsContainer">${detailsHtml}</div>
-            <hr>
-            <input id="editQuantity" type="number" value="${o.quantity || ''}" placeholder="الكمية الإجمالية"><br><br>
-            <input id="editPrice" type="number" value="${o.price || ''}" placeholder="السعر الإجمالي"><br><br>
-            <input id="editShipping" type="number" value="${o.shipping || ''}" placeholder="الشحن"><br><br>
-            <input id="editTotal" type="number" value="${o.finalTotal || ''}" placeholder="الإجمالي النهائي">
-          </div>
-          <div class="popup-footer">
-            <button onclick="saveEdit('${id}')" style="width:100%;padding:10px;background:#0F7B65;color:#fff;border:none;border-radius:10px;margin-bottom:8px;">حفظ التعديلات</button>
-            <button onclick="closeMsg()" style="width:100%;padding:10px;background:#333;color:#fff;border:none;border-radius:10px;">إغلاق</button>
-          </div>
-        </div>`;
-      box.style.display = "flex";
-    };
-
-    window.saveEdit = async function(id) {
-      let detailsCount = (orders.find(x => x.id === id)?.orderDetails || []).length;
-      let orderDetails = [];
-      for (let i = 0; i < detailsCount; i++) {
-        let name = document.getElementById(`editDetailName_${i}`)?.value || '';
-        let size = document.getElementById(`editDetailSize_${i}`)?.value || '';
-        let qty = parseInt(document.getElementById(`editDetailQty_${i}`)?.value) || 0;
-        let price = parseFloat(document.getElementById(`editDetailPrice_${i}`)?.value) || 0;
-        let image = document.getElementById(`editDetailImage_${i}`)?.value || '';
-        if (name || size || qty > 0) {
-          orderDetails.push({ name, size, qty, price, image });
+window.deleteOrder = async (id) => {
+  if (!confirm("⚠️ حذف الطلب وإعادة الكميات؟")) return;
+  try {
+    const orderSnap = await getDoc(doc(db, "orders", id));
+    if (!orderSnap.exists()) throw new Error();
+    const order = orderSnap.data();
+    for (const item of (order.orderDetails || [])) {
+      if (!item.name || !item.size) continue;
+      const productSnap = await getDocs(query(collection(db, "products"), where("name", "==", item.name)));
+      if (!productSnap.empty) {
+        const productRef = doc(db, "products", productSnap.docs[0].id);
+        const stockBySize = productSnap.docs[0].data().stockBySize || {};
+        if (stockBySize[item.size] !== undefined) {
+          stockBySize[item.size] += item.qty;
+          await updateDoc(productRef, { stockBySize });
         }
       }
-      try {
-        await updateDoc(doc(db, "orders", id), {
-          customerName: document.getElementById("editName").value,
-          phone: document.getElementById("editPhone").value,
-          gov: document.getElementById("editGov").value,
-          city: document.getElementById("editCity").value,
-          address: document.getElementById("editAddress").value,
-          orderDetails: orderDetails,
-          quantity: Number(document.getElementById("editQuantity").value) || 0,
-          price: Number(document.getElementById("editPrice").value) || 0,
-          shipping: Number(document.getElementById("editShipping").value) || 0,
-          finalTotal: Number(document.getElementById("editTotal").value) || 0
-        });
-        closeMsg();
-      } catch (e) {
-        alert("حصل خطأ");
-        console.error(e);
-      }
-    };
-
-    // ----- إدارة التحديد والشريط الثابت -----
-    function updateBulkBar() {
-      const checkboxes = document.querySelectorAll(".selectOrder:checked");
-      const count = checkboxes.length;
-      const bar = document.getElementById("bulkActionsBar");
-      const infoSpan = document.getElementById("bulkSelectedInfo");
-      if (count > 0) {
-        bar.classList.add("show");
-        infoSpan.innerHTML = count;
-      } else {
-        bar.classList.remove("show");
-      }
-      document.getElementById("selectedCount").innerText = "✅ المحدد: " + count;
-      const selectAllBtn = document.getElementById("selectAllBtn");
-      selectAllBtn.style.display = count > 0 ? "flex" : "none";
     }
+    await deleteDoc(doc(db, "orders", id));
+    alert("✅ تم الحذف وإعادة المخزون");
+  } catch(e) { alert("❌ خطأ"); }
+};
 
-    window.clearAllSelections = function() {
-      document.querySelectorAll(".selectOrder").forEach(cb => {
-        cb.checked = false;
-        cb.closest(".card").style.background = "#fff";
-      });
-      updateBulkBar();
-    };
+window.editOrder = (id) => {
+  let o = orders.find(x => x.id === id);
+  if (!o) return;
+  let box = document.getElementById("msgPopup");
+  let detailsHtml = '';
+  (o.orderDetails || []).forEach((item, idx) => {
+    detailsHtml += `<div style="background:#f8f8f8; padding:12px; border-radius:12px; margin-bottom:10px;">
+      <b>المنتج ${idx+1}</b>
+      <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:8px;">
+        <input id="editDetailName_${idx}" value="${item.name || ''}" placeholder="المنتج" style="flex:2;">
+        <input id="editDetailSize_${idx}" value="${item.size || ''}" placeholder="المقاس" style="flex:1;">
+        <input id="editDetailQty_${idx}" type="number" value="${item.qty || 1}" style="flex:1;">
+        <input id="editDetailPrice_${idx}" type="number" value="${item.price || 0}" style="flex:1;">
+        <input id="editDetailImage_${idx}" value="${item.image || ''}" placeholder="الصورة" style="flex:2;">
+      </div>
+      ${item.image ? `<img src="${item.image}" style="width:40px; border-radius:8px;">` : ''}
+    </div>`;
+  });
+  box.innerHTML = `<div class="popup-box"><div class="popup-header"><span>✏️ تعديل ID: ${o.orderID}</span><span onclick="closeMsg()" style="cursor:pointer;">✖</span></div>
+    <div class="popup-body"><input id="editName" value="${o.customerName || ''}" placeholder="الاسم"><br><br>
+    <input id="editPhone" value="${o.phone || ''}" placeholder="الهاتف"><br><br>
+    <input id="editGov" value="${o.gov || ''}" placeholder="المحافظة"><br><br>
+    <input id="editCity" value="${o.city || ''}" placeholder="المدينة"><br><br>
+    <input id="editAddress" value="${o.address || ''}" placeholder="العنوان"><br><br><hr>
+    <div id="editDetailsContainer">${detailsHtml}</div><hr>
+    <input id="editQuantity" type="number" value="${o.quantity || ''}" placeholder="الكمية"><br><br>
+    <input id="editPrice" type="number" value="${o.price || ''}" placeholder="السعر"><br><br>
+    <input id="editShipping" type="number" value="${o.shipping || ''}" placeholder="الشحن"><br><br>
+    <input id="editTotal" type="number" value="${o.finalTotal || ''}" placeholder="الإجمالي"></div>
+    <div class="popup-footer"><button onclick="saveEdit('${id}')" style="width:100%;padding:10px;background:#0F7B65;color:#fff;border:none;border-radius:10px;">حفظ</button>
+    <button onclick="closeMsg()" style="width:100%;margin-top:8px;padding:10px;background:#333;color:#fff;border:none;border-radius:10px;">إغلاق</button></div></div>`;
+  box.style.display = "flex";
+};
 
-    window.selectAll = function() {
-      const allCheckboxes = document.querySelectorAll(".selectOrder");
-      const anyUnchecked = Array.from(allCheckboxes).some(cb => !cb.checked);
-      allCheckboxes.forEach(cb => {
-        cb.checked = anyUnchecked;
-        cb.closest(".card").style.background = anyUnchecked ? "#e6fff2" : "#fff";
-      });
-      updateBulkBar();
-      const btn = document.getElementById("selectAllBtn");
-      btn.innerText = anyUnchecked ? "✖" : "✔";
-      btn.classList.toggle("active", anyUnchecked);
-    };
-
-    window.applyBulkStatus = async function(newStatus) {
-      const selectedBoxes = document.querySelectorAll(".selectOrder:checked");
-      if (selectedBoxes.length === 0) return;
-      const confirmMsg = `تطبيق حالة "${newStatus}" على ${selectedBoxes.length} طلب؟`;
-      if (!confirm(confirmMsg)) return;
-      const updates = [];
-      selectedBoxes.forEach(cb => {
-        const card = cb.closest(".card");
-        const orderId = card.querySelector("[onclick*='toggleOrder']")?.getAttribute("onclick")?.match(/'([^']+)'/)?.[1];
-        if (orderId) {
-          updates.push(updateDoc(doc(db, "orders", orderId), { status: newStatus }));
-        }
-      });
-      try {
-        await Promise.all(updates);
-        alert(`✅ تم تحديث ${updates.length} طلب إلى ${newStatus}`);
-        clearAllSelections();
-      } catch (err) {
-        console.error(err);
-        alert("❌ حدث خطأ أثناء تحديث الحالات");
-      }
-    };
-
-    // ----- عرض الطلبات (بدون أزرار حالة داخلية) -----
-    function render() {
-      let date = document.getElementById("dateFilter").value;
-      let search = document.getElementById("search").value.toLowerCase();
-      let html = "";
-      let count = 0;
-
-      orders.forEach(o => {
-        if (currentFilter !== "all" && o.status !== currentFilter) return;
-        if (search && !o.customerName?.toLowerCase().includes(search) && !o.phone?.includes(search) && !o.orderID?.toString().toLowerCase().includes(search)) return;
-        let status = o.status || "new";
-        let d = o.createdAt?.toDate?.();
-        if (date && d && d.toDateString() !== new Date(date).toDateString()) return;
-        count++;
-
-        let msg = `VANTÉ\nكود الطلب: ${o.orderID || "-"}\n\n--------------------\n👤 اسم العميل: ${o.customerName || "-"}\n📞 رقم الهاتف: ${o.phone || "-"}\n\n📍 العنوان:\n${o.gov || "-"} - ${o.city || "-"}\n${o.address || "-"}\n\n💎 تفاصيل الطلب:\n${(o.orderDetails || []).map((item,i) => `${i+1}. المنتج: ${item.name || 'بدون اسم'} | المقاس: ${item.size || '--'} | العدد: ${item.qty || 1} | السعر: ${item.price} EGP`).join("\n")}\n\n📦 الكمية: ${o.quantity}\n💰 السعر: ${o.price}\n🚚 الشحن: ${o.shipping}\n💵 الإجمالي: ${o.finalTotal}\n\n🕒 وقت الطلب:\n${o.createdAt?.toDate?.().toLocaleString('ar-EG') || "-"}`;
-
-        html += `
-        <div class="card ${status}" style="position:relative;">
-          <input type="checkbox" class="selectOrder" value="${btoa(unescape(encodeURIComponent(JSON.stringify(o))))}">
-          <div style="display:flex; justify-content:space-between; align-items:center; padding-right: 28px; cursor:pointer;" onclick="toggleOrder('${o.id}')">
-            <b>🧾 ${o.orderID}</b>
-            <span class="status ${status}">${status === 'new' ? 'جديد' : status === 'processing' ? 'قيد التجهيز' : status === 'shipped' ? 'تم الشحن' : status === 'delivered' ? 'تم التسليم' : status === 'cancelled' ? 'ملغى' : status}</span>
-          </div>
-          <div id="order-${o.id}" class="order-body">
-            <div class="order-info">
-              👤 ${o.customerName}<br>
-              📞 ${o.phone}<br>
-              📍 ${o.gov} - ${o.city}<br>
-              ${o.address}<br><br>
-              💎 تفاصيل الطلب:
-              <div style="display:flex; flex-direction:column; gap:8px; margin-top:6px;">
-                ${(o.orderDetails || []).map((item,i) => `
-                <div style="display:flex; align-items:center; gap:8px; background:#f9f9f9; padding:8px; border-radius:10px;">
-                  ${item.image ? `<img src="${item.image}" style="width:40px; height:40px; object-fit:cover; border-radius:8px; cursor:pointer;" onclick="event.stopPropagation(); window.openAdminLightbox('${item.image}')">` : '<div style="width:40px; height:40px; background:#eee; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:10px;">📷</div>'}
-                  <div style="flex:1;">
-                    <b>${item.name || 'بدون اسم'}</b><br>
-                    المقاس: ${item.size || '--'} | العدد: ${item.qty || 1} | السعر: ${item.price} EGP
-                  </div>
-                </div>`).join("")}
-              </div>
-            </div>
-            <div class="order-summary">
-              📦 الكمية: ${o.quantity}<br>
-              💰 السعر: ${o.price}<br>
-              🚚 الشحن: ${o.shipping}<br>
-              💵 الإجمالي: <b>${o.finalTotal}</b>
-              <div style="display:flex; gap:6px; margin-top:10px;">
-                <button onclick="editOrder('${o.id}')" style="flex:1;background:#ffc107;border:none;padding:6px;border-radius:8px;cursor:pointer;">✏️ تعديل</button>
-                <button onclick="deleteOrder('${o.id}')" style="flex:1;background:#dc3545;color:#fff;border:none;padding:6px;border-radius:8px;cursor:pointer;">🗑️ حذف</button>
-              </div>
-            </div>
-          </div>
-          <div class="actions">
-            <a class="action-btn whatsapp" target="_blank" href="https://wa.me/2${o.phone}"><i class="fab fa-whatsapp"></i> واتساب</a>
-            <button class="action-btn copy" onclick='copyText(${JSON.stringify(msg)})'><i class="fas fa-copy"></i> نسخ</button>
-          </div>
-        </div>`;
-      });
-      document.getElementById("orders").innerHTML = html;
-      document.getElementById("count").innerText = "📊 " + count;
-      updateBulkBar(); // للتأكد من حالة الشريط بعد إعادة الرسم
-    }
-
-    window.toggleOrder = (id) => {
-      let el = document.getElementById("order-" + id);
-      if (!el) return;
-      let actions = el.parentElement.querySelector(".actions");
-      let isOpen = el.style.display === "flex";
-      el.style.display = isOpen ? "none" : "flex";
-      if (actions) actions.style.display = isOpen ? "none" : "flex";
-    }
-
-    window.copyText = (t) => { navigator.clipboard.writeText(decodeURIComponent(t)); alert("📋 تم نسخ التفاصيل"); }
-
-    // ----- الإعدادات الأولية والاستماع -----
-    window.setFilter = (e, filter) => {
-      currentFilter = filter;
-      document.querySelectorAll(".filter-btn").forEach(btn => btn.classList.remove("active"));
-      e.target.classList.add("active");
-      render();
-    };
-
-    window.toggleInbox = () => {
-      let box = document.getElementById("messagesBox");
-      if (box.style.display === "none") {
-        box.style.display = "block";
-        setTimeout(() => box.classList.add("show"), 10);
-      } else {
-        box.classList.remove("show");
-        setTimeout(() => box.style.display = "none", 200);
-      }
-    };
-
-    window.openDatePicker = () => { document.getElementById("dateFilter").showPicker(); };
-    window.closeMsg = () => { document.getElementById("msgPopup").style.display = "none"; };
-    window.openAdminLightbox = function(src) {
-      document.getElementById('adminLightboxImg').src = src;
-      document.getElementById('adminLightbox').style.display = 'flex';
-    };
-
-    window.showPopup = (o) => {
-      let box = document.getElementById("msgPopup");
-      let content = document.getElementById("msgContent");
-      content.innerHTML = `
-        <div style="text-align:center">
-          <h3 style="margin-bottom:10px;">🛒 أوردر جديد</h3>
-          <div style="font-size:18px;font-weight:bold;">👤 ${o.customerName || "غير معروف"}</div>
-          <div style="margin-top:5px;color:#666;">📞 ${o.phone || "-"}</div>
-          <a href="https://wa.me/2${o.phone}" target="_blank" style="display:block;margin-top:15px;background:#25D366;color:#fff;padding:10px;border-radius:10px;text-decoration:none;">💬 فتح واتساب</a>
-        </div>`;
-      box.style.display = "block";
-      setTimeout(() => { box.style.display = "none"; }, 5000);
-    };
-
-    window.printSelected = () => {
-      let selected = document.querySelectorAll(".selectOrder:checked");
-      if (selected.length === 0) { alert("اختار أوردرات الأول"); return; }
-      let win = window.open('', '', 'width=900,height=700');
-      let html = `<html><head><meta charset="UTF-8"><style>body{margin:0;font-family:Arial;}.page{width:210mm;height:297mm;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;}.invoice{border:1px solid #000;padding:12px;box-sizing:border-box;display:flex;flex-direction:column;justify-content:space-between;}.header{display:flex;justify-content:space-between;font-size:12px;font-weight:bold;}.content{font-size:12px;line-height:1.6;margin-top:10px;}.centerMsg{text-align:center;font-size:13px;font-weight:bold;margin-top:20px;}hr{margin:6px 0;}</style></head><body><div class="page">`;
-      selected.forEach(el => {
-        let o = JSON.parse(decodeURIComponent(escape(atob(el.value))));
-        html += `<div class="invoice"><div class="header"><div>VANTÉ</div><div>${o.createdAt?.toDate?.().toLocaleString('en-US') || new Date().toLocaleString('en-US')}</div></div><hr><div class="content"><div><b>Order ID:</b> ${o.orderID || "-"}</div><div><b>Name:</b> ${o.customerName || "-"}</div><div><b>Phone:</b> ${o.phone || "-"}</div><br><div><b>Address:</b></div><div>${o.gov || "-"} - ${o.city || "-"}</div><div>${o.address || "-"}</div></div><div class="centerMsg">Thank you for your order 💛<br>We appreciate your trust in VANTÉ</div></div>`;
-      });
-      html += `</div><script>window.onload=function(){window.print();};<\/script></body></html>`;
-      win.document.write(html);
-      win.document.close();
-    };
-
-    function load() {
-      const qMessages = query(collection(db, "messages"), orderBy("createdAt", "desc"));
-      const qOrders = query(collection(db, "orders"), orderBy("createdAt", "desc"));
-      let unreadCount = 0;
-
-      onSnapshot(qMessages, (snap) => {
-        unreadCount = 0;
-        let badge = document.getElementById("msgBadge");
-        let html = "";
-        messages = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        messages.forEach(m => {
-          let status = m.status || "new";
-          if (status === "new") unreadCount++;
-          html += `<div class="msg-item ${status === 'new' ? 'unread' : ''}" onclick="openMsg('${m.id}')">
-            <div style="display:flex;justify-content:space-between;align-items:center;">
-              <div>👤 ${m.name}</div>
-              ${status === 'new' ? '<span class="new-badge">جديد</span>' : ''}
-            </div>
-            <div style="font-size:12px;color:#666;">${m.phone}</div>
-          </div>`;
-        });
-        document.getElementById("messagesList").innerHTML = html;
-        badge.style.display = unreadCount > 0 ? "inline-block" : "none";
-        badge.innerText = unreadCount;
-      });
-
-      onSnapshot(qOrders, (snap) => {
-        snap.docChanges().forEach(change => {
-          if (change.type === "added" && lastCount !== 0) {
-            let o = change.doc.data();
-            sound();
-            if (Notification.permission === "granted")
-              new Notification("طلب جديد 🛒", { body: `${o.customerName || "عميل جديد"} - ${o.phone || ""}` });
-            showPopup(o);
-          }
-        });
-        lastCount = snap.size;
-        orders = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        render();
-      });
-    }
-
-    document.getElementById("dateFilter").addEventListener("change", render);
-    document.getElementById("search").addEventListener("input", render);
-    document.addEventListener("change", (e) => {
-      if (e.target.classList.contains("selectOrder")) {
-        let card = e.target.closest(".card");
-        card.style.background = e.target.checked ? "#e6fff2" : "#fff";
-        updateBulkBar();
-      }
+window.saveEdit = async (id) => {
+  let detailsCount = (orders.find(x => x.id === id)?.orderDetails || []).length;
+  let orderDetails = [];
+  for (let i = 0; i < detailsCount; i++) {
+    let name = document.getElementById(`editDetailName_${i}`)?.value || '';
+    let size = document.getElementById(`editDetailSize_${i}`)?.value || '';
+    let qty = parseInt(document.getElementById(`editDetailQty_${i}`)?.value) || 0;
+    let price = parseFloat(document.getElementById(`editDetailPrice_${i}`)?.value) || 0;
+    let image = document.getElementById(`editDetailImage_${i}`)?.value || '';
+    if (name || qty > 0) orderDetails.push({ name, size, qty, price, image });
+  }
+  try {
+    await updateDoc(doc(db, "orders", id), {
+      customerName: document.getElementById("editName").value,
+      phone: document.getElementById("editPhone").value,
+      gov: document.getElementById("editGov").value,
+      city: document.getElementById("editCity").value,
+      address: document.getElementById("editAddress").value,
+      orderDetails, quantity: Number(document.getElementById("editQuantity").value) || 0,
+      price: Number(document.getElementById("editPrice").value) || 0,
+      shipping: Number(document.getElementById("editShipping").value) || 0,
+      finalTotal: Number(document.getElementById("editTotal").value) || 0
     });
+    closeMsg();
+  } catch(e) { alert("خطأ"); }
+};
 
-    const audio = new Audio("https://assets.mixkit.co/sfx/preview/mixkit-bell-notification-933.mp3");
-    function sound() { audio.currentTime = 0; audio.play().catch(() => {}); }
-    Notification.requestPermission();
+function updateBulkBar() {
+  let checked = document.querySelectorAll(".selectOrder:checked");
+  let count = checked.length;
+  let bar = document.getElementById("bulkActionsBar");
+  document.getElementById("bulkSelectedInfo").innerHTML = count;
+  document.getElementById("selectedCount").innerHTML = `✅ المحدد: ${count}`;
+  if (count > 0) bar.classList.add("show");
+  else bar.classList.remove("show");
+  let allCheckbox = document.getElementById("selectAllCheckbox");
+  if (allCheckbox) allCheckbox.checked = (count === document.querySelectorAll(".selectOrder").length && count > 0);
+}
 
-    document.addEventListener("contextmenu", e => {
-      if (!e.target.closest("input, textarea")) e.preventDefault();
-    });
-    document.addEventListener("dragstart", e => e.preventDefault());
+window.clearAllSelections = () => {
+  document.querySelectorAll(".selectOrder").forEach(cb => { cb.checked = false; cb.closest(".card").style.background = "#fff"; });
+  updateBulkBar();
+};
 
-    onAuthStateChanged(auth, (user) => {
-      if (user) { load(); }
-      else { window.location.href = "login.html"; }
-    });
-  </script>
+window.toggleSelectAll = () => {
+  let allCheckbox = document.getElementById("selectAllCheckbox");
+  let isChecked = allCheckbox.checked;
+  document.querySelectorAll(".selectOrder").forEach(cb => {
+    cb.checked = isChecked;
+    cb.closest(".card").style.background = isChecked ? "#e6fff2" : "#fff";
+  });
+  updateBulkBar();
+};
+
+window.applyBulkStatus = async (newStatus) => {
+  let selected = document.querySelectorAll(".selectOrder:checked");
+  if (selected.length === 0) return;
+  if (!confirm(`تطبيق "${newStatus}" على ${selected.length} طلب؟`)) return;
+  let updates = [];
+  selected.forEach(cb => {
+    let card = cb.closest(".card");
+    let orderId = card.querySelector(".order-id")?.getAttribute("data-id");
+    if (orderId) updates.push(updateDoc(doc(db, "orders", orderId), { status: newStatus }));
+  });
+  try { await Promise.all(updates); alert(`✅ تم تحديث ${updates.length} طلب`); clearAllSelections(); }
+  catch(e) { alert("❌ خطأ"); }
+};
+
+function render() {
+  let date = document.getElementById("dateFilter").value;
+  let search = document.getElementById("search").value.toLowerCase();
+  let html = "", count = 0;
+  orders.forEach(o => {
+    if (currentFilter !== "all" && o.status !== currentFilter) return;
+    if (search && !o.customerName?.toLowerCase().includes(search) && !o.phone?.includes(search) && !o.orderID?.toLowerCase().includes(search)) return;
+    let d = o.createdAt?.toDate?.();
+    if (date && d && d.toDateString() !== new Date(date).toDateString()) return;
+    count++;
+    let status = o.status || "new";
+    let statusText = { new: 'جديد', processing: 'قيد التجهيز', shipped: 'تم الشحن', delivered: 'تم التسليم', cancelled: 'ملغى' }[status] || status;
+    let msg = `VANTÉ\nكود: ${o.orderID}\n👤 ${o.customerName}\n📞 ${o.phone}\n📍 ${o.gov} - ${o.city}\n${o.address}\n💎 ${(o.orderDetails || []).map(i => `${i.name} (${i.size}) x${i.qty}`).join(', ')}\n💰 ${o.finalTotal} جنيه`;
+    html += `<div class="card ${status}" style="position:relative;">
+      <div class="order-header">
+        <div class="order-header-left">
+          <input type="checkbox" class="selectOrder" onchange="this.closest('.card').style.background = this.checked ? '#e6fff2' : '#fff'; updateBulkBar();">
+          <span class="order-id" data-id="${o.id}" onclick="toggleOrder('${o.id}')" style="cursor:pointer;">🧾 ${o.orderID}</span>
+        </div>
+        <span class="status ${status}" onclick="toggleOrder('${o.id}')" style="cursor:pointer;">${statusText}</span>
+      </div>
+      <div id="order-${o.id}" class="order-body">
+        <div class="order-info">👤 ${o.customerName}<br>📞 ${o.phone}<br>📍 ${o.gov} - ${o.city}<br>${o.address}<br><br>💎 تفاصيل الطلب:
+          <div style="display:flex; flex-direction:column; gap:8px; margin-top:6px;">
+            ${(o.orderDetails || []).map(item => `<div style="display:flex; align-items:center; gap:8px; background:#f9f9f9; padding:8px; border-radius:10px;">
+              ${item.image ? `<img src="${item.image}" style="width:40px; height:40px; object-fit:cover; border-radius:8px; cursor:pointer;" onclick="event.stopPropagation(); window.openAdminLightbox('${item.image}')">` : '<div style="width:40px; height:40px; background:#eee; border-radius:8px; display:flex; align-items:center; justify-content:center;">📷</div>'}
+              <div><b>${item.name || 'بدون اسم'}</b><br>المقاس: ${item.size || '--'} | العدد: ${item.qty || 1} | السعر: ${item.price} EGP</div>
+            </div>`).join("")}
+          </div>
+        </div>
+        <div class="order-summary">📦 ${o.quantity}<br>💰 ${o.price}<br>🚚 ${o.shipping}<br>💵 <b>${o.finalTotal}</b>
+          <div style="display:flex; gap:6px; margin-top:10px;"><button onclick="editOrder('${o.id}')" style="flex:1;background:#ffc107;border:none;padding:6px;border-radius:8px;cursor:pointer;">✏️</button><button onclick="deleteOrder('${o.id}')" style="flex:1;background:#dc3545;color:#fff;border:none;padding:6px;border-radius:8px;cursor:pointer;">🗑️</button></div>
+        </div>
+      </div>
+      <div class="actions"><a class="action-btn whatsapp" target="_blank" href="https://wa.me/2${o.phone}"><i class="fab fa-whatsapp"></i> واتساب</a><button class="action-btn copy" onclick='copyText(${JSON.stringify(msg)})'><i class="fas fa-copy"></i> نسخ</button></div>
+    </div>`;
+  });
+  document.getElementById("orders").innerHTML = html;
+  document.getElementById("count").innerHTML = `📊 ${count}`;
+  updateBulkBar();
+}
+
+window.toggleOrder = (id) => {
+  let el = document.getElementById("order-" + id);
+  if (el) el.style.display = el.style.display === "flex" ? "none" : "flex";
+  let actions = el?.parentElement?.querySelector(".actions");
+  if (actions) actions.style.display = actions.style.display === "flex" ? "none" : "flex";
+};
+window.copyText = (t) => { navigator.clipboard.writeText(decodeURIComponent(t)); alert("📋 تم النسخ"); };
+window.setFilter = (e, filter) => { currentFilter = filter; document.querySelectorAll(".filter-btn").forEach(btn => btn.classList.remove("active")); e.target.classList.add("active"); render(); };
+window.toggleInbox = () => { let box = document.getElementById("messagesBox"); if (box.style.display === "none") { box.style.display = "block"; setTimeout(() => box.classList.add("show"), 10); } else { box.classList.remove("show"); setTimeout(() => box.style.display = "none", 200); } };
+window.openDatePicker = () => document.getElementById("dateFilter").showPicker();
+window.closeMsg = () => document.getElementById("msgPopup").style.display = "none";
+window.openAdminLightbox = (src) => { document.getElementById('adminLightboxImg').src = src; document.getElementById('adminLightbox').style.display = 'flex'; };
+window.showPopup = (o) => { let box = document.getElementById("msgPopup"); document.getElementById("msgContent").innerHTML = `<div style="text-align:center"><h3>🛒 أوردر جديد</h3><div><b>👤 ${o.customerName || "غير معروف"}</b></div><div>📞 ${o.phone || "-"}</div><a href="https://wa.me/2${o.phone}" target="_blank" style="display:block;margin-top:15px;background:#25D366;color:#fff;padding:10px;border-radius:10px;">💬 واتساب</a></div>`; box.style.display = "block"; setTimeout(() => box.style.display = "none", 5000); };
+window.printSelected = () => {
+  let selected = document.querySelectorAll(".selectOrder:checked");
+  if (selected.length === 0) { alert("اختار أوردرات"); return; }
+  let win = window.open('', '', 'width=900,height=700');
+  let html = `<html><head><meta charset="UTF-8"><style>body{font-family:Arial;} .page{width:210mm;height:297mm;display:grid;grid-template-columns:1fr 1fr;}.invoice{border:1px solid #000;padding:12px;margin:5px;}</style></head><body><div class="page">`;
+  selected.forEach(el => {
+    let o = JSON.parse(decodeURIComponent(escape(atob(el.value))));
+    html += `<div class="invoice"><div><b>VANTÉ</b> | ${o.createdAt?.toDate?.().toLocaleString('en-US') || ''}</div><hr><div><b>Order:</b> ${o.orderID}<br><b>Name:</b> ${o.customerName}<br><b>Phone:</b> ${o.phone}<br><b>Address:</b> ${o.gov} - ${o.city}<br>${o.address}</div><div style="text-align:center;margin-top:20px;">Thank you 💛</div></div>`;
+  });
+  html += `</div><script>window.onload=function(){window.print();};<\/script></body></html>`;
+  win.document.write(html); win.document.close();
+};
+
+function load() {
+  onSnapshot(query(collection(db, "messages"), orderBy("createdAt", "desc")), (snap) => {
+    let unread = 0, html = "";
+    messages = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    messages.forEach(m => { if ((m.status || "new") === "new") unread++; html += `<div class="msg-item ${m.status === 'new' ? 'unread' : ''}" onclick="openMsg('${m.id}')"><div>👤 ${m.name}</div><div style="font-size:12px;">${m.phone}</div></div>`; });
+    document.getElementById("messagesList").innerHTML = html;
+    let badge = document.getElementById("msgBadge");
+    badge.style.display = unread > 0 ? "inline-block" : "none";
+    badge.innerText = unread;
+  });
+  onSnapshot(query(collection(db, "orders"), orderBy("createdAt", "desc")), (snap) => {
+    snap.docChanges().forEach(change => { if (change.type === "added" && lastCount !== 0) { let o = change.doc.data(); new Audio("https://assets.mixkit.co/sfx/preview/mixkit-bell-notification-933.mp3").play().catch(()=>{}); if (Notification.permission === "granted") new Notification("طلب جديد", { body: `${o.customerName} - ${o.phone}` }); showPopup(o); } });
+    lastCount = snap.size;
+    orders = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    render();
+  });
+}
+document.getElementById("dateFilter").addEventListener("change", render);
+document.getElementById("search").addEventListener("input", render);
+document.addEventListener("change", (e) => { if (e.target.classList.contains("selectOrder")) updateBulkBar(); });
+Notification.requestPermission();
+onAuthStateChanged(auth, (user) => { if (user) load(); else window.location.href = "login.html"; });
+</script>
 </body>
 </html>
