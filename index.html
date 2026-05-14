@@ -2888,15 +2888,14 @@ window.closeAccount = function() {
 };
 
 function showProfile(user) {
-    const phone = user.phoneNumber || '';
-    // جلب بيانات العميل من Firestore
-    window.getCustomerData(phone).then(data => {
+    window.getCustomerData(user).then(data => {
         const code = data?.customerCode || 'غير متوفر';
         const discount = data?.discountCode || 'غير متوفر';
+        const email = user.email || 'غير متوفر';
         document.getElementById("accountContent").innerHTML = `
             <h2>حسابي</h2>
             <div class="profile-info">
-                <p><strong>رقم الهاتف:</strong> ${phone}</p>
+                <p><strong>البريد الإلكتروني:</strong> ${email}</p>
                 <p><strong>كود العميل:</strong> ${code}</p>
                 <p><strong>كود الخصم:</strong></p>
                 <div class="discount-code-box">${discount}</div>
@@ -2926,8 +2925,27 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
+// معالجة نتيجة تسجيل الدخول عبر redirect
+getRedirectResult(auth).then(async (result) => {
+    if (result) {
+        const user = result.user;
+        window.currentAuthUser = user;
+        window.updateUIForAuth(user);
+        await window.createCustomerIfNeeded(user);
+        await window.updateCart();
+        // إغلاق مودال الحساب إذا كان مفتوحًا
+        document.getElementById("accountModalOverlay")?.classList.remove("active");
+        alert("تم تسجيل الدخول بنجاح ✨");
+    }
+}).catch((error) => {
+    console.error("Redirect result error:", error);
+    if (error.code !== 'auth/no-such-provider') {
+        alert("خطأ في تسجيل الدخول: " + error.message);
+    }
+});
 window.auth = auth; // اجعلها متاحة للدوال العامة
 window.googlePopupOpened = false;
+
 // متغير لتخزين مراجع مستمعي السحب
 let swipeHandlers = {};
 let currentCategory = "all";
@@ -3395,15 +3413,19 @@ if (typeof updateCart === 'function') updateCart();
 };
 
   window.updateCart = async function() {
-      // جلب كود الخصم إذا مسجل الدخول
+// جلب كود الخصم إذا مسجل الدخول
 let discountCode = null;
 if (auth.currentUser) {
-    const phone = auth.currentUser.phoneNumber || (auth.currentUser.providerData[0]?.phoneNumber) || '';
-    if (phone) {
-        const customerSnap = await getDocs(query(collection(db, "customers"), where("phone", "==", phone)));
-        if (!customerSnap.empty) {
-            discountCode = customerSnap.docs[0].data().discountCode;
-        }
+    const email = auth.currentUser.email;
+    const uid = auth.currentUser.uid;
+    if (email) {
+        const q = query(collection(db, "customers"), where("email", "==", email));
+        const snap = await getDocs(q);
+        if (!snap.empty) discountCode = snap.docs[0].data().discountCode;
+    } else if (uid) {
+        const q = query(collection(db, "customers"), where("uid", "==", uid));
+        const snap = await getDocs(q);
+        if (!snap.empty) discountCode = snap.docs[0].data().discountCode;
     }
 }
     let total = 0, count = 0;
@@ -3710,13 +3732,17 @@ document.querySelectorAll('.desktop-dropdown > a').forEach(link => {
 
 // إنشاء ملف العميل إذا لم يكن موجودًا
 window.createCustomerIfNeeded = async function(user) {
-    const phone = user.phoneNumber || (user.providerData[0]?.phoneNumber) || '';
-    if (!phone) return;
+    const email = user.email;
+    const uid = user.uid;
+    if (!email && !uid) return;
+    
     const customersRef = collection(db, "customers");
-    const q = query(customersRef, where("phone", "==", phone));
-    const snap = await getDocs(q);
-    if (!snap.empty) return; // موجود بالفعل
-
+    // البحث باستخدام البريد الإلكتروني أولاً
+    let q = query(customersRef, where("email", "==", email));
+    let snap = await getDocs(q);
+    if (!snap.empty) return; // موجود مسبقًا
+    
+    // إنشاء عميل جديد
     const counterRef = doc(db, "counters", "customers");
     const counterSnap = await getDoc(counterRef);
     if (!counterSnap.exists()) await setDoc(counterRef, { value: 0 });
@@ -3724,9 +3750,10 @@ window.createCustomerIfNeeded = async function(user) {
     const newNum = (await getDoc(counterRef)).data().value;
     const customerCode = `V${newNum}`;
     const discountCode = `VANTE${newNum}`;
-
-    await setDoc(doc(db, "customers", phone), {
-        phone,
+    
+    await setDoc(doc(db, "customers", email || uid), {
+        email: email || null,
+        uid: uid,
         customerCode,
         discountCode,
         createdAt: serverTimestamp()
@@ -3734,12 +3761,19 @@ window.createCustomerIfNeeded = async function(user) {
 };
 
 // جلب بيانات العميل
-window.getCustomerData = async function(phone) {
-    if (!phone) return null;
-    const q = query(collection(db, "customers"), where("phone", "==", phone));
-    const snap = await getDocs(q);
-    if (!snap.empty) return snap.docs[0].data();
-    return null;
+window.getCustomerData = async function(user) {
+    if (!user) return null;
+    const email = user.email;
+    const uid = user.uid;
+    if (!email && !uid) return null;
+    
+    let q = query(collection(db, "customers"), where("email", "==", email));
+    let snap = await getDocs(q);
+    if (snap.empty && uid) {
+        q = query(collection(db, "customers"), where("uid", "==", uid));
+        snap = await getDocs(q);
+    }
+    return snap.empty ? null : snap.docs[0].data();
 };
 
 // تحديث واجهة المستخدم بعد تسجيل الدخول/الخروج
@@ -4285,52 +4319,16 @@ window.updateModalStockDisplay = function() {
     }
 };
 
-// بعد تسجيل الدخول عبر redirect
-getRedirectResult(auth).then(async (result) => {
-    if (result) {
-        const user = result.user;
-        window.currentAuthUser = user;
-        await window.createCustomerIfNeeded(user);
-        window.updateUIForAuth(user);
-        window.updateCart();
-        alert("تم تسجيل الدخول بنجاح ✨");
-        // إغلاق المودال إن كان مفتوحًا
-        document.getElementById("accountModalOverlay")?.classList.remove("active");
-    }
-}).catch((error) => {
-    console.error(error);
-    alert("خطأ: " + error.message);
-});
-
-onAuthStateChanged(auth, (user) => {
+onAuthStateChanged(auth, async (user) => {
     if (user) {
         window.currentAuthUser = user;
         window.updateUIForAuth(user);
-        window.updateCart(); // ← أضف هذا السطر
+        await window.createCustomerIfNeeded(user);
+        await window.updateCart();
     } else {
         window.currentAuthUser = null;
         window.updateUIForAuth(null);
-        window.updateCart(); // ← أضف هذا السطر
-    }
-});
-
-// استقبال نتيجة redirect بعد العودة من Google
-getRedirectResult(auth).then(async (result) => {
-    window.googlePopupOpened = false;
-    if (result) {
-        const user = result.user;
-        window.currentAuthUser = user;
-        await window.createCustomerIfNeeded(user);
-        window.updateUIForAuth(user);
         window.updateCart();
-        document.getElementById("accountModalOverlay")?.classList.remove("active");
-        alert("تم تسجيل الدخول بنجاح ✨");
-    }
-}).catch((error) => {
-    window.googlePopupOpened = false;
-    console.error(error);
-    if (error.code !== 'auth/no-such-provider') {
-        alert("فشل تسجيل الدخول: " + error.message);
     }
 });
 
@@ -4395,20 +4393,12 @@ window.verifyOTP = async function() {
 };
 
 window.signInWithGoogle = async function() {
-    if (window.googlePopupOpened) {
-        alert("جاري معالجة طلب سابق...");
-        return;
-    }
-    window.googlePopupOpened = true;
     const provider = new GoogleAuthProvider();
     try {
-        // استخدام redirect بدلاً من popup
         await signInWithRedirect(auth, provider);
-        // لن يصل إلى هنا لأنه سيتم التوجيه
     } catch (error) {
         console.error(error);
         alert("خطأ: " + error.message);
-        window.googlePopupOpened = false;
     }
 };
 
