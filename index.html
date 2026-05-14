@@ -2926,22 +2926,20 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 // ------------------- معالجة المصادقة الموحدة -------------------
-let isAuthHandling = false;
-
 async function handleUser(user) {
-    if (isAuthHandling) return;
-    isAuthHandling = true;
+  
+  let isHandling = false;
+async function handleUser(user) {
+    if (isHandling) return;
+    isHandling = true;
     try {
         if (user) {
             console.log("✅ تم تسجيل الدخول:", user.email);
             window.currentAuthUser = user;
-            // تحديث الأيقونة
             const userIcon = document.getElementById("userIcon");
             if (userIcon) userIcon.style.color = "#D4AF37";
-            // إنشاء العميل وتحديث السلة
             await window.createCustomerIfNeeded(user);
             await window.updateCart();
-            // إغلاق مودال الحساب
             const modal = document.getElementById("accountModalOverlay");
             if (modal) modal.classList.remove("active");
             alert("تم تسجيل الدخول بنجاح ✨");
@@ -2952,19 +2950,42 @@ async function handleUser(user) {
             if (userIcon) userIcon.style.color = "";
             await window.updateCart();
         }
-    } catch (err) {
-        console.error("خطأ في handleUser:", err);
     } finally {
-        isAuthHandling = false;
+        isHandling = false;
+    }
+}
+    if (user) {
+        console.log("✅ تم تسجيل الدخول:", user.email);
+        window.currentAuthUser = user;
+        
+        // ✅ تحديث الأيقونة مباشرة (لضمان تغير اللون فوراً)
+        const userIcon = document.getElementById("userIcon");
+        if (userIcon) userIcon.style.color = "#D4AF37";
+        
+        // ✅ العمليات الإضافية (إنشاء العميل، تحديث السلة)
+        await window.createCustomerIfNeeded(user);
+        await window.updateCart();
+        
+        // ✅ إغلاق مودال الحساب إن كان مفتوحاً
+        const modal = document.getElementById("accountModalOverlay");
+        if (modal) modal.classList.remove("active");
+        
+        alert("تم تسجيل الدخول بنجاح ✨");
+    } else {
+        console.log("❌ تسجيل الخروج");
+        window.currentAuthUser = null;
+        const userIcon = document.getElementById("userIcon");
+        if (userIcon) userIcon.style.color = "";
+        await window.updateCart();
     }
 }
 
-// معالجة نتيجة redirect (الطريقة الصحيحة للعودة من Google)
+// استقبال نتيجة redirect (الحدث الرئيسي)
 getRedirectResult(auth).then(async (result) => {
     if (result) {
         await handleUser(result.user);
     } else if (auth.currentUser) {
-        // إذا كان هناك مستخدم بالفعل (مثلاً بعد تحميل الصفحة)
+        // لو لم تكن نتيجة ولكن هناك مستخدم مسجل بالفعل
         await handleUser(auth.currentUser);
     }
 }).catch((error) => {
@@ -2974,7 +2995,7 @@ getRedirectResult(auth).then(async (result) => {
     }
 });
 
-// مراقبة تغييرات حالة المصادقة (لتسجيل الخروج أو الدخول من علامة تبويب أخرى)
+// الاستماع لتغيرات حالة المصادقة (احتياطي لتحديث الواجهة عند تسجيل الخروج)
 onAuthStateChanged(auth, async (user) => {
     await handleUser(user);
 });
