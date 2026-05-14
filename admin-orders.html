@@ -698,6 +698,40 @@
       if (user) { load(); }
       else { window.location.href = "login.html"; }
     });
+
+window.deleteOrder = async function(id) {
+    if (!confirm("متأكد من حذف الطلب وإعادة الكميات للمخزون؟")) return;
+    try {
+        // 1. جلب بيانات الطلب
+        const orderDoc = await getDoc(doc(db, "orders", id));
+        if (!orderDoc.exists()) return;
+        const order = orderDoc.data();
+        
+        // 2. إعادة الكميات إلى المخزون لكل منتج
+        for (const item of (order.orderDetails || [])) {
+            const productQuery = query(collection(db, "products"), where("name", "==", item.name));
+            const productSnap = await getDocs(productQuery);
+            if (!productSnap.empty) {
+                const productRef = doc(db, "products", productSnap.docs[0].id);
+                const productData = productSnap.docs[0].data();
+                const stockBySize = productData.stockBySize || {};
+                const size = item.size;
+                if (stockBySize[size] !== undefined) {
+                    stockBySize[size] = (stockBySize[size] || 0) + item.qty;
+                    await updateDoc(productRef, { stockBySize });
+                }
+            }
+        }
+        // 3. حذف الطلب
+        await deleteDoc(doc(db, "orders", id));
+        alert("تم حذف الطلب وإعادة المخزون بنجاح");
+        loadOrders(currentStatus);
+    } catch (e) {
+        console.error(e);
+        alert("حدث خطأ أثناء الحذف");
+    }
+};
+
   </script>
 </body>
 </html>
