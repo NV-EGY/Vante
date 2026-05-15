@@ -574,54 +574,7 @@
 .confirm-buttons button:hover {
   background: #f9f9f9;
 }
-/* أزرار البطاقة - أيقونات فقط */
-.actions {
-  display: none;
-  flex-direction: column;
-  gap: 6px;
-  margin-top: 8px;
-  width: 100%;
-}
-.actions-row {
-  display: flex;
-  gap: 6px;
-  width: 100%;
-}
-.action-btn {
-  flex: 1;
-  padding: 6px 0;
-  border-radius: 8px;
-  border: none;
-  cursor: pointer;
-  font-size: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-}
-.action-btn:active {
-  transform: scale(0.97);
-}
-.whatsapp {
-  background: #25D366;
-  color: #fff;
-}
-.copy {
-  background: #333;
-  color: #fff;
-}
-.edit {
-  background: #ffc107;
-  color: #1a1a1a;
-}
-.delete {
-  background: #dc3545;
-  color: #fff;
-}
-.action-btn:hover {
-  filter: brightness(0.95);
-  transform: translateY(-1px);
-}
+
   </style>
 </head>
 <body>
@@ -884,8 +837,7 @@ function render() {
         </div>
         <div class="order-summary">📦 ${o.quantity}<br>💰 ${o.price}<br>🚚 ${o.shipping}<br>💵 <b>${o.finalTotal}</b>
           <div style="display:flex; gap:6px; margin-top:10px;"><button onclick="editOrder('${o.id}')" style="flex:1;background:#ffc107;border:none;padding:6px;border-radius:8px;cursor:pointer;">✏️</button><button onclick="deleteOrder('${o.id}')" style="flex:1;background:#dc3545;color:#fff;border:none;padding:6px;border-radius:8px;cursor:pointer;">🗑️</button></div>
-          <div class="actions"><a class="action-btn whatsapp" target="_blank" href="https://wa.me/2${o.phone}"><i class="fab fa-whatsapp"></i></a><button class="action-btn copy" onclick='copyText(${JSON.stringify(msg)})'><i class="fas fa-copy"></i></button></div>
-        </div>
+          <div style="display:flex; gap:6px; margin-top:10px;"><button onclick='copyText(${JSON.stringify(msg)})'><i class="fas fa-copy"></i></button><button target="_blank" href="https://wa.me/2${o.phone}"><i class="fab fa-whatsapp"></i></a><button></div>
       </div>
     </div>`;
   });
