@@ -3544,9 +3544,7 @@ try {
 
     await addDoc(collection(db, "orders"), orderData);
             // خصم الكميات من المخزون// تجميع الكميات المطلوبة لكل منتج/مقاس لضمان خصم صحيح
-            /*
-// خصم الكميات من المخزون// تجميع الكميات المطلوبة لكل منتج/مقاس لضمان خصم صحيح
-const stockUpdates = {};
+const stockUpdates = {}; // { productId: { size: totalQty } }
 cart.forEach(item => {
     const product = allProducts.find(p => p.name === item.name);
     if (product && product.stockBySize) {
@@ -3558,6 +3556,8 @@ cart.forEach(item => {
         }
     }
 });
+
+// تنفيذ التحديثات المجمعة
 const updatePromises = Object.entries(stockUpdates).map(async ([productId, sizes]) => {
     const product = window.allProducts.find(p => p.id === productId);
     if (!product) return;
@@ -3569,7 +3569,6 @@ const updatePromises = Object.entries(stockUpdates).map(async ([productId, sizes
     return updateDoc(productRef, { stockBySize: newStockBySize });
 });
 await Promise.all(updatePromises);
-*/
 
             let message = `🛍️ طلب جديد - VANTÉ\n\n`;
             message += `📦 رقم الطلب: ${orderID}\n`;
