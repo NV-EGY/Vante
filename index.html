@@ -2382,128 +2382,115 @@ body.modal-open{
     box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
 }
 
-/* ====================================
-   AUTH MODALS (ACCOUNT/LOGIN)
-==================================== */
-.auth-modal-overlay {
+/* =========================================
+   RATING MODAL (الفاخر)
+========================================= */
+.rating-modal {
     position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.55);
-    z-index: 5000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.9);
+    width: 90%;
+    max-width: 450px;
+    background: #fff;
+    border-radius: 32px;
+    z-index: 100000;
+    box-shadow: 0 35px 60px rgba(0,0,0,0.25);
     opacity: 0;
     visibility: hidden;
-    transition: 0.3s;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    direction: rtl;
+    overflow: hidden;
 }
-.auth-modal-overlay.active {
+.rating-modal.active {
     opacity: 1;
     visibility: visible;
+    transform: translate(-50%, -50%) scale(1);
 }
-.auth-modal {
-    background: #fff;
-    border-radius: 28px;
-    padding: 35px 25px;
-    width: 90%;
-    max-width: 420px;
-    box-shadow: 0 40px 80px rgba(0,0,0,0.12);
-    text-align: center;
-    position: relative;
-    border: 1px solid rgba(212,175,55,0.15);
+.rating-header {
+    background: #111;
+    padding: 20px 25px;
+    color: #fff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
-.auth-modal h2 {
-    margin-bottom: 30px;
-    font-size: 26px;
-    font-weight: 900;
-    background: linear-gradient(135deg, #D4AF37, #B8860B);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+.rating-header h3 {
+    margin: 0;
+    font-weight: 800;
+    font-size: 20px;
+    color: #D4AF37;
 }
-.auth-modal input {
-    width: 100%;
-    padding: 15px;
-    margin-bottom: 15px;
-    border: 2px solid #f0f0f0;
-    border-radius: 14px;
-    font-size: 15px;
-    text-align: center;
-    background: #fafafa;
-    transition: all 0.3s ease;
-}
-.auth-modal input:focus {
-    border-color: #D4AF37;
-    background: #fff;
-    box-shadow: 0 0 0 4px rgba(212,175,55,0.08);
-}
-.auth-btn {
-    width: 100%;
-    padding: 14px;
+.rating-header .close-rating {
+    background: none;
     border: none;
-    border-radius: 14px;
-    font-weight: 700;
-    font-size: 15px;
+    color: #fff;
+    font-size: 24px;
     cursor: pointer;
     transition: 0.3s;
-    margin-bottom: 12px;
+    line-height: 1;
 }
-.auth-btn.primary {
-    background: linear-gradient(135deg, #111, #222);
-    color: #fff;
-    border: 1px solid #333;
-    font-weight: 800;
-    letter-spacing: 1px;
-}
-.auth-btn.primary:hover {
-    background: linear-gradient(135deg, #D4AF37, #B8860B);
-    color: #000;
-}
-.auth-btn.google {
-    background: #fff;
-    border: 2px solid #f0f0f0;
-    color: #111;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    font-weight: 600;
-}
-.auth-btn.google:hover {
-    border-color: #D4AF37;
-    background: #fafafa;
-}
-.auth-link {
+.rating-header .close-rating:hover {
     color: #D4AF37;
-    cursor: pointer;
-    font-weight: 700;
-    text-decoration: underline;
+    transform: rotate(90deg);
 }
-.recaptcha-container {
-    margin-bottom: 15px;
-    display: flex;
-    justify-content: center;
+.rating-body {
+    padding: 30px 25px;
 }
-.profile-info {
+.input-field {
+    margin-bottom: 20px;
     text-align: right;
-    font-size: 15px;
-    line-height: 1.8;
 }
-.profile-info strong {
-    display: inline-block;
-    width: 120px;
-    color: #111;
-}
-.discount-code-box {
-    background: linear-gradient(135deg, #fff9e6, #fff);
-    border: 2px dashed #D4AF37;
-    padding: 12px;
-    border-radius: 14px;
-    margin: 15px 0;
+.input-field label {
+    display: block;
     font-weight: 700;
-    font-size: 18px;
-    color: #B8860B;
-    letter-spacing: 2px;
-    text-align: center;
+    margin-bottom: 8px;
+    color: #111;
+    font-size: 14px;
+}
+.input-field input {
+    width: 100%;
+    padding: 14px 18px;
+    border: 1.5px solid #eee;
+    border-radius: 16px;
+    font-size: 15px;
+    transition: 0.3s;
+    font-family: 'Cairo', sans-serif;
+}
+.input-field input:focus {
+    border-color: #D4AF37;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(212,175,55,0.1);
+}
+.input-field small {
+    display: block;
+    margin-top: 6px;
+    color: #999;
+    font-size: 12px;
+}
+.rating-submit-btn {
+    width: 100%;
+    padding: 14px;
+    background: #111;
+    color: #fff;
+    border: none;
+    border-radius: 16px;
+    font-weight: 800;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.3s;
+    margin-top: 10px;
+}
+.rating-submit-btn:hover {
+    background: #D4AF37;
+    color: #000;
+    transform: translateY(-2px);
+}
+.error-msg {
+    color: #e74c3c;
+    font-size: 12px;
+    margin-top: 5px;
+    text-align: right;
 }
 
     </style>
@@ -2639,7 +2626,7 @@ body.modal-open{
     </div>
     <div class="checkout-body">
         <div class="input-group">
-            <label>الاسم الكامل</label>
+            <label>الاسم كامل</label>
             <div class="input-icon">
                 <i class="fas fa-user"></i>
                 <input id="name" type="text" placeholder="أدخل اسمك الكامل">
@@ -2758,13 +2745,32 @@ body.modal-open{
         </div>
     </div>
 </div>
-<!-- Account Modal -->
-<div id="accountModalOverlay" class="auth-modal-overlay" onclick="closeAccount()">
-    <div class="auth-modal" onclick="event.stopPropagation()">
-        <button class="modal-close" onclick="closeAccount()" style="position:absolute;top:12px;right:12px;">✕</button>
-        <div id="accountContent"></div>
+
+<!-- مودال التقييم الفاخر -->
+<div id="ratingModal" class="rating-modal">
+    <div class="rating-header">
+        <h3>✍️ تقييم المنتج</h3>
+        <button class="close-rating" onclick="closeRatingModal()">&times;</button>
+    </div>
+    <div class="rating-body">
+        <div class="input-field">
+            <label>الاسم كامل</label>
+            <input type="text" id="reviewerName" placeholder="مثال: أحمد محمد">
+            <small>أدخل اسمك الحقيقي (عربي أو إنجليزي)</small>
+            <div id="nameError" class="error-msg"></div>
+        </div>
+        <div class="input-field">
+            <label>رقم الهاتف</label>
+            <input type="tel" id="reviewerPhone" placeholder="01XXXXXXXXX">
+            <small>رقم مصري صحيح للمتابعة</small>
+            <div id="phoneError" class="error-msg"></div>
+        </div>
+        <button class="rating-submit-btn" onclick="confirmAndSubmitReview()">
+            <i class="fas fa-paper-plane"></i> إرسال التقييم
+        </button>
     </div>
 </div>
+
 <script>
 // قائمة المحافظات والمدن
 const govData = {
@@ -2871,46 +2877,15 @@ document.querySelectorAll(".rating-stars span").forEach((star, index) => {
         document.getElementById("reviewText").style.display = "block";
     });
 });
-
-// ========== ACCOUNT FUNCTIONS ==========
 window.openAccount = function() {
-    const user = window.currentAuthUser;
-    if (user) {
-        showProfile(user);
-    } else {
-        window.showLogin();
-    }
-    document.getElementById("accountModalOverlay").classList.add("active");
+    alert("تم إلغاء نظام الحسابات مؤقتاً، يمكنك إتمام الطلب بدون تسجيل دخول.");
 };
-
-window.closeAccount = function() {
-    document.getElementById("accountModalOverlay").classList.remove("active");
-};
-
-function showProfile(user) {
-    window.getCustomerData(user).then(data => {
-        const code = data?.customerCode || 'غير متوفر';
-        const discount = data?.discountCode || 'غير متوفر';
-        const email = user.email || 'غير متوفر';
-        document.getElementById("accountContent").innerHTML = `
-            <h2>حسابي</h2>
-            <div class="profile-info">
-                <p><strong>البريد الإلكتروني:</strong> ${email}</p>
-                <p><strong>كود العميل:</strong> ${code}</p>
-                <p><strong>كود الخصم:</strong></p>
-                <div class="discount-code-box">${discount}</div>
-            </div>
-            <button class="auth-btn primary" onclick="window.signOutUser()">تسجيل الخروج</button>
-        `;
-    });
-}
 
 </script>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, collection, addDoc, serverTimestamp, onSnapshot, query, orderBy, where, getDocs, updateDoc, doc, increment, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { getAuth, signInWithPhoneNumber, signInWithPopup, signInWithRedirect, GoogleAuthProvider, RecaptchaVerifier, signOut as firebaseSignOut, onAuthStateChanged, getRedirectResult } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyCotT8EP2uy_HsgHknxeGBorKoEUORPtmU",
@@ -2924,82 +2899,6 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const auth = getAuth(app);
-// ------------------- معالجة المصادقة الموحدة -------------------
-async function handleUser(user) {
-  
-  let isHandling = false;
-async function handleUser(user) {
-    if (isHandling) return;
-    isHandling = true;
-    try {
-        if (user) {
-            console.log("✅ تم تسجيل الدخول:", user.email);
-            window.currentAuthUser = user;
-            const userIcon = document.getElementById("userIcon");
-            if (userIcon) userIcon.style.color = "#D4AF37";
-            await window.createCustomerIfNeeded(user);
-            await window.updateCart();
-            const modal = document.getElementById("accountModalOverlay");
-            if (modal) modal.classList.remove("active");
-            alert("تم تسجيل الدخول بنجاح ✨");
-        } else {
-            console.log("❌ تسجيل الخروج");
-            window.currentAuthUser = null;
-            const userIcon = document.getElementById("userIcon");
-            if (userIcon) userIcon.style.color = "";
-            await window.updateCart();
-        }
-    } finally {
-        isHandling = false;
-    }
-}
-    if (user) {
-        console.log("✅ تم تسجيل الدخول:", user.email);
-        window.currentAuthUser = user;
-        
-        // ✅ تحديث الأيقونة مباشرة (لضمان تغير اللون فوراً)
-        const userIcon = document.getElementById("userIcon");
-        if (userIcon) userIcon.style.color = "#D4AF37";
-        
-        // ✅ العمليات الإضافية (إنشاء العميل، تحديث السلة)
-        await window.createCustomerIfNeeded(user);
-        await window.updateCart();
-        
-        // ✅ إغلاق مودال الحساب إن كان مفتوحاً
-        const modal = document.getElementById("accountModalOverlay");
-        if (modal) modal.classList.remove("active");
-        
-        alert("تم تسجيل الدخول بنجاح ✨");
-    } else {
-        console.log("❌ تسجيل الخروج");
-        window.currentAuthUser = null;
-        const userIcon = document.getElementById("userIcon");
-        if (userIcon) userIcon.style.color = "";
-        await window.updateCart();
-    }
-}
-
-// استقبال نتيجة redirect (الحدث الرئيسي)
-getRedirectResult(auth).then(async (result) => {
-    if (result) {
-        await handleUser(result.user);
-    } else if (auth.currentUser) {
-        // لو لم تكن نتيجة ولكن هناك مستخدم مسجل بالفعل
-        await handleUser(auth.currentUser);
-    }
-}).catch((error) => {
-    console.error("خطأ في getRedirectResult:", error);
-    if (error.code !== 'auth/no-such-provider') {
-        alert("فشل تسجيل الدخول: " + error.message);
-    }
-});
-
-// الاستماع لتغيرات حالة المصادقة (احتياطي لتحديث الواجهة عند تسجيل الخروج)
-onAuthStateChanged(auth, async (user) => {
-    await handleUser(user);
-});
-
 // متغير لتخزين مراجع مستمعي السحب
 let swipeHandlers = {};
 let currentCategory = "all";
@@ -3466,43 +3365,20 @@ if (typeof updateCart === 'function') updateCart();
     openCart();
 };
 
-  window.updateCart = async function() {
-// جلب كود الخصم إذا مسجل الدخول
-let discountCode = null;
-if (auth.currentUser) {
-    const email = auth.currentUser.email;
-    const uid = auth.currentUser.uid;
-    if (email) {
-        const q = query(collection(db, "customers"), where("email", "==", email));
-        const snap = await getDocs(q);
-        if (!snap.empty) discountCode = snap.docs[0].data().discountCode;
-    } else if (uid) {
-        const q = query(collection(db, "customers"), where("uid", "==", uid));
-        const snap = await getDocs(q);
-        if (!snap.empty) discountCode = snap.docs[0].data().discountCode;
-    }
-}
+    window.updateCart = function() {
     let total = 0, count = 0;
     const html = cart.map((item, index) => {
         total += item.price * item.qty;
         count += item.qty;
-        
-        // نجيب المخزون المتاح للمنتج عشان نعرف الحد الأقصى
         const product = allProducts.find(p => p.name === item.name);
         const maxStock = (() => {
-    if (!product || !product.stockBySize) return -1;
-    const sizes = Object.keys(product.stockBySize);
-    // إذا كان المنتج له مقاسات، نجمع الكميات المتاحة للمقاس المعين فقط
-    if (item.size && product.stockBySize[item.size] !== undefined) {
-        return product.stockBySize[item.size];
-    }
-    return -1;
-})();
-        const maxedOut = (maxStock !== -1 && item.qty >= maxStock); // هل وصلنا للحد؟
-        const hasDiscount = item.comparePrice && item.comparePrice > item.price;
-const oldPriceTotal = hasDiscount ? item.comparePrice * item.qty : null;
-const currentPriceTotal = item.price * item.qty;
-const discountPercent = hasDiscount ? Math.round((1 - item.price / item.comparePrice) * 100) : 0;
+            if (!product || !product.stockBySize) return -1;
+            if (item.size && product.stockBySize[item.size] !== undefined) {
+                return product.stockBySize[item.size];
+            }
+            return -1;
+        })();
+        const maxedOut = (maxStock !== -1 && item.qty >= maxStock);
         return `<div class="cart-item">
             <div class="cart-item-details">
                 <strong>${item.name}</strong>
@@ -3514,27 +3390,19 @@ const discountPercent = hasDiscount ? Math.round((1 - item.price / item.compareP
                 <button class="qty-btn" onclick="window.changeQty(${index},1)" ${maxedOut ? 'disabled style="opacity:0.4; cursor:not-allowed; background:#eee; color:#999;"' : ''}>+</button>
             </div>
             <div class="cart-item-price" style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
-    ${(item.comparePrice && item.comparePrice > item.price) ? `
-        <span style="color:#D4AF37; font-weight:900; font-size: 18px;">${item.price * item.qty} EGP</span>
-        <div style="display: flex; align-items: center; gap: 6px;">
-            <span style="text-decoration:line-through; color:#999; font-size: 12px;">${item.comparePrice * item.qty} EGP</span>
-            <span style="background:#D4AF37; padding: 2px 6px; border-radius: 12px; font-size: 10px; color:#000;">-${Math.round((1 - item.price / item.comparePrice) * 100)}%</span>
-        </div>
-    ` : `
-        <span style="color:#D4AF37; font-weight:900; font-size: 18px;">${item.price * item.qty} EGP</span>
-    `}
-</div>
+                ${(item.comparePrice && item.comparePrice > item.price) ? `
+                    <span style="color:#D4AF37; font-weight:900; font-size: 18px;">${item.price * item.qty} EGP</span>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <span style="text-decoration:line-through; color:#999; font-size: 12px;">${item.comparePrice * item.qty} EGP</span>
+                        <span style="background:#D4AF37; padding: 2px 6px; border-radius: 12px; font-size: 10px; color:#000;">-${Math.round((1 - item.price / item.comparePrice) * 100)}%</span>
+                    </div>
+                ` : `
+                    <span style="color:#D4AF37; font-weight:900; font-size: 18px;">${item.price * item.qty} EGP</span>
+                `}
+            </div>
         </div>`;
     }).join("");
-    // إضافة كود الخصم إذا وجد
-let discountHtml = '';
-if (discountCode) {
-    discountHtml = `<div style="background:#f9f9f9; border:1px dashed #D4AF37; padding:12px; border-radius:12px; margin-bottom:15px; text-align:center;">
-        <span style="color:#B8860B; font-weight:700;">🎫 كود الخصم: ${discountCode}</span>
-    </div>`;
-}
-// ثم عند تحديث innerHTML، اجعله يبدأ بـ discountHtml:
-document.getElementById("cartItems").innerHTML = discountHtml + (cart.length ? html : "السلة فارغة");
+    document.getElementById("cartItems").innerHTML = html || "السلة فارغة";
     document.getElementById("total").innerText = total;
     document.getElementById("cartCount").innerText = count;
     localStorage.setItem('vante_cart', JSON.stringify(cart));
@@ -3558,10 +3426,10 @@ document.getElementById("cartItems").innerHTML = discountHtml + (cart.length ? h
     localStorage.setItem('vante_cart', JSON.stringify(cart));
 };
 
-    window.openCart = () => { document.getElementById("cartDrawer").classList.add("active"); document.getElementById("overlay").classList.add("active"); };
-    window.closeCart = () => { document.getElementById("cartDrawer").classList.remove("active"); document.getElementById("overlay").classList.remove("active"); };
-    window.openCheckout = () => { document.getElementById("checkoutModal").classList.add("active"); document.getElementById("overlay").classList.add("active"); };
-    window.closeCheckout = () => { document.getElementById("checkoutModal").classList.remove("active"); document.getElementById("overlay").classList.remove("active"); };
+window.openCart = () => { document.getElementById("cartDrawer").classList.add("active"); document.getElementById("overlay").classList.add("active"); };
+window.closeCart = () => { document.getElementById("cartDrawer").classList.remove("active"); document.getElementById("overlay").classList.remove("active"); };
+window.openCheckout = () => { document.getElementById("checkoutModal").classList.add("active"); document.getElementById("overlay").classList.add("active"); };
+window.closeCheckout = () => { document.getElementById("checkoutModal").classList.remove("active"); document.getElementById("overlay").classList.remove("active"); };
 
     // ========== الدفع ==========
     window.checkout = async function () {
@@ -3671,7 +3539,6 @@ try {
         finalTotal,
         status: "new",
         date: dateStr,          // ✅ حقل التاريخ لتتبُّع الطلبات اليومية
-        userId: auth.currentUser?.uid || null,
         createdAt: serverTimestamp()
     };
 
@@ -3783,64 +3650,6 @@ document.querySelectorAll('.desktop-dropdown > a').forEach(link => {
         }
     });
 });
-
-// إنشاء ملف العميل إذا لم يكن موجودًا
-window.createCustomerIfNeeded = async function(user) {
-    const email = user.email;
-    const uid = user.uid;
-    if (!email && !uid) return;
-    
-    const customersRef = collection(db, "customers");
-    // البحث باستخدام البريد الإلكتروني أولاً
-    let q = query(customersRef, where("email", "==", email));
-    let snap = await getDocs(q);
-    if (!snap.empty) return; // موجود مسبقًا
-    
-    // إنشاء عميل جديد
-    const counterRef = doc(db, "counters", "customers");
-    const counterSnap = await getDoc(counterRef);
-    if (!counterSnap.exists()) await setDoc(counterRef, { value: 0 });
-    await updateDoc(counterRef, { value: increment(1) });
-    const newNum = (await getDoc(counterRef)).data().value;
-    const customerCode = `V${newNum}`;
-    const discountCode = `VANTE${newNum}`;
-    
-    await setDoc(doc(db, "customers", email || uid), {
-        email: email || null,
-        uid: uid,
-        customerCode,
-        discountCode,
-        createdAt: serverTimestamp()
-    });
-};
-
-// جلب بيانات العميل
-window.getCustomerData = async function(user) {
-    if (!user) return null;
-    const email = user.email;
-    const uid = user.uid;
-    if (!email && !uid) return null;
-    
-    let q = query(collection(db, "customers"), where("email", "==", email));
-    let snap = await getDocs(q);
-    if (snap.empty && uid) {
-        q = query(collection(db, "customers"), where("uid", "==", uid));
-        snap = await getDocs(q);
-    }
-    return snap.empty ? null : snap.docs[0].data();
-};
-
-// تحديث واجهة المستخدم بعد تسجيل الدخول/الخروج
-window.updateUIForAuth = function(user) {
-    const userIcon = document.getElementById("userIcon");
-    if (user) {
-        userIcon.style.color = "#D4AF37";
-        window.currentAuthUser = user;
-    } else {
-        userIcon.style.color = "";
-        window.currentAuthUser = null;
-    }
-};
 
     // ========== القوائم والبحث ==========
     function setCategory(category) {
@@ -4373,122 +4182,129 @@ window.updateModalStockDisplay = function() {
     }
 };
 
-onAuthStateChanged(auth, async (user) => {
-    if (user) {
-        window.currentAuthUser = user;
-        window.updateUIForAuth(user);
-        await window.createCustomerIfNeeded(user);
-        await window.updateCart();
-    } else {
-        window.currentAuthUser = null;
-        window.updateUIForAuth(null);
-        window.updateCart();
-    }
-});
-
 window.renderProducts = renderProducts;
 window.applySearch = applySearch;
 window.allProducts = allProducts;
 
-// ========== AUTH UI ==========
-// ========== AUTH UI ==========
-window.showLogin = function() {
-    document.getElementById("accountContent").innerHTML = `
-        <h2>تسجيل الدخول</h2>
-        <p style="color:#666; margin: 15px 0; font-size: 14px;">
-            استخدم حساب Google لتسجيل الدخول والاستفادة بكل مزايا VANTÉ
-        </p>
-        
-        <button class="auth-btn google" onclick="window.signInWithGoogle()">
-            <i class="fab fa-google"></i> تسجيل الدخول بحساب Google
-        </button>
-        
-        <p style="margin-top:18px; font-size:12px; color:#aaa;">
-            🔒 تسجيل دخول آمن بدون كلمات مرور
-        </p>
-    `;
-};
+// دوال المودال الجديدة
+function openRatingModal() {
+    document.getElementById('ratingModal').classList.add('active');
+    document.getElementById('overlay').classList.add('active');
+    document.body.style.overflow = 'hidden';
+    // مسح الأخطاء والحقول السابقة
+    document.getElementById('reviewerName').value = '';
+    document.getElementById('reviewerPhone').value = '';
+    document.getElementById('nameError').innerText = '';
+    document.getElementById('phoneError').innerText = '';
+}
+window.openRatingModal = openRatingModal;
 
-window.sendOTP = async function() {
-    const phone = document.getElementById("phoneInput").value.trim();
-    if (!phone || !phone.match(/^01[0125][0-9]{8}$/)) {
-        alert("رقم هاتف غير صحيح");
+function closeRatingModal() {
+    document.getElementById('ratingModal').classList.remove('active');
+    document.getElementById('overlay').classList.remove('active');
+    document.body.style.overflow = '';
+}
+window.closeRatingModal = closeRatingModal;
+
+// التحقق من صحة الاسم (عربي أو إنجليزي، 3 أحرف على الأقل)
+function validateName(name) {
+    const trimmed = name.trim();
+    if (trimmed.length < 3) return 'الاسم يجب أن لا يقل عن 3 أحرف';
+    const arabicPattern = /^[\u0600-\u06FF\s]+$/;
+    const englishPattern = /^[A-Za-z\s]+$/;
+    if (!arabicPattern.test(trimmed) && !englishPattern.test(trimmed)) {
+        return 'الاسم يجب أن يحتوي على أحرف عربية أو إنجليزية فقط';
+    }
+    return '';
+}
+
+// التحقق من رقم هاتف مصري
+function validateEgyptianPhone(phone) {
+    const phoneRegex = /^01[0125][0-9]{8}$/;
+    if (!phoneRegex.test(phone)) return 'رقم الهاتف غير صحيح (مثال: 01012345678)';
+    return '';
+}
+
+// التأكيد والإرسال بعد التحقق
+window.confirmAndSubmitReview = async function() {
+    const name = document.getElementById('reviewerName').value.trim();
+    const phone = document.getElementById('reviewerPhone').value.trim();
+    
+    const nameError = validateName(name);
+    const phoneError = validateEgyptianPhone(phone);
+    
+    document.getElementById('nameError').innerText = nameError;
+    document.getElementById('phoneError').innerText = phoneError;
+    
+    if (nameError || phoneError) return;
+    
+    if (!window.currentProduct || !window.selectedRating || window.selectedRating === 0) {
+        alert("يرجى اختيار تقييم (نجوم) أولاً");
+        closeRatingModal();
         return;
     }
+    
+    const reviewText = document.getElementById("reviewText").value.trim();
+    
     try {
-        const appVerifier = window.recaptchaVerifier;
-        const confirmationResult = await signInWithPhoneNumber(auth, '+2' + phone, appVerifier);
-        window.confirmationResult = confirmationResult;
-        document.getElementById("otpSection").style.display = 'block';
-        document.getElementById("sendOtpBtn").style.display = 'none';
-        alert("تم إرسال كود التحقق");
-    } catch (error) {
-        console.error(error);
-        alert("خطأ: " + error.message);
-    }
-};
-
-window.verifyOTP = async function() {
-    const code = document.getElementById("otpInput").value.trim();
-    if (!code) return alert("أدخل الكود");
-    try {
-        const result = await window.confirmationResult.confirm(code);
-        const user = result.user;
-        window.currentAuthUser = user;
-        await window.createCustomerIfNeeded(user);
-        document.getElementById("accountModalOverlay").classList.remove("active");
-        alert("تم تسجيل الدخول بنجاح ✨");
-        window.updateUIForAuth(user);
-        window.updateCart(); // لتحديث السلة فوراً وإظهار كود الخصم
-    } catch (error) {
-        console.error(error);
-        alert("كود غير صحيح");
-    }
-};
-
-window.signInWithGoogle = async function() {
-    const provider = new GoogleAuthProvider();
-    try {
-        await signInWithRedirect(auth, provider);
-    } catch (error) {
-        console.error(error);
-        alert("خطأ: " + error.message);
-    }
-};
-
-window.signOutUser = async function() {
-    await firebaseSignOut(auth);
-    window.currentAuthUser = null;
-    window.updateUIForAuth(null);
-    document.getElementById("accountModalOverlay").classList.remove("active");
-    window.updateCart();
-    alert("تم تسجيل الخروج");
-};
-
-window.submitReview = async function() {
-    if (!auth.currentUser) {
-        alert("يرجى تسجيل الدخول أولاً");
-        openAccount();
-        return;
-    }
-    const user = auth.currentUser; // أضف هذا السطر
-    if (!window.currentProduct || !window.selectedRating) return alert("اختر منتجًا ونجومًا");
-    try {
+        const btn = document.querySelector('.rating-submit-btn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الإرسال...';
+        
         await addDoc(collection(db, "reviews"), {
             productId: window.currentProduct.id,
             productName: window.currentProduct.name,
             rating: window.selectedRating,
-            text: document.getElementById("reviewText").value.trim(),
-            userId: user.uid,            // الآن user معرف
-            userName: user.displayName || "مستخدم VANTÉ",
+            text: reviewText || "لا يوجد تعليق",
+            userName: name,
+            userPhone: phone,
+            approved: false,
             createdAt: serverTimestamp()
         });
-        alert("تم إرسال تقييمك بنجاح");
+        
+        alert("✅ تم إرسال تقييمك بنجاح! سيظهر بعد المراجعة.");
+        
+        // إعادة تعيين الحقول
         document.getElementById("reviewText").value = "";
         document.getElementById("reviewText").style.display = "none";
         window.selectedRating = 0;
         document.querySelectorAll(".rating-stars span").forEach(star => star.classList.remove("active"));
-    } catch (error) { console.error(error); alert("خطأ"); }
+        closeRatingModal();
+        
+    } catch (error) {
+        console.error(error);
+        alert("❌ حدث خطأ أثناء إرسال التقييم، حاول مرة أخرى.");
+    } finally {
+        const btn = document.querySelector('.rating-submit-btn');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-paper-plane"></i> إرسال التقييم';
+    }
+};
+// تعديل دالة submitReview لطلب كتابة الرأي أولاً
+window.submitReview = function() {
+    if (!window.currentProduct) {
+        alert("يرجى اختيار منتج أولاً");
+        return;
+    }
+    if (!window.selectedRating || window.selectedRating === 0) {
+        alert("يرجى اختيار تقييم بالنجوم أولاً");
+        return;
+    }
+    const reviewTextElement = document.getElementById("reviewText");
+    const reviewText = reviewTextElement ? reviewTextElement.value.trim() : "";
+    if (reviewText === "") {
+        alert("✍️ يرجى كتابة رأيك في المنتج قبل إرسال التقييم");
+        // تمييز الحقل بلون أحمر مؤقتاً
+        if (reviewTextElement) {
+            reviewTextElement.style.borderColor = "#e74c3c";
+            reviewTextElement.focus();
+            setTimeout(() => {
+                reviewTextElement.style.borderColor = "";
+            }, 2000);
+        }
+        return;
+    }
+    openRatingModal(); // فتح المودال الخاص بالاسم والرقم
 };
 
 </script>
