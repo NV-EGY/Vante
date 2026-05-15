@@ -262,46 +262,51 @@
       cursor: pointer;
     }
     .top-stats {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      width: 100%;
-      font-weight: bold;
-      font-size: 14px;
-      margin-bottom: 8px;
-      padding: 0 5px;
-    }
-    .select-all-wrapper {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      cursor: pointer;
-      background: #f0f2f5;
-      padding: 5px 12px;
-      border-radius: 30px;
-      transition: 0.2s;
-    }
-    .select-all-wrapper:hover { background: #e0e2e5; }
-    .select-all-wrapper input { width: 18px; height: 18px; margin: 0; cursor: pointer; }
-    .select-all-wrapper {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 4px;
-  cursor: pointer;
+  width: 100%;
+  margin-bottom: 12px;
+  padding: 0 px;
+}
+#count {
   background: #f0f2f5;
-  padding: 3px 8px;
-  border-radius: 40px;
+  padding: 4px 14px;
+  border-radius: 30px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #0F7B65;
+  margin-right: auto; /* يدفع العدد لأقصى اليمين (RTL) */
+}
+.select-all-wrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;  /* تم التخفيض من 6px إلى 2px */
+  cursor: pointer;
+  background: transparent !important;
+  padding: 0;
+  margin: 0;
   transition: 0.2s;
-  font-size: 12px;
+  margin-left: auto; /* يدفع الزر لأقصى اليسار */
 }
 .select-all-wrapper input {
-  width: 14px;
-  height: 14px;
+  width: 18px;
+  height: 18px;
   margin: 0;
+  accent-color: #0F7B65;
+  cursor: pointer;
 }
 .select-all-wrapper span {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
+  color: #333;
+  line-height: 1;
+}
+.select-all-wrapper:hover span {
+  color: #0F7B65;
+}
+.select-all-wrapper:hover {
+  background: transparent !important;
 }
     #count { color: #333; }
     #selectedCount { color: #0F7B65; }
@@ -367,7 +372,7 @@
   font-size: 11px;
   font-weight: normal;
 }
-.status.cancelled::before { content: "❌"; }
+.status.cancelled::before { content: "📛"; }
 /* تحسين للشاشات الصغيرة */
 @media (max-width: 500px) {
   .order-id {
@@ -603,7 +608,6 @@
     <input type="checkbox" id="selectAllCheckbox"> <span>ALL</span>
   </div>
   <span id="count"></span>
-  <span id="selectedCount">✅ المحدد: 0</span>
 </div>
 <div id="orders"></div>
 
@@ -771,7 +775,6 @@ function updateBulkBar() {
   let count = checked.length;
   let bar = document.getElementById("bulkActionsBar");
   document.getElementById("bulkSelectedInfo").innerHTML = count;
-  document.getElementById("selectedCount").innerHTML = `✅ المحدد: ${count}`;
   if (count > 0) bar.classList.add("show");
   else bar.classList.remove("show");
   let allCheckbox = document.getElementById("selectAllCheckbox");
@@ -796,7 +799,7 @@ window.toggleSelectAll = () => {
 window.applyBulkStatus = async (newStatus) => {
   let selected = document.querySelectorAll(".selectOrder:checked");
   if (selected.length === 0) return;
-  const confirmed = await window.customConfirm(`تطبيق حالة "${newStatus === 'new' ? 'جديد' : newStatus === 'processing' ? 'قيد التجهيز' : newStatus === 'shipped' ? 'تم الشحن' : newStatus === 'delivered' ? 'تم التسليم' : 'ملغى'}" على ${selected.length} طلب؟`);
+  const confirmed = await window.customConfirm(`تطبيق حالة "${newStatus === 'new' ? 'جديد' : newStatus === 'processing' ? 'قيد التجهيز' : newStatus === 'shipped' ? 'تم الشحن' : newStatus === 'delivered' ? 'تم التسليم' : 'لاغـي'}" على ${selected.length} طلب؟`);
 if (!confirmed) return;
   let updates = [];
   selected.forEach(cb => {
