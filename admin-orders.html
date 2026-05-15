@@ -773,19 +773,8 @@ function updateBulkBar() {
   document.getElementById("bulkSelectedInfo").innerHTML = count;
   if (count > 0) bar.classList.add("show");
   else bar.classList.remove("show");
-  
-  // تحديث لون أيقونة Select All بناءً على التحديد
-  const iconBtn = document.getElementById('selectAllIconBtn');
-  const allOrders = document.querySelectorAll(".selectOrder");
-  const allSelected = allOrders.length > 0 && allOrders.length === checked.length;
-  
-  if (iconBtn) {
-    if (allSelected) {
-      iconBtn.classList.add('active');
-    } else {
-      iconBtn.classList.remove('active');
-    }
-  }
+  let allCheckbox = document.getElementById("selectAllCheckbox");
+  if (allCheckbox) allCheckbox.checked = (count === document.querySelectorAll(".selectOrder").length && count > 0);
 }
 
 window.clearAllSelections = () => {
@@ -794,25 +783,12 @@ window.clearAllSelections = () => {
 };
 
 window.toggleSelectAll = () => {
-  const allOrders = document.querySelectorAll(".selectOrder");
-  const anyUnchecked = Array.from(allOrders).some(cb => !cb.checked);
-  const newCheckedState = anyUnchecked;
-  
-  allOrders.forEach(cb => {
-    cb.checked = newCheckedState;
-    cb.closest(".card").style.background = newCheckedState ? "#e6fff2" : "#fff";
+  let allCheckbox = document.getElementById("selectAllCheckbox");
+  let isChecked = allCheckbox.checked;
+  document.querySelectorAll(".selectOrder").forEach(cb => {
+    cb.checked = isChecked;
+    cb.closest(".card").style.background = isChecked ? "#e6fff2" : "#fff";
   });
-  
-  // تغيير لون الأيقونة
-  const iconBtn = document.getElementById('selectAllIconBtn');
-  if (iconBtn) {
-    if (newCheckedState) {
-      iconBtn.classList.add('active');
-    } else {
-      iconBtn.classList.remove('active');
-    }
-  }
-  
   updateBulkBar();
 };
 
