@@ -919,7 +919,7 @@ document.getElementById("search").addEventListener("input", render);
 document.addEventListener("change", (e) => { if (e.target.classList.contains("selectOrder")) updateBulkBar(); });
 Notification.requestPermission();
 onAuthStateChanged(auth, (user) => { if (user) load(); else window.location.href = "login.html"; });
-// Custom Confirm - استبدال confirm العادي
+// Custom Confirm - مودال احترافي بديل
 window.customConfirm = function(message) {
   return new Promise((resolve) => {
     const overlay = document.getElementById('customConfirmOverlay');
