@@ -837,7 +837,7 @@ function render() {
         </div>
         <div class="order-summary">📦 ${o.quantity}<br>💰 ${o.price}<br>🚚 ${o.shipping}<br>💵 <b>${o.finalTotal}</b>
           <div style="display:flex; gap:6px; margin-top:10px;"><button onclick="editOrder('${o.id}')" style="flex:1;background:#ffc107;border:none;padding:6px;border-radius:8px;cursor:pointer;">✏️</button><button onclick="deleteOrder('${o.id}')" style="flex:1;background:#dc3545;color:#fff;border:none;padding:6px;border-radius:8px;cursor:pointer;">🗑️</button></div>
-          <div class="actions"><a class="action-btn whatsapp" target="_blank" href="https://wa.me/2${o.phone}"><i class="fab fa-whatsapp"></i> واتساب</a><button class="action-btn copy" onclick='copyText(${JSON.stringify(msg)})'><i class="fas fa-copy"></i> نسخ</button></div>
+          <div class="actions"><a class="action-btn whatsapp" target="_blank" href="https://wa.me/2${o.phone}"><i class="fab fa-whatsapp"></i></a><button class="action-btn copy" onclick='copyText(${JSON.stringify(msg)})'><i class="fas fa-copy"></i></button></div>
         </div>
       </div>
     </div>`;
