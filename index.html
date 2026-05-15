@@ -2382,117 +2382,6 @@ body.modal-open{
     box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
 }
 
-/* =========================================
-   RATING MODAL (الفاخر)
-========================================= */
-.rating-modal {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) scale(0.9);
-    width: 90%;
-    max-width: 450px;
-    background: #fff;
-    border-radius: 32px;
-    z-index: 100000;
-    box-shadow: 0 35px 60px rgba(0,0,0,0.25);
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    direction: rtl;
-    overflow: hidden;
-}
-.rating-modal.active {
-    opacity: 1;
-    visibility: visible;
-    transform: translate(-50%, -50%) scale(1);
-}
-.rating-header {
-    background: #111;
-    padding: 20px 25px;
-    color: #fff;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-.rating-header h3 {
-    margin: 0;
-    font-weight: 800;
-    font-size: 20px;
-    color: #D4AF37;
-}
-.rating-header .close-rating {
-    background: none;
-    border: none;
-    color: #fff;
-    font-size: 24px;
-    cursor: pointer;
-    transition: 0.3s;
-    line-height: 1;
-}
-.rating-header .close-rating:hover {
-    color: #D4AF37;
-    transform: rotate(90deg);
-}
-.rating-body {
-    padding: 30px 25px;
-}
-.input-field {
-    margin-bottom: 20px;
-    text-align: right;
-}
-.input-field label {
-    display: block;
-    font-weight: 700;
-    margin-bottom: 8px;
-    color: #111;
-    font-size: 14px;
-}
-.input-field input {
-    width: 100%;
-    padding: 14px 18px;
-    border: 1.5px solid #eee;
-    border-radius: 16px;
-    font-size: 15px;
-    transition: 0.3s;
-    font-family: 'Cairo', sans-serif;
-}
-.input-field input:focus {
-    border-color: #D4AF37;
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(212,175,55,0.1);
-}
-.input-field small {
-    display: block;
-    margin-top: 6px;
-    color: #999;
-    font-size: 12px;
-}
-.rating-submit-btn {
-    width: 100%;
-    padding: 14px;
-    background: #111;
-    color: #fff;
-    border: none;
-    border-radius: 16px;
-    font-weight: 800;
-    font-size: 16px;
-    cursor: pointer;
-    transition: 0.3s;
-    margin-top: 10px;
-}
-.rating-submit-btn:hover {
-    background: #D4AF37;
-    color: #000;
-    transform: translateY(-2px);
-}
-.error-msg {
-    color: #e74c3c;
-    font-size: 12px;
-    margin-top: 5px;
-    text-align: right;
-}
-
     </style>
 </head>
 
@@ -2519,7 +2408,7 @@ body.modal-open{
         <nav class="mobile-menu" id="mobileMenu">
             <div class="mobile-menu-header">
                 <div class="mobile-icons-row">
-                    <button class="mobile-icon" onclick="openAccount()"><i class="fas fa-user"></i></button>
+                    <button class="mobile-icon" onclick="alert('حسابي قريباً')"><i class="fas fa-user"></i></button>
                     <button class="mobile-icon" onclick="openSearch(); closeMobileMenu()"><i class="fas fa-search"></i></button>
                 </div>
                 <button class="close-menu" onclick="closeMobileMenu()"><i class="fas fa-times"></i></button>
@@ -2564,7 +2453,7 @@ body.modal-open{
 
         <div class="icons">
             <button type="button" onclick="openSearch()"><i class="fas fa-search"></i></button>
-            <button type="button" onclick="openAccount()"><i class="fas fa-user" id="userIcon"></i></button>
+            <button type="button"><i class="fas fa-user"></i></button>
             <button type="button" onclick="openCart()">
                 <i class="fas fa-shopping-bag"></i>
                 <span class="cart-count" id="cartCount">0</span>
@@ -2626,7 +2515,7 @@ body.modal-open{
     </div>
     <div class="checkout-body">
         <div class="input-group">
-            <label>الاسم كامل</label>
+            <label>الاسم الكامل</label>
             <div class="input-icon">
                 <i class="fas fa-user"></i>
                 <input id="name" type="text" placeholder="أدخل اسمك الكامل">
@@ -2746,31 +2635,6 @@ body.modal-open{
     </div>
 </div>
 
-<!-- مودال التقييم الفاخر -->
-<div id="ratingModal" class="rating-modal">
-    <div class="rating-header">
-        <h3>✍️ تقييم المنتج</h3>
-        <button class="close-rating" onclick="closeRatingModal()">&times;</button>
-    </div>
-    <div class="rating-body">
-        <div class="input-field">
-            <label>الاسم كامل</label>
-            <input type="text" id="reviewerName" placeholder="مثال: أحمد محمد">
-            <small>أدخل اسمك الحقيقي (عربي أو إنجليزي)</small>
-            <div id="nameError" class="error-msg"></div>
-        </div>
-        <div class="input-field">
-            <label>رقم الهاتف</label>
-            <input type="tel" id="reviewerPhone" placeholder="01XXXXXXXXX">
-            <small>رقم مصري صحيح للمتابعة</small>
-            <div id="phoneError" class="error-msg"></div>
-        </div>
-        <button class="rating-submit-btn" onclick="confirmAndSubmitReview()">
-            <i class="fas fa-paper-plane"></i> إرسال التقييم
-        </button>
-    </div>
-</div>
-
 <script>
 // قائمة المحافظات والمدن
 const govData = {
@@ -2860,8 +2724,6 @@ window.closeMobileMenu = function () {
 ========================================= */
 let currentProduct = null;
 let selectedRating = 0;
-window.currentProduct = currentProduct;
-window.selectedRating = selectedRating;
 
 window.closeProduct = function () {
     document.getElementById("productModal").classList.remove("active");
@@ -2872,15 +2734,29 @@ window.closeProduct = function () {
 
 document.querySelectorAll(".rating-stars span").forEach((star, index) => {
     star.addEventListener("click", function() {
-        window.selectedRating = index + 1;
-        document.querySelectorAll(".rating-stars span").forEach((s, i) => s.classList.toggle("active", i < window.selectedRating));
+        selectedRating = index + 1;
+        document.querySelectorAll(".rating-stars span").forEach((s, i) => s.classList.toggle("active", i < selectedRating));
         document.getElementById("reviewText").style.display = "block";
     });
 });
-window.openAccount = function() {
-    alert("تم إلغاء نظام الحسابات مؤقتاً، يمكنك إتمام الطلب بدون تسجيل دخول.");
-};
 
+window.submitReview = async function() {
+    if (!currentProduct || selectedRating === 0) return alert("اختر منتج ونجوم");
+    try {
+        await addDoc(collection(db, "reviews"), {
+            productId: currentProduct.id,
+            productName: currentProduct.name,
+            rating: selectedRating,
+            text: document.getElementById("reviewText").value.trim(),
+            createdAt: serverTimestamp()
+        });
+        alert("تم إرسال تقييمك بنجاح");
+        document.getElementById("reviewText").value = "";
+        document.getElementById("reviewText").style.display = "none";
+        selectedRating = 0;
+        document.querySelectorAll(".rating-stars span").forEach(star => star.classList.remove("active"));
+    } catch (error) { console.error(error); alert("خطأ"); }
+};
 </script>
 
 <script type="module">
@@ -2899,6 +2775,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+
 // متغير لتخزين مراجع مستمعي السحب
 let swipeHandlers = {};
 let currentCategory = "all";
@@ -3228,7 +3105,6 @@ function bindGalleryEvents() {
 const productsRef = collection(db, "products");
 onSnapshot(query(productsRef), (snapshot) => {
     allProducts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    updateCart();  // <-- السطر الجديد هنا
     renderProducts();
     renderBestSellers();
 });
@@ -3288,8 +3164,7 @@ document.head.appendChild(style);
         }
     }
     
-const comparePrice = currentProduct.comparePrice || null;
-window.addToCart(currentProduct.name, Number(currentProduct.price), size, currentProduct.image, comparePrice);
+window.addToCart(currentProduct.name, Number(currentProduct.price), size, currentProduct.image);
 updateCart();
 // إغلاق المودال فورياً دون أنيميشن على الـ overlay
 const modal = document.getElementById("productModal");
@@ -3309,9 +3184,8 @@ openCart();
 };
 
     // ========== السلة ==========
-    let cart = JSON.parse(localStorage.getItem('vante_cart') || '[]');
-if (typeof updateCart === 'function') updateCart();
-    window.addToCart = function(name, price, size, image, comparePrice = null) {
+    let cart = [];
+    window.addToCart = function(name, price, size, image) {
         // نجيب بيانات المنتج من الذاكرة عشان نعرف المخزون الحقيقي
         const product = allProducts.find(p => p.name === name);
         const availableStock = (() => {
@@ -3334,9 +3208,8 @@ if (typeof updateCart === 'function') updateCart();
 
         // باقي الدالة زي ما هي
         const existing = cart.find(item => item.name === name && item.size === size);
-        const productComparePrice = comparePrice !== null ? comparePrice : (allProducts.find(p => p.name === name)?.comparePrice || null);
         if (existing) existing.qty += 1;
-        else cart.push({ name, price, size, image, comparePrice: productComparePrice, qty: 1 });
+        else cart.push({ name, price, size, image, qty: 1 });
         updateCart();
     };
 
@@ -3348,7 +3221,7 @@ if (typeof updateCart === 'function') updateCart();
     }
     const size = select.value;
     // فحص الكمية المتاحة لهذا المقاس
-    const product = window.allProducts.find(p => p.id === productId);
+    const product = allProducts.find(p => p.id === productId);
     if (product && product.stockBySize && product.stockBySize[size] !== undefined) {
         const availableForSize = product.stockBySize[size];
         const currentInCart = cart.reduce((sum, item) => 
@@ -3358,9 +3231,7 @@ if (typeof updateCart === 'function') updateCart();
             return;
         }
     }
-    
-    const comparePrice = product?.comparePrice || null;
-    window.addToCart(name, Number(price), size, image, comparePrice);
+    window.addToCart(name, Number(price), size, image);
     updateCart();
     openCart();
 };
@@ -3370,15 +3241,20 @@ if (typeof updateCart === 'function') updateCart();
     const html = cart.map((item, index) => {
         total += item.price * item.qty;
         count += item.qty;
+        
+        // نجيب المخزون المتاح للمنتج عشان نعرف الحد الأقصى
         const product = allProducts.find(p => p.name === item.name);
         const maxStock = (() => {
-            if (!product || !product.stockBySize) return -1;
-            if (item.size && product.stockBySize[item.size] !== undefined) {
-                return product.stockBySize[item.size];
-            }
-            return -1;
-        })();
-        const maxedOut = (maxStock !== -1 && item.qty >= maxStock);
+    if (!product || !product.stockBySize) return -1;
+    const sizes = Object.keys(product.stockBySize);
+    // إذا كان المنتج له مقاسات، نجمع الكميات المتاحة للمقاس المعين فقط
+    if (item.size && product.stockBySize[item.size] !== undefined) {
+        return product.stockBySize[item.size];
+    }
+    return -1;
+})();
+        const maxedOut = (maxStock !== -1 && item.qty >= maxStock); // هل وصلنا للحد؟
+        
         return `<div class="cart-item">
             <div class="cart-item-details">
                 <strong>${item.name}</strong>
@@ -3389,23 +3265,12 @@ if (typeof updateCart === 'function') updateCart();
                 <span class="qty-value">${item.qty}</span>
                 <button class="qty-btn" onclick="window.changeQty(${index},1)" ${maxedOut ? 'disabled style="opacity:0.4; cursor:not-allowed; background:#eee; color:#999;"' : ''}>+</button>
             </div>
-            <div class="cart-item-price" style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
-                ${(item.comparePrice && item.comparePrice > item.price) ? `
-                    <span style="color:#D4AF37; font-weight:900; font-size: 18px;">${item.price * item.qty} EGP</span>
-                    <div style="display: flex; align-items: center; gap: 6px;">
-                        <span style="text-decoration:line-through; color:#999; font-size: 12px;">${item.comparePrice * item.qty} EGP</span>
-                        <span style="background:#D4AF37; padding: 2px 6px; border-radius: 12px; font-size: 10px; color:#000;">-${Math.round((1 - item.price / item.comparePrice) * 100)}%</span>
-                    </div>
-                ` : `
-                    <span style="color:#D4AF37; font-weight:900; font-size: 18px;">${item.price * item.qty} EGP</span>
-                `}
-            </div>
+            <div class="cart-item-price">${item.price * item.qty} EGP</div>
         </div>`;
     }).join("");
-    document.getElementById("cartItems").innerHTML = html || "السلة فارغة";
+    document.getElementById("cartItems").innerHTML = cart.length ? html : "السلة فارغة";
     document.getElementById("total").innerText = total;
     document.getElementById("cartCount").innerText = count;
-    localStorage.setItem('vante_cart', JSON.stringify(cart));
 };
 
     window.changeQty = function(index, change) {
@@ -3423,13 +3288,12 @@ if (typeof updateCart === 'function') updateCart();
     item.qty += change;
     if (item.qty <= 0) cart.splice(index, 1);
     updateCart();
-    localStorage.setItem('vante_cart', JSON.stringify(cart));
 };
 
-window.openCart = () => { document.getElementById("cartDrawer").classList.add("active"); document.getElementById("overlay").classList.add("active"); };
-window.closeCart = () => { document.getElementById("cartDrawer").classList.remove("active"); document.getElementById("overlay").classList.remove("active"); };
-window.openCheckout = () => { document.getElementById("checkoutModal").classList.add("active"); document.getElementById("overlay").classList.add("active"); };
-window.closeCheckout = () => { document.getElementById("checkoutModal").classList.remove("active"); document.getElementById("overlay").classList.remove("active"); };
+    window.openCart = () => { document.getElementById("cartDrawer").classList.add("active"); document.getElementById("overlay").classList.add("active"); };
+    window.closeCart = () => { document.getElementById("cartDrawer").classList.remove("active"); document.getElementById("overlay").classList.remove("active"); };
+    window.openCheckout = () => { document.getElementById("checkoutModal").classList.add("active"); document.getElementById("overlay").classList.add("active"); };
+    window.closeCheckout = () => { document.getElementById("checkoutModal").classList.remove("active"); document.getElementById("overlay").classList.remove("active"); };
 
     // ========== الدفع ==========
     window.checkout = async function () {
@@ -3510,7 +3374,7 @@ try {
     }
 
     // 4. الصيغة النهائية
-    const orderID = `${customerCode}-${dateStr}${customerOrderCount}${String(dailyOrderCount).padStart(3, '0')}`;
+    const orderID = `${customerCode}-${dateStr}${customerOrderCount}00${String(dailyOrderCount).padStart(3, '0')}`;
     
     const quantity = cart.reduce((sum, item) => sum + item.qty, 0);
     const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
@@ -3559,7 +3423,7 @@ cart.forEach(item => {
 
 // تنفيذ التحديثات المجمعة
 const updatePromises = Object.entries(stockUpdates).map(async ([productId, sizes]) => {
-    const product = window.allProducts.find(p => p.id === productId);
+    const product = allProducts.find(p => p.id === productId);
     if (!product) return;
     const newStockBySize = { ...product.stockBySize };
     for (const [size, qty] of Object.entries(sizes)) {
@@ -3603,8 +3467,7 @@ setTimeout(() => {
     }
 }, 2500);
 
-          cart = [];
-         localStorage.removeItem('vante_cart');
+            cart = [];
             updateCart();
 
             document.getElementById("name").value = "";
@@ -3927,7 +3790,7 @@ document.addEventListener('change', function(e) {
     if (e.target.classList.contains('size-select')) {
         const productId = e.target.dataset.productId;
         const selectedSize = e.target.value;
-        const product = window.allProducts.find(p => p.id === productId);
+        const product = allProducts.find(p => p.id === productId);
         const stockEl = document.getElementById(`stock-${productId}`);
         if (product && stockEl) {
             const stockBySize = product.stockBySize || {};
@@ -4049,7 +3912,6 @@ window.openProduct = function(id, name, price, image, sizes = [], description = 
     comparePrice: product?.comparePrice || null,   // ✨ أضفنا هذا السطر
     image, sizes, description, stockBySize, allImages 
 };
-window.currentProduct = currentProduct;
     galleryImages = allImages;
 currentImageIndex = 0;
     
@@ -4095,6 +3957,7 @@ if (product?.comparePrice && product.comparePrice > price) {
 
     document.getElementById("reviewText").value = "";
     document.getElementById("reviewText").style.display = "none";
+    selectedRating = 0;
     document.querySelectorAll(".rating-stars span").forEach(s => s.classList.remove("active"));
     document.getElementById("productModal").classList.add("active");
     document.getElementById("overlay").classList.add("active");
@@ -4180,131 +4043,6 @@ window.updateModalStockDisplay = function() {
         addBtn.style.color = '#fff';
         addBtn.style.cursor = 'pointer';
     }
-};
-
-window.renderProducts = renderProducts;
-window.applySearch = applySearch;
-window.allProducts = allProducts;
-
-// دوال المودال الجديدة
-function openRatingModal() {
-    document.getElementById('ratingModal').classList.add('active');
-    document.getElementById('overlay').classList.add('active');
-    document.body.style.overflow = 'hidden';
-    // مسح الأخطاء والحقول السابقة
-    document.getElementById('reviewerName').value = '';
-    document.getElementById('reviewerPhone').value = '';
-    document.getElementById('nameError').innerText = '';
-    document.getElementById('phoneError').innerText = '';
-}
-window.openRatingModal = openRatingModal;
-
-function closeRatingModal() {
-    document.getElementById('ratingModal').classList.remove('active');
-    document.getElementById('overlay').classList.remove('active');
-    document.body.style.overflow = '';
-}
-window.closeRatingModal = closeRatingModal;
-
-// التحقق من صحة الاسم (عربي أو إنجليزي، 3 أحرف على الأقل)
-function validateName(name) {
-    const trimmed = name.trim();
-    if (trimmed.length < 3) return 'الاسم يجب أن لا يقل عن 3 أحرف';
-    const arabicPattern = /^[\u0600-\u06FF\s]+$/;
-    const englishPattern = /^[A-Za-z\s]+$/;
-    if (!arabicPattern.test(trimmed) && !englishPattern.test(trimmed)) {
-        return 'الاسم يجب أن يحتوي على أحرف عربية أو إنجليزية فقط';
-    }
-    return '';
-}
-
-// التحقق من رقم هاتف مصري
-function validateEgyptianPhone(phone) {
-    const phoneRegex = /^01[0125][0-9]{8}$/;
-    if (!phoneRegex.test(phone)) return 'رقم الهاتف غير صحيح (مثال: 01012345678)';
-    return '';
-}
-
-// التأكيد والإرسال بعد التحقق
-window.confirmAndSubmitReview = async function() {
-    const name = document.getElementById('reviewerName').value.trim();
-    const phone = document.getElementById('reviewerPhone').value.trim();
-    
-    const nameError = validateName(name);
-    const phoneError = validateEgyptianPhone(phone);
-    
-    document.getElementById('nameError').innerText = nameError;
-    document.getElementById('phoneError').innerText = phoneError;
-    
-    if (nameError || phoneError) return;
-    
-    if (!window.currentProduct || !window.selectedRating || window.selectedRating === 0) {
-        alert("يرجى اختيار تقييم (نجوم) أولاً");
-        closeRatingModal();
-        return;
-    }
-    
-    const reviewText = document.getElementById("reviewText").value.trim();
-    
-    try {
-        const btn = document.querySelector('.rating-submit-btn');
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الإرسال...';
-        
-        await addDoc(collection(db, "reviews"), {
-            productId: window.currentProduct.id,
-            productName: window.currentProduct.name,
-            rating: window.selectedRating,
-            text: reviewText || "لا يوجد تعليق",
-            userName: name,
-            userPhone: phone,
-            approved: false,
-            createdAt: serverTimestamp()
-        });
-        
-        alert("✅ تم إرسال تقييمك بنجاح! سيظهر بعد المراجعة.");
-        
-        // إعادة تعيين الحقول
-        document.getElementById("reviewText").value = "";
-        document.getElementById("reviewText").style.display = "none";
-        window.selectedRating = 0;
-        document.querySelectorAll(".rating-stars span").forEach(star => star.classList.remove("active"));
-        closeRatingModal();
-        
-    } catch (error) {
-        console.error(error);
-        alert("❌ حدث خطأ أثناء إرسال التقييم، حاول مرة أخرى.");
-    } finally {
-        const btn = document.querySelector('.rating-submit-btn');
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-paper-plane"></i> إرسال التقييم';
-    }
-};
-// تعديل دالة submitReview لطلب كتابة الرأي أولاً
-window.submitReview = function() {
-    if (!window.currentProduct) {
-        alert("يرجى اختيار منتج أولاً");
-        return;
-    }
-    if (!window.selectedRating || window.selectedRating === 0) {
-        alert("يرجى اختيار تقييم بالنجوم أولاً");
-        return;
-    }
-    const reviewTextElement = document.getElementById("reviewText");
-    const reviewText = reviewTextElement ? reviewTextElement.value.trim() : "";
-    if (reviewText === "") {
-        alert("✍️ يرجى كتابة رأيك في المنتج قبل إرسال التقييم");
-        // تمييز الحقل بلون أحمر مؤقتاً
-        if (reviewTextElement) {
-            reviewTextElement.style.borderColor = "#e74c3c";
-            reviewTextElement.focus();
-            setTimeout(() => {
-                reviewTextElement.style.borderColor = "";
-            }, 2000);
-        }
-        return;
-    }
-    openRatingModal(); // فتح المودال الخاص بالاسم والرقم
 };
 
 </script>
