@@ -118,18 +118,17 @@
     .inbox-header { display: flex; justify-content: space-between; align-items: center; }
     
     /* الفلاتر - مربعات أفقية متجاورة */
-   /* الفلاتر - مربعات أفقية متجاورة (نفس حجم وشكل select-all) */
-.filters {
+    .filters {
   display: flex;
-  gap: 12px;
+  gap: 15px;
   justify-content: center;
   flex-wrap: wrap;
 }
 .filter-btn {
-  width: 36px;
-  height: 36px;
+  width: 26px;
+  height: 26px;
   padding: 0;
-  border-radius: 12px;
+  border-radius: 14px;
   background: #f0f2f5;
   font-size: 16px;
   border: none;
@@ -139,8 +138,8 @@
   align-items: center;
   justify-content: center;
 }
-.filter-btn i { font-size: 18px; margin: 0; }
-.filter-btn.active { background: #0F7B65; color: #fff; transform: scale(1.05); box-shadow: 0 5px 12px rgba(15,123,101,0.3); }
+.filter-btn i { font-size: 20px; margin: 0; }
+    .filter-btn.active { background: #0F7B65; color: #fff; transform: scale(1.05); box-shadow: 0 5px 12px rgba(15,123,101,0.3); }
     .filter-btn[data-filter="new"]:hover { background: #D4AF37; color: #000; }
     .filter-btn[data-filter="processing"]:hover { background: #3498db; color: #fff; }
     .filter-btn[data-filter="shipped"]:hover { background: #9b59b6; color: #fff; }
@@ -837,9 +836,9 @@ function render() {
           </div>
         </div>
         <div class="order-summary">📦 ${o.quantity}<br>💰 ${o.price}<br>🚚 ${o.shipping}<br>💵 <b>${o.finalTotal}</b>
+        <div class="actions"><a class="action-btn whatsapp" target="_blank" href="https://wa.me/2${o.phone}"><i class="fab fa-whatsapp"></i></a><button class="action-btn copy" onclick='copyText(${JSON.stringify(msg)})'><i class="fas fa-copy"></i></button></div>
           <div style="display:flex; gap:6px; margin-top:10px;"><button onclick="editOrder('${o.id}')" style="flex:1;background:#ffc107;border:none;padding:6px;border-radius:8px;cursor:pointer;">✏️</button><button onclick="deleteOrder('${o.id}')" style="flex:1;background:#dc3545;color:#fff;border:none;padding:6px;border-radius:8px;cursor:pointer;">🗑️</button></div>
-          <div class="actions"><a class="action-btn whatsapp" target="_blank" href="https://wa.me/2${o.phone}"><i class="fab fa-whatsapp"></i></a><button class="action-btn copy" onclick='copyText(${JSON.stringify(msg)})'><i class="fas fa-copy"></i></button></div>
-        </div>
+          </div>
       </div>
     </div>`;
   });
