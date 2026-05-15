@@ -293,25 +293,72 @@
     .status.delivered { background: #2ecc71; color: #fff; }
     .status.cancelled { background: #e74c3c; color: #fff; }
     
-    /* تنسيق صف الطلب */
-    .order-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      cursor: pointer;
-    }
-    .order-header-left {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex: 1;
-    }
-    .order-id {
-      font-weight: bold;
-      font-size: 14px;
-    }
-    * { user-select: none; }
-    input, textarea { user-select: text !important; }
+/* تنسيق صف الطلب - احترافي */
+.order-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+  flex-wrap: nowrap;
+}
+.order-header .selectOrder {
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  accent-color: #0F7B65;
+  cursor: pointer;
+  margin: 0;
+  flex-shrink: 0;
+}
+.order-id {
+  flex: 1;
+  font-weight: 700;
+  font-size: 13px;
+  text-align: center;
+  background: #f5f7fa;
+  padding: 5px 8px;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  overflow-x: auto;
+  direction: ltr;
+  font-family: monospace;
+  letter-spacing: 0.5px;
+}
+.order-id:hover {
+  background: #e9ecef;
+  color: #0F7B65;
+}
+.status {
+  padding: 4px 10px;
+  border-radius: 30px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+/* أيقونة للحالة جديدة */
+.status.new::before {
+  content: "✨";
+  font-size: 11px;
+  font-weight: normal;
+}
+/* تحسين للشاشات الصغيرة */
+@media (max-width: 500px) {
+  .order-id {
+    font-size: 10px;
+    padding: 4px 6px;
+  }
+  .status {
+    font-size: 10px;
+    padding: 3px 8px;
+  }
+}
   </style>
 </head>
 <body>
@@ -327,13 +374,13 @@
   <input type="text" id="search" class="search-box" placeholder="🔍 بحث بالاسم، الهاتف، رقم الطلب">
   <input type="date" id="dateFilter" style="display:none;">
   <div class="filters">
-    <button onclick="setFilter(event, 'all')" class="filter-btn active" data-filter="all"><i class="fas fa-list"></i></button>
-    <button onclick="setFilter(event, 'new')" class="filter-btn" data-filter="new"><i class="fas fa-sparkles"></i></button>
-    <button onclick="setFilter(event, 'processing')" class="filter-btn" data-filter="processing"><i class="fas fa-boxes"></i></button>
-    <button onclick="setFilter(event, 'shipped')" class="filter-btn" data-filter="shipped"><i class="fas fa-truck"></i></button>
-    <button onclick="setFilter(event, 'delivered')" class="filter-btn" data-filter="delivered"><i class="fas fa-check-circle"></i></button>
-    <button onclick="setFilter(event, 'cancelled')" class="filter-btn" data-filter="cancelled"><i class="fas fa-ban"></i></button>
-  </div>
+  <button onclick="setFilter(event, 'all')" class="filter-btn active" data-filter="all"><i class="fas fa-list fa-fw"></i></button>
+  <button onclick="setFilter(event, 'new')" class="filter-btn" data-filter="new"><i class="fas fa-star fa-fw"></i></button>
+  <button onclick="setFilter(event, 'processing')" class="filter-btn" data-filter="processing"><i class="fas fa-boxes fa-fw"></i></button>
+  <button onclick="setFilter(event, 'shipped')" class="filter-btn" data-filter="shipped"><i class="fas fa-truck fa-fw"></i></button>
+  <button onclick="setFilter(event, 'delivered')" class="filter-btn" data-filter="delivered"><i class="fas fa-check-circle fa-fw"></i></button>
+  <button onclick="setFilter(event, 'cancelled')" class="filter-btn" data-filter="cancelled"><i class="fas fa-ban fa-fw"></i></button>
+</div>
 </div>
 
 <div class="top-stats">
@@ -530,12 +577,10 @@ function render() {
     let msg = `VANTÉ\nكود: ${o.orderID}\n👤 ${o.customerName}\n📞 ${o.phone}\n📍 ${o.gov} - ${o.city}\n${o.address}\n💎 ${(o.orderDetails || []).map(i => `${i.name} (${i.size}) x${i.qty}`).join(', ')}\n💰 ${o.finalTotal} جنيه`;
     html += `<div class="card ${status}" style="position:relative;">
       <div class="order-header">
-        <div class="order-header-left">
-          <input type="checkbox" class="selectOrder" onchange="this.closest('.card').style.background = this.checked ? '#e6fff2' : '#fff'; updateBulkBar();">
-          <span class="order-id" data-id="${o.id}" onclick="toggleOrder('${o.id}')" style="cursor:pointer;">🧾 ${o.orderID}</span>
-        </div>
-        <span class="status ${status}" onclick="toggleOrder('${o.id}')" style="cursor:pointer;">${statusText}</span>
-      </div>
+  <input type="checkbox" class="selectOrder" onchange="this.closest('.card').style.background = this.checked ? '#e6fff2' : '#fff'; updateBulkBar();">
+  <span class="order-id" data-id="${o.id}" onclick="toggleOrder('${o.id}')">${o.orderID}</span>
+  <span class="status ${status}" onclick="toggleOrder('${o.id}')">${statusText}</span>
+</div>
       <div id="order-${o.id}" class="order-body">
         <div class="order-info">👤 ${o.customerName}<br>📞 ${o.phone}<br>📍 ${o.gov} - ${o.city}<br>${o.address}<br><br>💎 تفاصيل الطلب:
           <div style="display:flex; flex-direction:column; gap:8px; margin-top:6px;">
