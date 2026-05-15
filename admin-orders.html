@@ -16,6 +16,7 @@
     }
     html, body { overflow-x: hidden; }
     .header {
+  margin-bottom: 6px;
       position: sticky;
       top: 0;
       background: #fff;
@@ -118,26 +119,26 @@
     
     /* الفلاتر - مربعات أفقية متجاورة */
     .filters {
-      display: flex;
-      gap: 8px;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-    .filter-btn {
-      width: 52px;
-      height: 52px;
-      padding: 0;
-      border-radius: 16px;
-      background: #f0f2f5;
-      font-size: 22px;
-      border: none;
-      cursor: pointer;
-      transition: all 0.25s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .filter-btn i { font-size: 24px; margin: 0; }
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.filter-btn {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border-radius: 14px;
+  background: #f0f2f5;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.filter-btn i { font-size: 20px; margin: 0; }
     .filter-btn.active { background: #0F7B65; color: #fff; transform: scale(1.05); box-shadow: 0 5px 12px rgba(15,123,101,0.3); }
     .filter-btn[data-filter="new"]:hover { background: #D4AF37; color: #000; }
     .filter-btn[data-filter="processing"]:hover { background: #3498db; color: #fff; }
@@ -257,7 +258,7 @@
     .selectOrder {
       width: 18px;
       height: 18px;
-      margin-left: 8px;
+      margin-left: 10px;
       accent-color: #0F7B65;
       cursor: pointer;
     }
@@ -266,7 +267,7 @@
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  margin-bottom: 16px;
+  margin-bottom: 6px;
   padding: 0;
 }
 
