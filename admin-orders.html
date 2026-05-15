@@ -575,41 +575,6 @@
   background: #f9f9f9;
 }
 
-/* تأثيرات احترافية للبطاقات عند تغيير الحالة */
-.card {
-  transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
-  border-left: 3px solid transparent;
-}
-
-/* تأثير عند تغيير الحالة */
-.card.status-updated {
-  background: linear-gradient(135deg, #fff 0%, #f8fff8 100%);
-  border-left-color: #0F7B65;
-  transform: scale(1.01);
-  box-shadow: 0 8px 20px rgba(15,123,101,0.15);
-}
-
-/* لكل حالة لون خاص عند التحديث */
-.card.status-updated.new {
-  border-left-color: #D4AF37;
-  background: linear-gradient(135deg, #fff 0%, #fffaf0 100%);
-}
-.card.status-updated.processing {
-  border-left-color: #3498db;
-  background: linear-gradient(135deg, #fff 0%, #f0f8ff 100%);
-}
-.card.status-updated.shipped {
-  border-left-color: #9b59b6;
-  background: linear-gradient(135deg, #fff 0%, #f9f0ff 100%);
-}
-.card.status-updated.delivered {
-  border-left-color: #2ecc71;
-  background: linear-gradient(135deg, #fff 0%, #f0fff4 100%);
-}
-.card.status-updated.cancelled {
-  border-left-color: #e74c3c;
-  background: linear-gradient(135deg, #fff 0%, #fff0f0 100%);
-}
   </style>
 </head>
 <body>
@@ -713,26 +678,7 @@ window.openMsg = async (id) => {
   document.getElementById("messageView").innerHTML = `<div style="text-align:right"><div style="font-size:18px;font-weight:bold;">👤 ${m.name}</div><div style="color:#666;">📞 ${m.phone}</div><hr><div>💬 ${m.message}</div><a href="https://wa.me/2${m.phone}" target="_blank" style="display:block;margin-top:15px;background:#25D366;color:#fff;padding:10px;border-radius:10px;text-align:center;">💬 رد واتساب</a></div>`;
 };
 
-window.update = async (id, status) => {
-  try {
-    await updateDoc(doc(db, "orders", id), { status: status });
-    
-    // البحث عن البطاقة وإضافة تأثير التحديث
-    const card = document.querySelector(`.card .order-id[data-id="${id}"]`)?.closest('.card');
-    if (card) {
-      card.classList.add('status-updated');
-      setTimeout(() => {
-        card.classList.remove('status-updated');
-      }, 800);
-    }
-    
-    // تحديث واجهة المستخدم
-    render();
-  } catch(e) {
-    customAlert("حدث خطأ", 'error');
-    console.error(e);
-  }
-};
+window.update = async (id, status) => { try { await updateDoc(doc(db, "orders", id), { status }); } catch(e) { alert("خطأ"); } };
 
 window.deleteOrder = async (id) => {
   const confirmed = await window.customConfirm("⚠️ هل أنت متأكد من حذف هذا الطلب وإعادة الكميات إلى المخزون؟");
@@ -820,34 +766,6 @@ window.saveEdit = async (id) => {
   } catch(e) { alert("خطأ"); }
 };
 
-window.clearAllSelections = () => {
-  document.querySelectorAll(".selectOrder").forEach(cb => { cb.checked = false; cb.closest(".card").style.background = "#fff"; });
-  updateBulkBar();
-};
-
-window.toggleSelectAll = () => {
-  const allOrders = document.querySelectorAll(".selectOrder");
-  const anyUnchecked = Array.from(allOrders).some(cb => !cb.checked);
-  const newCheckedState = anyUnchecked; // إذا فيه واحد غير محدد → حدد الكل
-  
-  allOrders.forEach(cb => {
-    cb.checked = newCheckedState;
-    cb.closest(".card").style.background = newCheckedState ? "#e6fff2" : "#fff";
-  });
-  
-  // تحديث لون أيقونة Select All
-  const iconBtn = document.getElementById('selectAllIconBtn');
-if (iconBtn) {
-  if (newCheckedState) {
-    iconBtn.classList.add('active');
-  } else {
-    iconBtn.classList.remove('active');
-  }
-}
-  
-  updateBulkBar();
-};
-
 function updateBulkBar() {
   let checked = document.querySelectorAll(".selectOrder:checked");
   let count = checked.length;
@@ -855,64 +773,38 @@ function updateBulkBar() {
   document.getElementById("bulkSelectedInfo").innerHTML = count;
   if (count > 0) bar.classList.add("show");
   else bar.classList.remove("show");
-  
-  // تحديث لون أيقونة Select All بناءً على التحديد
-  const iconBtn = document.getElementById('selectAllIconBtn');
-  const allOrders = document.querySelectorAll(".selectOrder");
-  const allSelected = allOrders.length > 0 && allOrders.length === checked.length;
-  
-  if (iconBtn) {
-    if (allSelected) {
-      iconBtn.classList.add('active');
-    } else {
-      iconBtn.classList.remove('active');
-    }
-  }
+  let allCheckbox = document.getElementById("selectAllCheckbox");
+  if (allCheckbox) allCheckbox.checked = (count === document.querySelectorAll(".selectOrder").length && count > 0);
 }
+
+window.clearAllSelections = () => {
+  document.querySelectorAll(".selectOrder").forEach(cb => { cb.checked = false; cb.closest(".card").style.background = "#fff"; });
+  updateBulkBar();
+};
+
+window.toggleSelectAll = () => {
+  let allCheckbox = document.getElementById("selectAllCheckbox");
+  let isChecked = allCheckbox.checked;
+  document.querySelectorAll(".selectOrder").forEach(cb => {
+    cb.checked = isChecked;
+    cb.closest(".card").style.background = isChecked ? "#e6fff2" : "#fff";
+  });
+  updateBulkBar();
+};
 
 window.applyBulkStatus = async (newStatus) => {
   let selected = document.querySelectorAll(".selectOrder:checked");
   if (selected.length === 0) return;
-  
-  let statusName = '';
-  if (newStatus === 'new') statusName = 'جديد';
-  else if (newStatus === 'processing') statusName = 'قيد التجهيز';
-  else if (newStatus === 'shipped') statusName = 'تم الشحن';
-  else if (newStatus === 'delivered') statusName = 'تم التسليم';
-  else if (newStatus === 'cancelled') statusName = 'لاغـي';
-  
-  const confirmed = await window.customConfirm(`تطبيق حالة "${statusName}" على ${selected.length} طلب؟`);
-  if (!confirmed) return;
-  
+  const confirmed = await window.customConfirm(`تطبيق حالة "${newStatus === 'new' ? 'جديد' : newStatus === 'processing' ? 'قيد التجهيز' : newStatus === 'shipped' ? 'تم الشحن' : newStatus === 'delivered' ? 'تم التسليم' : 'لاغـي'}" على ${selected.length} طلب؟`);
+if (!confirmed) return;
   let updates = [];
-  let updatedCards = [];
-  
   selected.forEach(cb => {
     let card = cb.closest(".card");
     let orderId = card.querySelector(".order-id")?.getAttribute("data-id");
-    if (orderId) {
-      updates.push(updateDoc(doc(db, "orders", orderId), { status: newStatus }));
-      updatedCards.push(card);
-    }
+    if (orderId) updates.push(updateDoc(doc(db, "orders", orderId), { status: newStatus }));
   });
-  
-  try {
-    await Promise.all(updates);
-    
-    // إضافة تأثير التحديث على البطاقات
-    updatedCards.forEach(card => {
-      card.classList.add('status-updated');
-      // إزالة التأثير بعد ثانية
-      setTimeout(() => {
-        card.classList.remove('status-updated');
-      }, 800);
-    });
-    
-    customAlert(`تم تحديث ${updates.length} طلب إلى ${statusName} بنجاح`, 'success');
-    clearAllSelections();
-  } catch(e) { 
-    customAlert("حدث خطأ أثناء تحديث الحالات", 'error');
-  }
+  try { await Promise.all(updates); customAlert(`تم تحديث ${updates.length} طلب بنجاح`, 'success'); clearAllSelections(); }
+  catch(e) { alert("❌ خطأ"); }
 };
 
 function render() {
