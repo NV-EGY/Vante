@@ -405,6 +405,92 @@
   padding: 6px 0;
   font-size: 12px;
 }
+/* Custom Alert Modal - Professional */
+.custom-alert-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(3px);
+  z-index: 999999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.custom-alert-overlay.active {
+  display: flex;
+  opacity: 1;
+}
+.custom-alert-box {
+  background: #fff;
+  border-radius: 32px;
+  width: 90%;
+  max-width: 380px;
+  overflow: hidden;
+  box-shadow: 0 30px 50px rgba(0,0,0,0.3);
+  transform: scale(0.9);
+  transition: transform 0.3s cubic-bezier(0.34, 1.2, 0.64, 1);
+  direction: rtl;
+}
+.custom-alert-overlay.active .custom-alert-box {
+  transform: scale(1);
+}
+.alert-header {
+  padding: 20px 20px 10px;
+  text-align: center;
+}
+.alert-header i {
+  font-size: 48px;
+  margin-bottom: 10px;
+}
+.alert-header.success i { color: #2ecc71; }
+.alert-header.error i { color: #e74c3c; }
+.alert-header.warning i { color: #f39c12; }
+.alert-header.info i { color: #3498db; }
+.alert-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: #111;
+}
+.alert-message {
+  padding: 0 20px 20px;
+  font-size: 15px;
+  color: #555;
+  text-align: center;
+  line-height: 1.6;
+}
+.alert-buttons {
+  display: flex;
+  border-top: 1px solid #eee;
+}
+.alert-buttons button {
+  flex: 1;
+  padding: 14px;
+  border: none;
+  background: #fff;
+  font-weight: 700;
+  font-size: 16px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.alert-buttons button:first-child {
+  border-left: 1px solid #eee;
+  color: #0F7B65;
+}
+.alert-buttons button:last-child {
+  color: #888;
+}
+.alert-buttons button:hover {
+  background: #f9f9f9;
+}
+.alert-buttons button:active {
+  transform: scale(0.98);
+}
+
   </style>
 </head>
 <body>
@@ -452,6 +538,19 @@
 <div id="msgPopup" style="display:none;"><div class="popup-box"><div id="msgContent"></div><button onclick="closeMsg()" style="margin-top:10px;width:100%;padding:10px;border:none;background:#333;color:#fff;border-radius:10px;">إغلاق</button></div></div>
 <div id="messagesBox"><div class="inbox-header"><h3>📩 الرسائل</h3><span onclick="toggleInbox()">✖</span></div><div class="inbox-container"><div id="messagesList" class="inbox-list"></div><div id="messageView" class="inbox-view"><p style="text-align:center;color:#888;">اختر رسالة</p></div></div></div>
 <div id="adminLightbox" style="position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:999999; display:none; justify-content:center; align-items:center;"><img id="adminLightboxImg" src="" style="max-width:90%; max-height:90vh; object-fit:contain;"><button onclick="document.getElementById('adminLightbox').style.display='none'" style="position:absolute; top:20px; right:20px; background:#fff; border:none; font-size:24px; width:40px; height:40px; border-radius:50%; cursor:pointer;">✕</button></div>
+<!-- Custom Alert Modal -->
+<div id="customAlertOverlay" class="custom-alert-overlay">
+  <div class="custom-alert-box">
+    <div class="alert-header" id="alertHeaderIcon">
+      <i class="fas fa-check-circle"></i>
+      <div class="alert-title" id="alertTitle">نجاح</div>
+    </div>
+    <div class="alert-message" id="alertMessage">تمت العملية بنجاح</div>
+    <div class="alert-buttons">
+      <button id="alertConfirmBtn">موافق</button>
+    </div>
+  </div>
+</div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -502,7 +601,8 @@ window.deleteOrder = async (id) => {
       }
     }
     await deleteDoc(doc(db, "orders", id));
-    alert("✅ تم الحذف وإعادة المخزون");
+    customAlert("تم حذف الطلب وإعادة المخزون بنجاح", 'success');
+    window.alert = customAlert;
   } catch(e) { alert("❌ خطأ"); }
 };
 
@@ -604,7 +704,7 @@ window.applyBulkStatus = async (newStatus) => {
     let orderId = card.querySelector(".order-id")?.getAttribute("data-id");
     if (orderId) updates.push(updateDoc(doc(db, "orders", orderId), { status: newStatus }));
   });
-  try { await Promise.all(updates); alert(`✅ تم تحديث ${updates.length} طلب`); clearAllSelections(); }
+  try { await Promise.all(updates); customAlert(`تم تحديث ${updates.length} طلب بنجاح`, 'success'); clearAllSelections(); }
   catch(e) { alert("❌ خطأ"); }
 };
 
@@ -619,7 +719,7 @@ function render() {
     if (date && d && d.toDateString() !== new Date(date).toDateString()) return;
     count++;
     let status = o.status || "new";
-    let statusText = { new: 'جديد', processing: 'قيد التجهيز', shipped: 'تم الشحن', delivered: 'تم التسليم', cancelled: 'ملغى' }[status] || status;
+    let statusText = { new: 'جديد', processing: 'قيد التجهيز', shipped: 'تم الشحن', delivered: 'تم التسليم', cancelled: 'لاغـي' }[status] || status;
     let msg = `VANTÉ\nكود: ${o.orderID}\n👤 ${o.customerName}\n📞 ${o.phone}\n📍 ${o.gov} - ${o.city}\n${o.address}\n💎 ${(o.orderDetails || []).map(i => `${i.name} (${i.size}) x${i.qty}`).join(', ')}\n💰 ${o.finalTotal} جنيه`;
     html += `<div class="card ${status}" style="position:relative;">
       <div class="order-header">
@@ -654,7 +754,7 @@ window.toggleOrder = (id) => {
   let actions = el?.parentElement?.querySelector(".actions");
   if (actions) actions.style.display = actions.style.display === "flex" ? "none" : "flex";
 };
-window.copyText = (t) => { navigator.clipboard.writeText(decodeURIComponent(t)); alert("📋 تم النسخ"); };
+window.copyText = (t) => { navigator.clipboard.writeText(decodeURIComponent(t)); showToast("📋 تم نسخ التفاصيل"); };
 window.setFilter = (e, filter) => { currentFilter = filter; document.querySelectorAll(".filter-btn").forEach(btn => btn.classList.remove("active")); e.target.classList.add("active"); render(); };
 window.toggleInbox = () => { let box = document.getElementById("messagesBox"); if (box.style.display === "none") { box.style.display = "block"; setTimeout(() => box.classList.add("show"), 10); } else { box.classList.remove("show"); setTimeout(() => box.style.display = "none", 200); } };
 window.openDatePicker = () => document.getElementById("dateFilter").showPicker();
@@ -696,6 +796,73 @@ document.getElementById("search").addEventListener("input", render);
 document.addEventListener("change", (e) => { if (e.target.classList.contains("selectOrder")) updateBulkBar(); });
 Notification.requestPermission();
 onAuthStateChanged(auth, (user) => { if (user) load(); else window.location.href = "login.html"; });
+// Custom Alert System - يحل محل alert() التقليدي
+window.customAlert = function(message, type = 'success', title = '') {
+  return new Promise((resolve) => {
+    const overlay = document.getElementById('customAlertOverlay');
+    const headerIcon = document.getElementById('alertHeaderIcon');
+    const titleEl = document.getElementById('alertTitle');
+    const msgEl = document.getElementById('alertMessage');
+    const confirmBtn = document.getElementById('alertConfirmBtn');
+    
+    // تحديد الأيقونة والعنوان حسب النوع
+    let iconClass = 'fa-check-circle';
+    let defaultTitle = '';
+    if (type === 'success') {
+      iconClass = 'fa-check-circle';
+      defaultTitle = '✅ نجاح';
+    } else if (type === 'error') {
+      iconClass = 'fa-exclamation-triangle';
+      defaultTitle = '❌ خطأ';
+    } else if (type === 'warning') {
+      iconClass = 'fa-exclamation-circle';
+      defaultTitle = '⚠️ تنبيه';
+    } else {
+      iconClass = 'fa-info-circle';
+      defaultTitle = 'ℹ️ معلومات';
+    }
+    
+    headerIcon.innerHTML = `<i class="fas ${iconClass}"></i><div class="alert-title">${title || defaultTitle}</div>`;
+    msgEl.innerText = message;
+    
+    // إظهار المودال
+    overlay.classList.add('active');
+    
+    // زر التأكيد
+    const onConfirm = () => {
+      overlay.classList.remove('active');
+      confirmBtn.removeEventListener('click', onConfirm);
+      resolve();
+    };
+    confirmBtn.addEventListener('click', onConfirm);
+    
+    // إغلاق بالضغط على الخلفية (اختياري)
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) {
+        overlay.classList.remove('active');
+        confirmBtn.removeEventListener('click', onConfirm);
+        resolve();
+      }
+    });
+  });
+};
+
+// استبدال alert الأصلي (اختياري - تعليق إذا أردت الاحتفاظ بالـ alert القديم أحياناً)
+// window.alert = customAlert;
+
+// دالة مساعدة لعرض رسائل سريعة مثل toast (للمواعيد القصيرة)
+window.showToast = function(message, duration = 3000) {
+  let toast = document.querySelector('.vante-toast');
+  if (toast) toast.remove();
+  toast = document.createElement('div');
+  toast.className = 'vante-toast success';
+  toast.innerHTML = `<i class="fas fa-bell"></i> ${message}`;
+  document.body.appendChild(toast);
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    setTimeout(() => toast.remove(), 300);
+  }, duration);
+};
 </script>
 </body>
 </html>
