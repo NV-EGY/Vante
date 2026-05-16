@@ -3433,6 +3433,12 @@ window.closeCheckout = () => { document.getElementById("checkoutModal").classLis
 
     // ========== الدفع ==========
     window.checkout = async function () {
+      if (!allProducts.length) {
+    alert("المنتجات لم تكتمل تحميلها بعد، حاول مرة أخرى.");
+    btn.disabled = false;
+    btn.innerText = "تأكيد الطلب";
+    return;
+}
         const btn = document.querySelector("#checkoutModal .btn-primary");
         const name = document.getElementById("name").value.trim();
         const phone = document.getElementById("phone").value.trim();
@@ -3544,18 +3550,34 @@ try {
 
     await addDoc(collection(db, "orders"), orderData);
             // خصم الكميات من المخزون// تجميع الكميات المطلوبة لكل منتج/مقاس لضمان خصم صحيح
-const stockUpdates = {}; // { productId: { size: totalQty } }
+// ========== خصم الكميات من المخزون (النسخة المعدلة) ==========
+const stockUpdates = {};
+
+// تجميع الكميات المطلوبة لكل منتج/مقاس
 cart.forEach(item => {
     const product = allProducts.find(p => p.name === item.name);
-    if (product && product.stockBySize) {
+    if (product && product.stockBySize && product.stockBySize[item.size] !== undefined) {
         const productId = product.id;
         const size = item.size;
-        if (product.stockBySize[size] !== undefined) {
-            if (!stockUpdates[productId]) stockUpdates[productId] = {};
-            stockUpdates[productId][size] = (stockUpdates[productId][size] || 0) + item.qty;
-        }
+        if (!stockUpdates[productId]) stockUpdates[productId] = {};
+        stockUpdates[productId][size] = (stockUpdates[productId][size] || 0) + item.qty;
     }
 });
+
+// تنفيذ التحديثات على Firestore
+for (const [productId, sizes] of Object.entries(stockUpdates)) {
+    // جلب أحدث بيانات المنتج مباشرة من allProducts (المتغير المحلي المحدث باستمرار)
+    const product = allProducts.find(p => p.id === productId);
+    if (!product) continue;
+    
+    const newStockBySize = { ...product.stockBySize };
+    for (const [size, qty] of Object.entries(sizes)) {
+        newStockBySize[size] = Math.max(0, (newStockBySize[size] || 0) - qty);
+    }
+    
+    const productRef = doc(db, "products", productId);
+    await updateDoc(productRef, { stockBySize: newStockBySize });
+}
 
 // تنفيذ التحديثات المجمعة
 const updatePromises = Object.entries(stockUpdates).map(async ([productId, sizes]) => {
