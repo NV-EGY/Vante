@@ -2493,6 +2493,328 @@ body.modal-open{
     text-align: right;
 }
 
+/* مودال تواصل مع المسئول */
+.contact-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(8px);
+    z-index: 100000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+.contact-modal.active {
+    opacity: 1;
+    visibility: visible;
+}
+.contact-modal-content {
+    background: #fff;
+    width: 90%;
+    max-width: 480px;
+    border-radius: 32px;
+    overflow: hidden;
+    box-shadow: 0 30px 50px rgba(0,0,0,0.3);
+    transform: scale(0.9);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    direction: rtl;
+}
+.contact-modal.active .contact-modal-content {
+    transform: scale(1);
+}
+.contact-modal-header {
+    background: #111;
+    padding: 20px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.contact-modal-header h3 {
+    color: #D4AF37;
+    margin: 0;
+    font-size: 20px;
+    font-weight: 800;
+}
+.close-contact-modal {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 28px;
+    cursor: pointer;
+    transition: 0.3s;
+    line-height: 1;
+}
+.close-contact-modal:hover {
+    color: #D4AF37;
+    transform: rotate(90deg);
+}
+.contact-modal-body {
+    padding: 28px 24px;
+}
+.contact-modal-body .input-group {
+    margin-bottom: 20px;
+}
+.contact-modal-body .input-icon {
+    position: relative;
+}
+.contact-modal-body .input-icon i {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #888;
+    font-size: 16px;
+}
+.contact-modal-body input,
+.contact-modal-body textarea {
+    width: 100%;
+    padding: 14px 45px 14px 15px;
+    border: 1.5px solid #eee;
+    border-radius: 16px;
+    font-size: 14px;
+    font-family: 'Cairo', sans-serif;
+    transition: 0.3s;
+    resize: vertical;
+}
+.contact-modal-body input:focus,
+.contact-modal-body textarea:focus {
+    border-color: #D4AF37;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(212,175,55,0.1);
+}
+.contact-modal-body .error-msg {
+    color: #e74c3c;
+    font-size: 12px;
+    margin-top: 5px;
+    text-align: right;
+}
+.contact-submit {
+    width: 100%;
+    margin-top: 15px;
+    background: #111;
+    border: none;
+    border-radius: 16px;
+    padding: 14px;
+    font-size: 16px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: 0.3s;
+}
+.contact-submit:hover {
+    background: #D4AF37;
+    color: #000;
+    transform: translateY(-2px);
+}
+
+/* =========================================
+   دليل المتسوق - مودال التبويبات
+========================================= */
+.info-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(8px);
+    z-index: 100000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+.info-modal.active {
+    opacity: 1;
+    visibility: visible;
+}
+.info-modal-content {
+    background: #fff;
+    width: 90%;
+    max-width: 800px;
+    max-height: 85vh;
+    border-radius: 32px;
+    overflow: hidden;
+    box-shadow: 0 30px 50px rgba(0,0,0,0.3);
+    transform: scale(0.9);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+}
+.info-modal.active .info-modal-content {
+    transform: scale(1);
+}
+.info-modal-header {
+    background: #111;
+    padding: 18px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.info-modal-header h3 {
+    color: #D4AF37;
+    margin: 0;
+    font-size: 22px;
+    font-weight: 800;
+}
+.close-info-modal {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 28px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+.close-info-modal:hover {
+    color: #D4AF37;
+    transform: rotate(90deg);
+}
+/* التبويبات */
+.info-tabs {
+    display: flex;
+    background: #f8f8f8;
+    border-bottom: 1px solid #eee;
+    overflow-x: auto;
+    scrollbar-width: thin;
+}
+.info-tab {
+    flex: 1;
+    padding: 14px 16px;
+    text-align: center;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    transition: 0.3s;
+    color: #555;
+    border-bottom: 3px solid transparent;
+    white-space: nowrap;
+}
+.info-tab.active {
+    color: #D4AF37;
+    border-bottom-color: #D4AF37;
+    background: #fff;
+}
+.info-tab:hover:not(.active) {
+    background: #efefef;
+}
+.info-body {
+    padding: 28px 30px;
+    overflow-y: auto;
+    max-height: 60vh;
+    line-height: 1.8;
+    font-size: 15px;
+    color: #333;
+}
+.info-body h4 {
+    color: #D4AF37;
+    margin-bottom: 12px;
+    font-size: 18px;
+}
+.info-body p, .info-body ul {
+    margin-bottom: 16px;
+}
+.info-body ul {
+    padding-right: 20px;
+}
+.size-guide-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 15px 0;
+}
+.size-guide-table th, .size-guide-table td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: center;
+}
+.size-guide-table th {
+    background: #111;
+    color: #fff;
+}
+.faq-item {
+    margin-bottom: 20px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 12px;
+}
+.faq-question {
+    font-weight: 800;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.faq-question i {
+    transition: 0.3s;
+}
+.faq-answer {
+    display: none;
+    margin-top: 10px;
+    color: #666;
+    padding-right: 15px;
+}
+.faq-item.open .faq-answer {
+    display: block;
+}
+.faq-item.open .faq-question i {
+    transform: rotate(180deg);
+}
+@media (max-width: 600px) {
+    .info-tab { font-size: 12px; padding: 12px 8px; }
+    .info-body { padding: 20px; }
+}
+
+/* التبويبات الفرعية لدليل المقاسات */
+.size-tabs {
+    display: flex;
+    gap: 10px;
+    margin: 20px 0 15px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 8px;
+    flex-wrap: wrap;
+}
+.size-subtab {
+    background: none;
+    border: none;
+    padding: 8px 16px;
+    font-weight: 700;
+    color: #777;
+    cursor: pointer;
+    border-radius: 30px;
+    transition: 0.3s;
+    font-family: 'Cairo', sans-serif;
+}
+.size-subtab.active {
+    background: #D4AF37;
+    color: #000;
+}
+.size-subcontent {
+    display: none;
+}
+.size-subcontent.active {
+    display: block;
+}
+.size-img-placeholder {
+    background: #f9f9f9;
+    border-radius: 16px;
+    padding: 15px;
+    text-align: center;
+    margin-top: 20px;
+    border: 1px dashed #ccc;
+    font-size: 13px;
+    color: #888;
+}
+.size-img-placeholder i {
+    font-size: 48px;
+    color: #D4AF37;
+    margin-bottom: 10px;
+}
+
     </style>
 </head>
 
@@ -2540,8 +2862,8 @@ body.modal-open{
         </div>
     </div>
 
-    <a href="?category=contact" data-category="contact" onclick="handleMenuClick(event, 'contact', this); closeMobileMenu()">تواصل مع المسئول</a>
-        <a href="?category=clearance" data-category="clearance" onclick="handleMenuClick(event, 'clearance', this); closeMobileMenu()">نبذه عننا</a>
+    <a href="#" onclick="openContactModal(event)">تواصل مع المسئول</a>
+        <a href="#" onclick="openInfoModal(); closeMobileMenu()">دليل المتسوق</a>
 </nav>
 
         <nav class="menu">
@@ -2559,8 +2881,8 @@ body.modal-open{
         </div>
     </div>
     
-    <a href="?category=contact" data-category="contact" onclick="handleMenuClick(event, 'contact', this)">تواصل مع المسئول</a>
-    <a href="?category=clearance" data-category="clearance" onclick="handleMenuClick(event, 'clearance', this)">نبذه عننا</a>
+    <a href="#" onclick="openContactModal(event)">تواصل مع المسئول</a>
+    <a href="#" onclick="openInfoModal()">دليل المتسوق</a>
 </nav>
 
         <div class="icons">
@@ -2772,6 +3094,64 @@ body.modal-open{
     </div>
 </div>
 
+<!-- مودال تواصل مع المسئول -->
+<div id="contactModal" class="contact-modal">
+    <div class="contact-modal-content">
+        <div class="contact-modal-header">
+            <h3><i class="fas fa-headset"></i> تواصل مع المسئول</h3>
+            <button class="close-contact-modal" onclick="closeContactModal()">&times;</button>
+        </div>
+        <div class="contact-modal-body">
+            <div class="input-group">
+                <label>الاسم كامل</label>
+                <div class="input-icon">
+                    <i class="fas fa-user"></i>
+                    <input type="text" id="contactName" placeholder="أدخل اسمك الكامل">
+                </div>
+                <div id="contactNameError" class="error-msg"></div>
+            </div>
+            <div class="input-group">
+                <label>رقم الهاتف</label>
+                <div class="input-icon">
+                    <i class="fas fa-phone"></i>
+                    <input type="tel" id="contactPhone" placeholder="01XXXXXXXXX">
+                </div>
+                <div id="contactPhoneError" class="error-msg"></div>
+            </div>
+            <div class="input-group">
+                <label>الرسالة</label>
+                <div class="input-icon">
+                    <i class="fas fa-envelope"></i>
+                    <textarea id="contactMessage" rows="4" placeholder="اكتب رسالتك هنا..."></textarea>
+                </div>
+                <div id="contactMsgError" class="error-msg"></div>
+            </div>
+            <button class="btn-primary contact-submit" onclick="sendContactMessage()">
+                <i class="fas fa-paper-plane"></i> إرسال الرسالة
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- مودال دليل المتسوق -->
+<div id="infoModal" class="info-modal">
+    <div class="info-modal-content">
+        <div class="info-modal-header">
+            <h3><i class="fas fa-info-circle"></i> دليل المتسوق</h3>
+            <button class="close-info-modal" onclick="closeInfoModal()">&times;</button>
+        </div>
+        <div class="info-tabs">
+            <div class="info-tab active" data-tab="shipping">🚚 الشحن والإرجاع</div>
+            <div class="info-tab" data-tab="size">📏 دليل المقاسات</div>
+            <div class="info-tab" data-tab="packaging">🎁 تغليف المنتج</div>
+            <div class="info-tab" data-tab="faq">❓ أسئلة شائعة</div>
+        </div>
+        <div class="info-body" id="infoBody">
+            <!-- المحتوى سيتم تعبئته بواسطة JavaScript -->
+        </div>
+    </div>
+</div>
+
 <script>
 // قائمة المحافظات والمدن
 const govData = {
@@ -2900,6 +3280,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+window.db = db;
 // متغير لتخزين مراجع مستمعي السحب
 let swipeHandlers = {};
 let currentCategory = "all";
@@ -2907,6 +3288,294 @@ let allProducts = [];
 const productsContainer = document.querySelector(".products");
 
 const normalize = (str) => (str || "").toString().trim().toLowerCase();
+
+// ========== تواصل مع المسئول (داخل module) ==========
+window.openContactModal = function(event) {
+    if (event) event.preventDefault();
+    document.getElementById('contactModal').classList.add('active');
+    document.getElementById('overlay').classList.add('active');
+    document.body.style.overflow = 'hidden';
+    document.getElementById('contactName').value = '';
+    document.getElementById('contactPhone').value = '';
+    document.getElementById('contactMessage').value = '';
+    document.getElementById('contactNameError').innerText = '';
+    document.getElementById('contactPhoneError').innerText = '';
+    document.getElementById('contactMsgError').innerText = '';
+};
+
+window.closeContactModal = function() {
+    document.getElementById('contactModal').classList.remove('active');
+    document.getElementById('overlay').classList.remove('active');
+    document.body.style.overflow = '';
+};
+
+window.sendContactMessage = async function() {
+    const name = document.getElementById('contactName').value.trim();
+    const phone = document.getElementById('contactPhone').value.trim();
+    const message = document.getElementById('contactMessage').value.trim();
+    
+    let isValid = true;
+    
+    if (name.length < 3) {
+        document.getElementById('contactNameError').innerText = 'الاسم يجب أن لا يقل عن 3 أحرف';
+        isValid = false;
+    } else {
+        document.getElementById('contactNameError').innerText = '';
+    }
+    
+    const phoneRegex = /^01[0125][0-9]{8}$/;
+    if (!phoneRegex.test(phone)) {
+        document.getElementById('contactPhoneError').innerText = 'رقم الهاتف غير صحيح (مثال: 01012345678)';
+        isValid = false;
+    } else {
+        document.getElementById('contactPhoneError').innerText = '';
+    }
+    
+    if (message === '') {
+        document.getElementById('contactMsgError').innerText = 'الرجاء كتابة رسالتك';
+        isValid = false;
+    } else {
+        document.getElementById('contactMsgError').innerText = '';
+    }
+    
+    if (!isValid) return;
+    
+    const btn = document.querySelector('.contact-submit');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الإرسال...';
+    
+    try {
+        await addDoc(collection(db, "messages"), {
+            name: name,
+            phone: phone,
+            message: message,
+            status: "new",
+            createdAt: serverTimestamp()
+        });
+        
+        alert("✅ تم إرسال رسالتك بنجاح! سنتواصل معك قريباً.");
+        window.closeContactModal();
+    } catch (error) {
+        console.error("خطأ في الإرسال:", error);
+        alert("❌ حدث خطأ أثناء الإرسال، حاول مرة أخرى.");
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-paper-plane"></i> إرسال الرسالة';
+    }
+};
+
+// ========== دليل المتسوق ==========
+const infoContent = {
+    shipping: `
+        <h4>📦 سياسة الشحن</h4>
+        <p>نشحن إلى جميع محافظات مصر عبر شركات شحن موثوقة. مدة التوصيل من 3 إلى 7 أيام عمل حسب المحافظة.</p>
+        <p>تكلفة الشحن: 70 جنيه لجميع المحافظات (مجاني للطلبات فوق 1500 جنيه).</p>
+        <h4>🔄 سياسة الإرجاع والاستبدال</h4>
+        <p>يحق لك استبدال أو إرجاع المنتج خلال 14 يومًا من تاريخ الاستلام بشرط أن يكون بحالته الأصلية والتغليف سليم.</p>
+        <p>لبدء عملية الإرجاع، يرجى التواصل مع خدمة العملاء عبر رقم الواتساب الموجود في صفحة "تواصل مع المسئول".</p>
+        <p>ملاحظة: تكاليف الشحن للإرجاع يتحملها العميل إلا في حالة وجود عيب صناعي.</p>
+    `,
+    size: `
+    <h4>📏 دليل المقاسات حسب نوع المنتج</h4>
+    <div class="size-tabs">
+        <button class="size-subtab active" data-subtab="rings">💍 الخواتم / الدبل (Rings)</button>
+        <button class="size-subtab" data-subtab="bracelets">📿 الغوايش / الأساور (Bangles)</button>
+        <button class="size-subtab" data-subtab="necklaces">✨ السلاسل (Necklaces)</button>
+    </div>
+<!-- خواتم -->
+<div id="ringsTab" class="size-subcontent active">
+    <h5>📏 قياس الخواتم</h5>
+    
+    <p><strong>الطريقة الأولى (القطر الداخلي):</strong> ضعي خاتم مناسب على يدك، ثم قيسي المسافة من الداخل باستخدام مسطرة.</p>
+    <div style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: space-between;">
+        <div style="flex: 1; min-width: 200px;">
+            <table class="size-guide-table">
+                <thead><tr><th>القطر (مم)</th><th>القطر (سم)</th><th>المقاس</th></tr></thead>
+                <tbody>
+                    <tr><td>16</td><td>1.6 سم</td><td>16</td></tr>
+                    <tr><td>17</td><td>1.7 سم</td><td>17</td></tr>
+                    <tr><td>18</td><td>1.8 سم</td><td>18</td></tr>
+                    <tr><td>19</td><td>1.9 سم</td><td>19</td></tr>
+                    <tr><td>20</td><td>2.0 سم</td><td>20</td></tr>
+                    <tr><td>21</td><td>2.1 سم</td><td>21</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <p><strong>الطريقة الثانية (محيط الخيط):</strong> لفي خيطاً حول اصبعك (بدون شد)، ضعي علامة عند نقطة الالتقاء، ثم قيسي الطول.</p>
+    <div style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: space-between;">
+        <div style="flex: 1; min-width: 200px;">
+            <table class="size-guide-table">
+                <thead><tr><th>طول الخيط (سم)</th><th>المقاس</th></tr></thead>
+                <tbody>
+                    <tr><td>5.0 سم</td><td>16</td></tr>
+                    <tr><td>5.3 سم</td><td>17</td></tr>
+                    <tr><td>5.7 سم</td><td>18</td></tr>
+                    <tr><td>6.0 سم</td><td>19</td></tr>
+                    <tr><td>6.3 سم</td><td>20</td></tr>
+                    <tr><td>6.6 سم</td><td>21</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="size-img-placeholder">
+        <i class="fas fa-gem"></i>
+        <p>صورة توضيحية لقياس الخواتم <img src="images/ring-guide1.jpg" alt="دليل قياس الخواتم" style="max-width:100%; border-radius: 12px;"></p>
+    </div>
+</div>
+
+    <!-- غوايش / أساور -->
+    <div id="braceletsTab" class="size-subcontent">
+        <h5>📏 قياس الغوايش (الأساور المغلقة)</h5>
+        <p><strong>الطريقة الأولى (القطر الداخلي):</strong> ضعي غويشة مناسبة على يدك، ثم قيسي المسافة من الداخل باستخدام مسطرة.</p>
+        <table class="size-guide-table">
+            <thead><tr><th>المقاس</th><th>القطر الداخلي (سم)</th></tr></thead>
+            <tbody>
+                <tr><td>60</td><td>6.0 سم</td></tr>
+                <tr><td>65</td><td>6.5 سم</td></tr>
+                <tr><td>70</td><td>7.0 سم</td></tr>
+            </tbody>
+        </table>
+
+        <p><strong>الطريقة الثانية (محيط الخيط):</strong> لفي خيطاً حول رسغك (بدون شد)، ضعي علامة عند نقطة الالتقاء، ثم قيسي الطول.</p>
+        <table class="size-guide-table">
+            <thead><tr><th>المقاس</th><th>طول الخيط (سم)</th></tr></thead>
+            <tbody>
+                <tr><td>60</td><td>≈ 18.8 سم</td></tr>
+                <tr><td>65</td><td>≈ 20.4 سم</td></tr>
+                <tr><td>70</td><td>≈ 22.0 سم</td></tr>
+            </tbody>
+        </table>
+
+        <div class="size-img-placeholder">
+            <i class="fas fa-hand-peace"></i>
+            <p>صورة توضيحية لقياس الغوايش <img src="images/ring-guide2.jpg" alt="دليل قياس الغوايش" style="max-width:100%; border-radius: 12px;"></p>
+        </div>
+    </div>
+
+    <!-- سلاسل -->
+    <div id="necklacesTab" class="size-subcontent">
+        <h5>📏 قياس السلاسل (طول الخيط)</h5>
+        <p>استخدم خيطاً لقياس محيط رقبتك، ثم اختر الطول المناسب حسب الجدول التالي:</p>
+        <table class="size-guide-table">
+            <thead><tr><th>طول السلسلة (سم)</th><th>المناسبة</th></tr></thead>
+            <tbody>
+                <tr><td>45 سم</td><td>تشغيل حول الرقبة (Choker)</td></tr>
+                <tr><td>50 سم</td><td>يصل إلى عظمة الترقوة</td></tr>
+                <tr><td>55 سم</td><td>أسفل الترقوة قليلاً</td></tr>
+                <tr><td>60 سم</td><td>على الصدر</td></tr>
+                <tr><td>70 سم</td><td>سلسلة طويلة (أوبرا)</td></tr>
+                <tr><td>80 سم</td><td>سلسلة طويلة جداً (لاريات)</td></tr>
+            </tbody>
+        </table>
+        <p><strong>نصيحة:</strong> إذا كنت غير متأكد، اختاري الطول الأطول قليلاً ليكون أكثر راحة.</p>
+        <div class="size-img-placeholder">
+            <i class="fas fa-female"></i>
+            <p>صورة توضيحية لقياس السلاسل <img src="images/ring-guide3.jpg" alt="دليل قياس السلاسل" style="max-width:100%; border-radius: 12px;"></p>
+        </div>
+    </div>
+
+    <!-- ملاحظات عامة -->
+    <div style="margin-top: 25px; padding: 15px; background: #f9f9f9; border-radius: 16px; border-right: 4px solid #D4AF37;">
+        <h5 style="color: #D4AF37; margin-bottom: 10px;">📌 نصائح هامة للقياس بالخيط:</h5>
+        <ul style="margin: 0; padding-right: 20px;">
+            <li>✅ لفي الخيط أو الشريط بدون شد (فقط ملامس للجلد).</li>
+            <li>✅ علّمي مكان القفلة أو نقطة الالتقاء بدقة.</li>
+            <li>✅ قيسي الطول بالمليمتر (مم) أو بالسنتيمتر (سم) بدقة.</li>
+            <li>✅ لو قياسك بين مقاسين، اختاري الأكبر (مراعاة للحرارة وتورم اليد).</li>
+        </ul>
+    </div>
+`,
+    packaging: `
+        <h4>🎁 تغليف فاخر</h4>
+        <p>نحرص على تقديم تجربة فاخرة منذ لحظة استلامك للطلب:</p>
+        <ul>
+            <li>كل قطعة تأتي في <strong>علبة مخملية فاخرة</strong> ذات لون أسود/ذهبي تحمل شعار VANTÉ.</li>
+            <li>تغليف خارجي مقوى ومضاد للصدمات لضمان وصول المنتج بحالة ممتازة.</li>
+            <li>شهادة ضمان أصلية مرفقة مع كل قطعة.</li>
+            <li>كيس قطن مزدوج لحماية المجوهرات من الخدش.</li>
+        </ul>
+        <p>هدية إضافية: قطعة قماش لتلميع المجوهرات مجاناً مع كل طلب.</p>
+    `,
+    faq: `
+        <div class="faq-item">
+            <div class="faq-question">❓ هل المنتجات أصلية؟ <i class="fas fa-chevron-down"></i></div>
+            <div class="faq-answer">نعم، جميع منتجاتنا مصنوعة من معادن ثمينة (ستانلس ستيل مطلي بالذهب عيار 18 قيراط) ومضمونة 100% أصلية.</div>
+        </div>
+        <div class="faq-item">
+            <div class="faq-question">❓ كيف أتابع طلبي بعد الشراء؟ <i class="fas fa-chevron-down"></i></div>
+            <div class="faq-answer">سنرسل لك رقم تتبع عبر الواتساب بعد شحن الطلب، ويمكنك متابعته عبر موقع شركة الشحن.</div>
+        </div>
+        <div class="faq-item">
+            <div class="faq-question">❓ ما هي طرق الدفع المتاحة؟ <i class="fas fa-chevron-down"></i></div>
+            <div class="faq-answer">الدفع عند الاستلام (كاش) لجميع المحافظات، أو تحويل بنكي حسب الاتفاق.</div>
+        </div>
+        <div class="faq-item">
+            <div class="faq-question">❓ مدة التوصيل؟ <i class="fas fa-chevron-down"></i></div>
+            <div class="faq-answer">تتراوح بين 3-7 أيام حسب محافظتك، نضمن التوصيل خلال أسبوع كحد أقصى.</div>
+        </div>
+        <div class="faq-item">
+            <div class="faq-question">❓ هل يمكن تغيير المقاس بعد الشراء؟ <i class="fas fa-chevron-down"></i></div>
+            <div class="faq-answer">نعم، يمكنك استبدال المقاس خلال 14 يومًا من الاستلام بشرط أن يكون المنتج غير مستخدم.</div>
+        </div>
+    `
+};
+
+let currentTab = 'shipping';
+
+function renderInfoTab(tabId) {
+    document.getElementById('infoBody').innerHTML = infoContent[tabId];
+    if (tabId === 'size') {
+        // إضافة أحداث التبويبات الفرعية
+        document.querySelectorAll('.size-subtab').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.size-subtab').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                document.querySelectorAll('.size-subcontent').forEach(c => c.classList.remove('active'));
+                document.getElementById(this.dataset.subtab + 'Tab').classList.add('active');
+            });
+        });
+        // التأكد من ظهور التبويب الأول
+        if (!document.getElementById('ringsTab').classList.contains('active')) {
+            document.getElementById('ringsTab').classList.add('active');
+        }
+    } else if (tabId === 'faq') {
+        document.querySelectorAll('.faq-question').forEach(q => {
+            q.addEventListener('click', function() {
+                this.parentElement.classList.toggle('open');
+            });
+        });
+    }
+}
+
+function openInfoModal() {
+    document.getElementById('infoModal').classList.add('active');
+    document.getElementById('overlay').classList.add('active');
+    document.body.style.overflow = 'hidden';
+    renderInfoTab(currentTab);
+}
+
+function closeInfoModal() {
+    document.getElementById('infoModal').classList.remove('active');
+    document.getElementById('overlay').classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+// التبديل بين التبويبات
+document.querySelectorAll('.info-tab').forEach(tab => {
+    tab.addEventListener('click', function() {
+        document.querySelectorAll('.info-tab').forEach(t => t.classList.remove('active'));
+        this.classList.add('active');
+        currentTab = this.dataset.tab;
+        renderInfoTab(currentTab);
+    });
+});
+
+// ربط الفتح بالقائمة
+window.openInfoModal = openInfoModal;
+window.closeInfoModal = closeInfoModal;
 
 function renderProducts() {
     if (!productsContainer) return;
