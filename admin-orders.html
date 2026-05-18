@@ -900,9 +900,13 @@ window.openDatePicker = () => document.getElementById("dateFilter").showPicker()
 window.closeMsg = () => document.getElementById("msgPopup").style.display = "none";
 window.openAdminLightbox = (src) => { document.getElementById('adminLightboxImg').src = src; document.getElementById('adminLightbox').style.display = 'flex'; };
 window.showPopup = (o) => { let box = document.getElementById("msgPopup"); document.getElementById("msgContent").innerHTML = `<div style="text-align:center"><h3>🛒 أوردر جديد</h3><div><b>👤 ${o.customerName || "غير معروف"}</b></div><div>📞 ${o.phone || "-"}</div><a href="https://wa.me/2${o.phone}" target="_blank" style="display:block;margin-top:15px;background:#25D366;color:#fff;padding:10px;border-radius:10px;">💬 واتساب</a></div>`; box.style.display = "block"; setTimeout(() => box.style.display = "none", 5000); };
-window.printSelected = () => {
+
+   window.printSelected = () => {
   let selected = document.querySelectorAll(".selectOrder:checked");
-  if (selected.length === 0) { alert("اختار أوردرات"); return; }
+  if (selected.length === 0) { 
+    customAlert("⚠️ يرجى تحديد أوردر واحد على الأقل للطباعة", 'warning', 'تنبيه');
+    return; 
+  }
   let win = window.open('', '', 'width=900,height=700');
   let html = `<html><head><meta charset="UTF-8"><style>body{font-family:Arial;} .page{width:210mm;height:297mm;display:grid;grid-template-columns:1fr 1fr;}.invoice{border:1px solid #000;padding:12px;margin:5px;}</style></head><body><div class="page">`;
   selected.forEach(el => {
@@ -1067,8 +1071,8 @@ function renderReviews() {
     let filtered = [...allReviews];
     
     // فلتر حسب الحالة
-    if (currentReviewFilter === 'pending') filtered = filtered.filter(r => !r.approved);
-    else if (currentReviewFilter === 'approved') filtered = filtered.filter(r => r.approved === true);
+    if (currentReviewFilter === 'pending') filtered = filtered.filter(r => !r.approved && !r.deleted);
+    else if (currentReviewFilter === 'approved') filtered = filtered.filter(r => r.approved === true && !r.deleted);
     else if (currentReviewFilter === 'rejected') filtered = filtered.filter(r => r.deleted === true);
     
     // بحث
@@ -1080,6 +1084,13 @@ function renderReviews() {
         );
     }
     
+    // ترتيب: المحذوفة في الآخر
+    filtered.sort((a, b) => {
+        if (a.deleted && !b.deleted) return 1;
+        if (!a.deleted && b.deleted) return -1;
+        return 0;
+    });
+    
     const container = document.getElementById("reviewsList");
     if (filtered.length === 0) {
         container.innerHTML = `<div style="text-align:center; padding:40px; color:#999;">لا توجد تقييمات</div>`;
@@ -1087,7 +1098,7 @@ function renderReviews() {
     }
     
     container.innerHTML = filtered.map(review => `
-        <div style="background:#fff; border-radius:16px; padding:15px; box-shadow:0 2px 10px rgba(0,0,0,0.05);">
+        <div style="background:#fff; border-radius:16px; padding:15px; box-shadow:0 2px 10px rgba(0,0,0,0.05); ${review.deleted ? 'opacity:0.7; border-right:4px solid #e74c3c;' : ''}">
             <div style="display:flex; justify-content:space-between; align-items:start; flex-wrap:wrap; gap:10px;">
                 <div>
                     <div style="font-weight:bold; font-size:16px;">📦 ${escapeHtml(review.productName || 'منتج غير معروف')}</div>
@@ -1095,11 +1106,16 @@ function renderReviews() {
                     <div style="margin:8px 0;">${'⭐'.repeat(review.rating)}${'☆'.repeat(5-review.rating)}</div>
                     <div style="background:#f5f5f5; padding:10px; border-radius:12px; margin-top:5px;">💬 ${escapeHtml(review.text || '')}</div>
                     <div style="font-size:11px; color:#999; margin-top:8px;">📅 ${review.createdAt?.toDate ? review.createdAt.toDate().toLocaleString('ar-EG') : 'تاريخ غير معروف'}</div>
+                    ${review.deleted ? '<div style="margin-top:8px;"><span style="background:#e74c3c; color:#fff; padding:2px 8px; border-radius:12px; font-size:10px;">🗑️ محذوف</span></div>' : ''}
                 </div>
-                <div style="display:flex; gap:8px;">
+                <div style="display:flex; gap:8px; flex-wrap:wrap;">
                     ${!review.approved && !review.deleted ? `<button onclick="approveReview('${review.id}')" style="background:#2ecc71; color:#fff; border:none; padding:8px 16px; border-radius:10px; cursor:pointer;">✅ موافقة</button>` : ''}
-                    ${!review.deleted ? `<button onclick="deleteReview('${review.id}')" style="background:#e74c3c; color:#fff; border:none; padding:8px 16px; border-radius:10px; cursor:pointer;">🗑️ حذف</button>` : ''}
-                    ${review.deleted ? `<span style="background:#ccc; padding:8px 16px; border-radius:10px; color:#666;">تم الحذف</span>` : ''}
+                    ${!review.deleted ? `
+                        <button onclick="softDeleteReview('${review.id}')" style="background:#e74c3c; color:#fff; border:none; padding:8px 16px; border-radius:10px; cursor:pointer;">🗑️ حذف</button>
+                    ` : `
+                        <button onclick="restoreReview('${review.id}')" style="background:#3498db; color:#fff; border:none; padding:8px 16px; border-radius:10px; cursor:pointer;">🔄 استرجاع</button>
+                        <button onclick="permanentDeleteReview('${review.id}')" style="background:#c0392b; color:#fff; border:none; padding:8px 16px; border-radius:10px; cursor:pointer;">⚠️ حذف نهائي</button>
+                    `}
                     ${review.approved && !review.deleted ? `<span style="background:#27ae60; padding:8px 16px; border-radius:10px; color:#fff;">✓ منشور</span>` : ''}
                 </div>
             </div>
@@ -1128,6 +1144,42 @@ window.deleteReview = async function(id) {
  } catch(e) {
     customAlert("❌ حدث خطأ أثناء الحذف", 'error');
  }
+};
+
+// حذف مؤقت (نقل إلى المحذوفات)
+window.softDeleteReview = async function(id) {
+    const confirmed = await window.customConfirm("⚠️ هل أنت متأكد من نقل هذا التقييم إلى المحذوفات؟");
+    if (!confirmed) return;
+    try {
+        await updateDoc(doc(db, "reviews", id), { deleted: true, approved: false });
+        customAlert("🗑️ تم نقل التقييم إلى المحذوفات", 'success');
+    } catch(e) {
+        customAlert("❌ حدث خطأ", 'error');
+    }
+};
+
+// استرجاع التقييم من المحذوفات
+window.restoreReview = async function(id) {
+    const confirmed = await window.customConfirm("🔄 هل أنت متأكد من استرجاع هذا التقييم؟");
+    if (!confirmed) return;
+    try {
+        await updateDoc(doc(db, "reviews", id), { deleted: false, approved: false });
+        customAlert("✅ تم استرجاع التقييم بنجاح", 'success');
+    } catch(e) {
+        customAlert("❌ حدث خطأ", 'error');
+    }
+};
+
+// حذف نهائي من قاعدة البيانات
+window.permanentDeleteReview = async function(id) {
+    const confirmed = await window.customConfirm("⚠️ تحذير: هذا الإجراء لا يمكن التراجع عنه! هل أنت متأكد من حذف هذا التقييم نهائياً؟");
+    if (!confirmed) return;
+    try {
+        await deleteDoc(doc(db, "reviews", id));
+        customAlert("🗑️ تم حذف التقييم نهائياً", 'success');
+    } catch(e) {
+        customAlert("❌ حدث خطأ أثناء الحذف", 'error');
+    }
 };
 
 function escapeHtml(text) {
