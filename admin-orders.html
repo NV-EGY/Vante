@@ -694,7 +694,7 @@ window.openMsg = async (id) => {
   document.getElementById("messageView").innerHTML = `<div style="text-align:right"><div style="font-size:18px;font-weight:bold;">👤 ${m.name}</div><div style="color:#666;">📞 ${m.phone}</div><hr><div>💬 ${m.message}</div><a href="https://wa.me/2${m.phone}" target="_blank" style="display:block;margin-top:15px;background:#25D366;color:#fff;padding:10px;border-radius:10px;text-align:center;">💬 رد واتساب</a></div>`;
 };
 
-window.update = async (id, status) => { try { await updateDoc(doc(db, "orders", id), { status }); } catch(e) { alert("خطأ"); } };
+window.update = async (id, status) => { try { await updateDoc(doc(db, "orders", id), { status }); } catch(e) { customAlert("حدث خطأ أثناء الحفظ", 'error'); } };
 
 window.deleteOrder = async (id) => {
   const confirmed = await window.customConfirm("⚠️ هل أنت متأكد من حذف هذا الطلب وإعادة الكميات إلى المخزون؟");
@@ -938,43 +938,43 @@ Notification.requestPermission();
 onAuthStateChanged(auth, (user) => { if (user) load(); else window.location.href = "login.html"; });
 // Custom Confirm - مودال احترافي بديل
 window.customConfirm = function(message) {
-  return new Promise((resolve) => {
-    const overlay = document.getElementById('customConfirmOverlay');
-    const msgEl = document.getElementById('confirmMessage');
-    const yesBtn = document.getElementById('confirmYesBtn');
-    const noBtn = document.getElementById('confirmNoBtn');
-    
-    msgEl.innerText = message;
-    overlay.classList.add('active');
-    
-    const onYes = () => {
-      overlay.classList.remove('active');
-      cleanup();
-      resolve(true);
-    };
-    
-    const onNo = () => {
-      overlay.classList.remove('active');
-      cleanup();
-      resolve(false);
-    };
-    
-    const cleanup = () => {
-      yesBtn.removeEventListener('click', onYes);
-      noBtn.removeEventListener('click', onNo);
-    };
-    
-    yesBtn.addEventListener('click', onYes);
-    noBtn.addEventListener('click', onNo);
-    
-    overlay.addEventListener('click', (e) => {
-      if (e.target === overlay) {
-        overlay.classList.remove('active');
-        cleanup();
-        resolve(false);
-      }
+    return new Promise((resolve) => {
+        const overlay = document.getElementById('customConfirmOverlay');
+        const msgEl = document.getElementById('confirmMessage');
+        const yesBtn = document.getElementById('confirmYesBtn');
+        const noBtn = document.getElementById('confirmNoBtn');
+        
+        msgEl.innerText = message;
+        overlay.classList.add('active');
+        
+        const onYes = () => {
+            overlay.classList.remove('active');
+            cleanup();
+            resolve(true);
+        };
+        
+        const onNo = () => {
+            overlay.classList.remove('active');
+            cleanup();
+            resolve(false);
+        };
+        
+        const cleanup = () => {
+            yesBtn.removeEventListener('click', onYes);
+            noBtn.removeEventListener('click', onNo);
+        };
+        
+        yesBtn.addEventListener('click', onYes);
+        noBtn.addEventListener('click', onNo);
+        
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                overlay.classList.remove('active');
+                cleanup();
+                resolve(false);
+            }
+        });
     });
-  });
 };
 // Custom Alert System - يحل محل alert() التقليدي
 window.customAlert = function(message, type = 'success', title = '') {
@@ -1124,9 +1124,10 @@ window.deleteReview = async function(id) {
     try {
         await updateDoc(doc(db, "reviews", id), { deleted: true, approved: false });
         customAlert("🗑️ تم حذف التقييم", 'success');
-    } catch(e) {
-        customAlert("❌ حدث خطأ", 'error');
-    }
+        
+ } catch(e) {
+    customAlert("❌ حدث خطأ أثناء الحذف", 'error');
+ }
 };
 
 function escapeHtml(text) {
@@ -1155,17 +1156,41 @@ document.addEventListener("DOMContentLoaded", () => {
 // window.alert = customAlert;
 
 // دالة مساعدة لعرض رسائل سريعة مثل toast (للمواعيد القصيرة)
+// دالة مساعدة لعرض رسائل سريعة مثل toast
 window.showToast = function(message, duration = 3000) {
-  let toast = document.querySelector('.vante-toast');
-  if (toast) toast.remove();
-  toast = document.createElement('div');
-  toast.className = 'vante-toast success';
-  toast.innerHTML = `<i class="fas fa-bell"></i> ${message}`;
-  document.body.appendChild(toast);
-  setTimeout(() => {
-    toast.style.opacity = '0';
-    setTimeout(() => toast.remove(), 300);
-  }, duration);
+    // إزالة أي toast موجود مسبقاً
+    const existingToast = document.querySelector('.vante-toast');
+    if (existingToast) existingToast.remove();
+    
+    const toast = document.createElement('div');
+    toast.className = 'vante-toast success';
+    toast.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #111;
+        color: #fff;
+        padding: 12px 24px;
+        border-radius: 30px;
+        font-weight: 700;
+        font-size: 14px;
+        z-index: 999999;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        border: 1px solid #D4AF37;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        direction: rtl;
+    `;
+    toast.innerHTML = `<i class="fas fa-bell" style="color: #D4AF37;"></i> ${message}`;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.3s';
+        setTimeout(() => toast.remove(), 300);
+    }, duration);
 };
 </script>
 </body>
