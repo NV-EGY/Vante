@@ -2840,6 +2840,284 @@ body.modal-open{
     margin-bottom: 10px;
 }
 
+/* =========================================
+   AMAZON-STYLE REVIEWS
+========================================= */
+
+/* حاوية التقييمات الرئيسية */
+.reviews-container {
+    margin-top: 20px;
+    border-top: 1px solid #eee;
+    padding-top: 20px;
+}
+
+.reviews-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    margin-bottom: 15px;
+    gap: 10px;
+}
+
+.reviews-title {
+    font-size: 18px;
+    font-weight: 800;
+    color: #111;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.reviews-title i {
+    color: #D4AF37;
+}
+
+.reviews-count {
+    font-size: 14px;
+    font-weight: 500;
+    color: #666;
+}
+
+/* بطاقة التقييم الواحدة - زي أمازون */
+.review-card {
+    background: #fff;
+    border-bottom: 1px solid #e5e5e5;
+    padding: 18px 0;
+    transition: 0.3s;
+}
+
+.review-card:last-child {
+    border-bottom: none;
+}
+
+.reviewer-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.reviewer-avatar {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #2c3e50, #1a1a2e);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #D4AF37;
+    font-weight: 800;
+    font-size: 18px;
+    text-transform: uppercase;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.reviewer-details {
+    flex: 1;
+}
+
+.reviewer-name {
+    font-weight: 700;
+    color: #111;
+    font-size: 15px;
+    margin-bottom: 3px;
+}
+
+.review-stars {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.review-stars .stars {
+    display: flex;
+    gap: 2px;
+    direction: ltr;
+}
+
+.review-stars .stars i {
+    font-size: 14px;
+    color: #ddd;
+}
+
+.review-stars .stars i.filled {
+    color: #FFD700;
+}
+
+.review-stars .stars i.half-filled {
+    color: #FFD700;
+    position: relative;
+}
+
+.review-date {
+    font-size: 12px;
+    color: #888;
+}
+
+.review-title {
+    font-weight: 700;
+    font-size: 15px;
+    color: #111;
+    margin: 8px 0 6px;
+}
+
+.review-text {
+    color: #555;
+    font-size: 14px;
+    line-height: 1.6;
+    margin-bottom: 12px;
+}
+
+.review-meta {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    font-size: 12px;
+    color: #666;
+    margin-top: 8px;
+}
+
+.review-helpful {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.review-helpful button {
+    background: transparent;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: 0.3s;
+    color: #555;
+}
+
+.review-helpful button:hover {
+    border-color: #D4AF37;
+    color: #D4AF37;
+}
+
+.report-link {
+    color: #999;
+    text-decoration: none;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.report-link:hover {
+    color: #e74c3c;
+}
+
+/* ملخص التقييمات - ستارز */
+.rating-summary {
+    background: #f8f9fa;
+    border-radius: 16px;
+    padding: 15px 20px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.rating-summary-left {
+    text-align: center;
+}
+
+.avg-rating {
+    font-size: 32px;
+    font-weight: 900;
+    color: #111;
+}
+
+.avg-stars {
+    display: flex;
+    justify-content: center;
+    gap: 3px;
+    margin: 5px 0;
+}
+
+.total-reviews {
+    font-size: 13px;
+    color: #666;
+}
+
+.rating-bars {
+    flex: 1;
+    min-width: 200px;
+}
+
+.rating-bar-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    margin: 5px 0;
+}
+
+.rating-bar-label {
+    width: 35px;
+    color: #555;
+}
+
+.rating-bar-bg {
+    flex: 1;
+    height: 8px;
+    background: #eee;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.rating-bar-fill {
+    height: 100%;
+    background: #FFD700;
+    border-radius: 10px;
+    width: 0%;
+}
+
+.rating-bar-count {
+    width: 40px;
+    color: #888;
+    font-size: 11px;
+}
+
+/* زر كتابة تقييم */
+.write-review-btn {
+    background: transparent;
+    border: 1px solid #D4AF37;
+    color: #D4AF37;
+    padding: 8px 20px;
+    border-radius: 30px;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    transition: 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.write-review-btn:hover {
+    background: #D4AF37;
+    color: #000;
+}
+
+@media (max-width: 600px) {
+    .rating-summary {
+        flex-direction: column;
+        text-align: center;
+    }
+    .rating-bars {
+        width: 100%;
+    }
+}
+
     </style>
 </head>
 
@@ -3085,9 +3363,9 @@ body.modal-open{
                 <i class="fas fa-shopping-bag"></i> أضف للسلة
             </button>
 
-            <div class="rating-stars" id="stars">
-                <span data-rate="1">★</span><span data-rate="2">★</span><span data-rate="3">★</span><span data-rate="4">★</span><span data-rate="5">★</span>
-            </div>
+            <div class="rating-stars" id="stars" id="rating-stars-area">
+    <span data-rate="1">★</span><span data-rate="2">★</span><span data-rate="3">★</span><span data-rate="4">★</span><span data-rate="5">★</span>
+</div>
             <textarea id="reviewText" placeholder="اكتب رأيك..."></textarea>
             <button class="btn-primary review-submit" onclick="submitReview()">إرسال التقييم</button>
             <div style="margin-top: 25px; border-top: 1px solid #eee; padding-top: 20px;">
@@ -3976,33 +4254,123 @@ function updateReviewBadges() {
     });
 }
 
-// عرض التقييمات داخل مودال المنتج
+// دالة لتحديد 5 نجوم تلقائياً وفتح حقل كتابة الرأي
+function autoSelectFiveStarsAndFocus() {
+    console.log("autoSelectFiveStarsAndFocus تم استدعاؤها"); // للتأكد من عملها
+    // 1. تحديد 5 نجوم تلقائياً
+    window.selectedRating = 5;
+    const stars = document.querySelectorAll("#stars span");
+    stars.forEach((star, index) => {
+        if (index < 5) {
+            star.classList.add("active");
+        } else {
+            star.classList.remove("active");
+        }
+    });
+    
+    // 2. إظهار حقل كتابة الرأي
+    const reviewTextArea = document.getElementById("reviewText");
+    if (reviewTextArea) {
+        reviewTextArea.style.display = "block";
+        reviewTextArea.focus();
+        reviewTextArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    
+    // 3. التمرير إلى منطقة التقييمات
+    const ratingArea = document.getElementById("rating-stars-area");
+    if (ratingArea) {
+        ratingArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+}
+// عرض التقييمات داخل مودال المنتج - بنظام أمازون
 function displayReviewsInModal(productId) {
     const productReviews = allReviews.filter(r => r.productId === productId);
     const reviewsContainer = document.getElementById("productReviewsContainer");
     if (!reviewsContainer) return;
     
     if (productReviews.length === 0) {
-        reviewsContainer.innerHTML = `<div style="text-align:center; padding:20px; color:#999;">لا توجد تقييمات لهذا المنتج بعد</div>`;
-        return;
-    }
-    
-    reviewsContainer.innerHTML = productReviews.map(review => `
-        <div style="background: #f9f9f9; border-radius: 16px; padding: 15px; margin-bottom: 15px;">
-            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 10px;">
-                <div style="width: 42px; height: 42px; background: linear-gradient(135deg, #D4AF37, #B8860B); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold; font-size: 18px;">
-                    ${(review.userName?.charAt(0) || '?').toUpperCase()}
-                </div>
-                <div>
-                    <div style="font-weight: 700; color: #111;">${review.userName || 'مستخدم'}</div>
-                    <div class="stars-display" style="display: flex; gap: 2px; direction: ltr;">
-                        ${Array(5).fill().map((_, i) => `<i class="fas fa-star" style="color: ${i < review.rating ? '#FFD700' : '#ddd'}; font-size: 14px;"></i>`).join('')}
-                    </div>
-                </div>
-            </div>
-            <p style="color: #555; line-height: 1.6; margin: 0;">${escapeHtml(review.text || '')}</p>
+    reviewsContainer.innerHTML = `
+        <div style="text-align:center; padding:40px 20px;">
+            <i class="fas fa-star" style="font-size: 48px; color: #ddd; margin-bottom: 15px;"></i>
+            <p style="color: #888;">لا توجد تقييمات لهذا المنتج بعد</p>
+            <button class="write-review-btn" onclick="(function(){ window.selectedRating=5; document.querySelectorAll('#stars span').forEach((s,i)=>{if(i<5)s.classList.add('active');else s.classList.remove('active');}); document.getElementById('reviewText').style.display='block'; document.getElementById('reviewText').focus(); document.getElementById('reviewText').scrollIntoView({behavior:'smooth',block:'center'}); })();">
+                <i class="fas fa-pen"></i> كن أول من يقيم هذا المنتج
+            </button>
         </div>
-    `).join('');
+    `;
+    return;
+}
+    
+    // حساب متوسط التقييمات
+    const avgRating = productReviews.reduce((sum, r) => sum + r.rating, 0) / productReviews.length;
+    const ratingCounts = {5:0,4:0,3:0,2:0,1:0};
+    productReviews.forEach(r => { ratingCounts[r.rating]++; });
+    
+    // بناء HTML على شكل أمازون (بدون مفيد و إبلاغ)
+    reviewsContainer.innerHTML = `
+        <div class="rating-summary">
+            <div class="rating-summary-left">
+                <div class="avg-rating">${avgRating.toFixed(1)}</div>
+                <div class="avg-stars">
+                    ${Array(5).fill().map((_, i) => `<i class="fas fa-star" style="color: ${i < Math.round(avgRating) ? '#FFD700' : '#ddd'}; font-size: 14px;"></i>`).join('')}
+                </div>
+                <div class="total-reviews">${productReviews.length} تقييم</div>
+            </div>
+            <div class="rating-bars">
+                ${[5,4,3,2,1].map(star => `
+                    <div class="rating-bar-item">
+                        <span class="rating-bar-label">${star} <i class="fas fa-star" style="font-size: 10px;"></i></span>
+                        <div class="rating-bar-bg">
+                            <div class="rating-bar-fill" style="width: ${(ratingCounts[star] / productReviews.length) * 100}%"></div>
+                        </div>
+                        <span class="rating-bar-count">${ratingCounts[star]}</span>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+        
+        <div class="reviews-container">
+            <div class="reviews-header">
+                <div class="reviews-title">
+                    <i class="fas fa-comments"></i> مراجعات العملاء
+                </div>
+                <button class="write-review-btn" onclick="document.getElementById('rating-stars-area').scrollIntoView({behavior:'smooth'});">
+                    <i class="fas fa-pen"></i> كتابة مراجعة
+                </button>
+            </div>
+            
+            ${productReviews.map(review => `
+                <div class="review-card">
+                    <div class="reviewer-info">
+                        <div class="reviewer-avatar">
+                            ${(review.userName?.charAt(0) || '?').toUpperCase()}
+                        </div>
+                        <div class="reviewer-details">
+                            <div class="reviewer-name">${escapeHtml(review.userName || 'مستخدم')}</div>
+                            <div class="verified-badge" style="display: flex; align-items: center; gap: 6px; margin-top: 4px;">
+                                <i class="fas fa-check-circle" style="color: #27ae60; font-size: 12px;"></i>
+                                <span style="color: #27ae60; font-size: 11px; font-weight: 500;">شراء تم التحقق منه</span>
+                            </div>
+                            <div class="review-stars" style="margin-top: 6px;">
+                                <div class="stars">
+                                    ${Array(5).fill().map((_, i) => `<i class="fas fa-star ${i < review.rating ? 'filled' : ''}"></i>`).join('')}
+                                </div>
+                                <span class="review-date">${review.createdAt?.toDate ? formatDate(review.createdAt.toDate()) : 'تاريخ غير محدد'}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="review-title">${review.rating >= 4 ? '👍 منتج ممتاز' : review.rating >= 3 ? '👌 منتج جيد' : '⚠️ يحتاج تحسين'}</div>
+                    <div class="review-text">${escapeHtml(review.text || '')}</div>
+                </div>
+            `).join('')}
+        </div>
+    `;
+}
+
+// دالة مساعدة لتنسيق التاريخ
+function formatDate(date) {
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    return date.toLocaleDateString('ar-EG', options);
 }
 
 // دالة مساعدة لتجنب XSS
