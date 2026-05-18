@@ -548,7 +548,7 @@ select{
     display: flex;
     flex-direction: column;
     position: relative;
-    overflow: hidden;
+    overflow: visible; /* لتظهر الشارات خارج الصورة لكن داخل الكارد */
 }
 .product:hover {
     transform: translateY(-8px);
@@ -594,21 +594,66 @@ select{
     transform:translateY(-3px);
 }
 
-
-/* شارة الخصم */
 .discount-badge {
     position: absolute;
-    top: 2px;
-    left: 2px;
-    background: #D4AF37;
-    color: #000;
-    padding: 5px 10px;
-    border-radius: 17px;
-    font-size: 10px; /* أصغر قليلاً لتتسع OFF */
+    top: 6px;
+    left: 3px;
+    background: linear-gradient(135deg, #D4AF37 0%, #FFD700 50%, #D4AF37 100%);
+    color: #1a1a00;
+    padding: 3px 8px;
+    border-radius: 30px;
+    font-size: 11px;
     font-weight: 900;
-    z-index: 10;
-    box-shadow: 0 4px 11px rgba(0,0,0,0.2);
-    letter-spacing: 0.5px;
+    z-index: 15;
+    letter-spacing: 0.8px;
+    text-shadow: 0 1px 1px rgba(255,255,200,0.5);
+    
+    /* الحواف الذهبية المتحركة */
+    border: 1px solid transparent;
+    background-clip: padding-box;
+    animation: goldBorderPulse 2s ease-in-out infinite;
+    box-shadow: 0 0 8px rgba(212, 175, 55, 0.5);
+}
+
+/* حركة الحواف الذهبية فقط */
+@keyframes goldBorderPulse {
+    0% {
+        border-color: rgba(255, 215, 0, 0.4);
+        box-shadow: 0 0 5px rgba(212, 175, 55, 0.4);
+    }
+    50% {
+        border-color: rgba(255, 215, 0, 1);
+        box-shadow: 0 0 18px rgba(212, 175, 55, 0.9), 0 0 6px rgba(255, 215, 0, 0.6);
+    }
+    100% {
+        border-color: rgba(255, 215, 0, 0.4);
+        box-shadow: 0 0 5px rgba(212, 175, 55, 0.4);
+    }
+}
+
+/* شارة التقييم - الزاوية اليمنى العليا للكارد */
+.review-badge {
+    position: absolute;
+    top: 12px;
+    right: 3px;
+    background: rgba(0,0,0,0.75);
+    backdrop-filter: blur(4px);
+    color: #FFD700;
+    border-radius: 25px;
+    padding: 3px 6px;
+    font-size: 11px;
+    font-weight: bold;
+    z-index: 15;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    direction: ltr;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    border: 1px solid rgba(255,215,0,0.3);
+}
+
+.review-badge i {
+    font-size: 10px;
 }
 
 /* اختيار المقاس في الكارد */
@@ -1516,20 +1561,6 @@ body.modal-open{
 .menu a.active{
     color:#D4AF37;
 }
-
-.discount-badge {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    background: #D4AF37;
-    color: #000;
-    padding: 6px 12px;
-    border-radius: 20px;
-    font-size: 13px;
-    font-weight: 900;
-    z-index: 10;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-}
 /* شريط البحث الرئيسي - داكن بحواف دائرية كاملة */
 .sticky-search {
     position: fixed;
@@ -1751,12 +1782,6 @@ body.modal-open{
         padding: 10px;
         font-size: 13px;
         border-radius: 10px;
-    }
-    .discount-badge {
-        font-size: 11px;
-        padding: 4px 8px;
-        top: 6px;
-        left: 6px;
     }
 }
 /* المنتج عند نفاد الكمية */
@@ -3065,6 +3090,10 @@ body.modal-open{
             </div>
             <textarea id="reviewText" placeholder="اكتب رأيك..."></textarea>
             <button class="btn-primary review-submit" onclick="submitReview()">إرسال التقييم</button>
+            <div style="margin-top: 25px; border-top: 1px solid #eee; padding-top: 20px;">
+    <h4 style="text-align: center; margin-bottom: 15px; color: #D4AF37;">📝 آراء العملاء</h4>
+    <div id="productReviewsContainer"></div>
+</div>
         </div>
     </div>
 </div>
@@ -3369,10 +3398,10 @@ const infoContent = {
     shipping: `
         <h4>📦 سياسة الشحن</h4>
         <p>نشحن إلى جميع محافظات مصر عبر شركات شحن موثوقة. مدة التوصيل من 3 إلى 7 أيام عمل حسب المحافظة.</p>
-        <p>تكلفة الشحن: 70 جنيه لجميع المحافظات (مجاني للطلبات فوق 1500 جنيه).</p>
+        <p>تكلفة الشحن: 70 جنيه لجميع المحافظات (مجاني للطلبات فوق 1000 جنيه).</p>
         <h4>🔄 سياسة الإرجاع والاستبدال</h4>
         <p>يحق لك استبدال أو إرجاع المنتج خلال 14 يومًا من تاريخ الاستلام بشرط أن يكون بحالته الأصلية والتغليف سليم.</p>
-        <p>لبدء عملية الإرجاع، يرجى التواصل مع خدمة العملاء عبر رقم الواتساب الموجود في صفحة "تواصل مع المسئول".</p>
+        <p>لبدء عملية الإرجاع، يرجى التواصل مع خدمة العملاء عبر رقم الواتساب او  "تواصل مع المسئول".</p>
         <p>ملاحظة: تكاليف الشحن للإرجاع يتحملها العميل إلا في حالة وجود عيب صناعي.</p>
     `,
     size: `
@@ -3507,15 +3536,19 @@ const infoContent = {
     faq: `
         <div class="faq-item">
             <div class="faq-question">❓ هل المنتجات أصلية؟ <i class="fas fa-chevron-down"></i></div>
-            <div class="faq-answer">نعم، جميع منتجاتنا مصنوعة من معادن ثمينة (ستانلس ستيل مطلي بالذهب عيار 18 قيراط) ومضمونة 100% أصلية.</div>
+            <div class="faq-answer">نعم، جميع منتجاتنا مصنوعة من معادن ثمينة (ستانلس ستيل بيور)
+            
+            <li>“مصنوعة من خامات فاخرة مقاومة للتغير لتدوم معك يوميًا.”<li>
+            
+            ومضمونة 100% أصلية.</div>
         </div>
         <div class="faq-item">
             <div class="faq-question">❓ كيف أتابع طلبي بعد الشراء؟ <i class="fas fa-chevron-down"></i></div>
-            <div class="faq-answer">سنرسل لك رقم تتبع عبر الواتساب بعد شحن الطلب، ويمكنك متابعته عبر موقع شركة الشحن.</div>
+            <div class="faq-answer">سنرسل لك تأكيد الطلب عبر واتساب يمكنك تتبع حاله الطلب من خلاله مع احد ممثلي خدمة العملاء.</div>
         </div>
         <div class="faq-item">
             <div class="faq-question">❓ ما هي طرق الدفع المتاحة؟ <i class="fas fa-chevron-down"></i></div>
-            <div class="faq-answer">الدفع عند الاستلام (كاش) لجميع المحافظات، أو تحويل بنكي حسب الاتفاق.</div>
+            <div class="faq-answer">الدفع عند الاستلام (كاش) لجميع المحافظات، أو تحويل محفظة الكترونيه او تحويل انستا باي حسب الاتفاق.</div>
         </div>
         <div class="faq-item">
             <div class="faq-question">❓ مدة التوصيل؟ <i class="fas fa-chevron-down"></i></div>
@@ -3523,7 +3556,7 @@ const infoContent = {
         </div>
         <div class="faq-item">
             <div class="faq-question">❓ هل يمكن تغيير المقاس بعد الشراء؟ <i class="fas fa-chevron-down"></i></div>
-            <div class="faq-answer">نعم، يمكنك استبدال المقاس خلال 14 يومًا من الاستلام بشرط أن يكون المنتج غير مستخدم.</div>
+            <div class="faq-answer">نعم، يمكنك استبدال المقاس خلال 14 يومًا من الاستلام بشرط أن يكون المنتج غير مستخدم <li>ملاحظه: تتحمل مصاريف الشحن بالكامل.</div>
         </div>
     `
 };
@@ -3643,9 +3676,12 @@ function renderProducts() {
         // ============================================
 
         return `
-        <div class="product ${outOfStock ? 'out-of-stock' : ''}" onclick='openProduct("${p.id}", ${JSON.stringify(p.name)}, ${Number(p.price)}, ${JSON.stringify(p.image)}, ${JSON.stringify(sizes)}, ${JSON.stringify(p.description || "")})'>
+        <div class="product ${outOfStock ? 'out-of-stock' : ''}" style="position: relative;" onclick='openProduct("${p.id}", ${JSON.stringify(p.name)}, ${Number(p.price)}, ${JSON.stringify(p.image)}, ${JSON.stringify(sizes)}, ${JSON.stringify(p.description || "")})'>
+            ${discountBadgeHtml}
+            <div class="review-badge">
+                <i class="fas fa-star"></i> <span id="reviewCount-${p.id}">0</span>
+            </div>
             <div class="product-image">
-                ${discountBadgeHtml}
                 <img src="${p.image}" alt="${p.name}">
             </div>
             <h3>${p.name}</h3>
@@ -3899,13 +3935,91 @@ function bindGalleryEvents() {
     });
 }
 
+// ========== نظام التقييمات ==========
+let allReviews = [];
+
+// جلب التقييمات المعتمدة من Firestore
+function loadApprovedReviews() {
+    const reviewsRef = collection(db, "reviews");
+    const q = query(reviewsRef, where("approved", "==", true));
+    onSnapshot(q, (snapshot) => {
+        allReviews = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        updateReviewBadges();
+        if (window.currentProduct) {
+            displayReviewsInModal(window.currentProduct.id);
+        }
+    });
+}
+
+// تحديث شارات التقييمات على المنتجات
+function updateReviewBadges() {
+    // تجميع عدد التقييمات لكل منتج
+    const reviewCounts = {};
+    allReviews.forEach(review => {
+        const productId = review.productId;
+        if (!reviewCounts[productId]) reviewCounts[productId] = 0;
+        reviewCounts[productId]++;
+    });
+    
+    // تحديث كل منتج في الصفحة
+    document.querySelectorAll('.product').forEach(product => {
+        const onclickAttr = product.getAttribute('onclick');
+        if (onclickAttr) {
+            const match = onclickAttr.match(/openProduct\("([^"]+)"/);
+            if (match && match[1]) {
+                const productId = match[1];
+                const count = reviewCounts[productId] || 0;
+                const badgeSpan = product.querySelector(`[id^="reviewCount-${productId}"]`);
+                if (badgeSpan) badgeSpan.textContent = count;
+            }
+        }
+    });
+}
+
+// عرض التقييمات داخل مودال المنتج
+function displayReviewsInModal(productId) {
+    const productReviews = allReviews.filter(r => r.productId === productId);
+    const reviewsContainer = document.getElementById("productReviewsContainer");
+    if (!reviewsContainer) return;
+    
+    if (productReviews.length === 0) {
+        reviewsContainer.innerHTML = `<div style="text-align:center; padding:20px; color:#999;">لا توجد تقييمات لهذا المنتج بعد</div>`;
+        return;
+    }
+    
+    reviewsContainer.innerHTML = productReviews.map(review => `
+        <div style="background: #f9f9f9; border-radius: 16px; padding: 15px; margin-bottom: 15px;">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 10px;">
+                <div style="width: 42px; height: 42px; background: linear-gradient(135deg, #D4AF37, #B8860B); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold; font-size: 18px;">
+                    ${(review.userName?.charAt(0) || '?').toUpperCase()}
+                </div>
+                <div>
+                    <div style="font-weight: 700; color: #111;">${review.userName || 'مستخدم'}</div>
+                    <div class="stars-display" style="display: flex; gap: 2px; direction: ltr;">
+                        ${Array(5).fill().map((_, i) => `<i class="fas fa-star" style="color: ${i < review.rating ? '#FFD700' : '#ddd'}; font-size: 14px;"></i>`).join('')}
+                    </div>
+                </div>
+            </div>
+            <p style="color: #555; line-height: 1.6; margin: 0;">${escapeHtml(review.text || '')}</p>
+        </div>
+    `).join('');
+}
+
+// دالة مساعدة لتجنب XSS
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
 // تحميل البيانات
 const productsRef = collection(db, "products");
 onSnapshot(query(productsRef), (snapshot) => {
     allProducts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    updateCart();  // <-- السطر الجديد هنا
+    updateCart();
     renderProducts();
     renderBestSellers();
+    loadApprovedReviews(); // استدعاء التقييمات
 });
 
 // ========== نقاط المعرض ==========
@@ -4796,6 +4910,8 @@ if (product?.comparePrice && product.comparePrice > price) {
     document.getElementById("productModal").classList.add("active");
     document.getElementById("overlay").classList.add("active");
     document.body.classList.add("modal-open");
+    // عرض التقييمات الخاصة بهذا المنتج
+displayReviewsInModal(id);
 setTimeout(enableSwipe, 100);
 };
 
@@ -4960,6 +5076,7 @@ window.confirmAndSubmitReview = async function() {
         });
         
         alert("✅ تم إرسال تقييمك بنجاح! سيظهر بعد المراجعة.");
+        // تحديث قائمة التقييمات فوراً بعد الإرسال (سيتم تحديثها تلقائياً من onSnapshot)
         
         // إعادة تعيين الحقول
         document.getElementById("reviewText").value = "";
