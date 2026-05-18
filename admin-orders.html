@@ -589,6 +589,10 @@
   </div>
   <input type="text" id="search" class="search-box" placeholder="🔍 بحث بالاسم، الهاتف، رقم الطلب">
   <input type="date" id="dateFilter" style="display:none;">
+  <div style="display: flex; gap: 10px; margin: 5px 0; justify-content: center;">
+    <button onclick="switchTab('orders')" id="tabOrdersBtn" style="background: #0F7B65; color: #fff; border: none; padding: 8px 20px; border-radius: 30px; cursor: pointer; font-weight: bold;">📦 الطلبات</button>
+    <button onclick="switchTab('reviews')" id="tabReviewsBtn" style="background: #ccc; color: #333; border: none; padding: 8px 20px; border-radius: 30px; cursor: pointer; font-weight: bold;">⭐ التقييمات</button>
+</div>
   <div class="filters">
   <button onclick="setFilter(event, 'all')" class="filter-btn active" data-filter="all"><i class="fas fa-list fa-fw"></i></button>
   <button onclick="setFilter(event, 'new')" class="filter-btn" data-filter="new"><i class="fas fa-star fa-fw"></i></button>
@@ -606,6 +610,16 @@
   <span id="count"></span>
 </div>
 <div id="orders"></div>
+<div id="reviewsPanel" style="display: none;">
+    <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; justify-content: center;">
+        <button onclick="setReviewFilter('all')" class="review-filter-btn active" data-review-filter="all" style="background: #0F7B65; color: #fff; border: none; padding: 6px 15px; border-radius: 20px; cursor: pointer;">كل التقييمات</button>
+        <button onclick="setReviewFilter('pending')" class="review-filter-btn" data-review-filter="pending" style="background: #f0f0f0; border: none; padding: 6px 15px; border-radius: 20px; cursor: pointer;">⏳ قيد المراجعة</button>
+        <button onclick="setReviewFilter('approved')" class="review-filter-btn" data-review-filter="approved" style="background: #f0f0f0; border: none; padding: 6px 15px; border-radius: 20px; cursor: pointer;">✅ تم النشر</button>
+        <button onclick="setReviewFilter('rejected')" class="review-filter-btn" data-review-filter="rejected" style="background: #f0f0f0; border: none; padding: 6px 15px; border-radius: 20px; cursor: pointer;">❌ محذوف</button>
+    </div>
+    <input type="text" id="reviewSearch" placeholder="🔍 بحث باسم المنتج أو المراجع" style="width: 100%; max-width: 400px; margin: 0 auto 15px; display: block; padding: 10px; border-radius: 30px; border: 1px solid #ddd;">
+    <div id="reviewsList" style="display: flex; flex-direction: column; gap: 12px;"></div>
+</div>
 
 <!-- الشريط الثابت -->
 <div id="bulkActionsBar" class="bulk-actions-bar">
@@ -669,6 +683,8 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 
 let orders = [], lastCount = 0, currentFilter = "all", messages = [];
+let allReviews = [], currentReviewFilter = "all", reviewSearchTerm = "";
+let currentTab = "orders";
 
 window.markRead = async (id) => updateDoc(doc(db, "messages", id), { status: "done" });
 window.openMsg = async (id) => {
@@ -898,6 +914,7 @@ window.printSelected = () => {
 };
 
 function load() {
+  loadReviews();
   onSnapshot(query(collection(db, "messages"), orderBy("createdAt", "desc")), (snap) => {
     let unread = 0, html = "";
     messages = snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -1010,6 +1027,130 @@ window.customAlert = function(message, type = 'success', title = '') {
   });
 };
 
+// ========== دوال إدارة التقييمات ==========
+window.switchTab = function(tab) {
+    currentTab = tab;
+    const ordersDiv = document.getElementById("orders");
+    const reviewsDiv = document.getElementById("reviewsPanel");
+    const ordersBtn = document.getElementById("tabOrdersBtn");
+    const reviewsBtn = document.getElementById("tabReviewsBtn");
+    
+    if (tab === 'orders') {
+        ordersDiv.style.display = "flex";
+        reviewsDiv.style.display = "none";
+        ordersBtn.style.background = "#0F7B65";
+        ordersBtn.style.color = "#fff";
+        reviewsBtn.style.background = "#ccc";
+        reviewsBtn.style.color = "#333";
+        render();
+    } else {
+        ordersDiv.style.display = "none";
+        reviewsDiv.style.display = "block";
+        ordersBtn.style.background = "#ccc";
+        ordersBtn.style.color = "#333";
+        reviewsBtn.style.background = "#0F7B65";
+        reviewsBtn.style.color = "#fff";
+        renderReviews();
+    }
+};
+
+window.setReviewFilter = function(filter) {
+    currentReviewFilter = filter;
+    document.querySelectorAll('.review-filter-btn').forEach(btn => {
+        btn.style.background = btn.dataset.reviewFilter === filter ? "#0F7B65" : "#f0f0f0";
+        btn.style.color = btn.dataset.reviewFilter === filter ? "#fff" : "#333";
+    });
+    renderReviews();
+};
+
+function renderReviews() {
+    let filtered = [...allReviews];
+    
+    // فلتر حسب الحالة
+    if (currentReviewFilter === 'pending') filtered = filtered.filter(r => !r.approved);
+    else if (currentReviewFilter === 'approved') filtered = filtered.filter(r => r.approved === true);
+    else if (currentReviewFilter === 'rejected') filtered = filtered.filter(r => r.deleted === true);
+    
+    // بحث
+    const searchTerm = document.getElementById("reviewSearch")?.value.toLowerCase() || "";
+    if (searchTerm) {
+        filtered = filtered.filter(r => 
+            (r.productName || "").toLowerCase().includes(searchTerm) || 
+            (r.userName || "").toLowerCase().includes(searchTerm)
+        );
+    }
+    
+    const container = document.getElementById("reviewsList");
+    if (filtered.length === 0) {
+        container.innerHTML = `<div style="text-align:center; padding:40px; color:#999;">لا توجد تقييمات</div>`;
+        return;
+    }
+    
+    container.innerHTML = filtered.map(review => `
+        <div style="background:#fff; border-radius:16px; padding:15px; box-shadow:0 2px 10px rgba(0,0,0,0.05);">
+            <div style="display:flex; justify-content:space-between; align-items:start; flex-wrap:wrap; gap:10px;">
+                <div>
+                    <div style="font-weight:bold; font-size:16px;">📦 ${escapeHtml(review.productName || 'منتج غير معروف')}</div>
+                    <div style="font-size:13px; color:#666;">👤 ${escapeHtml(review.userName || 'غير معروف')} | 📞 ${review.userPhone || '-'}</div>
+                    <div style="margin:8px 0;">${'⭐'.repeat(review.rating)}${'☆'.repeat(5-review.rating)}</div>
+                    <div style="background:#f5f5f5; padding:10px; border-radius:12px; margin-top:5px;">💬 ${escapeHtml(review.text || '')}</div>
+                    <div style="font-size:11px; color:#999; margin-top:8px;">📅 ${review.createdAt?.toDate ? review.createdAt.toDate().toLocaleString('ar-EG') : 'تاريخ غير معروف'}</div>
+                </div>
+                <div style="display:flex; gap:8px;">
+                    ${!review.approved && !review.deleted ? `<button onclick="approveReview('${review.id}')" style="background:#2ecc71; color:#fff; border:none; padding:8px 16px; border-radius:10px; cursor:pointer;">✅ موافقة</button>` : ''}
+                    ${!review.deleted ? `<button onclick="deleteReview('${review.id}')" style="background:#e74c3c; color:#fff; border:none; padding:8px 16px; border-radius:10px; cursor:pointer;">🗑️ حذف</button>` : ''}
+                    ${review.deleted ? `<span style="background:#ccc; padding:8px 16px; border-radius:10px; color:#666;">تم الحذف</span>` : ''}
+                    ${review.approved && !review.deleted ? `<span style="background:#27ae60; padding:8px 16px; border-radius:10px; color:#fff;">✓ منشور</span>` : ''}
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+window.approveReview = async function(id) {
+    const confirmed = await window.customConfirm("⚠️ هل أنت متأكد من الموافقة على نشر هذا التقييم؟");
+    if (!confirmed) return;
+    try {
+        await updateDoc(doc(db, "reviews", id), { approved: true, deleted: false });
+        customAlert("✅ تم نشر التقييم بنجاح", 'success');
+    } catch(e) {
+        customAlert("❌ حدث خطأ", 'error');
+    }
+};
+
+window.deleteReview = async function(id) {
+    const confirmed = await window.customConfirm("⚠️ هل أنت متأكد من حذف هذا التقييم نهائياً؟");
+    if (!confirmed) return;
+    try {
+        await updateDoc(doc(db, "reviews", id), { deleted: true, approved: false });
+        customAlert("🗑️ تم حذف التقييم", 'success');
+    } catch(e) {
+        customAlert("❌ حدث خطأ", 'error');
+    }
+};
+
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// تحميل التقييمات من Firestore
+function loadReviews() {
+    onSnapshot(query(collection(db, "reviews"), orderBy("createdAt", "desc")), (snap) => {
+        allReviews = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        if (currentTab === 'reviews') renderReviews();
+    });
+}
+
+// مستمع البحث في التقييمات
+document.addEventListener("DOMContentLoaded", () => {
+    const reviewSearch = document.getElementById("reviewSearch");
+    if (reviewSearch) {
+        reviewSearch.addEventListener("input", () => renderReviews());
+    }
+});
 // استبدال alert الأصلي (اختياري - تعليق إذا أردت الاحتفاظ بالـ alert القديم أحياناً)
 // window.alert = customAlert;
 
