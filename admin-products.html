@@ -4,16 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin Panel - Products</title>
-
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 <style>
 body{
     font-family:Cairo;
     background:#f5f5f5;
-    padding:20px;
+    padding:10px;
 }
 
 .container{
-    max-width:750px;
+    max-width:1000px;
     margin:auto;
     background:#fff;
     padding:20px;
@@ -114,61 +114,883 @@ button:hover{
     text-align: center;
 }
 #sizeStockContainer {
-    margin: 10px 0;
-    padding: 10px;
-    background: #f9f9f9;
-    border-radius: 10px;
-    border: 1px solid #eee;
+    background: #fff;
+    border-radius: 16px;
+    padding: 20px;
+    margin: 20px 0;
+    border: 1px solid #eef2f5;
 }
+
 #sizeStockContainer h4 {
-    margin-bottom: 10px;
+    margin-bottom: 15px;
+    color: #111;
+    font-size: 15px;
+    font-weight: 800;
+}
+/* =========================================
+   FILTER & STOCK ALERT SYSTEM
+========================================= */
+
+/* شريط الفلترة - أفقي بالكامل */
+.filter-section {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 20px;
+    justify-content: center;
+    align-items: center;
+}
+
+.filter-btn {
+    background: #f0f0f0;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 30px;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'Cairo', sans-serif;
+    white-space: nowrap;
+    width: auto;
+    display: inline-flex;
+    margin: 0;
+}
+
+/* للشاشات الصغيرة */
+@media (max-width: 550px) {
+    .filter-btn {
+        padding: 6px 12px;
+        font-size: 11px;
+    }
+    .filter-section {
+        gap: 6px;
+    }
+}
+
+.filter-btn.active {
+    background: #D4AF37;
+    color: #000;
+    box-shadow: 0 4px 12px rgba(212,175,55,0.3);
+}
+
+.filter-btn.critical {
+    background: #e74c3c;
+    color: #fff;
+}
+.filter-btn.critical.active {
+    background: #c0392b;
+}
+.filter-btn.low {
+    background: #f39c12;
+    color: #fff;
+}
+.filter-btn.low.active {
+    background: #e67e22;
+}
+.filter-btn.normal {
+    background: #27ae60;
+    color: #fff;
+}
+.filter-btn.normal.active {
+    background: #2ecc71;
+}
+.filter-btn.out {
+    background: #999;
+    color: #fff;
+}
+.filter-btn.out.active {
+    background: #777;
+}
+/* إحصائيات المخزون - أفقي مع تمرير */
+.stock-stats {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 12px;
+    justify-content: center;
+    align-items: stretch;
+    margin-bottom: 20px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    scrollbar-width: thin;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* تخصيص شريط التمرير (اختياري) */
+.stock-stats::-webkit-scrollbar {
+    height: 4px;
+}
+.stock-stats::-webkit-scrollbar-track {
+    background: #f0f0f0;
+    border-radius: 10px;
+}
+.stock-stats::-webkit-scrollbar-thumb {
+    background: #D4AF37;
+    border-radius: 10px;
+}
+
+.stat-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 8px 16px;
     text-align: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    min-width: 85px;
+    flex-shrink: 0;
+}
+
+.stat-card .number {
+    font-size: 22px;
+    font-weight: 900;
+}
+
+.stat-card .label {
+    font-size: 11px;
+    color: #666;
+    white-space: nowrap;
+}
+
+/* للشاشات الصغيرة جداً (هاتف) */
+@media (max-width: 550px) {
+    .stat-card {
+        padding: 6px 12px;
+        min-width: 70px;
+    }
+    .stat-card .number {
+        font-size: 18px;
+    }
+    .stat-card .label {
+        font-size: 10px;
+    }
+    .stock-stats {
+        gap: 8px;
+        justify-content: flex-start;
+    }
+}
+.stat-card.critical { border-right: 3px solid #e74c3c; }
+.stat-card.low { border-right: 3px solid #f39c12; }
+.stat-card.normal { border-right: 3px solid #27ae60; }
+.stat-card.out { border-right: 3px solid #999; }
+
+/* تنبيه المنتج */
+.stock-alert {
+    position: relative;
+    padding-right: 20px;
+}
+.stock-alert.critical::before {
+    content: "⚠️";
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+}
+.stock-alert.low::before {
+    content: "⚡";
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+}
+
+/* حالة المخزون في بطاقة المنتج */
+.stock-status {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 700;
+    margin-top: 5px;
+}
+.stock-status.critical {
+    background: #e74c3c;
+    color: #fff;
+}
+.stock-status.low {
+    background: #f39c12;
+    color: #fff;
+}
+.stock-status.normal {
+    background: #27ae60;
+    color: #fff;
+}
+.stock-status.out {
+    background: #999;
+    color: #fff;
+}
+/* لون النص للكميات غير المحدودة - وردي */
+.stock-status.unlimited {
+    background: #800080;
+    color: #fff;
+    box-shadow: 0 0 8px rgba(255,105,180,0.3);
+}
+
+/* شارة نفذت الكمية */
+.out-of-stock-badge {
+    background: #e74c3c;
+    color: #fff;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 700;
+    margin-right: 8px;
+}
+
+/* شريط الكمية */
+.stock-progress {
+    width: 100%;
+    height: 4px;
+    background: #eee;
+    border-radius: 5px;
+    overflow: hidden;
+    margin-top: 8px;
+}
+.stock-progress-fill {
+    height: 100%;
+    border-radius: 5px;
+    transition: width 0.3s;
+}
+.stock-progress-fill.critical { background: #e74c3c; }
+.stock-progress-fill.low { background: #f39c12; }
+.stock-progress-fill.normal { background: #27ae60; }
+/* شريط التقدم للكميات غير المحدودة - وردي */
+.stock-progress-fill.unlimited {
+    background: #800080;
+}
+
+/* زر التحديث - أيقونة 🔁 احترافية */
+.refresh-icon-btn {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);
+    border: none;
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 22px;
+    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+    z-index: 10;
+}
+
+.refresh-icon-btn:hover {
+    background: linear-gradient(135deg, #FFD700 0%, #D4AF37 100%);
+    transform: scale(1.05);
+    box-shadow: 0 6px 18px rgba(212, 175, 55, 0.5);
+}
+
+.refresh-icon-btn:active {
+    transform: scale(0.95);
+}
+
+/* حركة الدوران */
+.refresh-icon-btn.rotate {
+    animation: rotateRefresh 0.5s ease-in-out;
+}
+
+@keyframes rotateRefresh {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* تنسيق العنوان */
+h2 {
+    text-align: center;
+    margin-bottom: 25px;
+    margin-top: 5px;
+    font-size: 22px;
+    color: #111;
+    position: relative;
+}
+
+/* تنسيق شريط البحث */
+#searchProductInput {
+    width: 100%;
+    padding: 10px 15px;
+    border-radius: 30px;
+    border: 1px solid #e0e0e0;
+    font-family: 'Cairo', sans-serif;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    background: #fff;
+}
+
+#searchProductInput:focus {
+    border-color: #D4AF37;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+}
+
+/* تنسيق الكارت عند التحديد */
+.stat-card.active-filter {
+    background: #D4AF37 !important;
+    color: #000 !important;
+    transform: scale(1.02);
+    border-right-color: #B8860B !important;
+}
+
+/* =========================================
+   NEW FORM STYLES - PROFESSIONAL
+========================================= */
+
+/* قسم النموذج */
+.form-section {
+    background: #fafbfc;
+    border-radius: 20px;
+    padding: 20px;
+    margin: 20px 0;
+    border: 1px solid #eef2f5;
+}
+
+.form-title {
+    font-size: 18px;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #D4AF37;
+    display: inline-block;
     color: #111;
 }
+
+.form-row {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+}
+
+.form-group {
+    flex: 1;
+    min-width: 200px;
+}
+
+.form-group.full-width {
+    flex: 100%;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 700;
+    font-size: 13px;
+    margin-bottom: 6px;
+    color: #333;
+}
+
+.form-group label i {
+    color: #D4AF37;
+    width: 20px;
+}
+
+.form-group input, 
+.form-group select, 
+.form-group textarea {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #e0e6ed;
+    border-radius: 12px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    background: #fff;
+}
+
+.form-group input:focus, 
+.form-group select:focus, 
+.form-group textarea:focus {
+    border-color: #D4AF37;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+}
+
+.input-hint {
+    font-size: 11px;
+    color: #8898aa;
+    margin-top: 5px;
+    display: block;
+}
+
+.empty-stock-hint {
+    text-align: center;
+    color: #8898aa;
+    padding: 20px;
+    background: #fff;
+    border-radius: 12px;
+    margin: 10px 0;
+}
+
+/* الأزرار */
+.primary-btn {
+    background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);
+    color: #000;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 30px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: auto;
+    margin: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: center;
+}
+
+.primary-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(212, 175, 55, 0.3);
+}
+
+.secondary-btn {
+    background: #f0f2f5;
+    color: #111;
+    border: 1px solid #e0e6ed;
+    padding: 10px 20px;
+    border-radius: 30px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: auto;
+    margin: 10px auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: center;
+}
+
+.secondary-btn:hover {
+    background: #e6e9ef;
+}
+
+.cancel-btn {
+    background: #f0f2f5;
+    color: #e74c3c;
+    border: 1px solid #e74c3c;
+    padding: 12px 24px;
+    border-radius: 30px;
+    font-weight: 800;
+    width: auto;
+    margin: 0;
+}
+
+.cancel-btn:hover {
+    background: #e74c3c;
+    color: #fff;
+}
+
+.form-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: flex-end;
+    margin-top: 25px;
+    padding-top: 15px;
+    border-top: 1px solid #eef2f5;
+}
+
+/* رأس قائمة المنتجات */
+.products-header {
+    margin: 20px 0 10px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #D4AF37;
+    display: inline-block;
+}
+
+.products-header h3 {
+    font-size: 18px;
+    color: #111;
+}
+
+/* تحسينات إضافية للكارد القديم */
+.product {
+    background: #fff;
+    border: 1px solid #eef2f5;
+    border-radius: 20px;
+    padding: 18px;
+    margin-top: 16px;
+    transition: all 0.3s ease;
+}
+
+.product:hover {
+    border-color: #D4AF37;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+}
+
+/* تحسين وضوح البوكسات */
+.form-section,
+#sizeStockContainer,
+.stock-stats,
+.products-header + div {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    background: #ffffff;
+    border: 1.5px solid #edf2f7;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    border-color: #D4AF37;
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.12);
+}
+
+/* =========================================
+   VANTÉ CUSTOM ALERTS - PROFESSIONAL
+========================================= */
+
+/* Overlay خلفية التنبيه */
+.custom-alert-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(6px);
+    z-index: 999999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.custom-alert-overlay.active {
+    display: flex;
+    opacity: 1;
+}
+
+/* صندوق التنبيه */
+.custom-alert-box {
+    background: #fff;
+    border-radius: 32px;
+    width: 90%;
+    max-width: 400px;
+    overflow: hidden;
+    box-shadow: 0 30px 50px rgba(0,0,0,0.3);
+    transform: scale(0.9);
+    transition: transform 0.3s cubic-bezier(0.34, 1.2, 0.64, 1);
+    direction: rtl;
+    text-align: center;
+}
+
+.custom-alert-overlay.active .custom-alert-box {
+    transform: scale(1);
+}
+
+/* رأس التنبيه */
+.alert-header {
+    padding: 25px 20px 15px;
+    text-align: center;
+}
+
+.alert-header i {
+    font-size: 55px;
+    margin-bottom: 10px;
+}
+
+.alert-header.success i { color: #2ecc71; }
+.alert-header.error i { color: #e74c3c; }
+.alert-header.warning i { color: #f39c12; }
+.alert-header.info i { color: #3498db; }
+
+.alert-title {
+    font-size: 22px;
+    font-weight: 800;
+    color: #111;
+    margin-top: 5px;
+}
+
+/* نص التنبيه */
+.alert-message {
+    padding: 0 25px 25px;
+    font-size: 15px;
+    color: #555;
+    line-height: 1.6;
+}
+
+/* أزرار التنبيه */
+.alert-buttons {
+    display: flex;
+    border-top: 1px solid #eee;
+}
+
+.alert-buttons button {
+    flex: 1;
+    padding: 16px;
+    border: none;
+    background: #fff;
+    font-weight: 700;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.2s;
+    font-family: 'Cairo', sans-serif;
+}
+
+.alert-buttons button:first-child {
+    border-left: 1px solid #eee;
+    color: #D4AF37;
+}
+
+.alert-buttons button:last-child {
+    color: #888;
+}
+
+.alert-buttons button:hover {
+    background: #f9f9f9;
+}
+
+/* Toast Notification (للرسائل السريعة) */
+.vante-toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #111 0%, #1a1a1a 100%);
+    color: #D4AF37;
+    padding: 14px 28px;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 14px;
+    z-index: 999999;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    direction: rtl;
+    animation: toastSlideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.vante-toast i {
+    font-size: 18px;
+    color: #D4AF37;
+}
+
+@keyframes toastSlideUp {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
 </style>
 </head>
 
 <body>
 
 <div class="container">
-
+ <button onclick="refreshProducts()" class="refresh-icon-btn" title="تحديث البيانات">
+    🔁
+</button>
 <h2>لوحة التحكم - المنتجات</h2>
 
-<input id="name" placeholder="اسم المنتج">
-<input id="price" type="number" placeholder="السعر">
-<input id="image" placeholder="رابط الصورة">
-<input id="additionalImages" placeholder="روابط الصور الإضافية (اختيارى: افصل بينها بفاصلة , )">
-<input id="sizes" placeholder="المقاسات مثال: 16,18,20 (افصل بينهم بفاصلة)">
-<select id="category">
-    <option value="">اختار الكولكشن</option>
-    <option value="necklaces">سلاسل & كوليهات</option>
-    <option value="bracelets">أساور & غوايش</option>
-    <option value="rings">خواتم & دبل</option>
-    <option value="sets">أطقم</option>
-    <option value="earrings">حلقان</option>
-    <option value="anklets">خلخال</option>
-</select>
-
-<textarea id="description" placeholder="وصف المنتج" rows="4" style="resize:vertical;"></textarea>
-
-<input id="comparePrice" type="number" placeholder="السعر قبل الخصم (اختياري)">
-
-<!-- حاوية الكميات حسب المقاس -->
-<div id="sizeStockContainer">
-    <h4>الكمية المتاحة لكل مقاس</h4>
-    <div id="sizeStockInputs">
-        <p style="color:#888; font-size:13px; text-align:center;">أدخل المقاسات أولاً ثم اضغط "تحديث حقول الكميات"</p>
+<!-- رأس الصفحة مع زر التحديث -->
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+    <div style="flex: 1; min-width: 200px;">
+        <input type="text" id="searchProductInput" placeholder="🔍 بحث باسم المنتج..." style="width: 100%; padding: 10px; border-radius: 30px; border: 1px solid #ddd; font-family: Cairo;">
     </div>
-    <button type="button" onclick="generateSizeStockInputs()" style="background:#D4AF37; color:#000; margin-top:5px;">
-        تحديث حقول الكميات
-    </button>
 </div>
 
-<button onclick="addProduct()" id="addBtn">إضافة منتج</button>
-<button onclick="cancelEdit()" id="cancelBtn" style="display:none; background:#888;">إلغاء التعديل</button>
+<!-- إحصائيات المخزون -->
+<div class="stock-stats" id="stockStats"></div>
+<!-- ========== نموذج إضافة/تعديل المنتج ========== -->
+<div class="form-section">
+    <h3 class="form-title">➕ إضافة / تعديل منتج</h3>
+    
+    <div class="form-row">
+        <div class="form-group">
+            <label><i class="fas fa-tag"></i> اسم المنتج</label>
+            <input id="name" placeholder="مثال: سوار ذهبي">
+        </div>
+        <div class="form-group">
+            <label><i class="fas fa-coins"></i> السعر (EGP)</label>
+            <input id="price" type="number" placeholder="السعر">
+        </div>
+    </div>
 
+    <div class="form-row">
+        <div class="form-group">
+            <label><i class="fas fa-image"></i> رابط الصورة الرئيسية</label>
+            <input id="image" placeholder="https://...">
+        </div>
+        <div class="form-group">
+            <label><i class="fas fa-images"></i> صور إضافية</label>
+            <input id="additionalImages" placeholder="رابط1, رابط2, رابط3">
+        </div>
+    </div>
+
+    <div class="form-row">
+        <div class="form-group">
+            <label><i class="fas fa-ruler"></i> المقاسات</label>
+            <input id="sizes" placeholder="مثال: 16,18,20 (افصل بينهم بفاصلة)">
+            <small class="input-hint">أدخل المقاسات المتاحة مفصولة بفاصلة</small>
+        </div>
+        <div class="form-group">
+            <label><i class="fas fa-layer-group"></i> القسم / الكولكشن</label>
+            <select id="category">
+                <option value="">-- اختر القسم --</option>
+                <option value="necklaces">✨ سلاسل & كوليهات</option>
+                <option value="bracelets">📿 أساور & غوايش</option>
+                <option value="rings">💍 خواتم & دبل</option>
+                <option value="sets">🎁 أطقم</option>
+                <option value="earrings">💎 حلقان</option>
+                <option value="anklets">🦶 خلخال</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="form-row">
+        <div class="form-group full-width">
+    <label><i class="fas fa-align-right"></i> وصف المنتج</label>
+<!-- شريط الأدوات الاحترافي -->
+<div style="display: flex; gap: 4px; flex-wrap: nowrap; overflow-x: auto; background: #f8f9fa; padding: 6px 12px; border-radius: 10px; margin-bottom: 8px; border: 1px solid #e9ecef; direction: ltr; scrollbar-width: thin;">
+    
+<!-- مجموعة التنسيق الأساسي -->
+<div style="display: flex; gap: 2px; border-left: 1px solid #dee2e6; padding-left: 8px; margin-left: 8px;">
+    <button type="button" onclick="formatDoc('bold', this)" data-command="bold" class="tool-btn" title="عريض"><i class="fas fa-bold"></i></button>
+    <button type="button" onclick="formatDoc('italic', this)" data-command="italic" class="tool-btn" title="مائل"><i class="fas fa-italic"></i></button>
+    <button type="button" onclick="formatDoc('underline', this)" data-command="underline" class="tool-btn" title="تسطير"><i class="fas fa-underline"></i></button>
+    <button type="button" onclick="formatDoc('strikeThrough', this)" data-command="strikeThrough" class="tool-btn" title="يتوسطه خط"><i class="fas fa-strikethrough"></i></button>
+</div>
+
+<!-- مجموعة المحاذاة -->
+<div style="display: flex; gap: 2px; border-left: 1px solid #dee2e6; padding-left: 8px; margin-left: 8px;">
+    <button type="button" onclick="formatDoc('justifyRight', this)" data-command="justifyRight" class="tool-btn" title="محاذاة لليمين"><i class="fas fa-align-right"></i></button>
+    <button type="button" onclick="formatDoc('justifyCenter', this)" data-command="justifyCenter" class="tool-btn" title="محاذاة للوسط"><i class="fas fa-align-center"></i></button>
+    <button type="button" onclick="formatDoc('justifyLeft', this)" data-command="justifyLeft" class="tool-btn" title="محاذاة لليسار"><i class="fas fa-align-left"></i></button>
+</div>
+
+<!-- مجموعة القوائم -->
+<div style="display: flex; gap: 2px; border-left: 1px solid #dee2e6; padding-left: 8px; margin-left: 8px;">
+    <button type="button" onclick="formatDoc('insertUnorderedList', this)" data-command="insertUnorderedList" class="tool-btn" title="قائمة نقطية"><i class="fas fa-list-ul"></i></button>
+    <button type="button" onclick="formatDoc('insertOrderedList', this)" data-command="insertOrderedList" class="tool-btn" title="قائمة رقمية"><i class="fas fa-list-ol"></i></button>
+</div>
+
+<!-- مجموعة الخط -->
+<div style="display: flex; gap: 2px; border-left: 1px solid #dee2e6; padding-left: 8px; margin-left: 8px;">
+    <button type="button" onclick="formatDoc('increaseFont', this)" class="tool-btn" title="تكبير الخط"><i class="fas fa-search-plus"></i></button>
+    <button type="button" onclick="formatDoc('decreaseFont', this)" class="tool-btn" title="تصغير الخط"><i class="fas fa-search-minus"></i></button>
+</div>
+
+<!-- مجموعة إضافية -->
+<div style="display: flex; gap: 2px;">
+    <button type="button" onclick="formatDoc('removeFormat', this)" class="tool-btn" title="مسح التنسيق"><i class="fas fa-eraser"></i></button>
+    <button type="button" onclick="formatDoc('undo', this)" class="tool-btn" title="تراجع"><i class="fas fa-undo-alt"></i></button>
+    <button type="button" onclick="formatDoc('redo', this)" class="tool-btn" title="إعادة"><i class="fas fa-redo-alt"></i></button>
+</div>
+</div>
+
+<!-- CSS مخصص للأزرار -->
+<style>
+.tool-btn {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    margin: 0;
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    color: #495057;
+    cursor: pointer;
+    font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+.tool-btn:hover {
+    background: #e9ecef;
+    color: #D4AF37;
+    transform: translateY(-1px);
+}
+.tool-btn:active {
+    transform: translateY(1px);
+}
+/* تنسيق الأزرار النشطة */
+.tool-btn.active {
+    background: #D4AF37;
+    color: #000;
+    border-radius: 6px;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+}
+</style>
+    
+    <!-- محرر مرئي -->
+    <div id="descriptionEditor" contenteditable="true" style="border: 1.5px solid #edf2f7; border-radius: 12px; padding: 12px; min-height: 150px; background: #fff; font-family: Cairo; direction: rtl; text-align: right; overflow-y: auto;"></div>
+    
+    <!-- حقل مخفي يحفظ الـ HTML -->
+    <input type="hidden" id="description" value="">
+    
+    <small class="input-hint">استخدم الأزرار لتنسيق النص (عريض، قوائم، تكبير الخط...)</small>
+</div>
+    </div>
+
+    <div class="form-row">
+        <div class="form-group">
+            <label><i class="fas fa-tags"></i> السعر قبل الخصم</label>
+            <input id="comparePrice" type="number" placeholder="السعر الأصلي (اختياري)">
+            <small class="input-hint">اتركه فارغاً إذا لا يوجد خصم</small>
+        </div>
+        <div class="form-group">
+            <!-- مكان للفراغ أو إضافات مستقبلية -->
+        </div>
+    </div>
+
+    <!-- حاوية الكميات حسب المقاس -->
+    <div id="sizeStockContainer">
+        <h4>📦 الكمية المتاحة لكل مقاس</h4>
+        <div id="sizeStockInputs">
+            <p class="empty-stock-hint">📌 أدخل المقاسات أولاً ثم اضغط "تحديث حقول الكميات"</p>
+        </div>
+        <button type="button" onclick="generateSizeStockInputs()" class="secondary-btn">
+            <i class="fas fa-sync-alt"></i> تحديث حقول الكميات
+        </button>
+    </div>
+
+    <div class="form-actions">
+        <button onclick="addProduct()" id="addBtn" class="primary-btn">
+            <i class="fas fa-save"></i> إضافة منتج
+        </button>
+        <button onclick="cancelEdit()" id="cancelBtn" class="cancel-btn" style="display:none;">
+            <i class="fas fa-times"></i> إلغاء التعديل
+        </button>
+    </div>
+</div>
+
+<!-- ========== قائمة المنتجات ========== -->
+<div class="products-header">
+    <h3><i class="fas fa-boxes"></i> قائمة المنتجات</h3>
+</div>
 <div id="productsList"></div>
 
+</div>
+
+<!-- Custom Alert Modal -->
+<div id="customAlertOverlay" class="custom-alert-overlay">
+    <div class="custom-alert-box">
+        <div class="alert-header" id="alertHeaderIcon">
+            <i class="fas fa-check-circle"></i>
+            <div class="alert-title" id="alertTitle">نجاح</div>
+        </div>
+        <div class="alert-message" id="alertMessage">تمت العملية بنجاح</div>
+        <div class="alert-buttons">
+            <button id="alertConfirmBtn">موافق</button>
+        </div>
+    </div>
 </div>
 
 <script type="module">
@@ -188,6 +1010,502 @@ updateDoc,
 setDoc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+// ========== نظام فلترة الكميات ==========
+let currentStockFilter = "all";
+let currentSearchTerm = "";
+
+// ========== دوال تنسيق النص ==========
+window.formatDoc = function(command, buttonElement) {
+    const editor = document.getElementById('descriptionEditor');
+    if (!editor) return;
+    editor.focus();
+    
+    // تنفيذ الأمر
+    if (command === 'increaseFont') {
+        document.execCommand('fontSize', false, '5');
+    } else if (command === 'decreaseFont') {
+        document.execCommand('fontSize', false, '3');
+    } else if (command === 'removeFormat') {
+        document.execCommand('removeFormat', false, null);
+        // عند مسح التنسيق، نعيد تعيين حالة جميع الأزرار
+        document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.remove('active'));
+        updateButtonStates();
+    } else if (command === 'insertUnorderedList') {
+        document.execCommand('insertUnorderedList', false, null);
+    } else if (command === 'insertOrderedList') {
+        document.execCommand('insertOrderedList', false, null);
+    } else if (command === 'justifyRight') {
+        document.execCommand('justifyRight', false, null);
+    } else if (command === 'justifyCenter') {
+        document.execCommand('justifyCenter', false, null);
+    } else if (command === 'justifyLeft') {
+        document.execCommand('justifyLeft', false, null);
+    } else if (command === 'strikeThrough') {
+        document.execCommand('strikeThrough', false, null);
+    } else if (command === 'underline') {
+        document.execCommand('underline', false, null);
+    } else if (command === 'undo') {
+        document.execCommand('undo', false, null);
+    } else if (command === 'redo') {
+        document.execCommand('redo', false, null);
+    } else {
+        document.execCommand(command, false, null);
+    }
+    
+    // تحديث حالة الأزرار بناءً على التنسيق الحالي
+    updateButtonStates();
+    
+    // حفظ المحتوى في الحقل المخفي
+    const hiddenDesc = document.getElementById('description');
+    if (hiddenDesc) hiddenDesc.value = editor.innerHTML;
+};
+
+// دالة لتحديث حالة الأزرار (أي زر نشط)
+function updateButtonStates() {
+    const editor = document.getElementById('descriptionEditor');
+    if (!editor) return;
+    
+    // قائمة الأوامر التي نريد تتبع حالتها
+    const commands = ['bold', 'italic', 'underline', 'strikeThrough', 'insertUnorderedList', 'insertOrderedList', 'justifyRight', 'justifyCenter', 'justifyLeft'];
+    
+    commands.forEach(cmd => {
+        let isActive = false;
+        
+        // معالجة خاصة لبعض الأوامر
+        if (cmd === 'justifyRight') {
+            isActive = document.queryCommandState('justifyRight');
+        } else if (cmd === 'justifyCenter') {
+            isActive = document.queryCommandState('justifyCenter');
+        } else if (cmd === 'justifyLeft') {
+            isActive = document.queryCommandState('justifyLeft');
+        } else if (cmd === 'insertUnorderedList') {
+            isActive = document.queryCommandState('insertUnorderedList');
+        } else if (cmd === 'insertOrderedList') {
+            isActive = document.queryCommandState('insertOrderedList');
+        } else {
+            isActive = document.queryCommandState(cmd);
+        }
+        
+        // البحث عن الزر وتحديث كلاس active
+        const btn = document.querySelector(`.tool-btn[data-command="${cmd}"]`);
+        if (btn) {
+            if (isActive) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        }
+    });
+}
+
+// ربط أحداث المحرر (لتحديث الأزرار عند الكتابة أو التحديد)
+function bindEditorEvents() {
+    const editor = document.getElementById('descriptionEditor');
+    if (editor) {
+        editor.addEventListener('input', function() {
+            const hiddenDesc = document.getElementById('description');
+            if (hiddenDesc) hiddenDesc.value = editor.innerHTML;
+            updateButtonStates(); // تحديث الأزرار عند الكتابة
+        });
+        editor.addEventListener('keyup', updateButtonStates);
+        editor.addEventListener('mouseup', updateButtonStates);
+        editor.addEventListener('click', updateButtonStates);
+    }
+}
+
+// تهيئة المحرر بعد تحميل الصفحة
+setTimeout(() => {
+    bindEditorEvents();
+}, 200);
+// حساب حالة المخزون لمنتج// حساب حالة المخزون لمنتج
+// حساب حالة المخزون لمنتج
+function getStockStatus(product) {
+    const stockBySize = product.stockBySize || {};
+    
+    // حساب إجمالي الكمية (تجاهل الكميات غير المحدودة)
+    let totalStock = 0;
+    let hasUnlimited = false;
+    let hasAnyStock = false;
+    
+    Object.entries(stockBySize).forEach(([size, qty]) => {
+        if (qty === null || qty === undefined) {
+            hasUnlimited = true;  // هذا المقاس غير محدود
+        } else {
+            totalStock += (parseInt(qty) || 0);
+            if ((parseInt(qty) || 0) > 0) hasAnyStock = true;
+        }
+    });
+    
+    // إذا كان هناك أي مقاس غير محدود، المنتج يعتبر جيد دائماً
+if (hasUnlimited) {
+    return { status: "normal", label: "♾️ جيد (غير محدود)", className: "unlimited", critical: false, isUnlimited: true };
+}
+    
+    // إذا لم توجد أي كميات محددة على الإطلاق
+    if (Object.keys(stockBySize).length === 0) {
+        return { status: "normal", label: "♾️ جيد (غير محددة)", className: "normal", critical: false, isUnlimited: false };
+    }
+    
+    if (totalStock <= 0 && !hasAnyStock) return { status: "out", label: "🚫 نفذت", className: "out", critical: true, isUnlimited: false };
+    if (totalStock < 5) return { status: "critical", label: "⚠️ حرج", className: "critical", critical: true, isUnlimited: false };
+    if (totalStock <= 20) return { status: "low", label: "⚡ منخفض", className: "low", critical: false, isUnlimited: false };
+    return { status: "normal", label: "✅ جيد", className: "normal", critical: false, isUnlimited: false };
+}
+
+// حساب الإحصائيات
+function calculateStats(products) {
+    let critical = 0, low = 0, normal = 0, out = 0;
+    products.forEach(product => {
+        const stockStatus = getStockStatus(product);
+        if (stockStatus.status === "critical") critical++;
+        else if (stockStatus.status === "low") low++;
+        else if (stockStatus.status === "normal") normal++;
+        else if (stockStatus.status === "out") out++;
+    });
+    return { critical, low, normal, out };
+}
+// تحديث لوحة الإحصائيات (كروت قابلة للنقر)
+function updateStatsDisplay(products) {
+    const stats = calculateStats(products);
+    
+    // ترتيب الكروت: نفذت ← حرج ← منخفض ← جيد
+    const order = [
+        { key: "out", label: "🚫 نفذت", color: "out", count: stats.out },
+        { key: "critical", label: "⚠️ حرج (&lt;5)", color: "critical", count: stats.critical },
+        { key: "low", label: "⚡ منخفض (5-20)", color: "low", count: stats.low },
+        { key: "normal", label: "✅ جيد (&gt;20)", color: "normal", count: stats.normal }
+    ];
+    
+    const statsHtml = order.map(item => `
+        <div class="stat-card ${item.color} stat-filter" data-filter="${item.key}" 
+             style="cursor: pointer; transition: all 0.3s ease; ${currentStockFilter === item.key ? 'background: #D4AF37; color: #000; transform: scale(1.02); border-right-color: #B8860B;' : ''}">
+            <div class="number">${item.count}</div>
+            <div class="label">${item.label}</div>
+        </div>
+    `).join('');
+    
+    document.getElementById("stockStats").innerHTML = statsHtml;
+    
+    // إضافة حدث النقر على كل كارت
+    document.querySelectorAll('.stat-filter').forEach(card => {
+        card.addEventListener('click', function() {
+            const filterValue = this.dataset.filter;
+            
+            // إذا كان الفلتر الحالي هو نفسه، نعيد تعيينه للكل
+            if (currentStockFilter === filterValue) {
+                currentStockFilter = "all";
+                // إزالة التمييز البصري من جميع الكروت
+                document.querySelectorAll('.stat-filter').forEach(c => {
+                    c.style.background = "";
+                    c.style.color = "";
+                    c.style.transform = "";
+                });
+            } else {
+                currentStockFilter = filterValue;
+                // تمييز الكارت المحدد باللون الذهبي
+                document.querySelectorAll('.stat-filter').forEach(c => {
+                    c.style.background = "";
+                    c.style.color = "";
+                    c.style.transform = "";
+                });
+                this.style.background = "#D4AF37";
+                this.style.color = "#000";
+                this.style.transform = "scale(1.02)";
+            }
+            
+            renderFilteredProducts();
+        });
+    });
+}
+
+// فلترة المنتجات
+function filterProductsByStock(products) {
+    if (currentStockFilter === "all") return products;
+    return products.filter(product => {
+        const status = getStockStatus(product).status;
+        return status === currentStockFilter;
+    });
+}
+
+// بحث في المنتجات
+function searchProducts(products) {
+    if (!currentSearchTerm) return products;
+    return products.filter(product => 
+        product.name?.toLowerCase().includes(currentSearchTerm.toLowerCase())
+    );
+}
+
+window.refreshProducts = function() {
+    // إضافة كلاس الدوران
+    const refreshBtn = document.querySelector('.refresh-icon-btn');
+    if (refreshBtn) {
+        refreshBtn.classList.add('rotate');
+        // إزالة الكلاس بعد انتهاء الأنيميشن
+        setTimeout(() => {
+            refreshBtn.classList.remove('rotate');
+        }, 500);
+    }
+    
+    renderFilteredProducts();
+    customAlert("🔄 تم تحديث البيانات", 'success');
+};
+
+// دالة customAlert للتوست
+function customAlert(msg, type) {
+    const toast = document.createElement('div');
+    toast.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: ${type === 'success' ? '#27ae60' : '#e74c3c'};
+        color: #fff;
+        padding: 12px 24px;
+        border-radius: 30px;
+        font-weight: bold;
+        z-index: 9999;
+        font-size: 14px;
+    `;
+    toast.textContent = msg;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 2500);
+}
+// Custom Confirm - مودال تأكيد احترافي
+window.customConfirm = function(message) {
+    return new Promise((resolve) => {
+        // إنشاء العناصر ديناميكياً
+        const overlay = document.createElement('div');
+        overlay.className = 'custom-confirm-overlay';
+        overlay.innerHTML = `
+            <div class="custom-confirm-box">
+                <div class="confirm-header">
+                    <i class="fas fa-question-circle"></i>
+                    <h3>تأكيد العملية</h3>
+                </div>
+                <div class="confirm-message">${message}</div>
+                <div class="confirm-buttons">
+                    <button class="confirm-no">إلغاء</button>
+                    <button class="confirm-yes">تأكيد</button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(overlay);
+        
+        // إضافة CSS للـ Confirm Modal إذا لم تكن موجودة
+        if (!document.querySelector('#confirm-modal-styles')) {
+            const style = document.createElement('style');
+            style.id = 'confirm-modal-styles';
+            style.textContent = `
+                .custom-confirm-overlay {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0,0,0,0.7);
+                    backdrop-filter: blur(4px);
+                    z-index: 9999999;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    opacity: 0;
+                    visibility: hidden;
+                    transition: all 0.3s ease;
+                }
+                .custom-confirm-overlay.active {
+                    opacity: 1;
+                    visibility: visible;
+                }
+                .custom-confirm-box {
+                    background: #fff;
+                    border-radius: 28px;
+                    width: 90%;
+                    max-width: 360px;
+                    overflow: hidden;
+                    box-shadow: 0 30px 50px rgba(0,0,0,0.3);
+                    transform: scale(0.9);
+                    transition: transform 0.3s cubic-bezier(0.34, 1.2, 0.64, 1);
+                    direction: rtl;
+                }
+                .custom-confirm-overlay.active .custom-confirm-box {
+                    transform: scale(1);
+                }
+                .confirm-header {
+                    background: linear-gradient(135deg, #111 0%, #1a1a1a 100%);
+                    padding: 20px;
+                    text-align: center;
+                }
+                .confirm-header i {
+                    font-size: 50px;
+                    color: #f39c12;
+                    margin-bottom: 10px;
+                }
+                .confirm-header h3 {
+                    color: #D4AF37;
+                    font-size: 20px;
+                    font-weight: 800;
+                    margin: 0;
+                }
+                .confirm-message {
+                    padding: 25px 20px;
+                    font-size: 16px;
+                    color: #333;
+                    text-align: center;
+                    line-height: 1.6;
+                }
+                .confirm-buttons {
+                    display: flex;
+                    border-top: 1px solid #eee;
+                }
+                .confirm-buttons button {
+                    flex: 1;
+                    padding: 15px;
+                    border: none;
+                    background: #fff;
+                    font-weight: 700;
+                    font-size: 16px;
+                    cursor: pointer;
+                    transition: 0.2s;
+                    font-family: 'Cairo', sans-serif;
+                }
+                .confirm-buttons button:first-child {
+                    border-left: 1px solid #eee;
+                    color: #e74c3c;
+                }
+                .confirm-buttons button:last-child {
+                    color: #D4AF37;
+                }
+                .confirm-buttons button:hover {
+                    background: #f9f9f9;
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
+        // إظهار المودال
+        setTimeout(() => overlay.classList.add('active'), 10);
+        
+        // أزرار التأكيد والإلغاء
+        const confirmBtn = overlay.querySelector('.confirm-yes');
+        const cancelBtn = overlay.querySelector('.confirm-no');
+        
+        const cleanup = () => {
+            overlay.classList.remove('active');
+            setTimeout(() => overlay.remove(), 300);
+        };
+        
+        const onConfirm = () => {
+            cleanup();
+            resolve(true);
+        };
+        
+        const onCancel = () => {
+            cleanup();
+            resolve(false);
+        };
+        
+        confirmBtn.addEventListener('click', onConfirm);
+        cancelBtn.addEventListener('click', onCancel);
+        
+        // إغلاق بالضغط على الخلفية
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                cleanup();
+                resolve(false);
+            }
+        });
+    });
+};
+// دالة لعرض المنتجات مع الفلترة والبحث
+// دالة لعرض المنتجات مع الفلترة والبحث
+function renderFilteredProducts() {
+    const allProducts = window.allProducts || [];
+    let filtered = filterProductsByStock(allProducts);
+    filtered = searchProducts(filtered);
+    
+    let html = "";
+    filtered.forEach(product => {
+        const stockStatus = getStockStatus(product);
+        const stockBySize = product.stockBySize || {};
+        const totalStock = Object.values(stockBySize).reduce((sum, qty) => sum + (parseInt(qty) || 0), 0);
+        let percent = totalStock > 0 ? Math.min(100, (totalStock / 50) * 100) : 0;
+if (stockStatus.isUnlimited) percent = 100;
+        let progressColor = stockStatus.status === "critical" ? "critical" : (stockStatus.status === "low" ? "low" : "normal");
+if (stockStatus.isUnlimited) progressColor = "unlimited";
+        // حساب المقاسات المنفذة والمنخفضة وغير المحدودة
+const sizesList = Object.entries(stockBySize);
+const outOfStockSizes = sizesList.filter(([_, qty]) => {
+    return qty !== null && qty !== undefined && (parseInt(qty) || 0) === 0;
+}).map(([size]) => size);
+const lowStockSizes = sizesList.filter(([_, qty]) => {
+    if (qty === null || qty === undefined) return false;
+    const qtyNum = parseInt(qty) || 0;
+    return qtyNum > 0 && qtyNum < 5;
+}).map(([size]) => size);
+const unlimitedSizes = sizesList.filter(([_, qty]) => {
+    return qty === null || qty === undefined;
+}).map(([size]) => size);
+
+let sizesWarningHtml = '';
+if (unlimitedSizes.length > 0) {
+    sizesWarningHtml += `<div style="margin-top: 5px; font-size: 11px; color: #800080;">♾️ غير محدودة: ${unlimitedSizes.join(', ')}</div>`;
+}
+if (outOfStockSizes.length > 0) {
+    sizesWarningHtml += `<div style="margin-top: 5px; font-size: 11px; color: #e74c3c;">⚠️ نفذت: ${outOfStockSizes.join(', ')}</div>`;
+}
+if (lowStockSizes.length > 0) {
+    sizesWarningHtml += `<div style="margin-top: 3px; font-size: 11px; color: #f39c12;">⚡ قاربت على النفاذ: ${lowStockSizes.join(', ')}</div>`;
+}
+        
+        html += `
+        <div class="product ${stockStatus.critical ? 'stock-alert ' + stockStatus.status : ''}">
+            <img src="${product.image}" alt="${product.name}">
+            <div class="info">
+                <h3>${product.name} 
+                    ${totalStock <= 0 && !stockStatus.isUnlimited ? '<span class="out-of-stock-badge">🚫 نفذت</span>' : ''}
+                </h3>
+                <p>${product.price} جنيه ${product.comparePrice ? `<s style="color:red;font-size:12px;">${product.comparePrice} ج</s>` : ''}</p>
+            <div class="stock-status ${stockStatus.className}">
+    ${stockStatus.label} 
+    ${stockStatus.isUnlimited ? '(∞ قطعة)' : `(${totalStock} قطعة)`}
+</div>
+                <div class="stock-progress">
+                    <div class="stock-progress-fill ${progressColor}" style="width: ${percent}%"></div>
+                </div>
+                ${sizesWarningHtml}
+                <small>التفاصيل: ${Object.entries(stockBySize).map(([size, qty]) => {
+    let displayQty = "";
+    let color = "";
+    if (qty === null || qty === undefined) {
+        displayQty = "∞ غير محدودة";
+color = "#800080";  // لون وردي للكميات غير المحدودة
+    } else {
+        const qtyNum = parseInt(qty) || 0;
+        displayQty = qtyNum;
+        color = qtyNum === 0 ? '#e74c3c' : (qtyNum < 5 ? '#f39c12' : '#27ae60');
+    }
+    return `<span style="color:${color}; font-weight:${(qty === null || qty === 0) ? 'bold' : 'normal'};">${size}: ${displayQty}</span>`;
+}).join(" | ") || "غير محدد"}</small><br>
+                <small>القسم: ${product.categoryLabel || "عام"}</small><br>
+                <small>صور إضافية: ${(product.additionalImages && product.additionalImages.length) ? product.additionalImages.length + " صور" : "لا يوجد"}</small>
+            </div>
+            <div>
+                <button class="edit-btn" onclick="editProduct('${product.id}', ${JSON.stringify(product).replace(/"/g, '&quot;')})">✏️ تعديل</button>
+                <button class="delete-btn" onclick="deleteProduct('${product.id}')">🗑️ حذف</button>
+            </div>
+        </div>`;
+    });
+    
+    document.getElementById("productsList").innerHTML = html || "<p style='text-align:center'>لا توجد منتجات</p>";
+    updateStatsDisplay(allProducts);
+}
+// مستمع البحث
+document.getElementById("searchProductInput").addEventListener("input", function(e) {
+    currentSearchTerm = e.target.value;
+    renderFilteredProducts();
+});
+
 const firebaseConfig = {
     apiKey: "AIzaSyCotT8EP2uy_HsgHknxeGBorKoEUORPtmU",
     authDomain: "vante-orders.firebaseapp.com",
@@ -206,21 +1524,34 @@ let editingProductId = null;
 /* =========================
    توليد حقول الكميات حسب المقاسات
 ========================= */
+/* =========================
+   توليد حقول الكميات حسب المقاسات
+========================= */
 window.generateSizeStockInputs = function() {
     const sizesStr = document.getElementById("sizes").value.trim();
     if (!sizesStr) {
-        alert("أدخل المقاسات أولاً");
+        customAlert("⚠️ أدخل المقاسات أولاً", 'warning');
         return;
     }
     const sizes = sizesStr.split(",").map(s => s.trim()).filter(Boolean);
     const container = document.getElementById("sizeStockInputs");
-    container.innerHTML = sizes.map(size => `
+    
+    let html = '';
+    for (let size of sizes) {
+        let currentValue = getCurrentStockForSize(size);
+        // إذا كانت القيمة null أو undefined، نعرض حقل فارغ
+        let displayValue = (currentValue === null || currentValue === undefined) ? "" : currentValue;
+        
+        html += `
         <div class="size-stock-group">
-            <label>مقاس ${size}:</label>
+            <label style="min-width: 60px;">📏 مقاس ${size}</label>
             <input type="number" class="size-stock-input" data-size="${size}" 
-                   placeholder="الكمية" min="0" value="${getCurrentStockForSize(size)}">
-        </div>
-    `).join("");
+                   placeholder="اتركه فارغاً (غير محدود)" min="0" value="${displayValue}" 
+                   style="flex: 1; text-align: center;">
+            <small style="font-size: 10px; color: #B8860B; min-width: 130px;">💡 اتركه فارغاً = غير محدود</small>
+        </div>`;
+    }
+    container.innerHTML = html;
 };
 
 window.getCurrentStockForSize = function(size) {
@@ -231,6 +1562,81 @@ window.getCurrentStockForSize = function(size) {
     return "";
 };
 
+// =========================================
+// VANTÉ PROFESSIONAL ALERTS SYSTEM
+// =========================================
+
+// Custom Alert - مودال احترافي
+window.customAlert = function(message, type = 'success', title = '') {
+    return new Promise((resolve) => {
+        const overlay = document.getElementById('customAlertOverlay');
+        const headerIcon = document.getElementById('alertHeaderIcon');
+        const titleEl = document.getElementById('alertTitle');
+        const msgEl = document.getElementById('alertMessage');
+        const confirmBtn = document.getElementById('alertConfirmBtn');
+        
+        // تحديد الأيقونة والعنوان حسب النوع
+        let iconClass = 'fa-check-circle';
+        let defaultTitle = '';
+        if (type === 'success') {
+            iconClass = 'fa-check-circle';
+            defaultTitle = '✅ نجاح';
+        } else if (type === 'error') {
+            iconClass = 'fa-exclamation-triangle';
+            defaultTitle = '❌ خطأ';
+        } else if (type === 'warning') {
+            iconClass = 'fa-exclamation-circle';
+            defaultTitle = '⚠️ تنبيه';
+        } else {
+            iconClass = 'fa-info-circle';
+            defaultTitle = 'ℹ️ معلومات';
+        }
+        
+        headerIcon.innerHTML = `<i class="fas ${iconClass}"></i><div class="alert-title">${title || defaultTitle}</div>`;
+        msgEl.innerText = message;
+        
+        overlay.classList.add('active');
+        
+        const onConfirm = () => {
+            overlay.classList.remove('active');
+            confirmBtn.removeEventListener('click', onConfirm);
+            resolve();
+        };
+        confirmBtn.addEventListener('click', onConfirm);
+        
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                overlay.classList.remove('active');
+                confirmBtn.removeEventListener('click', onConfirm);
+                resolve();
+            }
+        });
+    });
+};
+
+// Toast Notification - رسائل سريعة تختفي تلقائياً
+window.showToast = function(message, duration = 3000) {
+    const existingToast = document.querySelector('.vante-toast');
+    if (existingToast) existingToast.remove();
+    
+    const toast = document.createElement('div');
+    toast.className = 'vante-toast';
+    toast.innerHTML = `<i class="fas fa-bell"></i> ${message}`;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.3s';
+        setTimeout(() => toast.remove(), 300);
+    }, duration);
+};
+
+// استبدال alert الأصلي بـ customAlert (اختياري)
+window.originalAlert = window.alert;
+window.alert = function(message, type = 'success') {
+    customAlert(message, type);
+};
+
 /* =========================
    جمع الكميات من الحقول
 ========================= */
@@ -239,8 +1645,14 @@ function collectSizeStock() {
     const stockBySize = {};
     inputs.forEach(input => {
         const size = input.dataset.size;
-        const value = parseInt(input.value) || 0;
-        stockBySize[size] = value;
+        const value = input.value.trim();
+        // إذا كان الحقل فارغاً، نعتبر الكمية غير محدودة (نستخدم -1 كرمز لغير محدود)
+        if (value === "") {
+            stockBySize[size] = null;  // null تعني غير محدودة
+        } else {
+            const qty = parseInt(value) || 0;
+            stockBySize[size] = qty;
+        }
     });
     return stockBySize;
 }
@@ -267,7 +1679,7 @@ window.addProduct = async function () {
     const stockBySize = collectSizeStock();
 
     if (!name || !price || !image || !category || !description || sizes.length === 0) {
-        alert("يرجى إدخال جميع البيانات الأساسية مع مقاس واحد على الأقل");
+        customAlert("يرجى إدخال جميع البيانات الأساسية مع مقاس واحد على الأقل");
         return;
     }
 
@@ -288,7 +1700,7 @@ window.addProduct = async function () {
     if (editingProductId) {
         // تحديث منتج موجود
         await updateDoc(doc(db, "products", editingProductId), productData);
-        alert("تم تحديث المنتج بنجاح");
+        customAlert("تم تحديث المنتج بنجاح");
         editingProductId = null;
         document.getElementById("addBtn").textContent = "إضافة منتج";
         document.getElementById("cancelBtn").style.display = "none";
@@ -296,7 +1708,7 @@ window.addProduct = async function () {
         // إضافة منتج جديد
         productData.createdAt = serverTimestamp();
         await addDoc(collection(db, "products"), productData);
-        alert("تم إضافة المنتج بنجاح");
+        customAlert("تم إضافة المنتج بنجاح");
     }
 
     clearForm();
@@ -316,8 +1728,13 @@ function clearForm() {
     document.getElementById("additionalImages").value = "";
     document.getElementById("sizes").value = "";
     document.getElementById("category").value = "";
-    document.getElementById("description").value = "";
     document.getElementById("comparePrice").value = "";
+    
+    // مسح المحرر والحقل المخفي
+    const editor = document.getElementById("descriptionEditor");
+    if (editor) editor.innerHTML = "";
+    document.getElementById("description").value = "";
+    
     document.getElementById("sizeStockInputs").innerHTML = '<p style="color:#888; font-size:13px; text-align:center;">أدخل المقاسات أولاً ثم اضغط "تحديث حقول الكميات"</p>';
 }
 
@@ -332,59 +1749,47 @@ window.editProduct = function(id, data) {
     document.getElementById("additionalImages").value = (data.additionalImages || []).join(", ");
     document.getElementById("sizes").value = (data.sizes || []).join(",");
     document.getElementById("category").value = data.category || "";
-    document.getElementById("description").value = data.description || "";
     document.getElementById("comparePrice").value = data.comparePrice || "";
     
-    // تخزين بيانات الكميات الحالية للاستخدام في generateSizeStockInputs
+    // تعبئة المحرر بالوصف (HTML)
+    const editor = document.getElementById("descriptionEditor");
+    if (editor) editor.innerHTML = data.description || "";
+    document.getElementById("description").value = data.description || "";
+    
     window._editingStockBySize = data.stockBySize || {};
     generateSizeStockInputs();
     
     document.getElementById("addBtn").textContent = "حفظ التعديل";
     document.getElementById("cancelBtn").style.display = "block";
-    
-    // التمرير للأعلى
     window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
 /* =========================
    LOAD PRODUCTS REALTIME
 ========================= */
+window.allProducts = [];
+
+// تحميل المنتجات مع الفلترة
 const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
 
 onSnapshot(q, (snapshot) => {
-    let html = "";
-    snapshot.forEach((docSnap) => {
-        const p = docSnap.data();
-        const stockBySize = p.stockBySize || {};
-        const stockSummary = Object.entries(stockBySize).map(([size, qty]) => `${size}: ${qty}`).join(" | ") || "غير محدد";
-        
-        html += `
-        <div class="product">
-            <img src="${p.image}" alt="${p.name}">
-            <div class="info">
-                <h3>${p.name}</h3>
-                <p>${p.price} جنيه ${p.comparePrice ? `<s style="color:red;font-size:12px;">${p.comparePrice} ج</s>` : ''}</p>
-                <small>الكميات: ${stockSummary}</small>
-                <small>القسم: ${p.categoryLabel || "عام"}</small>
-                <small>صور إضافية: ${(p.additionalImages && p.additionalImages.length) ? p.additionalImages.length + " صور" : "لا يوجد"}</small>
-                <small>المقاسات: ${(p.sizes && p.sizes.length) ? p.sizes.join(" - ") : "لا يوجد"}</small>
-            </div>
-            <div>
-                <button class="edit-btn" onclick="editProduct('${docSnap.id}', ${JSON.stringify(p).replace(/"/g, '&quot;')})">✏️ تعديل</button>
-                <button class="delete-btn" onclick="deleteProduct('${docSnap.id}')">🗑️ حذف</button>
-            </div>
-        </div>`;
-    });
-    document.getElementById("productsList").innerHTML = html || "<p style='text-align:center'>لا توجد منتجات حالياً</p>";
+    window.allProducts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    renderFilteredProducts();
 });
-
 /* =========================
    DELETE PRODUCT
 ========================= */
 window.deleteProduct = async function (id) {
-    if (!confirm("متأكد من الحذف؟")) return;
-    await deleteDoc(doc(db, "products", id));
-    alert("تم الحذف");
+    // استخدام customConfirm بدلاً من confirm التقليدي
+    const confirmed = await window.customConfirm("⚠️ هل أنت متأكد من حذف هذا المنتج نهائياً؟");
+    if (!confirmed) return;
+    
+    try {
+        await deleteDoc(doc(db, "products", id));
+        customAlert("🗑️ تم حذف المنتج بنجاح", 'success');
+    } catch (error) {
+        customAlert("❌ حدث خطأ أثناء الحذف", 'error');
+    }
 };
 </script>
 
