@@ -1729,47 +1729,168 @@ body.modal-open{
 }
 
 .active-search-bar button:hover { color: #c0392b; transform: scale(1.1); }
- .products {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr); /* 4 أعمدة على الشاشات الكبيرة */
-    gap: 20px;
-}
-.product {
-    padding: 15px;
-    border-radius: 20px;
-}
-.product-image { border-radius: 14px; margin-bottom: 12px; }
-.product h3 { font-size: 16px; margin-bottom: 4px; }
-.price { font-size: 16px; }
+/* =========================================
+   شبكة المنتجات - متجاوبة بالكامل
+========================================= */
 
-/* تقليل إلى عمودين على التابلت */
-@media (max-width: 992px) {
+/* الشاشات الكبيرة (كمبيوتر) */
+@media (min-width: 992px) {
     .products {
-        grid-template-columns: repeat(2, 1fr);
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 24px;
+    }
+    
+    .product {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        padding: 18px;
+        border-radius: 24px;
+        background: #fff;
+        transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1.2);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.03);
+    }
+    
+    .product:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 25px 45px rgba(0, 0, 0, 0.08);
+    }
+    
+    /* توحيد أبعاد الصورة */
+    .product .product-image {
+        width: 100%;
+        height: 240px;
+        overflow: hidden;
+        border-radius: 20px;
+        background: #f5f5f5;
+        margin-bottom: 16px;
+        flex-shrink: 0;
+    }
+    
+    .product .product-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+    
+    .product:hover .product-image img {
+        transform: scale(1.06);
+    }
+    
+    /* توحيد ارتفاع النص */
+    .product h3 {
+        font-size: 16px;
+        font-weight: 700;
+        margin: 12px 0 6px;
+        min-height: 48px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-align: center;
+    }
+    
+    .product .price-tag {
+        margin: 8px 0;
+        justify-content: center;
+    }
+    
+    .product .price {
+        font-size: 18px;
+        font-weight: 900;
+    }
+    
+    /* زر الإضافة يبقى في أسفل البطاقة */
+    .product .btn-primary {
+        margin-top: auto;
+    }
+    
+    .product .size-select {
+        margin: 12px 0;
     }
 }
+
+/* الشاشات المتوسطة (تابلت) */
+@media (min-width: 769px) and (max-width: 991px) {
+    .products {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+    }
+    
+    .product .product-image {
+        height: 210px;
+    }
+}
+
+/* الشاشات الصغيرة (هواتف) */
 @media (max-width: 768px) {
     .products {
+        display: grid;
         grid-template-columns: repeat(2, 1fr);
         gap: 12px;
     }
+    
     .product {
         padding: 12px;
-        border-radius: 16px;
+        border-radius: 18px;
     }
-    .product-image {
-        border-radius: 12px;
+    
+    .product .product-image {
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        border-radius: 14px;
+        overflow: hidden;
         margin-bottom: 10px;
-        height: 140px;
     }
-    .product-image img {
+    
+    .product .product-image img {
+        width: 100%;
         height: 100%;
         object-fit: cover;
     }
+    
     .product h3 {
         font-size: 14px;
-        margin-bottom: 2px;
+        margin: 8px 0 4px;
+        min-height: auto;
     }
+    
+    .product .price {
+        font-size: 14px;
+    }
+    
+    .size-select {
+        padding: 8px 10px;
+        font-size: 12px;
+        margin-top: 8px;
+    }
+    
+    .btn-primary {
+        padding: 10px;
+        font-size: 13px;
+        border-radius: 10px;
+    }
+}
+
+/* تحسين شارات الخصم والتقييم */
+.discount-badge {
+    top: 10px;
+    left: 10px;
+    font-size: 11px;
+    padding: 4px 10px;
+    z-index: 20;
+}
+
+.review-badge {
+    top: 10px;
+    right: 10px;
+    font-size: 11px;
+    padding: 4px 8px;
+    z-index: 20;
+}
     .price {
         font-size: 14px;
     }
@@ -3118,6 +3239,94 @@ body.modal-open{
     }
 }
 
+/* =========================================
+   الكمبيوتر فقط - عرض ثابت للأكثر مبيعاً
+========================================= */
+@media (min-width: 769px) {
+    .best-sellers {
+        max-width: 1200px;
+        margin: 30px auto 40px;
+        padding: 0 20px;
+    }
+    
+    .best-sellers h2 {
+        font-size: 32px;
+        margin-bottom: 30px;
+    }
+    
+    /* إخفاء عناصر التمرير التلقائي على الكمبيوتر */
+    .best-sellers-viewport,
+    .best-sellers-track,
+    .pair,
+    .gallery-wrapper,
+    .gallery-dots,
+    .gallery-btn {
+        display: none !important;
+    }
+    
+    /* شبكة ثابتة 4 أعمدة */
+    .best-sellers-gallery {
+        display: grid !important;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 24px;
+        padding: 0;
+        overflow-x: visible !important;
+    }
+    
+    /* تنسيق البطاقات */
+    .best-seller-card {
+        width: 100%;
+        padding: 18px 12px;
+        border-radius: 20px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .best-seller-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.12);
+    }
+    
+    .best-seller-card img {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        border-radius: 16px;
+    }
+    
+    .best-seller-card .name {
+        font-size: 16px;
+        font-weight: 700;
+        margin: 12px 0 6px;
+    }
+    
+    .best-seller-card .price-wrapper .current-price {
+        font-size: 18px;
+    }
+    
+    .best-seller-card .price-wrapper .old-price {
+        font-size: 14px;
+    }
+    
+    /* شارة أفضل مبيعاً */
+    .best-seller-badge {
+        top: 12px;
+        right: 12px;
+        padding: 4px 10px;
+        font-size: 11px;
+    }
+}
+
+/* الشاشات المتوسطة (تابلت) - على الكمبيوتر تبقى 3 أعمدة */
+@media (min-width: 769px) and (max-width: 992px) {
+    .best-sellers-gallery {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+    }
+    .best-seller-card img {
+        height: 170px;
+    }
+}
+
     </style>
 </head>
 
@@ -3203,13 +3412,15 @@ body.modal-open{
     </section>
     
 <section class="best-sellers">
-    <h2 class="flame-title">الأكثر مبيعاً</h2>
+    <h2 class="flame-title">✨ الأكثر مبيعاً ✨</h2>
+    <!-- عنصر الشبكة الثابتة للكمبيوتر -->
+    <div class="best-sellers-gallery"></div>
+    <!-- عناصر التمرير للهاتف -->
     <div class="gallery-wrapper">
         <div class="best-sellers-viewport" id="viewport">
             <div class="best-sellers-track" id="track"></div>
         </div>
     </div>
-    
     <div class="gallery-dots" id="galleryDots"></div>
 </section>
 
@@ -3899,26 +4110,46 @@ function renderProducts() {
     const filtered = allProducts.filter(p => selectedCategory === "all" ? true : normalize(p.category || "all") === selectedCategory);
 
     if (filtered.length === 0) {
-    productsContainer.innerHTML = `<div style="grid-column:1/-1; display:flex; align-items:center; justify-content:center; min-height:20vh; text-align:center; font-size:18px; color:#888;">لا توجد منتجات في هذا القسم</div>`;
-    return;
-}
+        productsContainer.innerHTML = `<div style="grid-column:1/-1; display:flex; align-items:center; justify-content:center; min-height:20vh; text-align:center; font-size:18px; color:#888;">لا توجد منتجات في هذا القسم</div>`;
+        return;
+    }
 
     productsContainer.innerHTML = filtered.map(p => {
         const sizes = Array.isArray(p.sizes) && p.sizes.length ? p.sizes : ["7", "8", "9"];
         const hasDiscount = p.comparePrice && p.comparePrice > p.price;
         const discountBadgeHtml = hasDiscount ? `<span class="discount-badge">${Math.round((1 - p.price / p.comparePrice) * 100)}%OFF</span>` : '';
         
-        // حساب الكمية الإجمالية من stockBySize
         const stockBySize = p.stockBySize || {};
-        const totalStock = Object.values(stockBySize).reduce((sum, qty) => sum + (parseInt(qty) || 0), 0);
-        const hasStockInfo = sizes.some(s => stockBySize.hasOwnProperty(s)); // هل توجد بيانات كمية محددة؟
         
-        const outOfStock = hasStockInfo && totalStock <= 0;
+        // ✅ التحقق من وجود أي مقاس غير محدود (null)
+        const hasUnlimited = Object.values(stockBySize).some(qty => qty === null || qty === undefined);
+        
+        // حساب الكمية الإجمالية (تجاهل المقاسات غير المحدودة)
+        const totalStock = Object.values(stockBySize).reduce((sum, qty) => {
+            if (qty !== null && qty !== undefined) return sum + (parseInt(qty) || 0);
+            return sum;
+        }, 0);
+        
+        const hasStockInfo = sizes.some(s => stockBySize.hasOwnProperty(s));
+        
+        // ✅ المنتج غير محدود إذا كان هناك أي مقاس غير محدود
+        const isUnlimited = hasUnlimited;
+        
+        // ✅ المنتج نفذ فقط إذا: (لا يوجد غير محدود) و (إجمالي الكمية <= 0)
+        const outOfStock = !isUnlimited && hasStockInfo && totalStock <= 0;
+        
         const addBtnDisabled = outOfStock ? 'disabled style="opacity:0.6;cursor:not-allowed"' : '';
 
-        // ======== شريط الكمية المتاحة بنظام الألوان ========
+        // ======== عرض شريط الكمية ========
         let stockHtml = '';
-        if (!hasStockInfo || Object.keys(stockBySize).length === 0) {
+        
+        if (isUnlimited) {
+            // غير محدود - عرض مميز باللون الذهبي/الوردي
+            stockHtml = `
+            <div style="margin: 10px 0; padding: 8px 12px; background: rgba(128, 0, 128, 0.1); border-radius: 20px; font-size: 12px; color: #800080; font-weight: 700; text-align: center; border: 1px solid rgba(128, 0, 128, 0.3);">
+                <i class="fas fa-infinity"></i> متوفر دائماً
+            </div>`;
+        } else if (!hasStockInfo || Object.keys(stockBySize).length === 0) {
             // غير محدد - ذهبي
             stockHtml = `
             <div style="margin: 10px 0; padding: 8px 12px; background: rgba(212,175,55,0.1); border-radius: 20px; font-size: 12px; color: #B8860B; font-weight: 600; text-align: center;">
@@ -3931,8 +4162,8 @@ function renderProducts() {
                 <i class="fas fa-check-circle"></i> متوفر: ${totalStock} قطعة
             </div>`;
         } else if (totalStock > 0) {
-            // شريط متدرج حسب النسبة المئوية (1-15)
-            const percent = Math.round((totalStock / 20) * 100);
+            // شريط متدرج حسب النسبة
+            const percent = Math.min(100, Math.round((totalStock / 20) * 100));
             const barColor = percent > 50 ? '#f39c12' : '#e74c3c';
             stockHtml = `
             <div style="margin: 10px 0;">
@@ -3951,7 +4182,7 @@ function renderProducts() {
                 <i class="fas fa-times-circle"></i> 🚫 نفذت الكمية
             </div>`;
         }
-        // ============================================
+        // ====================================
 
         return `
         <div class="product ${outOfStock ? 'out-of-stock' : ''}" style="position: relative;" onclick='openProduct("${p.id}", ${JSON.stringify(p.name)}, ${Number(p.price)}, ${JSON.stringify(p.image)}, ${JSON.stringify(sizes)}, ${JSON.stringify(p.description || "")})'>
@@ -3973,13 +4204,15 @@ function renderProducts() {
                 <select class="size-select" data-product-id="${p.id}">
                     <option value="" disabled selected>اختر المقاس</option>
                     ${sizes.map(s => {
-    const qty = p.stockBySize && p.stockBySize[s] !== undefined ? p.stockBySize[s] : null;
-    let label = `مقاس: ${s}`;
-    if (qty !== null) {
-        label += qty > 0 ? ` (باقى ${qty} قطعه)` : ' (نفذ)';
-    }
-    return `<option value="${s}">${label}</option>`;
-}).join('')}
+                        const qty = p.stockBySize && p.stockBySize[s] !== undefined ? p.stockBySize[s] : null;
+                        let label = `مقاس: ${s}`;
+                        if (qty === null) {
+                            label += ` (غير محدود)`;
+                        } else if (qty !== null) {
+                            label += qty > 0 ? ` (باقى ${qty} قطعه)` : ' (نفذ)';
+                        }
+                        return `<option value="${s}">${label}</option>`;
+                    }).join('')}
                 </select>
             </div>
             
@@ -4056,19 +4289,56 @@ let autoplayTimer = null;
 let resumeTimer;
 let pairWidth = 0;
 
-// ========== بناء المعرض ==========
+// ========== بناء المعرض - نسخة ثابتة على الكمبيوتر، متحركة على الهاتف ==========
 function renderBestSellers() {
-    const track = document.getElementById("track");
-    if (!track || !allProducts.length) return;
+    const isMobile = window.innerWidth < 769;
+    const gallery = document.querySelector(".best-sellers-gallery");
+    if (!gallery || !allProducts.length) return;
 
+    // اختيار 8 منتجات عشوائية
     const shuffled = [...allProducts].sort(() => 0.5 - Math.random());
     const selected = shuffled.slice(0, 10);
 
-    let html = '';
-    for (let i = 0; i < selected.length; i += 2) {
-        const pairProducts = selected.slice(i, i + 2);
-        html += '<div class="pair">';
-        html += pairProducts.map(p => {
+    if (isMobile) {
+        // الهاتف: العرض القديم (مع أزواج وحركة)
+        let html = '';
+        for (let i = 0; i < selected.length; i += 2) {
+            const pairProducts = selected.slice(i, i + 2);
+            html += '<div class="pair">';
+            html += pairProducts.map(p => {
+                const hasDiscount = p.comparePrice && p.comparePrice > p.price;
+                const discountPercent = hasDiscount ? Math.round((1 - p.price / p.comparePrice) * 100) : 0;
+                const badgeHtml = hasDiscount 
+                    ? `<span class="best-seller-badge">%${discountPercent} خصم</span>` 
+                    : `<span class="best-seller-badge">الأكثر مبيعاً</span>`;
+                const priceHtml = hasDiscount 
+                    ? `<div class="price-wrapper"><span class="old-price">${p.comparePrice} EGP</span><span class="current-price">${p.price} EGP</span></div>`
+                    : `<div class="price-wrapper"><span class="current-price">${p.price} EGP</span></div>`;
+                return `
+                <div class="best-seller-card" onclick='openProduct("${p.id}", ${JSON.stringify(p.name)}, ${Number(p.price)}, ${JSON.stringify(p.image)}, ${JSON.stringify(p.sizes || ["7","8","9"])}, ${JSON.stringify(p.description || "")})'>
+                    ${badgeHtml}
+                    <img src="${p.image}" alt="${p.name}">
+                    <div class="name">${p.name}</div>
+                    ${priceHtml}
+                </div>`;
+            }).join('');
+            html += '</div>';
+        }
+        const track = document.getElementById("track");
+        if (track) track.innerHTML = html;
+        
+        // إعادة تهيئة معرض الهاتف (حركة تلقائية)
+        const firstPair = track.querySelector('.pair');
+        if (firstPair) pairWidth = firstPair.offsetWidth + 16;
+        goToPair(0);
+        startAutoplay();
+        bindGalleryEvents();
+        createDots();
+        
+    } else {
+        // الكمبيوتر: شبكة ثابتة بدون حركة
+        let html = '';
+        selected.forEach(p => {
             const hasDiscount = p.comparePrice && p.comparePrice > p.price;
             const discountPercent = hasDiscount ? Math.round((1 - p.price / p.comparePrice) * 100) : 0;
             const badgeHtml = hasDiscount 
@@ -4077,30 +4347,25 @@ function renderBestSellers() {
             const priceHtml = hasDiscount 
                 ? `<div class="price-wrapper"><span class="old-price">${p.comparePrice} EGP</span><span class="current-price">${p.price} EGP</span></div>`
                 : `<div class="price-wrapper"><span class="current-price">${p.price} EGP</span></div>`;
-            return `
+            html += `
             <div class="best-seller-card" onclick='openProduct("${p.id}", ${JSON.stringify(p.name)}, ${Number(p.price)}, ${JSON.stringify(p.image)}, ${JSON.stringify(p.sizes || ["7","8","9"])}, ${JSON.stringify(p.description || "")})'>
                 ${badgeHtml}
                 <img src="${p.image}" alt="${p.name}">
                 <div class="name">${p.name}</div>
                 ${priceHtml}
             </div>`;
-        }).join('');
-        html += '</div>';
+        });
+        gallery.innerHTML = html;
+        
+        // إيقاف الحركة التلقائية على الكمبيوتر
+        stopAutoplay();
     }
-    track.innerHTML = html;
-
-    // حساب عرض الزوج الأول (يشمل gap)
-    const firstPair = track.querySelector('.pair');
-    if (firstPair) {
-        pairWidth = firstPair.offsetWidth + 16; // gap = 16px
-    }
-
-    // بدء من الزوج الأول (أقصى اليمين)
-    goToPair(0);
-    startAutoplay();
-    bindGalleryEvents();
-    createDots();
 }
+
+// إضافة مستمع لتغيير حجم الشاشة لإعادة التحميل عند التبديل بين الكمبيوتر والهاتف
+window.addEventListener('resize', function() {
+    renderBestSellers();
+});
 
 // ========== التنقل بين الأزواج ==========
 // ========== التنقل بين الأزواج ==========
@@ -4469,33 +4734,39 @@ openCart();
     let cart = JSON.parse(localStorage.getItem('vante_cart') || '[]');
 if (typeof updateCart === 'function') updateCart();
     window.addToCart = function(name, price, size, image, comparePrice = null) {
-        // نجيب بيانات المنتج من الذاكرة عشان نعرف المخزون الحقيقي
-        const product = allProducts.find(p => p.name === name);
-        const availableStock = (() => {
-    if (!product || !product.stockBySize) return -1;
-    return product.stockBySize[size] !== undefined ? product.stockBySize[size] : -1;
-})(); // -1 يعني "غير محدد"
-
-        // لو الكمية محددة (يعني مش سالب أو null)
-        if (availableStock >= 0) {
-            const currentQtyInCart = cart.reduce((sum, item) => {
-                return item.name === name ? sum + item.qty : sum;
-            }, 0);
-
-            // اللعبة هنا: لو الكمية اللي في السلة + الكمية اللي عايز يضيفها (1) أكبر من المخزون المتاح
-            if (currentQtyInCart + 1 > availableStock) {
-                alert(`عفواً، الكمية المتاحة المتبقية هي ${availableStock - currentQtyInCart} قطعة فقط.`);
-                return; // امنع الإضافة
-            }
+    const product = allProducts.find(p => p.name === name);
+    const stockValue = (() => {
+        if (!product || !product.stockBySize) return -1; // -1 = غير محدد/غير محدود
+        return product.stockBySize[size] !== undefined ? product.stockBySize[size] : -1;
+    })();
+    
+    // stockValue === -1 يعني كمية غير محدودة (مسموح بأي عدد)
+    // stockValue === 0 يعني نفذت
+    // stockValue > 0 يعني محدودة
+    
+    if (stockValue === 0) {
+        alert(`عفواً، مقاس ${size} غير متوفر حالياً.`);
+        return;
+    }
+    
+    if (stockValue > 0) {
+        const currentQtyInCart = cart.reduce((sum, item) => {
+            return item.name === name && item.size === size ? sum + item.qty : sum;
+        }, 0);
+        
+        if (currentQtyInCart + 1 > stockValue) {
+            alert(`عفواً، الكمية المتاحة المتبقية لمقاس ${size} هي ${stockValue - currentQtyInCart} قطعة فقط.`);
+            return;
         }
-
-        // باقي الدالة زي ما هي
-        const existing = cart.find(item => item.name === name && item.size === size);
-        const productComparePrice = comparePrice !== null ? comparePrice : (allProducts.find(p => p.name === name)?.comparePrice || null);
-        if (existing) existing.qty += 1;
-        else cart.push({ name, price, size, image, comparePrice: productComparePrice, qty: 1 });
-        updateCart();
-    };
+    }
+    // stockValue === -1 (غير محدود) لا نمنع الإضافة
+    
+    const existing = cart.find(item => item.name === name && item.size === size);
+    const productComparePrice = comparePrice !== null ? comparePrice : (allProducts.find(p => p.name === name)?.comparePrice || null);
+    if (existing) existing.qty += 1;
+    else cart.push({ name, price, size, image, comparePrice: productComparePrice, qty: 1 });
+    updateCart();
+};
 
     window.addToCartFromCard = function(productId, name, price, image) {
     const select = document.querySelector(`.size-select[data-product-id="${productId}"]`);
@@ -5337,18 +5608,17 @@ window.updateModalStockDisplay = function() {
     const stockInfoEl = document.getElementById("modalStockInfo");
     
     if (stockInfoEl) {
-        if (stock !== null) {
-            if (stock > 0) {
-                stockInfoEl.innerHTML = `<span style="color:#27ae60; font-weight:600;"><i class="fas fa-check-circle"></i> متوفر: ${stock} قطعة من المقاس المحدد</span>`;
-            } else {
-                stockInfoEl.innerHTML = `<span style="color:#c0392b; font-weight:700;"><i class="fas fa-times-circle"></i> 🚫 نفذت كمية المقاس</span>`;
-            }
+        if (stock === null) {
+            // غير محدود
+            stockInfoEl.innerHTML = `<span style="color:#800080; font-weight:600;"><i class="fas fa-infinity"></i>متوفر دائماً</span>`;
+        } else if (stock > 0) {
+            stockInfoEl.innerHTML = `<span style="color:#27ae60; font-weight:600;"><i class="fas fa-check-circle"></i> متوفر: ${stock} قطعة من المقاس المحدد</span>`;
         } else {
-            stockInfoEl.innerHTML = `<span style="color:#B8860B; font-weight:600;"><i class="fas fa-boxes"></i> كمية غير محددة</span>`;
+            stockInfoEl.innerHTML = `<span style="color:#c0392b; font-weight:700;"><i class="fas fa-times-circle"></i> 🚫 نفذت كمية المقاس</span>`;
         }
     }
     
-    if (stock !== null && stock <= 0) {
+    if (stock === 0) {
         addBtn.disabled = true;
         addBtn.innerHTML = '🚫 نفذت الكمية';
         addBtn.style.background = '#ccc';
