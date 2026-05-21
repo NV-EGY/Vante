@@ -585,6 +585,10 @@
       <div class="icon-btn msg-icon" onclick="toggleInbox()">📩 <span id="msgBadge">0</span></div>
       <div class="icon-btn" onclick="printSelected()">🖨️</div>
       <div class="icon-btn" onclick="openDatePicker()">📅</div>
+      <!-- داخل <div class="header-icons"> -->
+<div class="icon-btn" onclick="goToProducts()" style="background: #D4AF37; color: #000;">
+  📦
+</div>
     </div>
   </div>
   <input type="text" id="search" class="search-box" placeholder="🔍 بحث بالاسم، الهاتف، رقم الطلب">
@@ -1264,6 +1268,9 @@ window.showToast = function(message, duration = 3000) {
         toast.style.transition = 'opacity 0.3s';
         setTimeout(() => toast.remove(), 300);
     }, duration);
+};
+window.goToProducts = () => {
+  window.location.href = "admin-product.html";
 };
 </script>
 </body>
