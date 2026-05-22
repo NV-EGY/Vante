@@ -3327,6 +3327,40 @@ body.modal-open{
     }
 }
 
+/* Load More Button */
+.load-more-container {
+    text-align: center;
+    margin: 40px 0 20px;
+}
+.load-more-btn {
+    background: transparent;
+    border: 2px solid #D4AF37;
+    color: #D4AF37;
+    padding: 12px 32px;
+    border-radius: 40px;
+    font-weight: 800;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+.load-more-btn:hover {
+    background: #D4AF37;
+    color: #000;
+    transform: translateY(-2px);
+}
+.products-counter {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 14px;
+    color: #888;
+}
+.load-more-container {
+    display: none !important;
+}
+
     </style>
 </head>
 
@@ -3359,7 +3393,7 @@ body.modal-open{
         <button class="close-menu" onclick="closeMobileMenu()"><i class="fas fa-times"></i></button>
     </div>
 
-    <a href="?category=all" data-category="all" onclick="handleMenuClick(event, 'all', this); closeMobileMenu()">الصفحة الرئيسية</a>
+    <a href="?category=all" data-category="all" onclick="event.preventDefault(); window.setCategory('all'); closeMobileMenu()">الصفحة الرئيسية</a>
 
     <div class="menu-item">
         <a href="#" class="collection-toggle" onclick="toggleCollections(event)">الأقسام <i class="fas fa-chevron-down"></i></a>
@@ -3376,25 +3410,46 @@ body.modal-open{
 
     <a href="#" onclick="openContactModal(event)">تواصل مع المسئول</a>
         <a href="#" onclick="openInfoModal(); closeMobileMenu()">دليل المتسوق</a>
+        <div style="background: #faf7f0; border-radius: 16px; padding: 12px; margin: 15px 0 5px; border-right: 3px solid #D4AF37;">
+    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+        <div style="background: linear-gradient(135deg, #D4AF37, #B8860B); width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+            <i class="fas fa-crown" style="color: #000; font-size: 16px;"></i>
+        </div>
+        <div>
+            <div style="font-weight: 800; color: #B8860B; font-size: 14px;">سلاسل بالأسماء</div>
+            <div style="font-size: 11px; color: #888;">صناعة يدوية حسب الطلب</div>
+        </div>
+    </div>
+    <a href="https://taswekshope-gif.github.io/DAHAP/" target="_blank" rel="noopener noreferrer" onclick="closeMobileMenu()" style="background: linear-gradient(135deg, #D4AF37, #B8860B); color: #000; border-radius: 40px; text-align: center; padding: 8px 12px; display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 700; font-size: 13px; text-decoration: none; width: 100%;">
+        <i class="fas fa-eye"></i> تصفح التصاميم
+        <i class="fas fa-arrow-left"></i>
+    </a>
+</div>
 </nav>
 
         <nav class="menu">
-    <a href="?category=all" data-category="all" onclick="handleMenuClick(event, 'all', this)">الصفحة الرئيسية</a>
+    <a href="?category=all" data-category="all" onclick="event.preventDefault(); window.setCategory('all')">الصفحة الرئيسية</a>
     <div class="menu-item desktop-dropdown">
         <a href="#" onclick="toggleCollections(event)">الأقسام <i class="fas fa-chevron-down"></i></a>
         <div id="collectionsSubDesktop" class="collections-sub desktop-sub">
-            <a href="?category=all" data-category="all" onclick="handleMenuClick(event, 'all', this)">كل المنتجات</a>
-            <a href="?category=necklaces" data-category="necklaces" onclick="handleMenuClick(event, 'necklaces', this)">سلاسل & كوليهات</a>
-            <a href="?category=bracelets" data-category="bracelets" onclick="handleMenuClick(event, 'bracelets', this)">أساور & غوايش</a>
-            <a href="?category=rings" data-category="rings" onclick="handleMenuClick(event, 'rings', this)">دبل & خواتم</a>
-            <a href="?category=earrings" data-category="earrings" onclick="handleMenuClick(event, 'earrings', this)">حلقان</a>
-            <a href="?category=sets" data-category="sets" onclick="handleMenuClick(event, 'sets', this)">اطقم</a>
-            <a href="?category=anklets" data-category="anklets" onclick="handleMenuClick(event, 'anklets', this)">خلخال</a>
-        </div>
+    <a href="?category=all" data-category="all" onclick="event.preventDefault(); window.setCategory('all')">كل المنتجات</a>
+    <a href="?category=necklaces" data-category="necklaces" onclick="event.preventDefault(); window.setCategory('necklaces')">سلاسل & كوليهات</a>
+    <a href="?category=bracelets" data-category="bracelets" onclick="event.preventDefault(); window.setCategory('bracelets')">أساور & غوايش</a>
+    <a href="?category=rings" data-category="rings" onclick="event.preventDefault(); window.setCategory('rings')">دبل & خواتم</a>
+    <a href="?category=earrings" data-category="earrings" onclick="event.preventDefault(); window.setCategory('earrings')">حلقان</a>
+    <a href="?category=sets" data-category="sets" onclick="event.preventDefault(); window.setCategory('sets')">اطقم</a>
+    <a href="?category=anklets" data-category="anklets" onclick="event.preventDefault(); window.setCategory('anklets')">خلخال</a>
+</div>
     </div>
     
     <a href="#" onclick="openContactModal(event)">تواصل مع المسئول</a>
     <a href="#" onclick="openInfoModal()">دليل المتسوق</a>
+    <a href="https://taswekshope-gif.github.io/DAHAP/" target="_blank" rel="noopener noreferrer" class="marketing-link" style="position: relative;">
+    <i class="fas fa-crown"></i> سلاسل بالأسماء
+    <span style="position: absolute; top: -8px; left: -5px; background: #e74c3c; color: #fff; font-size: 9px; padding: 2px 6px; border-radius: 20px; white-space: nowrap;">
+        حسب الطلب
+    </span>
+</a>
 </nav>
 
         <div class="icons">
@@ -3444,6 +3499,30 @@ body.modal-open{
         </div>
     </div>
     <div class="products"></div>
+    <!-- عداد المنتجات وزر التحميل -->
+<div class="products-counter" id="productsCounter"></div>
+<div class="load-more-container" id="loadMoreContainer" style="display: none;">
+    <button class="load-more-btn" onclick="loadMoreProducts()">
+        <i class="fas fa-arrow-down"></i> تحميل المزيد
+    </button>
+</div>
+<!-- عداد المنتجات وزر التحميل -->
+<div class="products-counter" id="productsCounter"></div>
+<div class="load-more-container" id="loadMoreContainer" style="display: none;">
+    <button class="load-more-btn" onclick="loadMoreProducts()">
+        <i class="fas fa-arrow-down"></i> تحميل المزيد
+    </button>
+</div>
+<div style="background: #faf7f0; border-radius: 12px; padding: 8px 12px; margin: 30px 0 10px; border-right: 3px solid #D4AF37;">
+    <div style="margin-bottom: 6px;">
+        <div style="font-weight: 800; color: #B8860B; font-size: 13px;">✨ سلاسل بالأسماء حسب الطلب</div>
+        <div style="font-size: 10px; color: #888;">صناعة يدوية فاخرة | مدة التصنيع: 2-4 أيام</div>
+    </div>
+    <a href="https://taswekshope-gif.github.io/DAHAP/" target="_blank" rel="noopener noreferrer" onclick="closeMobileMenu()" style="background: linear-gradient(135deg, #D4AF37, #B8860B); color: #000; border-radius: 40px; text-align: center; padding: 6px 12px; display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 700; font-size: 12px; text-decoration: none; width: 100%;">
+        <i class="fas fa-eye"></i> تصفح التصاميم
+        <i class="fas fa-arrow-left"></i>
+    </a>
+</div>
 </section>
 
     <div id="cartDrawer" class="drawer">
@@ -3783,6 +3862,37 @@ window.openAccount = function() {
 </script>
 
 <script type="module">
+// ========== البحث الذكي عن الأقسام (الكلمات المفتاحية) ==========
+const categoryKeywords = {
+    // سلاسل وكوليهات
+    necklaces: ["سلاسل", "كوليهات", "كوليه", "سلسلة", "قلادة", "نكلاس", "نقلة"],
+    // أساور وغوايش
+    bracelets: ["أساور", "اساور", "غوايش", "غويشة", "سوار", "غويش", "بريسم"],
+    // خواتم ودبل
+    rings: ["خواتم", "خاتم", "توينزات", "توينز", "دبل", "دبلة", "دبل ذهب", "خواتم فضة"],
+    // حلقان
+    earrings: ["حلقان", "حلق", "أقراط", "اقراط", "حلقين", "حلق ذهب"],
+    // أطقم (بما فيها ، نصف طقم، أطقم أطفال)
+    sets: ["اطقم", "أطقم", "طقم", "نصف طقم", "نصف اطقم", "اطقم اطفال", "طقم اطفال", "طقمين", "ثلاثي"],
+    // خلخال
+    anklets: ["خلخال", "خلاخيل", "خلخلة", "خلاخل"]
+};
+
+// دالة لاستخراج القسم المطلوب من كلمات البحث
+function getCategoryFromSearch(searchTerm) {
+    if (!searchTerm) return null;
+    const lowerTerm = searchTerm.toLowerCase();
+    for (const [category, keywords] of Object.entries(categoryKeywords)) {
+        for (const kw of keywords) {
+            if (lowerTerm.includes(kw) || kw.includes(lowerTerm)) {
+                return category;
+            }
+        }
+    }
+    return null;
+}
+let displayedProductsCount = 20;
+let currentSearchFilter = "";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, collection, addDoc, serverTimestamp, onSnapshot, query, orderBy, where, getDocs, updateDoc, doc, increment, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
@@ -4106,15 +4216,50 @@ window.closeInfoModal = closeInfoModal;
 
 function renderProducts() {
     if (!productsContainer) return;
+    
     const selectedCategory = normalize(currentCategory);
-    const filtered = allProducts.filter(p => selectedCategory === "all" ? true : normalize(p.category || "all") === selectedCategory);
-
-    if (filtered.length === 0) {
+    let filtered = allProducts.filter(p => selectedCategory === "all" ? true : normalize(p.category || "all") === selectedCategory);
+    
+// تطبيق البحث الذكي (الكلمات المفتاحية للأقسام) أو البحث النصي العادي
+if (currentSearchFilter && currentSearchFilter.trim() !== "") {
+    const searchTerm = currentSearchFilter.trim();
+    const matchedCategory = getCategoryFromSearch(searchTerm);
+    if (matchedCategory) {
+        // البحث عن القسم المطابق
+        filtered = filtered.filter(p => normalize(p.category || "all") === matchedCategory);
+    } else {
+        // بحث نصي عادي في الاسم
+        filtered = filtered.filter(p => p.name?.toLowerCase().includes(searchTerm.toLowerCase()));
+    }
+}
+    
+    const totalProducts = filtered.length;
+    
+    // تطبيق حد العرض (لـ Load More)
+    const limitedProducts = filtered.slice(0, displayedProductsCount);
+    
+    // ✅ تحديث عداد المنتجات
+    const counterEl = document.getElementById("productsCounter");
+    if (counterEl) {
+        counterEl.innerHTML = `🛍️ عرض ${limitedProducts.length} من ${totalProducts} منتج`;
+    }
+    
+    // ✅ إظهار/إخفاء زر تحميل المزيد
+    const loadMoreContainer = document.getElementById("loadMoreContainer");
+    if (loadMoreContainer) {
+        if (displayedProductsCount < totalProducts) {
+            loadMoreContainer.style.display = "block";
+        } else {
+            loadMoreContainer.style.display = "none";
+        }
+    }
+    
+    if (limitedProducts.length === 0) {
         productsContainer.innerHTML = `<div style="grid-column:1/-1; display:flex; align-items:center; justify-content:center; min-height:20vh; text-align:center; font-size:18px; color:#888;">لا توجد منتجات في هذا القسم</div>`;
         return;
     }
 
-    productsContainer.innerHTML = filtered.map(p => {
+    productsContainer.innerHTML = limitedProducts.map(p => {
         const sizes = Array.isArray(p.sizes) && p.sizes.length ? p.sizes : ["7", "8", "9"];
         const hasDiscount = p.comparePrice && p.comparePrice > p.price;
         const discountBadgeHtml = hasDiscount ? `<span class="discount-badge">${Math.round((1 - p.price / p.comparePrice) * 100)}%OFF</span>` : '';
@@ -4144,25 +4289,21 @@ function renderProducts() {
         let stockHtml = '';
         
         if (isUnlimited) {
-            // غير محدود - عرض مميز باللون الذهبي/الوردي
             stockHtml = `
             <div style="margin: 10px 0; padding: 8px 12px; background: rgba(128, 0, 128, 0.1); border-radius: 20px; font-size: 12px; color: #800080; font-weight: 700; text-align: center; border: 1px solid rgba(128, 0, 128, 0.3);">
                 <i class="fas fa-infinity"></i> متوفر دائماً
             </div>`;
         } else if (!hasStockInfo || Object.keys(stockBySize).length === 0) {
-            // غير محدد - ذهبي
             stockHtml = `
             <div style="margin: 10px 0; padding: 8px 12px; background: rgba(212,175,55,0.1); border-radius: 20px; font-size: 12px; color: #B8860B; font-weight: 600; text-align: center;">
                 <i class="fas fa-boxes"></i> كمية غير محددة
             </div>`;
         } else if (totalStock > 20) {
-            // متوفر بكثرة - أخضر
             stockHtml = `
             <div style="margin: 10px 0; padding: 8px 12px; background: rgba(46, 204, 113, 0.1); border-radius: 20px; font-size: 12px; color: #27ae60; font-weight: 600; text-align: center;">
                 <i class="fas fa-check-circle"></i> متوفر: ${totalStock} قطعة
             </div>`;
         } else if (totalStock > 0) {
-            // شريط متدرج حسب النسبة
             const percent = Math.min(100, Math.round((totalStock / 20) * 100));
             const barColor = percent > 50 ? '#f39c12' : '#e74c3c';
             stockHtml = `
@@ -4176,13 +4317,11 @@ function renderProducts() {
                 </div>
             </div>`;
         } else {
-            // نفذت الكمية - أحمر
             stockHtml = `
             <div style="margin: 10px 0; padding: 8px 12px; background: rgba(231,76,60,0.1); border-radius: 20px; font-size: 12px; color: #c0392b; font-weight: 700; text-align: center;">
                 <i class="fas fa-times-circle"></i> 🚫 نفذت الكمية
             </div>`;
         }
-        // ====================================
 
         return `
         <div class="product ${outOfStock ? 'out-of-stock' : ''}" style="position: relative;" onclick='openProduct("${p.id}", ${JSON.stringify(p.name)}, ${Number(p.price)}, ${JSON.stringify(p.image)}, ${JSON.stringify(sizes)}, ${JSON.stringify(p.description || "")})'>
@@ -4191,7 +4330,7 @@ function renderProducts() {
                 <i class="fas fa-star"></i> <span id="reviewCount-${p.id}">0</span>
             </div>
             <div class="product-image">
-                <img src="${p.image}" alt="${p.name}">
+                <img src="${p.image}" alt="${p.name}" loading="lazy">
             </div>
             <h3>${p.name}</h3>
             <div class="price-tag">
@@ -4367,7 +4506,6 @@ window.addEventListener('resize', function() {
     renderBestSellers();
 });
 
-// ========== التنقل بين الأزواج ==========
 // ========== التنقل بين الأزواج ==========
 function goToPair(index) {
     const track = document.getElementById("track");
@@ -4646,6 +4784,7 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 // تحميل البيانات
+currentCategory = "all";
 const productsRef = collection(db, "products");
 onSnapshot(query(productsRef), (snapshot) => {
     allProducts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -5103,6 +5242,7 @@ document.querySelectorAll('.desktop-dropdown > a').forEach(link => {
 
     // ========== القوائم والبحث ==========
     function setCategory(category) {
+    displayedProductsCount = 20;   // ← أضف هذا السطر
     currentCategory = category;
     const url = new URL(window.location);
     url.searchParams.set("category", category);
@@ -5150,6 +5290,7 @@ document.querySelectorAll('.desktop-dropdown > a').forEach(link => {
     });
 
     renderProducts();
+    renderBestSellers();
 }
 
     window.handleMenuClick = (e, category) => {
@@ -5191,54 +5332,28 @@ window.closeSearch = () => {
     const overlay = document.getElementById("searchOverlay");
     if (overlay) overlay.classList.remove("active");
     document.getElementById("searchInput").value = '';
-    lastSearchFilter = '';
+    currentSearchFilter = '';
+    displayedProductsCount = 20;
     renderProducts();
 };
 
 window.applySearch = () => {
     const input = document.getElementById("searchInput");
-    const filter = input.value.trim();
-    lastSearchFilter = filter;
-    
-    searchProducts();
-    
+    currentSearchFilter = input.value.trim();
+    displayedProductsCount = 20;
+    renderProducts();
+  
     document.getElementById("stickySearch").classList.remove("active");
     const overlay = document.getElementById("searchOverlay");
     if (overlay) overlay.classList.remove("active");
-    
+  
     const activeBar = document.getElementById("activeSearchBar");
-    if (filter.length > 0) {
+    if (currentSearchFilter.length > 0) {
         activeBar.classList.add("show");
     } else {
         activeBar.classList.remove("show");
-        renderProducts();
     }
 };
-
-window.searchProducts = () => {
-    const filter = lastSearchFilter.toLowerCase();
-    
-    document.querySelectorAll(".product").forEach(p => {
-        const name = p.querySelector("h3").textContent.toLowerCase();
-        p.style.display = name.includes(filter) ? "block" : "none";
-    });
-};
-
-// مستمع Enter لتأكيد البحث
-document.getElementById("searchInput").addEventListener("keydown", function(e) {
-    if (e.key === "Enter") {
-        applySearch();
-    }
-});
-
-// مستمع الإدخال للتصفية المباشرة أثناء الكتابة
-document.getElementById("searchInput").addEventListener("input", function() {
-    const currentFilter = this.value.trim();
-    document.querySelectorAll(".product").forEach(p => {
-        const name = p.querySelector("h3").textContent.toLowerCase();
-        p.style.display = name.includes(currentFilter.toLowerCase()) ? "block" : "none";
-    });
-});
 
 // ========== OFFER TIMER (عرض شخصي ديناميكي) ==========
 const OFFER_STORAGE_KEY = 'vante_offer_data';
@@ -5759,7 +5874,206 @@ window.submitReview = function() {
     openRatingModal(); // فتح المودال الخاص بالاسم والرقم
 };
 
+window.loadMoreProducts = function() {
+    displayedProductsCount += 20;
+    renderProducts();
+};
+
+function resetProductsDisplay() {
+    displayedProductsCount = 20;
+    renderProducts();
+}
+window.setCategory = setCategory;
+
 </script>
+
+<!-- ========== FOOTER SECTION ========== -->
+<footer class="vante-footer">
+    <div class="footer-container">
+        <div class="footer-column">
+            <h3>✨ VANTÉ</h3>
+            <p>مجوهرات فاخرة تعكس أناقتك الخاصة. كل قطعة تحكي قصة.</p>
+            <div class="footer-social">
+                <a href="#"><i class="fab fa-instagram"></i></a>
+                <a href="#"><i class="fab fa-facebook-f"></i></a>
+                <a href="#"><i class="fab fa-tiktok"></i></a>
+                <a href="#"><i class="fab fa-whatsapp"></i></a>
+            </div>
+        </div>
+        <div class="footer-column">
+            <h3>التسوق</h3>
+            <ul>
+              <li style="margin-top: 10px; border-top: 1px solid #333; padding-top: 8px;">
+    <a href="https://taswekshope-gif.github.io/DAHAP/" target="_blank" rel="noopener noreferrer" style="color: #D4AF37; font-weight: 800;">
+        <i class="fas fa-crown"></i> سلاسل بالأسم حصرية من DAHAP
+    </a>
+</li>
+                <li><a href="#" onclick="event.preventDefault(); window.setCategory('all')">كل المنتجات</a></li>
+<li><a href="#" onclick="event.preventDefault(); window.setCategory('necklaces')">سلاسل & كوليهات</a></li>
+<li><a href="#" onclick="event.preventDefault(); window.setCategory('bracelets')">أساور & غوايش</a></li>
+<li><a href="#" onclick="event.preventDefault(); window.setCategory('rings')">خواتم & دبل</a></li>
+<li><a href="#" onclick="event.preventDefault(); window.setCategory('earrings')">حلقان</a></li>
+<li><a href="#" onclick="event.preventDefault(); window.setCategory('sets')">أطقم</a></li>
+<li><a href="#" onclick="event.preventDefault(); window.setCategory('anklets')">خلخال</a></li>
+            </ul>
+        </div>
+        <div class="footer-column">
+            <h3>خدمة العملاء</h3>
+            <ul>
+              <li><a href="#" onclick="openContactModal(event); return false;">تواصل معنا</a></li>
+              <li><a href="#" onclick="openInfoModal(); return false;">سياسة الشحن والإرجاع </a></li>
+                <li><a href="#" onclick="openInfoModal(); return false;">دليل المقاسات</a></li>
+                <li><a href="#" onclick="openInfoModal(); return false;">تغليف المنتج</a></li>
+                <li><a href="#" onclick="openInfoModal(); return false;">الأسئلة الشائعة</a></li>
+            </ul>
+        </div>
+        <div class="footer-column">
+            <h3>تواصل معنا</h3>
+            <ul class="contact-info">
+                <li><i class="fas fa-phone"></i> <span dir="ltr">+20 110 601 8685</span></li>
+                <li><i class="fab fa-whatsapp"></i> <span dir="ltr">+20 110 601 8685</span></li>
+                <li><i class="fas fa-envelope"></i> info@vante.com</li>
+            </ul>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <p>© 2026 VANTÉ. جميع الحقوق محفوظة | تصميم وتطوير VANTÉ</p>
+    </div>
+</footer>
+
+<style>
+    .vante-footer {
+        background: #111;
+        color: #fff;
+        margin-top: 0px;
+        padding: 50px 20px 20px;
+        direction: rtl;
+    }
+    .footer-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 40px;
+        margin-bottom: 30px;
+    }
+    .footer-column h3 {
+        color: #D4AF37;
+        font-size: 18px;
+        margin-bottom: 20px;
+        position: relative;
+        display: inline-block;
+    }
+    .footer-column h3::after {
+        content: '';
+        position: absolute;
+        bottom: -8px;
+        right: 0;
+        width: 40px;
+        height: 2px;
+        background: #D4AF37;
+    }
+    .footer-column p {
+        color: #aaa;
+        line-height: 1.8;
+        font-size: 14px;
+    }
+    .footer-column ul {
+        list-style: none;
+        padding: 0;
+    }
+    .footer-column ul li {
+        margin-bottom: 12px;
+    }
+    .footer-column ul li a {
+        color: #ccc;
+        text-decoration: none;
+        transition: 0.3s;
+        font-size: 14px;
+    }
+    .footer-column ul li a:hover {
+        color: #D4AF37;
+        padding-right: 5px;
+    }
+    .footer-social {
+        display: flex;
+        gap: 15px;
+        margin-top: 20px;
+    }
+    .footer-social a {
+        width: 38px;
+        height: 38px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        transition: 0.3s;
+    }
+    .footer-social a:hover {
+        background: #D4AF37;
+        color: #000;
+        transform: translateY(-3px);
+    }
+    .contact-info li {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: #ccc;
+        font-size: 14px;
+    }
+    .contact-info li i {
+        color: #D4AF37;
+        width: 24px;
+    }
+    .footer-bottom {
+        text-align: center;
+        padding-top: 25px;
+        border-top: 1px solid rgba(255,255,255,0.1);
+        color: #777;
+        font-size: 13px;
+    }
+    @media (max-width: 768px) {
+        .footer-container {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+        }
+    }
+    @media (max-width: 480px) {
+        .footer-container {
+            grid-template-columns: 1fr;
+            text-align: center;
+        }
+        .footer-column h3::after {
+            right: 50%;
+            transform: translateX(50%);
+        }
+        .footer-social {
+            justify-content: center;
+        }
+        .contact-info li {
+            justify-content: center;
+        }
+    }
+    /* زر التسويق الخارجي */
+.marketing-link {
+    background: linear-gradient(135deg, #D4AF37, #B8860B);
+    color: #fff !important;
+    border-radius: 40px;
+    padding: 6px 18px;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 800;
+}
+.marketing-link:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(212,175,55,0.4);
+    color: #000 !important;
+}
+</style>
 
 </body>
 </html>
