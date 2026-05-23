@@ -1089,26 +1089,52 @@ h2 {
   }
   setTimeout(bindEditorEvents, 200);
 
-  // دوال المخزون (getStockStatus, calculateStats, updateStatsDisplay, filterProductsByStock, searchProducts)
-  function getStockStatus(product) {
+function getStockStatus(product) {
     const stockBySize = product.stockBySize || {};
     let totalStock = 0;
     let hasUnlimited = false;
     let hasAnyStock = false;
+    
     Object.entries(stockBySize).forEach(([size, qty]) => {
-      if (qty === null || qty === undefined) hasUnlimited = true;
-      else {
-        totalStock += (parseInt(qty) || 0);
-        if ((parseInt(qty) || 0) > 0) hasAnyStock = true;
-      }
+        if (qty === null || qty === undefined) {
+            hasUnlimited = true;  // مقاس غير محدود
+        } else {
+            const numQty = parseInt(qty) || 0;
+            totalStock += numQty;
+            if (numQty > 0) hasAnyStock = true;
+        }
     });
-    if (hasUnlimited) return { status: "normal", label: "♾️ جيد (غير محدود)", className: "unlimited", critical: false, isUnlimited: true };
-    if (Object.keys(stockBySize).length === 0) return { status: "normal", label: "♾️ جيد (غير محددة)", className: "normal", critical: false, isUnlimited: false };
-    if (totalStock <= 0 && !hasAnyStock) return { status: "out", label: "🚫 نفذت", className: "out", critical: true, isUnlimited: false };
-    if (totalStock < 5) return { status: "critical", label: "⚠️ حرج", className: "critical", critical: true, isUnlimited: false };
-    if (totalStock <= 20) return { status: "low", label: "⚡ منخفض", className: "low", critical: false, isUnlimited: false };
-    return { status: "normal", label: "✅ جيد", className: "normal", critical: false, isUnlimited: false };
-  }
+    
+    // ✅ إذا كان هناك مقاس واحد على الأقل غير محدود → المنتج غير محدود بالكامل
+    if (hasUnlimited) {
+        return { 
+            status: "normal", 
+            label: "♾️ متوفر (غير محدود)", 
+            className: "unlimited", 
+            critical: false, 
+            isUnlimited: true,
+            totalStock: "∞"
+        };
+    }
+    
+    if (Object.keys(stockBySize).length === 0) {
+        return { status: "normal", label: "❓ كمية غير محددة", className: "normal", critical: false, isUnlimited: false, totalStock: 0 };
+    }
+    
+    if (totalStock <= 0 && !hasAnyStock) {
+        return { status: "out", label: "🚫 نفذت", className: "out", critical: true, isUnlimited: false, totalStock: 0 };
+    }
+    
+    if (totalStock < 5) {
+        return { status: "critical", label: "⚠️ حرج", className: "critical", critical: true, isUnlimited: false, totalStock: totalStock };
+    }
+    
+    if (totalStock <= 20) {
+        return { status: "low", label: "⚡ منخفض", className: "low", critical: false, isUnlimited: false, totalStock: totalStock };
+    }
+    
+    return { status: "normal", label: "✅ جيد", className: "normal", critical: false, isUnlimited: false, totalStock: totalStock };
+}
 
   function calculateStats(products) {
     let critical = 0, low = 0, normal = 0, out = 0;
