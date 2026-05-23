@@ -705,26 +705,27 @@ window.update = async (id, status) => { try { await updateDoc(doc(db, "orders", 
 
 window.deleteOrder = async (id) => {
   const confirmed = await window.customConfirm("⚠️ هل أنت متأكد من حذف هذا الطلب وإعادة الكميات إلى المخزون؟");
-if (!confirmed) return;
+  if (!confirmed) return;
   try {
     const orderSnap = await getDoc(doc(db, "orders", id));
     if (!orderSnap.exists()) throw new Error();
     const order = orderSnap.data();
+    
+    // ✅ إعادة الكميات إلى المخزون
     for (const item of (order.orderDetails || [])) {
       if (!item.name || !item.size) continue;
       const productSnap = await getDocs(query(collection(db, "products"), where("name", "==", item.name)));
-      if (!productSnap.empty) {
+      if (!productSnap.empty()) {
         const productRef = doc(db, "products", productSnap.docs[0].id);
         const stockBySize = productSnap.docs[0].data().stockBySize || {};
         if (stockBySize[item.size] !== undefined) {
-          stockBySize[item.size] += item.qty;
+          stockBySize[item.size] += item.qty;  // ✅ إعادة الكمية
           await updateDoc(productRef, { stockBySize });
         }
       }
     }
     await deleteDoc(doc(db, "orders", id));
     customAlert("تم حذف الطلب وإعادة المخزون بنجاح", 'success');
-    window.alert = customAlert;
   } catch(e) { alert("❌ خطأ"); }
 };
 
