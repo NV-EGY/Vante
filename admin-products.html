@@ -1105,7 +1105,6 @@ function getStockStatus(product) {
         }
     });
     
-    // ✅ إذا كان هناك مقاس واحد على الأقل غير محدود → المنتج غير محدود بالكامل
     if (hasUnlimited) {
         return { 
             status: "normal", 
