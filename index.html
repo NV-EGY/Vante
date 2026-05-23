@@ -4479,7 +4479,7 @@ if (currentSearchFilter && currentSearchFilter.trim() !== "") {
         let label = `مقاس: ${s}`;
         let isDisabled = false;
         if (qty === null) {
-            label += ` (غير محدود)`;
+            label += ` (كمية غير محدودة)`;
             isDisabled = false;
         } else if (qty !== null) {
             if (qty > 0) {
@@ -5345,12 +5345,13 @@ async function executeCheckout() {
         const finalTotal = subtotal + shipping;
 
         const orderDetails = cart.map(item => ({
-            name: item.name,
-            size: item.size || "",
-            qty: item.qty,
-            price: item.price,
-            image: item.image || ""
-        }));
+    productId: allProducts.find(p => p.name === item.name)?.id, // ← أضف هذا
+    name: item.name,
+    size: item.size || "",
+    qty: item.qty,
+    price: item.price,
+    image: item.image || ""
+}));
 
         const orderData = {
             orderID,
@@ -5370,29 +5371,35 @@ async function executeCheckout() {
         };
 
         await addDoc(collection(db, "orders"), orderData);
+// خصم الكميات من المخزون (تجاهل المقاسات غير المحدودة)
+const stockUpdates = {};
+cart.forEach(item => {
+    const product = allProducts.find(p => p.name === item.name);
+    if (product && product.stockBySize && product.stockBySize[item.size] !== undefined) {
+        const currentStock = product.stockBySize[item.size];
+        // ✅ إذا كان currentStock === null أو undefined → غير محدود، لا تخصم
+        if (currentStock === null || currentStock === undefined) return;
+        
+        const productId = product.id;
+        const size = item.size;
+        if (!stockUpdates[productId]) stockUpdates[productId] = {};
+        stockUpdates[productId][size] = (stockUpdates[productId][size] || 0) + item.qty;
+    }
+});
 
-        // خصم الكميات من المخزون
-        const stockUpdates = {};
-        cart.forEach(item => {
-            const product = allProducts.find(p => p.name === item.name);
-            if (product && product.stockBySize && product.stockBySize[item.size] !== undefined) {
-                const productId = product.id;
-                const size = item.size;
-                if (!stockUpdates[productId]) stockUpdates[productId] = {};
-                stockUpdates[productId][size] = (stockUpdates[productId][size] || 0) + item.qty;
-            }
-        });
-
-        for (const [productId, sizes] of Object.entries(stockUpdates)) {
-            const product = allProducts.find(p => p.id === productId);
-            if (!product) continue;
-            const newStockBySize = { ...product.stockBySize };
-            for (const [size, qty] of Object.entries(sizes)) {
-                newStockBySize[size] = Math.max(0, (newStockBySize[size] || 0) - qty);
-            }
-            const productRef = doc(db, "products", productId);
-            await updateDoc(productRef, { stockBySize: newStockBySize });
+for (const [productId, sizes] of Object.entries(stockUpdates)) {
+    const product = allProducts.find(p => p.id === productId);
+    if (!product) continue;
+    const newStockBySize = { ...product.stockBySize };
+    for (const [size, qty] of Object.entries(sizes)) {
+        // تأكد أن القيمة الحالية ليست null (غير محدود)
+        if (newStockBySize[size] !== null && newStockBySize[size] !== undefined) {
+            newStockBySize[size] = Math.max(0, (newStockBySize[size] || 0) - qty);
         }
+    }
+    const productRef = doc(db, "products", productId);
+    await updateDoc(productRef, { stockBySize: newStockBySize });
+}
 
         let message = `🛍️ طلب جديد - VANTÉ\n\n`;
         message += `📦 رقم الطلب: ${orderID}\n`;
