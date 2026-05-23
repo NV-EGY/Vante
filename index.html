@@ -3362,7 +3362,137 @@ body.modal-open{
 .load-more-container {
     display: none !important;
 }
-
+/* =========================================
+   CUSTOM CONFIRM MODAL (فاتح)
+========================================= */
+.confirm-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(8px);
+    z-index: 1000000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+.confirm-modal.active {
+    opacity: 1;
+    visibility: visible;
+}
+.confirm-modal-content {
+    background: #fff;
+    width: 90%;
+    max-width: 420px;
+    border-radius: 28px;
+    overflow: hidden;
+    box-shadow: 0 30px 50px rgba(0, 0, 0, 0.3);
+    transform: scale(0.9);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    direction: rtl;
+    text-align: center;
+}
+.confirm-modal.active .confirm-modal-content {
+    transform: scale(1);
+}
+.confirm-modal-header {
+    background: linear-gradient(135deg, #0a0a0a, #1a1a1a);
+    padding: 25px 20px;
+    position: relative;
+}
+.confirm-modal-header .icon-circle {
+    width: 70px;
+    height: 70px;
+    background: linear-gradient(135deg, #D4AF37, #FFD700);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 15px;
+    box-shadow: 0 8px 20px rgba(212, 175, 55, 0.3);
+}
+.confirm-modal-header .icon-circle i {
+    font-size: 32px;
+    color: #000;
+}
+.confirm-modal-header h3 {
+    color: #D4AF37;
+    font-size: 22px;
+    margin: 0;
+    font-weight: 800;
+}
+.confirm-modal-body {
+    padding: 25px 25px 15px;
+}
+.confirm-modal-body p {
+    color: #333;
+    font-size: 16px;
+    line-height: 1.7;
+    margin-bottom: 10px;
+}
+.confirm-modal-body .whatsapp-note {
+    background: #f0f9f0;
+    border-right: 3px solid #25D366;
+    padding: 12px;
+    border-radius: 12px;
+    margin: 15px 0;
+    font-size: 13px;
+    color: #2d6a2d;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-align: right;
+}
+.confirm-modal-body .whatsapp-note i {
+    font-size: 20px;
+    color: #25D366;
+}
+.confirm-modal-body .whatsapp-note strong {
+    color: #075E54;
+}
+.confirm-modal-buttons {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+}
+.confirm-modal-buttons button {
+    flex: 1;
+    padding: 14px;
+    border: none;
+    border-radius: 40px;
+    font-weight: 700;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+.confirm-btn-confirm {
+    background: #111;
+    color: #fff;
+}
+.confirm-btn-confirm:hover {
+    background: #D4AF37;
+    color: #000;
+    transform: translateY(-2px);
+}
+.confirm-btn-cancel {
+    background: #f5f5f5;
+    color: #333;
+}
+.confirm-btn-cancel:hover {
+    background: #e0e0e0;
+    transform: translateY(-2px);
+}
+/* تنسيق خيارات المقاس المنفذة داخل القائمة المنسدلة */
+.size-select option:disabled {
+    color: #999;
+    background-color: #f5f5f5;
+    font-style: italic;
+}
     </style>
 </head>
 
@@ -4343,18 +4473,26 @@ if (currentSearchFilter && currentSearchFilter.trim() !== "") {
             
             <div class="size-selector-wrapper" onclick="event.stopPropagation()">
                 <select class="size-select" data-product-id="${p.id}">
-                    <option value="" disabled selected>اختر المقاس</option>
-                    ${sizes.map(s => {
-                        const qty = p.stockBySize && p.stockBySize[s] !== undefined ? p.stockBySize[s] : null;
-                        let label = `مقاس: ${s}`;
-                        if (qty === null) {
-                            label += ` (غير محدود)`;
-                        } else if (qty !== null) {
-                            label += qty > 0 ? ` (باقى ${qty} قطعه)` : ' (نفذ)';
-                        }
-                        return `<option value="${s}">${label}</option>`;
-                    }).join('')}
-                </select>
+    <option value="" disabled selected>اختر المقاس</option>
+    ${sizes.map(s => {
+        const qty = p.stockBySize && p.stockBySize[s] !== undefined ? p.stockBySize[s] : null;
+        let label = `مقاس: ${s}`;
+        let isDisabled = false;
+        if (qty === null) {
+            label += ` (غير محدود)`;
+            isDisabled = false;
+        } else if (qty !== null) {
+            if (qty > 0) {
+                label += ` (باقى ${qty} قطعه)`;
+                isDisabled = false;
+            } else {
+                label += ` (نفذ)`;
+                isDisabled = true;
+            }
+        }
+        return `<option value="${s}" ${isDisabled ? 'disabled' : ''}>${label}</option>`;
+    }).join('')}
+</select>
             </div>
             
             ${stockHtml}
@@ -4835,40 +4973,59 @@ document.head.appendChild(style);
     
     window.addCurrentProductToCart = function(event) {
     if (event) event.stopPropagation();
-    if (!currentProduct) { alert("خطأ في تحميل المنتج"); return; }
-    const size = document.getElementById("modalSize")?.value;
-    if (!size) { alert("اختر المقاس"); return; }
+    if (!currentProduct) {
+        customAlert("❌ خطأ في تحميل المنتج", 'error');
+        return;
+    }
     
-    // فحص الكمية
+    const size = document.getElementById("modalSize")?.value;
+    if (!size) {
+        customAlert("⚠️ اختر المقاس أولاً", 'warning');
+        return;
+    }
+    
     const product = allProducts.find(p => p.id === currentProduct.id);
-    if (product && product.stockBySize && product.stockBySize[size] !== undefined) {
-        const available = product.stockBySize[size];
-        const inCart = cart.reduce((sum, item) => 
-            (item.name === currentProduct.name && item.size === size) ? sum + item.qty : sum, 0);
-        if (inCart + 1 > available) {
-            alert(`عفواً، الكمية المتاحة لمقاس ${size} هي ${available} قطعة فقط.`);
+    
+    if (product && product.stockBySize) {
+        const stockForSize = product.stockBySize[size];
+        if (stockForSize === 0) {
+            customAlert(`❌ عذراً، مقاس ${size} غير متوفر حالياً.`, 'error');
             return;
+        }
+        if (stockForSize !== null && stockForSize !== undefined && stockForSize > 0) {
+            const inCart = cart.reduce((sum, item) => 
+                (item.name === currentProduct.name && item.size === size) ? sum + item.qty : sum, 0);
+            if (inCart + 1 > stockForSize) {
+                customAlert(`❌ الكمية المتاحة لمقاس ${size} هي ${stockForSize} قطعة فقط.`, 'error');
+                return;
+            }
         }
     }
     
-const comparePrice = currentProduct.comparePrice || null;
-window.addToCart(currentProduct.name, Number(currentProduct.price), size, currentProduct.image, comparePrice);
-updateCart();
-// إغلاق المودال فورياً دون أنيميشن على الـ overlay
-const modal = document.getElementById("productModal");
-modal.classList.remove("active");
-document.body.classList.remove("modal-open");
-disableSwipe();
-
-// إعادة ضبط الـ overlay ليظهر مع السلة بدون تأثير الانتقال السابق
-const overlay = document.getElementById("overlay");
-overlay.style.transition = 'none';
-overlay.classList.remove("active");
-void overlay.offsetWidth; // reflow
-overlay.style.transition = '';
-
-// فتح سلة التسوق الآن
-openCart();
+    const comparePrice = currentProduct.comparePrice || null;
+    const addResult = window.addToCart(currentProduct.name, Number(currentProduct.price), size, currentProduct.image, comparePrice);
+    
+    if (addResult !== false) {
+        updateCart();
+        
+        // إغلاق المودال
+        const modal = document.getElementById("productModal");
+        modal.classList.remove("active");
+        document.body.classList.remove("modal-open");
+        disableSwipe();
+        
+        // إعادة ضبط الـ overlay
+        const overlay = document.getElementById("overlay");
+        overlay.style.transition = 'none';
+        overlay.classList.remove("active");
+        void overlay.offsetHeight;
+        overlay.style.transition = '';
+        
+        // ✅ تأخير ثم فتح السلة
+        setTimeout(() => {
+            window.openCart();
+        }, 100);
+    }
 };
 
     // ========== السلة ==========
@@ -4876,62 +5033,96 @@ openCart();
 if (typeof updateCart === 'function') updateCart();
     window.addToCart = function(name, price, size, image, comparePrice = null) {
     const product = allProducts.find(p => p.name === name);
-    const stockValue = (() => {
-        if (!product || !product.stockBySize) return -1; // -1 = غير محدد/غير محدود
-        return product.stockBySize[size] !== undefined ? product.stockBySize[size] : -1;
-    })();
     
-    // stockValue === -1 يعني كمية غير محدودة (مسموح بأي عدد)
-    // stockValue === 0 يعني نفذت
-    // stockValue > 0 يعني محدودة
-    
-    if (stockValue === 0) {
-        alert(`عفواً، مقاس ${size} غير متوفر حالياً.`);
-        return;
+    // ✅ تحديد قيمة المخزون لهذا المقاس
+    let stockValue = -1; // -1 = غير محدد/غير محدود
+    if (product && product.stockBySize) {
+        if (product.stockBySize[size] !== undefined) {
+            stockValue = product.stockBySize[size];
+        }
     }
     
-    if (stockValue > 0) {
+    // ✅ stockValue === null أو undefined يعني كمية غير محدودة
+    // ✅ stockValue === 0 يعني نفذت
+    // ✅ stockValue > 0 يعني محدودة
+    
+    if (stockValue === 0) {
+        customAlert(`❌ عذراً، مقاس ${size} غير متوفر حالياً.`, 'error');
+        return false;
+    }
+    
+    // ✅ فحص الكمية إذا كانت محدودة (وليست غير محدودة)
+    if (stockValue !== null && stockValue !== undefined && stockValue > 0) {
         const currentQtyInCart = cart.reduce((sum, item) => {
             return item.name === name && item.size === size ? sum + item.qty : sum;
         }, 0);
         
         if (currentQtyInCart + 1 > stockValue) {
-            alert(`عفواً، الكمية المتاحة المتبقية لمقاس ${size} هي ${stockValue - currentQtyInCart} قطعة فقط.`);
-            return;
+            customAlert(`❌ الكمية المتاحة المتبقية لمقاس ${size} هي ${stockValue - currentQtyInCart} قطعة فقط.`, 'error');
+            return false;
         }
     }
-    // stockValue === -1 (غير محدود) لا نمنع الإضافة
     
+    // ✅ stockValue === null أو undefined → غير محدود (نضيف بدون قيود)
     const existing = cart.find(item => item.name === name && item.size === size);
     const productComparePrice = comparePrice !== null ? comparePrice : (allProducts.find(p => p.name === name)?.comparePrice || null);
-    if (existing) existing.qty += 1;
-    else cart.push({ name, price, size, image, comparePrice: productComparePrice, qty: 1 });
+    
+    if (existing) {
+        existing.qty += 1;
+        customAlert(`✅ تم زيادة الكمية لـ ${name} - مقاس ${size}`, 'success');
+    } else {
+        cart.push({ name, price, size, image, comparePrice: productComparePrice, qty: 1 });
+        customAlert(`✅ تم إضافة ${name} - مقاس ${size} إلى السلة`, 'success');
+    }
+    
     updateCart();
+    return true;
 };
 
     window.addToCartFromCard = function(productId, name, price, image) {
     const select = document.querySelector(`.size-select[data-product-id="${productId}"]`);
     if (!select || !select.value) {
-        alert("الرجاء اختيار المقاس أولاً");
-        return;
+        customAlert("⚠️ الرجاء اختيار المقاس أولاً", 'warning');
+        return false;
     }
+    
     const size = select.value;
-    // فحص الكمية المتاحة لهذا المقاس
     const product = window.allProducts.find(p => p.id === productId);
-    if (product && product.stockBySize && product.stockBySize[size] !== undefined) {
-        const availableForSize = product.stockBySize[size];
-        const currentInCart = cart.reduce((sum, item) => 
-            (item.name === name && item.size === size) ? sum + item.qty : sum, 0);
-        if (currentInCart + 1 > availableForSize) {
-            alert(`عفواً، الكمية المتاحة لمقاس ${size} هي ${availableForSize} قطعة فقط.`);
-            return;
+    
+    // التحقق من أن الخيار ليس disabled (للمقاسات المنفذة)
+    const selectedOption = select.options[select.selectedIndex];
+    if (selectedOption && selectedOption.disabled) {
+        customAlert(`❌ عذراً، مقاس ${size} غير متوفر حالياً.`, 'error');
+        return false;
+    }
+    
+    if (product && product.stockBySize) {
+        const stockForSize = product.stockBySize[size];
+        if (stockForSize === 0) {
+            customAlert(`❌ عذراً، مقاس ${size} غير متوفر حالياً.`, 'error');
+            return false;
+        }
+        if (stockForSize !== null && stockForSize !== undefined && stockForSize > 0) {
+            const currentInCart = cart.reduce((sum, item) => 
+                (item.name === name && item.size === size) ? sum + item.qty : sum, 0);
+            if (currentInCart + 1 > stockForSize) {
+                customAlert(`❌ الكمية المتاحة لمقاس ${size} هي ${stockForSize} قطعة فقط.`, 'error');
+                return false;
+            }
         }
     }
     
     const comparePrice = product?.comparePrice || null;
-    window.addToCart(name, Number(price), size, image, comparePrice);
-    updateCart();
-    openCart();
+    const addResult = window.addToCart(name, Number(price), size, image, comparePrice);
+    
+    if (addResult !== false) {
+        updateCart();
+        // ✅ تأخير بسيط لضمان تحديث واجهة السلة قبل فتحها
+        setTimeout(() => {
+            window.openCart();
+        }, 50);
+    }
+    return true;
 };
 
     window.updateCart = function() {
@@ -4940,18 +5131,23 @@ if (typeof updateCart === 'function') updateCart();
         total += item.price * item.qty;
         count += item.qty;
         const product = allProducts.find(p => p.name === item.name);
-        const maxStock = (() => {
-            if (!product || !product.stockBySize) return -1;
-            if (item.size && product.stockBySize[item.size] !== undefined) {
-                return product.stockBySize[item.size];
+        let maxStock = -1; // -1 يعني غير محدود
+        
+        if (product && product.stockBySize && item.size) {
+            const stockValue = product.stockBySize[item.size];
+            // ✅ null أو undefined يعني غير محدود
+            if (stockValue !== null && stockValue !== undefined) {
+                maxStock = stockValue;
             }
-            return -1;
-        })();
-        const maxedOut = (maxStock !== -1 && item.qty >= maxStock);
+        }
+        
+        const isUnlimited = (maxStock === -1);
+        const maxedOut = (!isUnlimited && item.qty >= maxStock);
+        
         return `<div class="cart-item">
             <div class="cart-item-details">
                 <strong>${item.name}</strong>
-                <small>المقاس: ${item.size}</small>
+                <small>المقاس: ${item.size} ${isUnlimited ? '<span style="color:#800080;"> (كمية غير محدودة)</span>' : ''}</small>
             </div>
             <div class="qty-controls">
                 <button class="qty-btn" onclick="window.changeQty(${index},-1)">−</button>
@@ -4971,6 +5167,7 @@ if (typeof updateCart === 'function') updateCart();
             </div>
         </div>`;
     }).join("");
+    
     document.getElementById("cartItems").innerHTML = html || "السلة فارغة";
     document.getElementById("total").innerText = total;
     document.getElementById("cartCount").innerText = count;
@@ -4979,243 +5176,279 @@ if (typeof updateCart === 'function') updateCart();
 
     window.changeQty = function(index, change) {
     const item = cart[index];
+    if (!item) return;
+    
     if (change > 0) {
         const product = allProducts.find(p => p.name === item.name);
         if (product && product.stockBySize && product.stockBySize[item.size] !== undefined) {
-            const maxForSize = product.stockBySize[item.size];
-            if (item.qty + change > maxForSize) {
-                alert(`عفواً، الكمية المتاحة لمقاس ${item.size} هي ${maxForSize} قطعة فقط.`);
-                return;
+            const stockValue = product.stockBySize[item.size];
+            // ✅ null أو undefined يعني غير محدود (لا نمنع)
+            if (stockValue !== null && stockValue !== undefined) {
+                if (item.qty + change > stockValue) {
+                    customAlert(`❌ الكمية المتاحة لمقاس ${item.size} هي ${stockValue} قطعة فقط.`, 'error');
+                    return;
+                }
             }
         }
     }
+    
     item.qty += change;
-    if (item.qty <= 0) cart.splice(index, 1);
+    if (item.qty <= 0) {
+        cart.splice(index, 1);
+    }
     updateCart();
     localStorage.setItem('vante_cart', JSON.stringify(cart));
 };
 
-window.openCart = () => { document.getElementById("cartDrawer").classList.add("active"); document.getElementById("overlay").classList.add("active"); };
-window.closeCart = () => { document.getElementById("cartDrawer").classList.remove("active"); document.getElementById("overlay").classList.remove("active"); };
+window.openCart = () => { 
+    const drawer = document.getElementById("cartDrawer");
+    const overlay = document.getElementById("overlay");
+    drawer.classList.add("active"); 
+    overlay.classList.add("active");
+    document.body.style.overflow = 'hidden';
+};
+
+window.closeCart = () => { 
+    document.getElementById("cartDrawer").classList.remove("active"); 
+    document.getElementById("overlay").classList.remove("active"); 
+    document.body.style.overflow = '';
+};
 window.openCheckout = () => { document.getElementById("checkoutModal").classList.add("active"); document.getElementById("overlay").classList.add("active"); };
 window.closeCheckout = () => { document.getElementById("checkoutModal").classList.remove("active"); document.getElementById("overlay").classList.remove("active"); };
-
-    // ========== الدفع ==========
-    window.checkout = async function () {
-      if (!allProducts.length) {
-    alert("المنتجات لم تكتمل تحميلها بعد، حاول مرة أخرى.");
-    btn.disabled = false;
-    btn.innerText = "تأكيد الطلب";
-    return;
-}
-        const btn = document.querySelector("#checkoutModal .btn-primary");
-        const name = document.getElementById("name").value.trim();
-        const phone = document.getElementById("phone").value.trim();
-        const gov = document.getElementById("governorate").value;
-        const city = document.getElementById("city").value;
-        const address = document.getElementById("address").value.trim();
-
-        if (!name || !phone || !gov || !city || !address) {
-            alert("يرجى استكمال جميع بيانات الطلب");
-            return;
-        }
-
-        const phoneRegex = /^01[0125][0-9]{8}$/;
-        if (!phoneRegex.test(phone)) {
-            alert("يرجى إدخال رقم هاتف مصري صحيح (11 رقم، يبدأ بـ 01)");
-            return;
-        }
-        if (cart.length === 0) {
-            alert("السلة فارغة");
-            return;
-        }
-
-        btn.disabled = true;
-        btn.innerText = "جاري إرسال الطلب...";
-
-try {
-    const ordersRef = collection(db, "orders");
-
-    // تاريخ اليوم
-    const today = new Date();
-    const yyyy = today.getFullYear();
-    const mm = String(today.getMonth() + 1).padStart(2, '0');
-    const dd = String(today.getDate()).padStart(2, '0');
-    const dateStr = `${yyyy}${mm}${dd}`;
-
-    // 1. عدد طلبات العميل الإجمالية (حسب رقم الهاتف)
-    const qCustomer = query(ordersRef, where("phone", "==", phone));
-    const customerSnapshot = await getDocs(qCustomer);
-    const customerOrderCount = customerSnapshot.size + 1;
-
-    // 2. رقم الطلب خلال اليوم
-    const qToday = query(ordersRef, where("date", "==", dateStr));
-    const todaySnapshot = await getDocs(qToday);
-    const dailyOrderCount = todaySnapshot.size + 1;
-
-    // 3. الكود التسلسلي للعميل (من مجموعة customers)
-    const customersRef = collection(db, "customers");
-    const qCustomerDoc = query(customersRef, where("phone", "==", phone));
-    const customerDocSnap = await getDocs(qCustomerDoc);
-
-    let customerCode;
-
-    if (!customerDocSnap.empty) {
-        // عميل موجود مسبقًا -> نستخدم كوده القديم
-        customerCode = customerDocSnap.docs[0].data().customerCode;
-    } else {
-        // عميل جديد -> ننشئ كودًا تسلسليًا جديدًا
-        const counterRef = doc(db, "counters", "customers");
-        const counterSnap = await getDoc(counterRef);
-        if (!counterSnap.exists()) {
-            await setDoc(counterRef, { value: 0 });
-        }
-        // زيادة العداد والحصول على القيمة الجديدة
-        await updateDoc(counterRef, { value: increment(1) });
-        const newCustomerNumber = (await getDoc(counterRef)).data().value;
-        customerCode = `V${newCustomerNumber}`;
-
-        // حفظ العميل الجديد
-        await setDoc(doc(db, "customers", phone), {
-            phone,
-            name,
-            customerCode,
-            createdAt: serverTimestamp()
-        });
-    }
-
-    // 4. الصيغة النهائية
-    const orderID = `${customerCode}-${dateStr}${customerOrderCount}${String(dailyOrderCount).padStart(3, '0')}`;
-    
-    const quantity = cart.reduce((sum, item) => sum + item.qty, 0);
-    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-    const shipping = 70;
-    const finalTotal = subtotal + shipping;
-
-    const orderDetails = cart.map(item => ({
-        name: item.name,
-        size: item.size || "",
-        qty: item.qty,
-        price: item.price,
-        image: item.image || ""
-    }));
-
-    const orderData = {
-        orderID,
-        customerName: name,
-        phone,
-        gov,
-        city,
-        address,
-        orderDetails,
-        quantity,
-        price: subtotal,
-        shipping,
-        finalTotal,
-        status: "new",
-        date: dateStr,          // ✅ حقل التاريخ لتتبُّع الطلبات اليومية
-        createdAt: serverTimestamp()
-    };
-
-    await addDoc(collection(db, "orders"), orderData);
-            // خصم الكميات من المخزون// تجميع الكميات المطلوبة لكل منتج/مقاس لضمان خصم صحيح
-// ========== خصم الكميات من المخزون (النسخة المعدلة) ==========
-const stockUpdates = {};
-
-// تجميع الكميات المطلوبة لكل منتج/مقاس
-cart.forEach(item => {
-    const product = allProducts.find(p => p.name === item.name);
-    if (product && product.stockBySize && product.stockBySize[item.size] !== undefined) {
-        const productId = product.id;
-        const size = item.size;
-        if (!stockUpdates[productId]) stockUpdates[productId] = {};
-        stockUpdates[productId][size] = (stockUpdates[productId][size] || 0) + item.qty;
-    }
-});
-
-// تنفيذ التحديثات على Firestore
-for (const [productId, sizes] of Object.entries(stockUpdates)) {
-    // جلب أحدث بيانات المنتج مباشرة من allProducts (المتغير المحلي المحدث باستمرار)
-    const product = allProducts.find(p => p.id === productId);
-    if (!product) continue;
-    
-    const newStockBySize = { ...product.stockBySize };
-    for (const [size, qty] of Object.entries(sizes)) {
-        newStockBySize[size] = Math.max(0, (newStockBySize[size] || 0) - qty);
+// ========== الدفع مع مودال تأكيد احترافي ==========
+window.checkout = async function () {
+    if (!allProducts.length) {
+        alert("المنتجات لم تكتمل تحميلها بعد، حاول مرة أخرى.");
+        return;
     }
     
-    const productRef = doc(db, "products", productId);
-    await updateDoc(productRef, { stockBySize: newStockBySize });
-}
+    const name = document.getElementById("name").value.trim();
+    const phone = document.getElementById("phone").value.trim();
+    const gov = document.getElementById("governorate").value;
+    const city = document.getElementById("city").value;
+    const address = document.getElementById("address").value.trim();
 
-// تنفيذ التحديثات المجمعة
-const updatePromises = Object.entries(stockUpdates).map(async ([productId, sizes]) => {
-    const product = window.allProducts.find(p => p.id === productId);
-    if (!product) return;
-    const newStockBySize = { ...product.stockBySize };
-    for (const [size, qty] of Object.entries(sizes)) {
-        newStockBySize[size] = Math.max(0, (newStockBySize[size] || 0) - qty);
+    if (!name || !phone || !gov || !city || !address) {
+        alert("يرجى استكمال جميع بيانات الطلب");
+        return;
     }
-    const productRef = doc(db, "products", productId);
-    return updateDoc(productRef, { stockBySize: newStockBySize });
-});
-await Promise.all(updatePromises);
 
-            let message = `🛍️ طلب جديد - VANTÉ\n\n`;
-            message += `📦 رقم الطلب: ${orderID}\n`;
-            message += `👤 الاسم: ${name}\n`;
-            message += `📱 الهاتف: ${phone}\n`;
-            message += `📍 المحافظة: ${gov}\n`;
-            message += `🏙️ المدينة: ${city}\n`;
-            message += `🏠 العنوان: ${address}\n\n`;
+    const phoneRegex = /^01[0125][0-9]{8}$/;
+    if (!phoneRegex.test(phone)) {
+        alert("يرجى إدخال رقم هاتف مصري صحيح (11 رقم، يبدأ بـ 01)");
+        return;
+    }
+    
+    if (cart.length === 0) {
+        alert("السلة فارغة");
+        return;
+    }
 
-            cart.forEach(item => {
-                message += `• ${item.name}\n`;
-                message += `المقاس: ${item.size}\n`;
-                message += `الكمية: ${item.qty}\n`;
-                message += `السعر: ${item.price * item.qty} جنيه\n\n`;
+    // ✅ فتح مودال التأكيد الاحترافي
+    return new Promise((resolve) => {
+        const modal = document.getElementById("customConfirmModal");
+        const confirmBtn = document.getElementById("confirmOkBtn");
+        const cancelBtn = document.getElementById("confirmCancelBtn");
+
+        // وظيفة التنظيف
+        const cleanup = () => {
+            modal.classList.remove("active");
+            confirmBtn.removeEventListener("click", handleConfirm);
+            cancelBtn.removeEventListener("click", handleCancel);
+            document.removeEventListener("click", outsideClick);
+        };
+
+        const handleConfirm = () => {
+            cleanup();
+            resolve(true);
+            executeCheckout(); // تنفيذ عملية الشراء
+        };
+
+        const handleCancel = () => {
+            cleanup();
+            resolve(false);
+        };
+
+        const outsideClick = (e) => {
+            if (e.target === modal) {
+                handleCancel();
+            }
+        };
+
+        confirmBtn.addEventListener("click", handleConfirm);
+        cancelBtn.addEventListener("click", handleCancel);
+        document.addEventListener("click", outsideClick);
+
+        modal.classList.add("active");
+    });
+};
+
+// دالة تنفيذ الطلب الفعلية
+async function executeCheckout() {
+    const btn = document.querySelector("#checkoutModal .btn-primary");
+    const name = document.getElementById("name").value.trim();
+    const phone = document.getElementById("phone").value.trim();
+    const gov = document.getElementById("governorate").value;
+    const city = document.getElementById("city").value;
+    const address = document.getElementById("address").value.trim();
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التحويل إلى واتساب...';
+
+    try {
+        const ordersRef = collection(db, "orders");
+
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        const dateStr = `${yyyy}${mm}${dd}`;
+
+        const qCustomer = query(ordersRef, where("phone", "==", phone));
+        const customerSnapshot = await getDocs(qCustomer);
+        const customerOrderCount = customerSnapshot.size + 1;
+
+        const qToday = query(ordersRef, where("date", "==", dateStr));
+        const todaySnapshot = await getDocs(qToday);
+        const dailyOrderCount = todaySnapshot.size + 1;
+
+        const customersRef = collection(db, "customers");
+        const qCustomerDoc = query(customersRef, where("phone", "==", phone));
+        const customerDocSnap = await getDocs(qCustomerDoc);
+
+        let customerCode;
+
+        if (!customerDocSnap.empty) {
+            customerCode = customerDocSnap.docs[0].data().customerCode;
+        } else {
+            const counterRef = doc(db, "counters", "customers");
+            const counterSnap = await getDoc(counterRef);
+            if (!counterSnap.exists()) {
+                await setDoc(counterRef, { value: 0 });
+            }
+            await updateDoc(counterRef, { value: increment(1) });
+            const newCustomerNumber = (await getDoc(counterRef)).data().value;
+            customerCode = `V${newCustomerNumber}`;
+            await setDoc(doc(db, "customers", phone), {
+                phone,
+                name,
+                customerCode,
+                createdAt: serverTimestamp()
             });
-
-            message += `🚚 الشحن: ${shipping} جنيه\n`;
-            message += `💰 الإجمالي: ${finalTotal} جنيه`;
-
-            const phoneNumber = "201106018685";
-const encodedMessage = encodeURIComponent(message);
-const appUrl = `whatsapp://send?phone=${phoneNumber}&text=${encodedMessage}`;
-const webUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
-
-// فتح التطبيق مباشرة
-window.location.href = appUrl;
-
-// بعد 2.5 ثانية، لو المستخدم لسه في الصفحة (التطبيق متفتحش)، نفتح الويب
-setTimeout(() => {
-    if (!document.hidden) {
-        window.open(webUrl, "_blank");
-    }
-}, 2500);
-
-          cart = [];
-         localStorage.removeItem('vante_cart');
-            updateCart();
-
-            document.getElementById("name").value = "";
-            document.getElementById("phone").value = "";
-            document.getElementById("governorate").selectedIndex = 0;
-            document.getElementById("city").innerHTML = "";
-            document.getElementById("address").value = "";
-
-            closeCheckout();
-            closeCart();
-            alert("تم إرسال طلبك بنجاح ✨");
-
-        } catch (error) {
-            console.error(error);
-            alert("حدث خطأ أثناء إرسال الطلب.");
-        } finally {
-            btn.disabled = false;
-            btn.innerText = "تأكيد الطلب";
         }
-    };
+
+        const orderID = `${customerCode}-${dateStr}${customerOrderCount}${String(dailyOrderCount).padStart(3, '0')}`;
+        
+        const quantity = cart.reduce((sum, item) => sum + item.qty, 0);
+        const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+        const shipping = 70;
+        const finalTotal = subtotal + shipping;
+
+        const orderDetails = cart.map(item => ({
+            name: item.name,
+            size: item.size || "",
+            qty: item.qty,
+            price: item.price,
+            image: item.image || ""
+        }));
+
+        const orderData = {
+            orderID,
+            customerName: name,
+            phone,
+            gov,
+            city,
+            address,
+            orderDetails,
+            quantity,
+            price: subtotal,
+            shipping,
+            finalTotal,
+            status: "new",
+            date: dateStr,
+            createdAt: serverTimestamp()
+        };
+
+        await addDoc(collection(db, "orders"), orderData);
+
+        // خصم الكميات من المخزون
+        const stockUpdates = {};
+        cart.forEach(item => {
+            const product = allProducts.find(p => p.name === item.name);
+            if (product && product.stockBySize && product.stockBySize[item.size] !== undefined) {
+                const productId = product.id;
+                const size = item.size;
+                if (!stockUpdates[productId]) stockUpdates[productId] = {};
+                stockUpdates[productId][size] = (stockUpdates[productId][size] || 0) + item.qty;
+            }
+        });
+
+        for (const [productId, sizes] of Object.entries(stockUpdates)) {
+            const product = allProducts.find(p => p.id === productId);
+            if (!product) continue;
+            const newStockBySize = { ...product.stockBySize };
+            for (const [size, qty] of Object.entries(sizes)) {
+                newStockBySize[size] = Math.max(0, (newStockBySize[size] || 0) - qty);
+            }
+            const productRef = doc(db, "products", productId);
+            await updateDoc(productRef, { stockBySize: newStockBySize });
+        }
+
+        let message = `🛍️ طلب جديد - VANTÉ\n\n`;
+        message += `📦 رقم الطلب: ${orderID}\n`;
+        message += `👤 الاسم: ${name}\n`;
+        message += `📱 الهاتف: ${phone}\n`;
+        message += `📍 المحافظة: ${gov}\n`;
+        message += `🏙️ المدينة: ${city}\n`;
+        message += `🏠 العنوان: ${address}\n\n`;
+
+        cart.forEach(item => {
+            message += `• ${item.name}\n`;
+            message += `المقاس: ${item.size}\n`;
+            message += `الكمية: ${item.qty}\n`;
+            message += `السعر: ${item.price * item.qty} جنيه\n\n`;
+        });
+
+        message += `🚚 الشحن: ${shipping} جنيه\n`;
+        message += `💰 الإجمالي: ${finalTotal} جنيه`;
+
+        const phoneNumber = "201106018685";
+        const encodedMessage = encodeURIComponent(message);
+        const appUrl = `whatsapp://send?phone=${phoneNumber}&text=${encodedMessage}`;
+        const webUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
+
+        // رسالة تأكيد قبل التحويل
+        alert("✅ تم حفظ طلبك بنجاح!\n\n📱 سيتم تحويلك الآن إلى واتساب.\n⚠️ من فضلك: اضغط على زر الإرسال (➤) لتأكيد طلبك.");
+
+        window.location.href = appUrl;
+
+        setTimeout(() => {
+            if (!document.hidden) {
+                window.open(webUrl, "_blank");
+            }
+        }, 2500);
+
+        cart = [];
+        localStorage.removeItem('vante_cart');
+        updateCart();
+
+        document.getElementById("name").value = "";
+        document.getElementById("phone").value = "";
+        document.getElementById("governorate").selectedIndex = 0;
+        document.getElementById("city").innerHTML = "";
+        document.getElementById("address").value = "";
+
+        closeCheckout();
+        closeCart();
+
+    } catch (error) {
+        console.error(error);
+        alert("❌ حدث خطأ أثناء إرسال الطلب. حاول مرة أخرى.");
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-check-circle"></i> تأكيد الطلب';
+    }
+}
 
 window.toggleCollections = function(e) {
     if (e) {
@@ -5654,7 +5887,8 @@ if (product?.comparePrice && product.comparePrice > price) {
         if (qty !== null) {
             label += qty > 0 ? ` (باقى ${qty} قطعه)` : ' (نفذت الكميه)';
                     }
-        sizeSelect.innerHTML += `<option value="${size}">${label}</option>`;
+        const isDisabled = (qty !== null && qty === 0);
+sizeSelect.innerHTML += `<option value="${size}" ${isDisabled ? 'disabled' : ''}>${label}</option>`;
     });
     
     updateModalStockDisplay();
@@ -6075,6 +6309,43 @@ window.setCategory = setCategory;
     color: #000 !important;
 }
 </style>
-
+<!-- ========== CUSTOM CONFIRM MODAL ========== -->
+<div id="customConfirmModal" class="confirm-modal">
+    <div class="confirm-modal-content">
+        <div class="confirm-modal-header">
+            <div class="icon-circle">
+                <i class="fas fa-shopping-bag"></i>
+            </div>
+            <h3>تأكيد الطلب</h3>
+        </div>
+        <div class="confirm-modal-body">
+            <p>سيتم تحويلك إلى <strong style="color:#25D366;">واتساب</strong> لإرسال الطلب وتأكيده.</p>
+            <div class="whatsapp-note">
+                <i class="fab fa-whatsapp"></i>
+                <div>
+                    <strong>⚠️ مهم جداً:</strong> بعد التحويل، يرجى الضغط على زر الإرسال <strong style="background:#25D366; color:#fff; padding:2px 8px; border-radius:20px;">➤</strong> في واتساب لتأكيد طلبك.
+                </div>
+            </div>
+            <p>هل أنت مستعد لإتمام الطلب؟</p>
+        </div>
+        <div class="confirm-modal-buttons">
+            <button class="confirm-btn-cancel" id="confirmCancelBtn">إلغاء</button>
+            <button class="confirm-btn-confirm" id="confirmOkBtn">✅ نعم، أكمل الطلب</button>
+        </div>
+    </div>
+</div>
+<script>
+    // تعريف customAlert باستخدام نظام الـ Toast الموجود (alert المعدلة)
+    if (typeof window.customAlert === 'undefined') {
+        window.customAlert = function(message, type = 'success') {
+            if (window.alert) {
+                window.alert(message, type);
+            } else {
+                // Fallback في حال لم تكن alert معرفة (لن يحدث)
+                alert(message);
+            }
+        };
+    }
+</script>
 </body>
 </html>
