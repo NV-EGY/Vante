@@ -711,22 +711,38 @@ window.deleteOrder = async (id) => {
     if (!orderSnap.exists()) throw new Error();
     const order = orderSnap.data();
     
-    // ✅ إعادة الكميات إلى المخزون
+    // ✅ إعادة الكميات إلى المخزون (مع مراعاة غير المحدود)
     for (const item of (order.orderDetails || [])) {
       if (!item.name || !item.size) continue;
-      const productSnap = await getDocs(query(collection(db, "products"), where("name", "==", item.name)));
-      if (!productSnap.empty()) {
-        const productRef = doc(db, "products", productSnap.docs[0].id);
-        const stockBySize = productSnap.docs[0].data().stockBySize || {};
-        if (stockBySize[item.size] !== undefined) {
-          stockBySize[item.size] += item.qty;  // ✅ إعادة الكمية
+      
+      // استخدم productId إذا كان موجوداً، وإلا ابحث بالاسم (للتوافق مع الطلبات القديمة)
+      let productId = item.productId;
+      let productDoc;
+      if (productId) {
+        productDoc = await getDoc(doc(db, "products", productId));
+      } else {
+        const productSnap = await getDocs(query(collection(db, "products"), where("name", "==", item.name)));
+        if (!productSnap.empty) productDoc = productSnap.docs[0];
+      }
+      
+      if (productDoc && productDoc.exists()) {
+        const productRef = doc(db, "products", productDoc.id);
+        const stockBySize = productDoc.data().stockBySize || {};
+        const currentStock = stockBySize[item.size];
+        
+        // ✅ إذا كان currentStock === null → غير محدود، لا نعدل
+        if (currentStock !== null && currentStock !== undefined) {
+          stockBySize[item.size] = (currentStock || 0) + item.qty;
           await updateDoc(productRef, { stockBySize });
         }
       }
     }
     await deleteDoc(doc(db, "orders", id));
     customAlert("تم حذف الطلب وإعادة المخزون بنجاح", 'success');
-  } catch(e) { alert("❌ خطأ"); }
+  } catch(e) {
+    console.error(e);
+    customAlert("❌ حدث خطأ أثناء الحذف", 'error');
+  }
 };
 
 window.editOrder = (id) => {
