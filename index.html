@@ -1254,6 +1254,8 @@ body.modal-open{
         z-index:5000;
         box-shadow:-10px 0 40px rgba(0,0,0,.25);
         transition:.4s ease;
+        overflow-y: auto;
+        overflow-x: hidden;
     }
 
     .mobile-menu.active{
@@ -5886,7 +5888,6 @@ function resetProductsDisplay() {
 window.setCategory = setCategory;
 
 </script>
-
 <!-- ========== FOOTER SECTION ========== -->
 <footer class="vante-footer">
     <div class="footer-container">
@@ -5894,34 +5895,34 @@ window.setCategory = setCategory;
             <h3>✨ VANTÉ</h3>
             <p>مجوهرات فاخرة تعكس أناقتك الخاصة. كل قطعة تحكي قصة.</p>
             <div class="footer-social">
-                <a href="#"><i class="fab fa-instagram"></i></a>
-                <a href="#"><i class="fab fa-facebook-f"></i></a>
-                <a href="#"><i class="fab fa-tiktok"></i></a>
-                <a href="#"><i class="fab fa-whatsapp"></i></a>
+                <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer"><i class="fab fa-instagram"></i></a>
+                <a href="https://www.facebook.com/share/1GGCQ2LTsg/" target="_blank" rel="noopener noreferrer"><i class="fab fa-facebook-f"></i></a>
+                <a href="https://tiktok.com/@vante_store1" target="_blank" rel="noopener noreferrer"><i class="fab fa-tiktok"></i></a>
+                <a href="https://wa.me/201106018685" target="_blank" rel="noopener noreferrer"><i class="fab fa-whatsapp"></i></a>
             </div>
         </div>
         <div class="footer-column">
             <h3>التسوق</h3>
             <ul>
-              <li style="margin-top: 10px; border-top: 1px solid #333; padding-top: 8px;">
-    <a href="https://taswekshope-gif.github.io/DAHAP/" target="_blank" rel="noopener noreferrer" style="color: #D4AF37; font-weight: 800;">
-        <i class="fas fa-crown"></i> سلاسل بالأسم حصرية من DAHAP
-    </a>
-</li>
+                <li style="margin-top: 10px; border-top: 1px solid #333; padding-top: 8px;">
+                    <a href="https://taswekshope-gif.github.io/DAHAP/" target="_blank" rel="noopener noreferrer" style="color: #D4AF37; font-weight: 800;">
+                        <i class="fas fa-crown"></i> سلاسل بالأسم حصرية من DAHAP
+                    </a>
+                </li>
                 <li><a href="#" onclick="event.preventDefault(); window.setCategory('all')">كل المنتجات</a></li>
-<li><a href="#" onclick="event.preventDefault(); window.setCategory('necklaces')">سلاسل & كوليهات</a></li>
-<li><a href="#" onclick="event.preventDefault(); window.setCategory('bracelets')">أساور & غوايش</a></li>
-<li><a href="#" onclick="event.preventDefault(); window.setCategory('rings')">خواتم & دبل</a></li>
-<li><a href="#" onclick="event.preventDefault(); window.setCategory('earrings')">حلقان</a></li>
-<li><a href="#" onclick="event.preventDefault(); window.setCategory('sets')">أطقم</a></li>
-<li><a href="#" onclick="event.preventDefault(); window.setCategory('anklets')">خلخال</a></li>
+                <li><a href="#" onclick="event.preventDefault(); window.setCategory('necklaces')">سلاسل & كوليهات</a></li>
+                <li><a href="#" onclick="event.preventDefault(); window.setCategory('bracelets')">أساور & غوايش</a></li>
+                <li><a href="#" onclick="event.preventDefault(); window.setCategory('rings')">خواتم & دبل</a></li>
+                <li><a href="#" onclick="event.preventDefault(); window.setCategory('earrings')">حلقان</a></li>
+                <li><a href="#" onclick="event.preventDefault(); window.setCategory('sets')">أطقم</a></li>
+                <li><a href="#" onclick="event.preventDefault(); window.setCategory('anklets')">خلخال</a></li>
             </ul>
         </div>
         <div class="footer-column">
             <h3>خدمة العملاء</h3>
             <ul>
-              <li><a href="#" onclick="openContactModal(event); return false;">تواصل معنا</a></li>
-              <li><a href="#" onclick="openInfoModal(); return false;">سياسة الشحن والإرجاع </a></li>
+                <li><a href="#" onclick="openContactModal(event); return false;">تواصل معنا</a></li>
+                <li><a href="#" onclick="openInfoModal(); return false;">سياسة الشحن والإرجاع</a></li>
                 <li><a href="#" onclick="openInfoModal(); return false;">دليل المقاسات</a></li>
                 <li><a href="#" onclick="openInfoModal(); return false;">تغليف المنتج</a></li>
                 <li><a href="#" onclick="openInfoModal(); return false;">الأسئلة الشائعة</a></li>
@@ -5932,7 +5933,7 @@ window.setCategory = setCategory;
             <ul class="contact-info">
                 <li><i class="fas fa-phone"></i> <span dir="ltr">+20 110 601 8685</span></li>
                 <li><i class="fab fa-whatsapp"></i> <span dir="ltr">+20 110 601 8685</span></li>
-                <li><i class="fas fa-envelope"></i> info@vante.com</li>
+                <li><i class="fas fa-envelope"></i> vantestore1@gmail.com</li>
             </ul>
         </div>
     </div>
