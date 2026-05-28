@@ -787,6 +787,34 @@ h2 {
     }
 }
 
+.coupon-card {
+    background: #fff;
+    border: 1px solid #eef2f5;
+    border-radius: 20px;
+    padding: 15px;
+    margin-top: 16px;
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+.coupon-info {
+    flex: 1;
+}
+.coupon-code {
+    background: #f5f5f5;
+    padding: 5px 12px;
+    border-radius: 30px;
+    font-family: monospace;
+    font-weight: bold;
+    color: #D4AF37;
+}
+.coupon-expired {
+    opacity: 0.6;
+    filter: grayscale(0.2);
+}
+
 </style>
 </head>
 
@@ -809,6 +837,73 @@ h2 {
 
 <!-- إحصائيات المخزون -->
 <div class="stock-stats" id="stockStats"></div>
+<!-- ========== إدارة كوبونات الخصم ========== -->
+<div class="form-section" style="margin-top: 30px;">
+  <h3 class="form-title">🎟️ إدارة كوبونات الخصم</h3>
+  
+  <!-- نموذج إضافة/تعديل كوبون -->
+  <div id="couponForm" style="margin-bottom: 30px; background:#fafbfc; padding:20px; border-radius:20px;">
+    <div class="form-row">
+      <div class="form-group">
+        <label><i class="fas fa-ticket-alt"></i> كود الخصم</label>
+        <input type="text" id="couponCode" placeholder="مثال: SUMMER20" style="text-transform:uppercase">
+      </div>
+      <div class="form-group">
+        <label><i class="fas fa-percent"></i> نوع الخصم</label>
+        <select id="couponDiscountType">
+          <option value="percentage">نسبة مئوية (%)</option>
+          <option value="fixed">قيمة ثابتة (جنيه)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label><i class="fas fa-chart-line"></i> قيمة الخصم</label>
+        <input type="number" id="couponDiscountValue" placeholder="10">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label><i class="fas fa-tag"></i> يطبق على</label>
+        <select id="couponAppliesTo">
+  <option value="all">كل السلة</option>
+  <option value="product">منتج محدد</option>
+  <option value="random">منتج واحد عشوائي</option>
+</select>
+      </div>
+      <div class="form-group" id="productSelectGroup" style="display:none;">
+        <label><i class="fas fa-box"></i> اختر المنتج</label>
+        <select id="couponProductId"></select>
+      </div>
+      
+      <div class="form-group">
+        <label><i class="fas fa-calendar-alt"></i> تاريخ الانتهاء</label>
+        <input type="date" id="couponExpiryDate">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label><i class="fas fa-users"></i> الحد الأقصى للاستخدام</label>
+        <input type="number" id="couponMaxUses" placeholder="كم مرة يمكن استعماله؟">
+      </div>
+      <div class="form-group">
+        <label><i class="fas fa-check-circle"></i> الحالة</label>
+        <select id="couponIsActive">
+          <option value="true">نشط</option>
+          <option value="false">غير نشط</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button onclick="saveCoupon()" class="primary-btn" id="saveCouponBtn"><i class="fas fa-save"></i> حفظ الكوبون</button>
+      <button onclick="cancelCouponEdit()" class="cancel-btn" id="cancelCouponBtn" style="display:none;">إلغاء التعديل</button>
+    </div>
+  </div>
+
+  <!-- قائمة الكوبونات -->
+  <div class="products-header">
+    <h3><i class="fas fa-list"></i> الكوبونات الموجودة</h3>
+  </div>
+  <div id="couponsList">⏳ جاري تحميل الكوبونات...</div>
+</div>
 <!-- ========== نموذج إضافة/تعديل المنتج ========== -->
 <div class="form-section">
     <h3 class="form-title">➕ إضافة / تعديل منتج</h3>
@@ -959,6 +1054,19 @@ h2 {
             <!-- مكان للفراغ أو إضافات مستقبلية -->
         </div>
     </div>
+    <div class="form-row">
+    <div class="form-group">
+        <label><i class="fas fa-ban"></i> قابل للخصم (كوبونات)</label>
+        <select id="discountable">
+            <option value="true">✅ نعم، قابل للخصم</option>
+            <option value="false">❌ لا، غير قابل للخصم</option>
+        </select>
+        <small class="input-hint">إذا اخترت "لا"، لن يشمل هذا المنتج أي خصم من الكوبونات</small>
+    </div>
+    <div class="form-group">
+        <!-- مكان فارغ للمحاذاة -->
+    </div>
+</div>
 
     <!-- حاوية الكميات حسب المقاس -->
     <div id="sizeStockContainer">
@@ -1006,7 +1114,7 @@ h2 {
 <script type="module">
   // 1. استيراد Firebase بالترتيب الصحيح
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, serverTimestamp, query, orderBy, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, serverTimestamp, query, orderBy, updateDoc, Timestamp, increment } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
   import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
   // 2. إعدادات Firebase (نفس إعدادات الطلبات)
@@ -1030,6 +1138,204 @@ h2 {
       window.location.href = "login.html";
     }
   });
+
+// ========== إدارة كوبونات الخصم ==========
+let editingCouponId = null;
+let allCoupons = [];
+let allProductsForCoupon = [];      // تعريف مرة واحدة فقط
+
+// تحميل المنتجات لاستخدامها في اختيار المنتج للكوبون
+function loadProductsForCouponSelect() {
+    const select = document.getElementById('couponProductId');
+    if (!select) return;
+    select.innerHTML = '<option value="">-- اختر منتج --</option>';
+    allProductsForCoupon.forEach(p => {
+        select.innerHTML += `<option value="${p.id}">${p.name}</option>`;
+    });
+}
+
+// إظهار/إخفاء اختيار المنتج حسب نوع التطبيق
+document.getElementById('couponAppliesTo')?.addEventListener('change', function(e) {
+    const group = document.getElementById('productSelectGroup');
+    if (group) group.style.display = e.target.value === 'product' ? 'flex' : 'none';
+});
+
+// تحميل الكوبونات من Firestore
+function loadCoupons() {
+    const q = query(collection(db, "coupons"), orderBy("createdAt", "desc"));
+    onSnapshot(q, (snapshot) => {
+        allCoupons = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        renderCouponsList();
+    });
+}
+
+// عرض الكوبونات
+function renderCouponsList() {
+    const container = document.getElementById("couponsList");
+    if (!container) return;
+    if (!allCoupons.length) {
+        container.innerHTML = "<p class='loading-error'>لا توجد كوبونات مضافة</p>";
+        return;
+    }
+    let html = "";
+    allCoupons.forEach(c => {
+        const isExpired = c.expiryDate?.toDate && c.expiryDate.toDate() < new Date();
+        const expiredClass = isExpired ? "coupon-expired" : "";
+        const discountStr = c.discountType === "percentage" ? `${c.discountValue}%` : `${c.discountValue} جنيه`;
+        const productName = (c.appliesTo === "product" && c.productId) 
+            ? (allProductsForCoupon.find(p => p.id === c.productId)?.name || "غير معروف")
+            : "";
+        let appliesStr = "";
+if (c.appliesTo === "all") appliesStr = "السلة بالكامل";
+else if (c.appliesTo === "random") appliesStr = "منتج واحد عشوائي";
+else appliesStr = `منتج: ${productName}`;
+        html += `
+            <div class="coupon-card ${expiredClass}">
+                <div class="coupon-info">
+                    <div><span class="coupon-code">${c.code}</span> &nbsp; <strong>${discountStr}</strong></div>
+                    <div><small>${appliesStr} | استخدم ${c.usedCount || 0}/${c.maxUses || '∞'} | ${c.isActive ? '✅ نشط' : '⛔ غير نشط'} | ينتهي: ${c.expiryDate?.toDate ? c.expiryDate.toDate().toLocaleDateString('ar-EG') : 'لا يوجد'}</small></div>
+                </div>
+                <div>
+                    <button class="edit-btn" onclick="editCoupon('${c.id}')">✏️ تعديل</button>
+                    <button class="delete-btn" onclick="deleteCoupon('${c.id}')">🗑️ حذف</button>
+                </div>
+            </div>
+        `;
+    });
+    container.innerHTML = html;
+}
+
+// حفظ كوبون (جديد أو تعديل)
+window.saveCoupon = async function() {
+    try {
+        // قراءة القيم من المدخلات
+        const code = document.getElementById("couponCode").value.trim().toUpperCase();
+        const discountType = document.getElementById("couponDiscountType").value;
+        const discountValue = Number(document.getElementById("couponDiscountValue").value);
+        const appliesTo = document.getElementById("couponAppliesTo").value;
+let productId = null;
+if (appliesTo === "product") {
+    productId = document.getElementById("couponProductId").value;
+    if (!productId) {
+        customAlert("اختر منتجاً أولاً", "warning");
+        return;
+    }
+}
+// إذا كان random، productId يبقى null (لا نحتاج لاختيار منتج)
+        const expiryDateStr = document.getElementById("couponExpiryDate").value;
+        const maxUses = Number(document.getElementById("couponMaxUses").value) || null;
+        const isActive = document.getElementById("couponIsActive").value === "true";
+
+        if (!code || !discountValue) {
+            customAlert("يرجى إدخال الكود وقيمة الخصم", "warning");
+            return;
+        }
+
+        let expiryTimestamp = null;
+        if (expiryDateStr) {
+            expiryTimestamp = new Date(expiryDateStr);
+            if (isNaN(expiryTimestamp.getTime())) {
+                customAlert("تاريخ الانتهاء غير صالح", "error");
+                return;
+            }
+        }
+
+        const couponData = {
+            code,
+            discountType,
+            discountValue,
+            appliesTo,
+            productId: appliesTo === "product" ? productId : null,
+            maxUses,
+            expiryDate: expiryTimestamp ? Timestamp.fromDate(expiryTimestamp) : null,
+            isActive,
+            updatedAt: serverTimestamp(),
+            description: `كود خصم ${code}`
+        };
+
+        if (!editingCouponId) {
+            couponData.createdAt = serverTimestamp();
+            couponData.usedCount = 0;
+            await addDoc(collection(db, "coupons"), couponData);
+            customAlert("تم إضافة الكوبون بنجاح", "success");
+        } else {
+            await updateDoc(doc(db, "coupons", editingCouponId), couponData);
+            customAlert("تم تعديل الكوبون بنجاح", "success");
+            editingCouponId = null;
+            document.getElementById("saveCouponBtn").innerHTML = '<i class="fas fa-save"></i> حفظ الكوبون';
+            document.getElementById("cancelCouponBtn").style.display = "none";
+        }
+
+        clearCouponForm();
+    } catch (error) {
+        console.error("خطأ في حفظ الكوبون:", error);
+        customAlert("حدث خطأ أثناء الحفظ: " + error.message, "error");
+    }
+};
+
+window.editCoupon = function(id) {
+    const coupon = allCoupons.find(c => c.id === id);
+    if (!coupon) return;
+    editingCouponId = id;
+    document.getElementById("couponCode").value = coupon.code || "";
+    document.getElementById("couponDiscountType").value = coupon.discountType || "percentage";
+    document.getElementById("couponDiscountValue").value = coupon.discountValue || "";
+    document.getElementById("couponAppliesTo").value = coupon.appliesTo || "all";
+    if (coupon.appliesTo === "product") {
+    document.getElementById("productSelectGroup").style.display = "flex";
+    document.getElementById("couponProductId").value = coupon.productId || "";
+} else {
+    document.getElementById("productSelectGroup").style.display = "none";
+}
+// لا داعي لتغيير إضافي لأن random يخفي الـ select
+    if (coupon.expiryDate?.toDate) {
+        const d = coupon.expiryDate.toDate();
+        document.getElementById("couponExpiryDate").value = d.toISOString().slice(0, 10);
+    } else {
+        document.getElementById("couponExpiryDate").value = "";
+    }
+    document.getElementById("couponMaxUses").value = coupon.maxUses || "";
+    document.getElementById("couponIsActive").value = coupon.isActive ? "true" : "false";
+    document.getElementById("saveCouponBtn").innerHTML = '<i class="fas fa-edit"></i> تحديث الكوبون';
+    document.getElementById("cancelCouponBtn").style.display = "block";
+};
+
+window.cancelCouponEdit = function() {
+    editingCouponId = null;
+    clearCouponForm();
+    document.getElementById("saveCouponBtn").innerHTML = '<i class="fas fa-save"></i> حفظ الكوبون';
+    document.getElementById("cancelCouponBtn").style.display = "none";
+};
+
+function clearCouponForm() {
+    document.getElementById("couponCode").value = "";
+    document.getElementById("couponDiscountValue").value = "";
+    document.getElementById("couponExpiryDate").value = "";
+    document.getElementById("couponMaxUses").value = "";
+    document.getElementById("couponIsActive").value = "true";
+    document.getElementById("couponAppliesTo").value = "all";
+    document.getElementById("productSelectGroup").style.display = "none";
+    document.getElementById("couponProductId").value = "";
+}
+
+window.deleteCoupon = async function(id) {
+    const confirm = await window.customConfirm("⚠️ هل أنت متأكد من حذف هذا الكوبون؟");
+    if (!confirm) return;
+    await deleteDoc(doc(db, "coupons", id));
+    customAlert("تم الحذف", "success");
+};
+
+if (window.allProducts && window.allProducts.length) {
+    allProductsForCoupon = [...window.allProducts];
+    loadProductsForCouponSelect();
+    loadCoupons();
+} else {
+    setTimeout(() => {
+        allProductsForCoupon = [...window.allProducts];
+        loadProductsForCouponSelect();
+        loadCoupons();
+    }, 1000);
+}
 
   // ========== بقية الكود (جميع الدوال كما هي دون تغيير يذكر) ==========
   let currentStockFilter = "all";
@@ -1331,6 +1637,7 @@ function getStockStatus(product) {
               return `<span style="color:${color}; font-weight:${(qty === null || qty === 0) ? 'bold' : 'normal'};">${size}: ${displayQty}</span>`;
             }).join(" | ") || "غير محدد"}</small><br>
             <small>القسم: ${product.categoryLabel || "عام"}</small><br>
+            <small>قابل للخصم: ${product.discountable !== false ? '✅ نعم' : '❌ لا'}</small><br>
             <small>صور إضافية: ${(product.additionalImages && product.additionalImages.length) ? product.additionalImages.length + " صور" : "لا يوجد"}</small>
           </div>
           <div>
@@ -1393,9 +1700,10 @@ function getStockStatus(product) {
       return;
     }
     const productData = {
-      name, price, image, additionalImages, category, categoryLabel: rawCategory,
-      description, sizes, comparePrice, stockBySize, updatedAt: serverTimestamp()
-    };
+    name, price, image, additionalImages, category, categoryLabel: rawCategory,
+    description, sizes, comparePrice, stockBySize, updatedAt: serverTimestamp(),
+    discountable: document.getElementById("discountable").value === "true"   // أضف هذا السطر
+};
     if (editingProductId) {
       await updateDoc(doc(db, "products", editingProductId), productData);
       customAlert("تم تحديث المنتج بنجاح");
@@ -1429,6 +1737,7 @@ function getStockStatus(product) {
     if (editor) editor.innerHTML = "";
     document.getElementById("description").value = "";
     document.getElementById("sizeStockInputs").innerHTML = '<p style="color:#888; font-size:13px; text-align:center;">أدخل المقاسات أولاً ثم اضغط "تحديث حقول الكميات"</p>';
+    document.getElementById("discountable").value = "true";
     window._editingStockBySize = {};
   }
 
@@ -1448,6 +1757,7 @@ function getStockStatus(product) {
     generateSizeStockInputs();
     document.getElementById("addBtn").textContent = "حفظ التعديل";
     document.getElementById("cancelBtn").style.display = "block";
+    document.getElementById("discountable").value = data.discountable !== false ? "true" : "false";
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -1466,14 +1776,22 @@ function getStockStatus(product) {
   window.location.href = "admin-orders.html";
 };
 
-  window.allProducts = [];
+window.allProducts = [];
 window.allProductsLoaded = false;
-  const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
-onSnapshot(q, (snapshot) => {
+
+// تعريف واحد فقط لـ q
+const productsQuery = query(collection(db, "products"), orderBy("createdAt", "desc"));
+
+onSnapshot(productsQuery, (snapshot) => {
     window.allProducts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     window.allProductsLoaded = true;
-    console.log("✅ تم تحميل المنتجات:", window.allProducts.length);
-    renderFilteredProducts();
+    
+    // تحديث قائمة المنتجات للكوبونات
+    allProductsForCoupon = [...window.allProducts];
+    loadProductsForCouponSelect();      // تعبئة السليكت
+    if (typeof loadCoupons === 'function') loadCoupons();  // تحميل الكوبونات
+    
+    renderFilteredProducts();            // عرض المنتجات
 });
 </script>
 
