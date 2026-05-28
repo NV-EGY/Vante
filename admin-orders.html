@@ -1094,31 +1094,28 @@ window.customAlert = function(message, type = 'success', title = '') {
 window.switchTab = function(tab) {
     currentTab = tab;
     const ordersDiv = document.getElementById("orders");
-    const reviewsDiv = document.getElementById("reviewsPanel");
+    const reviewsPanel = document.getElementById("reviewsPanel");
     const ordersBtn = document.getElementById("tabOrdersBtn");
     const reviewsBtn = document.getElementById("tabReviewsBtn");
-    const filtersDiv = document.querySelector('.filters');      // الفلاتر العلوية (أيقونات الطلبات)
-    const reviewFiltersDiv = document.querySelector('#reviewFiltersContainer'); // فلاتر التقييمات
+    const filtersDiv = document.querySelector('.filters');  // أيقونات الطلبات
     
     if (tab === 'orders') {
         ordersDiv.style.display = "flex";
-        reviewsDiv.style.display = "none";
+        reviewsPanel.style.display = "none";
+        if (filtersDiv) filtersDiv.style.display = "flex";
         ordersBtn.style.background = "#0F7B65";
         ordersBtn.style.color = "#fff";
         reviewsBtn.style.background = "#ccc";
         reviewsBtn.style.color = "#333";
-        if (filtersDiv) filtersDiv.style.display = "flex";
-        if (reviewFiltersDiv) reviewFiltersDiv.style.display = "flex";
         render();
     } else {
         ordersDiv.style.display = "none";
-        reviewsDiv.style.display = "block";
+        reviewsPanel.style.display = "block";
+        if (filtersDiv) filtersDiv.style.display = "none";
         ordersBtn.style.background = "#ccc";
         ordersBtn.style.color = "#333";
         reviewsBtn.style.background = "#0F7B65";
         reviewsBtn.style.color = "#fff";
-        if (filtersDiv) filtersDiv.style.display = "none";
-        if (reviewFiltersDiv) reviewFiltersDiv.style.display = "flex";
         renderReviews();
     }
 };
