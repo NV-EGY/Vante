@@ -574,7 +574,23 @@
 .confirm-buttons button:hover {
   background: #f9f9f9;
 }
-
+#reviewFiltersContainer {
+    scrollbar-width: thin;
+}
+#reviewFiltersContainer::-webkit-scrollbar {
+    height: 3px;
+}
+#reviewFiltersContainer::-webkit-scrollbar-thumb {
+    background: #D4AF37;
+    border-radius: 10px;
+}
+.review-filter-btn {
+    transition: all 0.2s ease;
+}
+.review-filter-btn:hover {
+    transform: translateY(-1px);
+    opacity: 0.9;
+}
   </style>
 </head>
 <body>
@@ -618,11 +634,11 @@
 </div>
 <div id="orders"></div>
 <div id="reviewsPanel" style="display: none;">
-    <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; justify-content: center;">
-        <button onclick="setReviewFilter('all')" class="review-filter-btn active" data-review-filter="all" style="background: #0F7B65; color: #fff; border: none; padding: 6px 15px; border-radius: 20px; cursor: pointer;">كل التقييمات</button>
-        <button onclick="setReviewFilter('pending')" class="review-filter-btn" data-review-filter="pending" style="background: #f0f0f0; border: none; padding: 6px 15px; border-radius: 20px; cursor: pointer;">⏳ قيد المراجعة</button>
-        <button onclick="setReviewFilter('approved')" class="review-filter-btn" data-review-filter="approved" style="background: #f0f0f0; border: none; padding: 6px 15px; border-radius: 20px; cursor: pointer;">✅ تم النشر</button>
-        <button onclick="setReviewFilter('rejected')" class="review-filter-btn" data-review-filter="rejected" style="background: #f0f0f0; border: none; padding: 6px 15px; border-radius: 20px; cursor: pointer;">❌ محذوف</button>
+    <div id="reviewFiltersContainer" style="display: flex; gap: 10px; margin-bottom: 15px; overflow-x: auto; justify-content: center; flex-wrap: nowrap;">
+        <button onclick="setReviewFilter('all')" class="review-filter-btn active" data-review-filter="all" style="background: #0F7B65; color: #fff; border: none; padding: 6px 15px; border-radius: 20px; cursor: pointer; white-space: nowrap;">كل التقييمات</button>
+        <button onclick="setReviewFilter('pending')" class="review-filter-btn" data-review-filter="pending" style="background: #f0f0f0; border: none; padding: 6px 15px; border-radius: 20px; cursor: pointer; white-space: nowrap;">⏳ قيد المراجعة</button>
+        <button onclick="setReviewFilter('approved')" class="review-filter-btn" data-review-filter="approved" style="background: #f0f0f0; border: none; padding: 6px 15px; border-radius: 20px; cursor: pointer; white-space: nowrap;">✅ تم النشر</button>
+        <button onclick="setReviewFilter('rejected')" class="review-filter-btn" data-review-filter="rejected" style="background: #f0f0f0; border: none; padding: 6px 15px; border-radius: 20px; cursor: pointer; white-space: nowrap;">❌ محذوف</button>
     </div>
     <input type="text" id="reviewSearch" placeholder="🔍 بحث باسم المنتج أو المراجع" style="width: 100%; max-width: 400px; margin: 0 auto 15px; display: block; padding: 10px; border-radius: 30px; border: 1px solid #ddd;">
     <div id="reviewsList" style="display: flex; flex-direction: column; gap: 12px;"></div>
@@ -1081,7 +1097,7 @@ window.switchTab = function(tab) {
     const ordersBtn = document.getElementById("tabOrdersBtn");
     const reviewsBtn = document.getElementById("tabReviewsBtn");
     const filtersDiv = document.querySelector('.filters');      // الفلاتر العلوية (أيقونات الطلبات)
-    const reviewFiltersDiv = document.querySelector('#reviewsPanel .review-filters-container'); // فلاتر التقييمات
+    const reviewFiltersDiv = document.querySelector('#reviewFiltersContainer'); // فلاتر التقييمات
     
     if (tab === 'orders') {
         ordersDiv.style.display = "flex";
@@ -1090,8 +1106,8 @@ window.switchTab = function(tab) {
         ordersBtn.style.color = "#fff";
         reviewsBtn.style.background = "#ccc";
         reviewsBtn.style.color = "#333";
-        if (filtersDiv) filtersDiv.style.display = "flex";       // إظهار فلاتر الطلبات
-        if (reviewFiltersDiv) reviewFiltersDiv.style.display = "none"; // إخفاء فلاتر التقييمات
+        if (filtersDiv) filtersDiv.style.display = "flex";
+        if (reviewFiltersDiv) reviewFiltersDiv.style.display = "flex";
         render();
     } else {
         ordersDiv.style.display = "none";
@@ -1100,8 +1116,8 @@ window.switchTab = function(tab) {
         ordersBtn.style.color = "#333";
         reviewsBtn.style.background = "#0F7B65";
         reviewsBtn.style.color = "#fff";
-        if (filtersDiv) filtersDiv.style.display = "none";       // إخفاء فلاتر الطلبات
-        if (reviewFiltersDiv) reviewFiltersDiv.style.display = "flex"; // إظهار فلاتر التقييمات
+        if (filtersDiv) filtersDiv.style.display = "none";
+        if (reviewFiltersDiv) reviewFiltersDiv.style.display = "flex";
         renderReviews();
     }
 };
