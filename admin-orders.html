@@ -643,7 +643,6 @@
   <span id="count"></span>
 </div>
 <div id="orders"></div>
-<div id="reviewsPanel" style="display: none;">
 
 <!-- الشريط الثابت -->
 <div id="bulkActionsBar" class="bulk-actions-bar">
@@ -655,6 +654,9 @@
   <button class="bulk-status-btn cancelled" onclick="applyBulkStatus('cancelled')"><i class="fas fa-ban"></i> <span>إلغاء</span></button>
   <button class="clear-selection-btn" onclick="clearAllSelections()"><i class="fas fa-times"></i> <span>إلغاء</span></button>
 </div>
+
+<div id="reviewsPanel" style="display: none;">
+ </div>
 
 <div id="msgPopup" style="display:none;"><div class="popup-box"><div id="msgContent"></div><button onclick="closeMsg()" style="margin-top:10px;width:100%;padding:10px;border:none;background:#333;color:#fff;border-radius:10px;">إغلاق</button></div></div>
 <div id="messagesBox"><div class="inbox-header"><h3>📩 الرسائل</h3><span onclick="toggleInbox()">✖</span></div><div class="inbox-container"><div id="messagesList" class="inbox-list"></div><div id="messageView" class="inbox-view"><p style="text-align:center;color:#888;">اختر رسالة</p></div></div></div>
@@ -1097,7 +1099,7 @@ window.switchTab = function(tab) {
     const reviewsPanel = document.getElementById("reviewsPanel");
     const ordersBtn = document.getElementById("tabOrdersBtn");
     const reviewsBtn = document.getElementById("tabReviewsBtn");
-    const filtersDiv = document.querySelector('.filters');  // أيقونات الطلبات
+    const filtersDiv = document.querySelector('.filters');
     
     if (tab === 'orders') {
         ordersDiv.style.display = "flex";
