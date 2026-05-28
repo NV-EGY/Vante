@@ -1080,6 +1080,8 @@ window.switchTab = function(tab) {
     const reviewsDiv = document.getElementById("reviewsPanel");
     const ordersBtn = document.getElementById("tabOrdersBtn");
     const reviewsBtn = document.getElementById("tabReviewsBtn");
+    const filtersDiv = document.querySelector('.filters');      // الفلاتر العلوية (أيقونات الطلبات)
+    const reviewFiltersDiv = document.querySelector('#reviewsPanel .review-filters-container'); // فلاتر التقييمات
     
     if (tab === 'orders') {
         ordersDiv.style.display = "flex";
@@ -1088,6 +1090,8 @@ window.switchTab = function(tab) {
         ordersBtn.style.color = "#fff";
         reviewsBtn.style.background = "#ccc";
         reviewsBtn.style.color = "#333";
+        if (filtersDiv) filtersDiv.style.display = "flex";       // إظهار فلاتر الطلبات
+        if (reviewFiltersDiv) reviewFiltersDiv.style.display = "none"; // إخفاء فلاتر التقييمات
         render();
     } else {
         ordersDiv.style.display = "none";
@@ -1096,6 +1100,8 @@ window.switchTab = function(tab) {
         ordersBtn.style.color = "#333";
         reviewsBtn.style.background = "#0F7B65";
         reviewsBtn.style.color = "#fff";
+        if (filtersDiv) filtersDiv.style.display = "none";       // إخفاء فلاتر الطلبات
+        if (reviewFiltersDiv) reviewFiltersDiv.style.display = "flex"; // إظهار فلاتر التقييمات
         renderReviews();
     }
 };
