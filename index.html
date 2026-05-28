@@ -5301,16 +5301,31 @@ async function executeCheckout() {
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التحويل إلى واتساب...';
 
     try {
-        // ✅ 1. تحديث الخصم بناءً على السلة الحالية
+        // ========== 1. حساب الخصم بناءً على السلة الحالية ==========
+        // تأكد من وجود جميع productId في عناصر السلة
+        for (let item of cart) {
+            if (!item.productId && item.name) {
+                const product = allProducts.find(p => p.name === item.name);
+                if (product && product.id) item.productId = product.id;
+            }
+        }
+        localStorage.setItem('vante_cart', JSON.stringify(cart));
+        
+        // تحديث الخصم
         updateCartWithCoupon();
-
-        // ✅ 2. حفظ نسخة من بيانات الخصم الحالية (لأنها ستُمسح لاحقاً)
+        
+        // حفظ نسخة من الكوبون وقيمة الخصم قبل أي تعديل
         const savedCoupon = appliedCoupon ? { ...appliedCoupon } : null;
         const savedDiscount = discountAmount;
 
-        const ordersRef = collection(db, "orders");
+        // ========== 2. حساب قيم الطلب الأساسية ==========
+        const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+        const shipping = 70;
+        const finalTotalBefore = subtotal + shipping;
+        const finalTotalAfter = finalTotalBefore - savedDiscount;
 
-        // ✅ 3. إنشاء رقم الطلب (نفس الكود الأصلي)
+        // ========== 3. إنشاء رقم الطلب وبيانات العميل (نفس الكود الأصلي) ==========
+        const ordersRef = collection(db, "orders");
         const today = new Date();
         const yyyy = today.getFullYear();
         const mm = String(today.getMonth() + 1).padStart(2, '0');
@@ -5330,34 +5345,23 @@ async function executeCheckout() {
         const customerDocSnap = await getDocs(qCustomerDoc);
 
         let customerCode;
-
         if (!customerDocSnap.empty) {
             customerCode = customerDocSnap.docs[0].data().customerCode;
         } else {
             const counterRef = doc(db, "counters", "customers");
             const counterSnap = await getDoc(counterRef);
-            if (!counterSnap.exists()) {
-                await setDoc(counterRef, { value: 0 });
-            }
+            if (!counterSnap.exists()) await setDoc(counterRef, { value: 0 });
             await updateDoc(counterRef, { value: increment(1) });
             const newCustomerNumber = (await getDoc(counterRef)).data().value;
             customerCode = `V${newCustomerNumber}`;
             await setDoc(doc(db, "customers", phone), {
-                phone,
-                name,
-                customerCode,
-                createdAt: serverTimestamp()
+                phone, name, customerCode, createdAt: serverTimestamp()
             });
         }
 
         const orderID = `${customerCode}-${dateStr}${customerOrderCount}${String(dailyOrderCount).padStart(3, '0')}`;
-        
-        const quantity = cart.reduce((sum, item) => sum + item.qty, 0);
-        const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-        const shipping = 70;
-        const finalTotalBefore = subtotal + shipping;
-        const finalTotalAfter = finalTotalBefore - savedDiscount;
 
+        // ========== 4. تجهيز تفاصيل الطلب ==========
         const orderDetails = cart.map(item => ({
             productId: allProducts.find(p => p.name === item.name)?.id,
             name: item.name,
@@ -5367,7 +5371,7 @@ async function executeCheckout() {
             image: item.image || ""
         }));
 
-        // ✅ 4. بناء رسالة الواتساب باستخدام النسخة المحفوظة
+        // ========== 5. بناء رسالة الواتساب باستخدام القيم الصحيحة ==========
         let message = `🛍️ طلب جديد - VANTÉ\n\n`;
         message += `📦 رقم الطلب: ${orderID}\n`;
         message += `👤 الاسم: ${name}\n`;
@@ -5392,24 +5396,11 @@ async function executeCheckout() {
             message += `💰 الإجمالي: ${finalTotalBefore} جنيه\n`;
         }
 
-        // ✅ 5. الآن يمكن مسح الكوبون وتحديث عداد الاستخدام (بعد أخذ نسخة)
-        if (appliedCoupon) {
-            const couponRef = doc(db, "coupons", appliedCoupon.id);
-            await updateDoc(couponRef, { usedCount: increment(1) });
-            appliedCoupon = null;
-            discountAmount = 0;
-        }
-
-        // ✅ 6. حفظ الطلب في Firestore
+        // ========== 6. حفظ الطلب في Firestore ==========
         const orderData = {
-            orderID,
-            customerName: name,
-            phone,
-            gov,
-            city,
-            address,
+            orderID, customerName: name, phone, gov, city, address,
             orderDetails,
-            quantity,
+            quantity: cart.reduce((sum, i) => sum + i.qty, 0),
             price: subtotal,
             shipping,
             finalTotal: finalTotalAfter,
@@ -5430,7 +5421,15 @@ async function executeCheckout() {
         }
         await addDoc(collection(db, "orders"), orderData);
 
-        // ✅ 7. خصم المخزون (نفس الكود الأصلي)
+        // ========== 7. تحديث عداد استخدام الكوبون (إذا وجد) ==========
+        if (appliedCoupon) {
+            const couponRef = doc(db, "coupons", appliedCoupon.id);
+            await updateDoc(couponRef, { usedCount: increment(1) });
+            appliedCoupon = null;
+            discountAmount = 0;
+        }
+
+        // ========== 8. خصم المخزون (نفس الكود الأصلي) ==========
         const stockUpdates = {};
         cart.forEach(item => {
             const product = allProducts.find(p => p.name === item.name);
@@ -5443,7 +5442,6 @@ async function executeCheckout() {
                 stockUpdates[productId][size] = (stockUpdates[productId][size] || 0) + item.qty;
             }
         });
-
         for (const [productId, sizes] of Object.entries(stockUpdates)) {
             const product = allProducts.find(p => p.id === productId);
             if (!product) continue;
@@ -5453,11 +5451,10 @@ async function executeCheckout() {
                     newStockBySize[size] = Math.max(0, (newStockBySize[size] || 0) - qty);
                 }
             }
-            const productRef = doc(db, "products", productId);
-            await updateDoc(productRef, { stockBySize: newStockBySize });
+            await updateDoc(doc(db, "products", productId), { stockBySize: newStockBySize });
         }
 
-        // ✅ 8. إرسال واتساب
+        // ========== 9. إرسال واتساب ==========
         const phoneNumber = "201106018685";
         const encodedMessage = encodeURIComponent(message);
         const appUrl = `whatsapp://send?phone=${phoneNumber}&text=${encodedMessage}`;
@@ -5470,7 +5467,7 @@ async function executeCheckout() {
             if (!document.hidden) window.open(webUrl, "_blank");
         }, 2500);
 
-        // ✅ 9. تفريغ السلة وإغلاق النوافذ
+        // ========== 10. تفريغ السلة وإغلاق النوافذ ==========
         cart = [];
         localStorage.removeItem('vante_cart');
         updateCart();
@@ -5481,7 +5478,7 @@ async function executeCheckout() {
         console.error(error);
         alert("❌ حدث خطأ أثناء إرسال الطلب. حاول مرة أخرى.");
     } finally {
-        btn.disabled = false;
+        btn.disableda = false;
         btn.innerHTML = '<i class="fas fa-check-circle"></i> تأكيد الطلب';
     }
 }
