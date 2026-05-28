@@ -5426,7 +5426,12 @@ for (const [productId, sizes] of Object.entries(stockUpdates)) {
     await updateDoc(productRef, { stockBySize: newStockBySize });
 }
 
-        let message = `🛍️ طلب جديد - VANTÉ\n\n`;
+        // داخل executeCheckout، قبل بناء رسالة الواتساب، أضف هذا السطر
+// للتأكد من حساب الخصم بشكل صحيح بناءً على السلة الحالية والكوبون المطبق
+updateCartWithCoupon();
+
+// ثم استخدم discountAmount و appliedCoupon في بناء الرسالة كما هو موجود
+let message = `🛍️ طلب جديد - VANTÉ\n\n`;
 message += `📦 رقم الطلب: ${orderID}\n`;
 message += `👤 الاسم: ${name}\n`;
 message += `📱 الهاتف: ${phone}\n`;
@@ -5443,7 +5448,6 @@ cart.forEach(item => {
 
 message += `🚚 الشحن: ${shipping} جنيه\n`;
 
-// إضافة تفاصيل الخصم إن وجد
 if (appliedCoupon && discountAmount > 0) {
     const totalAfterDiscount = finalTotal - discountAmount;
     message += `🎟️ خصم (${appliedCoupon.code}): -${discountAmount} جنيه\n`;
