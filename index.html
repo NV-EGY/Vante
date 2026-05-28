@@ -5840,60 +5840,47 @@ function updateCartWithCoupon() {
                 }
                 discountAmount = Math.min(discountAmount, subtotalDiscountable);
             }
-            else if (appliedCoupon.appliesTo === "product" && appliedCoupon.productId) {
-                let product = allProducts.find(p => p.id === appliedCoupon.productId);
-                // إذا كان المنتج غير قابل للخصم، لا نطبق الخصم
-                if (product && product.discountable === false) {
-                    discountAmount = 0;
-                    document.getElementById("couponMessage").innerHTML = "⚠️ هذا المنتج غير قابل للخصم";
-                } else {
-                    let productSubtotal = 0;
-                    cart.forEach(item => {
-                        const p = allProducts.find(prod => prod.id === item.productId);
-                        if (p && p.id === appliedCoupon.productId) {
-                            productSubtotal += item.price * item.qty;
-                        }
-                    });
-                    if (appliedCoupon.discountType === "percentage") {
-                        discountAmount = (productSubtotal * appliedCoupon.discountValue) / 100;
-                    } else {
-                        discountAmount = Math.min(appliedCoupon.discountValue, productSubtotal);
-                    }
-                }
-            }
             else if (appliedCoupon.appliesTo === "random") {
-                if (!appliedCoupon.randomProductId) {
-                    // تصفية المنتجات القابلة للخصم فقط
-                    const eligibleItems = cart.filter(item => {
-                        const product = allProducts.find(p => p.id === item.productId);
-                        return item.productId && product && product.discountable !== false;
-                    });
-                    if (eligibleItems.length === 0) {
-                        discountAmount = 0;
-                        appliedCoupon = null;
-                        document.getElementById("couponMessage").innerHTML = "⚠️ لا يوجد منتج قابل للخصم لتطبيق الخصم العشوائي";
-                    } else {
-                        const randomIndex = Math.floor(Math.random() * eligibleItems.length);
-                        const randomItem = eligibleItems[randomIndex];
-                        appliedCoupon.randomProductId = randomItem.productId;
-                    }
-                }
-                if (appliedCoupon.randomProductId) {
-                    let productSubtotal = 0;
-                    cart.forEach(item => {
-                        if (item.productId === appliedCoupon.randomProductId) {
-                            productSubtotal += item.price * item.qty;
-                        }
-                    });
-                    if (appliedCoupon.discountType === "percentage") {
-                        discountAmount = (productSubtotal * appliedCoupon.discountValue) / 100;
-                    } else {
-                        discountAmount = Math.min(appliedCoupon.discountValue, productSubtotal);
-                    }
-                } else {
-                    discountAmount = 0;
-                }
+    if (!appliedCoupon.randomProductId) {
+        // تصفية المنتجات القابلة للخصم فقط
+        const eligibleItems = cart.filter(item => {
+            const product = allProducts.find(p => p.id === item.productId);
+            return item.productId && product && product.discountable !== false;
+        });
+        if (eligibleItems.length === 0) {
+            discountAmount = 0;
+            appliedCoupon = null;
+            document.getElementById("couponMessage").innerHTML = "⚠️ لا يوجد منتج قابل للخصم لتطبيق الخصم العشوائي";
+        } else {
+            const randomIndex = Math.floor(Math.random() * eligibleItems.length);
+            const randomItem = eligibleItems[randomIndex];
+            appliedCoupon.randomProductId = randomItem.productId;
+        }
+    }
+    if (appliedCoupon.randomProductId) {
+        let productUnitPrice = 0;
+        // نأخذ سعر القطعة الواحدة من المنتج العشوائي (أول ظهور)
+        for (let item of cart) {
+            if (item.productId === appliedCoupon.randomProductId) {
+                productUnitPrice = item.price;
+                break;
             }
+        }
+        if (productUnitPrice > 0) {
+            if (appliedCoupon.discountType === "percentage") {
+                discountAmount = (productUnitPrice * appliedCoupon.discountValue) / 100;
+            } else {
+                discountAmount = Math.min(appliedCoupon.discountValue, productUnitPrice);
+            }
+            // نمنع الخصم من تجاوز سعر القطعة الواحدة
+            discountAmount = Math.min(discountAmount, productUnitPrice);
+        } else {
+            discountAmount = 0;
+        }
+    } else {
+        discountAmount = 0;
+    }
+}
         } else {
             appliedCoupon = null;
         }
