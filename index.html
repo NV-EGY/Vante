@@ -3661,8 +3661,19 @@ body.modal-open{
         <h2>🛒 سلة التسوق</h2>
         <div id="cartItems">السلة فارغة</div>
         <div class="total">الإجمالي: <span id="total">0</span> جنيه</div>
+        <!-- داخل div#cartDrawer، بعد سلة التسوق مباشرة -->
+<div style="margin: 15px 0;">
+    <div style="display: flex; gap: 10px; align-items: center; justify-content: space-between; background: #f5f5f5; padding: 8px; border-radius: 40px;">
+        <input type="text" id="couponInput" placeholder="أدخل كود الخصم" style="flex: 1; background: transparent; border: none; padding: 12px; outline: none;">
+        <button id="applyCouponBtn" style="background: #D4AF37; border: none; border-radius: 30px; padding: 8px 16px; font-weight: bold; cursor: pointer;">تطبيق</button>
+    </div>
+    <button onclick="removeCoupon()" style="background: none; border: none; color: #c0392b; font-size: 12px;">إلغاء الخصم</button>
+    
+    <div id="couponMessage" style="font-size: 12px; margin-top: 6px; color: #D4AF37;"></div>
+</div>
         <button class="btn-primary" onclick="openCheckout()">تأكيد الطلب</button>
         <button class="btn-secondary" onclick="closeCart()">إغلاق</button>
+        
     </div>
 
     <div id="overlay" onclick="closeCart()"></div>
@@ -5031,47 +5042,42 @@ document.head.appendChild(style);
     // ========== السلة ==========
     let cart = JSON.parse(localStorage.getItem('vante_cart') || '[]');
 if (typeof updateCart === 'function') updateCart();
-    window.addToCart = function(name, price, size, image, comparePrice = null) {
+    window.addToCart = function(name, price, size, image, comparePrice = null, productId = null) {
     const product = allProducts.find(p => p.name === name);
     
-    // ✅ تحديد قيمة المخزون لهذا المقاس
-    let stockValue = -1; // -1 = غير محدد/غير محدود
+    let stockValue = -1;
     if (product && product.stockBySize) {
         if (product.stockBySize[size] !== undefined) {
             stockValue = product.stockBySize[size];
         }
     }
     
-    // ✅ stockValue === null أو undefined يعني كمية غير محدودة
-    // ✅ stockValue === 0 يعني نفذت
-    // ✅ stockValue > 0 يعني محدودة
-    
     if (stockValue === 0) {
         customAlert(`❌ عذراً، مقاس ${size} غير متوفر حالياً.`, 'error');
         return false;
     }
     
-    // ✅ فحص الكمية إذا كانت محدودة (وليست غير محدودة)
     if (stockValue !== null && stockValue !== undefined && stockValue > 0) {
         const currentQtyInCart = cart.reduce((sum, item) => {
             return item.name === name && item.size === size ? sum + item.qty : sum;
         }, 0);
-        
         if (currentQtyInCart + 1 > stockValue) {
             customAlert(`❌ الكمية المتاحة المتبقية لمقاس ${size} هي ${stockValue - currentQtyInCart} قطعة فقط.`, 'error');
             return false;
         }
     }
     
-    // ✅ stockValue === null أو undefined → غير محدود (نضيف بدون قيود)
     const existing = cart.find(item => item.name === name && item.size === size);
     const productComparePrice = comparePrice !== null ? comparePrice : (allProducts.find(p => p.name === name)?.comparePrice || null);
+    
+    // ✅ تحديد productId النهائي (إذا لم يُمرر، نحاول استخراجه من allProducts)
+    const finalProductId = productId || (allProducts.find(p => p.name === name)?.id || null);
     
     if (existing) {
         existing.qty += 1;
         customAlert(`✅ تم زيادة الكمية لـ ${name} - مقاس ${size}`, 'success');
     } else {
-        cart.push({ name, price, size, image, comparePrice: productComparePrice, qty: 1 });
+        cart.push({ name, price, size, image, comparePrice: productComparePrice, qty: 1, productId: finalProductId });
         customAlert(`✅ تم إضافة ${name} - مقاس ${size} إلى السلة`, 'success');
     }
     
@@ -5089,7 +5095,6 @@ if (typeof updateCart === 'function') updateCart();
     const size = select.value;
     const product = window.allProducts.find(p => p.id === productId);
     
-    // التحقق من أن الخيار ليس disabled (للمقاسات المنفذة)
     const selectedOption = select.options[select.selectedIndex];
     if (selectedOption && selectedOption.disabled) {
         customAlert(`❌ عذراً، مقاس ${size} غير متوفر حالياً.`, 'error');
@@ -5113,11 +5118,11 @@ if (typeof updateCart === 'function') updateCart();
     }
     
     const comparePrice = product?.comparePrice || null;
-    const addResult = window.addToCart(name, Number(price), size, image, comparePrice);
+    // ✅ تمرير productId إلى addToCart
+    const addResult = window.addToCart(name, Number(price), size, image, comparePrice, productId);
     
     if (addResult !== false) {
         updateCart();
-        // ✅ تأخير بسيط لضمان تحديث واجهة السلة قبل فتحها
         setTimeout(() => {
             window.openCart();
         }, 50);
@@ -5369,8 +5374,28 @@ async function executeCheckout() {
             date: dateStr,
             createdAt: serverTimestamp()
         };
+        // إضافة بيانات الكوبون إلى الطلب
+if (appliedCoupon) {
+    orderData.coupon = {
+        code: appliedCoupon.code,
+        discountType: appliedCoupon.discountType,
+        discountValue: appliedCoupon.discountValue,
+        appliesTo: appliedCoupon.appliesTo,
+        productId: appliedCoupon.productId || null,
+        discountAmount: discountAmount,
+        finalTotal: finalTotal - discountAmount
+    };
+    orderData.finalTotal = finalTotal - discountAmount;
+}
 
         await addDoc(collection(db, "orders"), orderData);
+        // زيادة عداد استخدام الكوبون وإعادة تعيينه
+if (appliedCoupon) {
+    const couponRef = doc(db, "coupons", appliedCoupon.id);
+    await updateDoc(couponRef, { usedCount: increment(1) });
+    appliedCoupon = null;
+    discountAmount = 0;
+}
 // خصم الكميات من المخزون (تجاهل المقاسات غير المحدودة)
 const stockUpdates = {};
 cart.forEach(item => {
@@ -5402,22 +5427,30 @@ for (const [productId, sizes] of Object.entries(stockUpdates)) {
 }
 
         let message = `🛍️ طلب جديد - VANTÉ\n\n`;
-        message += `📦 رقم الطلب: ${orderID}\n`;
-        message += `👤 الاسم: ${name}\n`;
-        message += `📱 الهاتف: ${phone}\n`;
-        message += `📍 المحافظة: ${gov}\n`;
-        message += `🏙️ المدينة: ${city}\n`;
-        message += `🏠 العنوان: ${address}\n\n`;
+message += `📦 رقم الطلب: ${orderID}\n`;
+message += `👤 الاسم: ${name}\n`;
+message += `📱 الهاتف: ${phone}\n`;
+message += `📍 المحافظة: ${gov}\n`;
+message += `🏙️ المدينة: ${city}\n`;
+message += `🏠 العنوان: ${address}\n\n`;
 
-        cart.forEach(item => {
-            message += `• ${item.name}\n`;
-            message += `المقاس: ${item.size}\n`;
-            message += `الكمية: ${item.qty}\n`;
-            message += `السعر: ${item.price * item.qty} جنيه\n\n`;
-        });
+cart.forEach(item => {
+    message += `• ${item.name}\n`;
+    message += `المقاس: ${item.size}\n`;
+    message += `الكمية: ${item.qty}\n`;
+    message += `السعر: ${item.price * item.qty} جنيه\n\n`;
+});
 
-        message += `🚚 الشحن: ${shipping} جنيه\n`;
-        message += `💰 الإجمالي: ${finalTotal} جنيه`;
+message += `🚚 الشحن: ${shipping} جنيه\n`;
+
+// إضافة تفاصيل الخصم إن وجد
+if (appliedCoupon && discountAmount > 0) {
+    const totalAfterDiscount = finalTotal - discountAmount;
+    message += `🎟️ خصم (${appliedCoupon.code}): -${discountAmount} جنيه\n`;
+    message += `💰 الإجمالي بعد الخصم: ${totalAfterDiscount} جنيه\n`;
+} else {
+    message += `💰 الإجمالي: ${finalTotal} جنيه\n`;
+}
 
         const phoneNumber = "201106018685";
         const encodedMessage = encodeURIComponent(message);
@@ -5751,6 +5784,200 @@ document.addEventListener('change', function(e) {
         }
     }
 });
+
+// ========== نظام كوبونات الخصم ==========
+let appliedCoupon = null;
+let discountAmount = 0;
+
+// دالة تحديث الإجمالي مع الخصم
+function updateCartWithCoupon() {
+    // التحقق من صلاحية الكوبون المطبق
+    if (appliedCoupon) {
+        const now = new Date();
+        if (appliedCoupon.expiryDate?.toDate && appliedCoupon.expiryDate.toDate() < now) {
+            appliedCoupon = null;
+            discountAmount = 0;
+            document.getElementById("couponMessage").innerHTML = "⚠️ انتهت صلاحية الكوبون";
+        } else if (appliedCoupon.maxUses && appliedCoupon.usedCount >= appliedCoupon.maxUses) {
+            appliedCoupon = null;
+            discountAmount = 0;
+            document.getElementById("couponMessage").innerHTML = "⚠️ تم استخدام هذا الكوبون أقصى عدد من المرات";
+        }
+    }
+
+    // تحديث المنتجات القديمة في السلة (إضافة productId مفقود)
+    let needUpdate = false;
+    for (let item of cart) {
+        if (!item.productId && item.name) {
+            const product = allProducts.find(p => p.name === item.name);
+            if (product && product.id) {
+                item.productId = product.id;
+                needUpdate = true;
+            }
+        }
+    }
+    if (needUpdate) {
+        localStorage.setItem('vante_cart', JSON.stringify(cart));
+    }
+
+    let subtotal = 0;
+    let subtotalDiscountable = 0; // مجموع المنتجات القابلة للخصم فقط
+    cart.forEach(item => {
+        subtotal += item.price * item.qty;
+        const product = allProducts.find(p => p.id === item.productId);
+        if (product && product.discountable !== false) {
+            subtotalDiscountable += item.price * item.qty;
+        }
+    });
+
+    let finalTotal = subtotal;
+    discountAmount = 0;
+    if (appliedCoupon && appliedCoupon.isActive !== false) {
+        let isValid = true;
+        if (appliedCoupon.expiryDate?.toDate && appliedCoupon.expiryDate.toDate() < new Date()) isValid = false;
+        if (isValid && appliedCoupon.maxUses && appliedCoupon.usedCount >= appliedCoupon.maxUses) isValid = false;
+
+        if (isValid) {
+            if (appliedCoupon.appliesTo === "all") {
+                // الخصم على السلة بالكامل، ولكن فقط على المنتجات القابلة للخصم
+                if (appliedCoupon.discountType === "percentage") {
+                    discountAmount = (subtotalDiscountable * appliedCoupon.discountValue) / 100;
+                } else {
+                    discountAmount = appliedCoupon.discountValue;
+                }
+                discountAmount = Math.min(discountAmount, subtotalDiscountable);
+            }
+            else if (appliedCoupon.appliesTo === "product" && appliedCoupon.productId) {
+                let product = allProducts.find(p => p.id === appliedCoupon.productId);
+                // إذا كان المنتج غير قابل للخصم، لا نطبق الخصم
+                if (product && product.discountable === false) {
+                    discountAmount = 0;
+                    document.getElementById("couponMessage").innerHTML = "⚠️ هذا المنتج غير قابل للخصم";
+                } else {
+                    let productSubtotal = 0;
+                    cart.forEach(item => {
+                        const p = allProducts.find(prod => prod.id === item.productId);
+                        if (p && p.id === appliedCoupon.productId) {
+                            productSubtotal += item.price * item.qty;
+                        }
+                    });
+                    if (appliedCoupon.discountType === "percentage") {
+                        discountAmount = (productSubtotal * appliedCoupon.discountValue) / 100;
+                    } else {
+                        discountAmount = Math.min(appliedCoupon.discountValue, productSubtotal);
+                    }
+                }
+            }
+            else if (appliedCoupon.appliesTo === "random") {
+                if (!appliedCoupon.randomProductId) {
+                    // تصفية المنتجات القابلة للخصم فقط
+                    const eligibleItems = cart.filter(item => {
+                        const product = allProducts.find(p => p.id === item.productId);
+                        return item.productId && product && product.discountable !== false;
+                    });
+                    if (eligibleItems.length === 0) {
+                        discountAmount = 0;
+                        appliedCoupon = null;
+                        document.getElementById("couponMessage").innerHTML = "⚠️ لا يوجد منتج قابل للخصم لتطبيق الخصم العشوائي";
+                    } else {
+                        const randomIndex = Math.floor(Math.random() * eligibleItems.length);
+                        const randomItem = eligibleItems[randomIndex];
+                        appliedCoupon.randomProductId = randomItem.productId;
+                    }
+                }
+                if (appliedCoupon.randomProductId) {
+                    let productSubtotal = 0;
+                    cart.forEach(item => {
+                        if (item.productId === appliedCoupon.randomProductId) {
+                            productSubtotal += item.price * item.qty;
+                        }
+                    });
+                    if (appliedCoupon.discountType === "percentage") {
+                        discountAmount = (productSubtotal * appliedCoupon.discountValue) / 100;
+                    } else {
+                        discountAmount = Math.min(appliedCoupon.discountValue, productSubtotal);
+                    }
+                } else {
+                    discountAmount = 0;
+                }
+            }
+        } else {
+            appliedCoupon = null;
+        }
+    }
+
+    finalTotal = subtotal - discountAmount;
+
+    const totalEl = document.getElementById("total");
+    if (totalEl) totalEl.innerText = finalTotal.toFixed(2);
+
+    const couponMsg = document.getElementById("couponMessage");
+    if (couponMsg) {
+        if (appliedCoupon && discountAmount > 0) {
+            if (appliedCoupon.appliesTo === "random" && appliedCoupon.randomProductId) {
+                const product = allProducts.find(p => p.id === appliedCoupon.randomProductId);
+                const productName = product ? product.name : "منتج غير معروف";
+                couponMsg.innerHTML = `🎟️ كود "${appliedCoupon.code}" خصم ${discountAmount.toFixed(2)} جنيه على منتج عشوائي: ${productName} <button onclick="removeCoupon()" style="background:none; border:none; color:#c0392b; cursor:pointer;">❌</button>`;
+            } else {
+                couponMsg.innerHTML = `🎟️ كود "${appliedCoupon.code}" خصم ${discountAmount.toFixed(2)} جنيه <button onclick="removeCoupon()" style="background:none; border:none; color:#c0392b; cursor:pointer;">❌</button>`;
+            }
+        } else if (appliedCoupon && discountAmount === 0) {
+            couponMsg.innerHTML = `⚠️ الكود غير صالح لهذه السلة (قد تكون المنتجات غير قابلة للخصم)`;
+        } else {
+            couponMsg.innerHTML = "";
+        }
+    }
+    return finalTotal;
+}
+
+// تطبيق الكوبون من Firestore
+async function applyCoupon(code) {
+    if (!code) { customAlert("أدخل كود الخصم أولاً", "warning"); return false; }
+    const q = query(collection(db, "coupons"), where("code", "==", code.toUpperCase()));
+    const snapshot = await getDocs(q);
+    if (snapshot.empty) {
+        customAlert("❌ كود الخصم غير صالح", "error");
+        return false;
+    }
+    const coupon = { id: snapshot.docs[0].id, ...snapshot.docs[0].data() };
+    const now = new Date();
+    if (!coupon.isActive) { customAlert("الكود غير نشط حالياً", "error"); return false; }
+    if (coupon.expiryDate?.toDate && coupon.expiryDate.toDate() < now) { customAlert("انتهت صلاحية الكود", "error"); return false; }
+    if (coupon.maxUses && coupon.usedCount >= coupon.maxUses) { customAlert("تم استخدام هذا الكود أقصى عدد مرات", "error"); return false; }
+    
+   appliedCoupon = coupon;
+if (appliedCoupon.appliesTo === "random") {
+    appliedCoupon.randomProductId = null;   // لم يتم اختيار منتج بعد
+}
+discountAmount = 0;
+updateCartWithCoupon();
+    customAlert(`✅ تم تطبيق كود ${coupon.code}`, "success");
+    return true;
+}
+
+// ربط زر تطبيق الكوبون
+document.getElementById("applyCouponBtn")?.addEventListener("click", async () => {
+    const code = document.getElementById("couponInput").value.trim();
+    if (await applyCoupon(code)) {
+        document.getElementById("couponInput").value = "";
+    }
+});
+
+window.removeCoupon = function() {
+    appliedCoupon = null;
+    discountAmount = 0;
+    updateCartWithCoupon();
+    document.getElementById("couponMessage").innerHTML = "";
+    customAlert("تم إلغاء الخصم", "info");
+};
+
+// تعديل دالة updateCart الأصلية (الموجودة بالفعل) لاستدعاء updateCartWithCoupon
+const originalUpdateCart = window.updateCart;
+window.updateCart = function() {
+    originalUpdateCart();
+    updateCartWithCoupon();
+    localStorage.setItem('vante_cart', JSON.stringify(cart));
+};
 
 // ========== دوال المودال (تنقل هنا)// متغيرات عامة للـ Lightbox
 let lightboxImages = [];
