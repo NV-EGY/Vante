@@ -945,6 +945,10 @@ function render() {
     groups.get(key).push(order);
   }
   
+  // الحصول على تاريخ اليوم لاستخدامه في الفتح الافتراضي
+  const todayDate = new Date();
+  todayDate.setHours(0, 0, 0, 0);
+  
   let html = "";
   let totalOrders = 0;
   let groupIndex = 0;
@@ -954,16 +958,23 @@ function render() {
     const createdAtDate = firstOrder.createdAt?.toDate?.();
     if (!createdAtDate) continue;
     
+    const orderDateOnly = new Date(createdAtDate);
+    orderDateOnly.setHours(0, 0, 0, 0);
+    const isToday = (orderDateOnly.getTime() === todayDate.getTime());
+    
     const dateHeader = formatOrderDate(createdAtDate);
     const groupId = `group-${groupIndex++}`;
+    
+    // تحديد حالة الفتح: اليوم فقط يكون مفتوحاً، الباقي مغلق
+    const isOpen = isToday;
     
     html += `
       <div class="day-group" data-group="${groupId}">
         <div class="day-header" onclick="toggleDayGroup('${groupId}')" style="display: flex; align-items: center; justify-content: space-between; margin: 10px 0 5px 0; padding: 5px 12px; background: #f5f7fa; border-radius: 30px; cursor: pointer;">
           <span style="font-size: 14px; font-weight: 700; color: #0F7B65;">${dateHeader}</span>
-          <i id="icon-${groupId}" class="fas fa-chevron-down" style="transition: transform 0.3s; color: #0F7B65;"></i>
+          <i id="icon-${groupId}" class="fas fa-chevron-down" style="transition: transform 0.3s; color: #0F7B65; transform: ${isOpen ? 'rotate(0deg)' : 'rotate(-90deg)'};"></i>
         </div>
-        <div id="group-content-${groupId}" class="group-content" style="display: block;">
+        <div id="group-content-${groupId}" class="group-content" style="display: ${isOpen ? 'block' : 'none'};">
     `;
     
     for (let o of ordersInDay) {
@@ -1007,8 +1018,8 @@ function render() {
           <div class="order-summary">
             📦 ${o.quantity}<br>💰 ${o.price}<br>🚚 ${o.shipping}<br>💵 <b>${o.finalTotal}</b>
             <div class="actions"><a class="action-btn whatsapp" target="_blank" href="https://wa.me/2${o.phone}"><i class="fab fa-whatsapp"></i></a><button class="action-btn copy" onclick='copyText(${JSON.stringify(msg)})'><i class="fas fa-copy"></i></button></div>
+            ⏰ ${orderTime}
             <div style="display:flex; gap:6px; margin-top:10px;"><button onclick="editOrder('${o.id}')" style="flex:1;background:#ffc107;border:none;padding:6px;border-radius:8px;cursor:pointer;">✏️</button><button onclick="deleteOrder('${o.id}')" style="flex:1;background:#dc3545;color:#fff;border:none;padding:6px;border-radius:8px;cursor:pointer;">🗑️</button></div>
-                ⏰ ${orderTime}
           </div>
         </div>
       </div>`;
