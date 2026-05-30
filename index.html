@@ -6180,22 +6180,42 @@ window.updateModalStockDisplay = function() {
     const sizeSelect = document.getElementById("modalSize");
     if (!sizeSelect || !currentProduct) return;
     const selectedSize = sizeSelect.value;
-    const stock = currentProduct.stockBySize[selectedSize] !== undefined ? currentProduct.stockBySize[selectedSize] : null;
+    const stockForSize = currentProduct.stockBySize[selectedSize];
     const addBtn = document.querySelector('.modal-add-btn');
     const stockInfoEl = document.getElementById("modalStockInfo");
     
-    if (stockInfoEl) {
-        if (stock === null) {
-            // غير محدود
-            stockInfoEl.innerHTML = `<span style="color:#800080; font-weight:600;"><i class="fas fa-infinity"></i>متوفر دائماً</span>`;
-        } else if (stock > 0) {
-            stockInfoEl.innerHTML = `<span style="color:#27ae60; font-weight:600;"><i class="fas fa-check-circle"></i> متوفر: ${stock} قطعة من المقاس المحدد</span>`;
+    const totalStock = getTotalStock(currentProduct);
+    const isUnlimitedProduct = (totalStock === null);
+    const hasAnyStock = (totalStock !== null && totalStock > 0);
+    
+    let stockMessage = '';
+    let disableAdd = false;
+    
+    if (stockForSize === null || stockForSize === undefined) {
+        if (isUnlimitedProduct) {
+            stockMessage = `<span style="color:#800080; font-weight:600;"><i class="fas fa-infinity"></i> متوفر دائماً (غير محدود)</span>`;
+            disableAdd = false;
+        } else if (totalStock === 0) {
+            stockMessage = `<span style="color:#c0392b; font-weight:700;"><i class="fas fa-ban"></i> 🚫 المنتج بالكامل نفد من المخزون</span>`;
+            disableAdd = true;
         } else {
-            stockInfoEl.innerHTML = `<span style="color:#c0392b; font-weight:700;"><i class="fas fa-times-circle"></i> 🚫 نفذت كمية المقاس</span>`;
+            stockMessage = `<span style="color:#B8860B; font-weight:600;"><i class="fas fa-question-circle"></i> كمية غير محددة للمقاس المختار</span>`;
+            disableAdd = false;
         }
+    } else if (stockForSize === 0) {
+        stockMessage = `<span style="color:#c0392b; font-weight:700;"><i class="fas fa-times-circle"></i> 🚫 نفذت كمية المقاس</span>`;
+        disableAdd = true;
+    } else if (stockForSize > 0) {
+        stockMessage = `<span style="color:#27ae60; font-weight:600;"><i class="fas fa-check-circle"></i> متوفر: ${stockForSize} قطعة من المقاس المحدد</span>`;
+        disableAdd = false;
+    } else {
+        stockMessage = `<span style="color:#888;">⚠️ لا توجد معلومات للمقاس</span>`;
+        disableAdd = true;
     }
     
-    if (stock === 0) {
+    if (stockInfoEl) stockInfoEl.innerHTML = stockMessage;
+    
+    if (disableAdd) {
         addBtn.disabled = true;
         addBtn.innerHTML = '🚫 نفذت الكمية';
         addBtn.style.background = '#ccc';
@@ -6572,6 +6592,21 @@ window.setCategory = setCategory;
             }
         };
     }
+    // حساب إجمالي المخزون للمنتج (تجاهل null)
+function getTotalStock(product) {
+    const stockBySize = product.stockBySize || {};
+    let total = 0;
+    let hasUnlimited = false;
+    for (let qty of Object.values(stockBySize)) {
+        if (qty === null || qty === undefined) {
+            hasUnlimited = true;
+        } else {
+            total += parseInt(qty) || 0;
+        }
+    }
+    if (hasUnlimited) return null; // يعني غير محدود
+    return total;
+}
 </script>
 </body>
 </html>
