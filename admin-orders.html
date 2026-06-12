@@ -635,7 +635,21 @@
     <div id="reviewsList" style="display: flex; flex-direction: column; gap: 12px;"></div>
 </div>
 </div>
-
+<!-- قسم إدارة أسعار الشحن -->
+<div class="form-section" id="shippingRatesSection">
+    <h3 class="form-title" data-toggle="shippingRatesContent">🚚 أسعار الشحن حسب المحافظة</h3>
+    <div id="shippingRatesContent" class="collapsible-content">
+        <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
+            <select id="govSelect" style="flex:1;">
+                <option value="">اختر المحافظة</option>
+            </select>
+            <input type="number" id="shippingCostForStore" placeholder="التكلفة الفعلية للمتجر (جنيه)" style="flex:1;">
+            <input type="number" id="customerShippingFee" placeholder="العميل يدفع (جنيه)" value="70" style="flex:1;">
+            <button onclick="saveShippingRate()" class="primary-btn" style="width: auto;">حفظ السعر</button>
+        </div>
+        <div id="shippingRatesList" style="margin-top: 20px;"></div>
+    </div>
+</div>
 <div class="top-stats">
   <div class="select-all-icon-btn" id="selectAllIconBtn" onclick="toggleSelectAll()">
     <i class="fas fa-check-double"></i>
@@ -777,25 +791,35 @@ window.editOrder = (id) => {
         <input id="editDetailSize_${idx}" value="${item.size || ''}" placeholder="المقاس" style="flex:1;">
         <input id="editDetailQty_${idx}" type="number" value="${item.qty || 1}" style="flex:1;">
         <input id="editDetailPrice_${idx}" type="number" value="${item.price || 0}" style="flex:1;">
-        <input id="editDetailImage_${idx}" value="${item.image || ''}" placeholder="الصورة" style="flex:2;">
+        <input id="editDetailCost_${idx}" type="number" value="${item.costPrice || 0}" placeholder="سعر الجملة" style="flex:1;">
       </div>
-      ${item.image ? `<img src="${item.image}" style="width:40px; border-radius:8px;">` : ''}
     </div>`;
   });
   box.innerHTML = `<div class="popup-box"><div class="popup-header"><span>✏️ تعديل ID: ${o.orderID}</span><span onclick="closeMsg()" style="cursor:pointer;">✖</span></div>
-    <div class="popup-body"><input id="editName" value="${o.customerName || ''}" placeholder="الاسم"><br><br>
-    <input id="editPhone" value="${o.phone || ''}" placeholder="الهاتف"><br><br>
-    <input id="editGov" value="${o.gov || ''}" placeholder="المحافظة"><br><br>
-    <input id="editCity" value="${o.city || ''}" placeholder="المدينة"><br><br>
-    <input id="editAddress" value="${o.address || ''}" placeholder="العنوان"><br><br><hr>
-    <div id="editDetailsContainer">${detailsHtml}</div><hr>
-    <input id="editQuantity" type="number" value="${o.quantity || ''}" placeholder="الكمية"><br><br>
-    <input id="editPrice" type="number" value="${o.price || ''}" placeholder="السعر"><br><br>
-    <input id="editShipping" type="number" value="${o.shipping || ''}" placeholder="الشحن"><br><br>
-    <input id="editTotal" type="number" value="${o.finalTotal || ''}" placeholder="الإجمالي"></div>
+    <div class="popup-body">
+      <input id="editName" value="${o.customerName || ''}" placeholder="الاسم"><br><br>
+      <input id="editPhone" value="${o.phone || ''}" placeholder="الهاتف"><br><br>
+      <input id="editGov" value="${o.gov || ''}" placeholder="المحافظة"><br><br>
+      <input id="editCity" value="${o.city || ''}" placeholder="المدينة"><br><br>
+      <input id="editAddress" value="${o.address || ''}" placeholder="العنوان"><br><br><hr>
+      <div id="editDetailsContainer">${detailsHtml}</div><hr>
+      <input id="editShippingPaid" type="number" value="${o.shippingCostPaid || 0}" placeholder="تكلفة الشحن الفعلية (التي دفعتها للتاجر/شركة الشحن)"><br><br>
+      <input id="editTotalCost" type="number" value="${o.totalCost || 0}" placeholder="التكلفة الإجمالية للمنتجات (جملة)"><br><br>
+      <input id="editProfit" type="number" value="${o.profit || 0}" placeholder="صافي الربح" readonly style="background:#f0f0f0;"><br><br>
+<input id="editTotal" type="number" value="${o.finalTotal || 0}" placeholder="الإجمالي النهائي (العميل)"><br><br>
+      <button onclick="calculateProfitFromEdit()" style="background:#f39c12; border:none; padding:6px; border-radius:8px;">حساب الربح تلقائياً</button>
+    </div>
     <div class="popup-footer"><button onclick="saveEdit('${id}')" style="width:100%;padding:10px;background:#0F7B65;color:#fff;border:none;border-radius:10px;">حفظ</button>
     <button onclick="closeMsg()" style="width:100%;margin-top:8px;padding:10px;background:#333;color:#fff;border:none;border-radius:10px;">إغلاق</button></div></div>`;
   box.style.display = "flex";
+};
+
+window.calculateProfitFromEdit = () => {
+    let totalCost = parseFloat(document.getElementById("editTotalCost").value) || 0;
+    let shippingPaid = parseFloat(document.getElementById("editShippingPaid").value) || 0;
+    let finalTotal = parseFloat(document.getElementById("editTotal").value) || 0;
+    let profit = finalTotal - totalCost - shippingPaid;
+    document.getElementById("editProfit").value = profit.toFixed(2);
 };
 
 window.saveEdit = async (id) => {
@@ -806,9 +830,15 @@ window.saveEdit = async (id) => {
     let size = document.getElementById(`editDetailSize_${i}`)?.value || '';
     let qty = parseInt(document.getElementById(`editDetailQty_${i}`)?.value) || 0;
     let price = parseFloat(document.getElementById(`editDetailPrice_${i}`)?.value) || 0;
-    let image = document.getElementById(`editDetailImage_${i}`)?.value || '';
-    if (name || qty > 0) orderDetails.push({ name, size, qty, price, image });
+    let costPrice = parseFloat(document.getElementById(`editDetailCost_${i}`)?.value) || 0;
+    if (name || qty > 0) orderDetails.push({ name, size, qty, price, costPrice });
   }
+  
+  const finalTotal = parseFloat(document.getElementById("editTotal").value) || 0;
+  const totalCost = parseFloat(document.getElementById("editTotalCost").value) || 0;
+  const shippingCostPaid = parseFloat(document.getElementById("editShippingPaid").value) || 0;
+  const profit = finalTotal - totalCost - shippingCostPaid;
+  
   try {
     await updateDoc(doc(db, "orders", id), {
       customerName: document.getElementById("editName").value,
@@ -816,13 +846,19 @@ window.saveEdit = async (id) => {
       gov: document.getElementById("editGov").value,
       city: document.getElementById("editCity").value,
       address: document.getElementById("editAddress").value,
-      orderDetails, quantity: Number(document.getElementById("editQuantity").value) || 0,
-      price: Number(document.getElementById("editPrice").value) || 0,
-      shipping: Number(document.getElementById("editShipping").value) || 0,
-      finalTotal: Number(document.getElementById("editTotal").value) || 0
+      orderDetails,
+      finalTotal: finalTotal,
+      totalCost: totalCost,
+      shippingCostPaid: shippingCostPaid,
+      profit: profit,
+      // يمكنك إضافة quantity, price, shipping إذا أردت
     });
     closeMsg();
-  } catch(e) { alert("خطأ"); }
+    customAlert("تم حفظ التعديلات", 'success');
+  } catch(e) { 
+    console.error(e);
+    customAlert("خطأ في الحفظ", 'error');
+  }
 };
 
 function updateBulkBar() {
@@ -1077,6 +1113,7 @@ window.showPopup = (o) => { let box = document.getElementById("msgPopup"); docum
 
 function load() {
   loadReviews();
+  loadShippingRates();
   onSnapshot(query(collection(db, "messages"), orderBy("createdAt", "desc")), (snap) => {
     let unread = 0, html = "";
     messages = snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -1362,6 +1399,70 @@ function loadReviews() {
         if (currentTab === 'reviews') renderReviews();
     });
 }
+
+// ========== إدارة أسعار الشحن ==========
+let shippingRates = [];
+
+async function loadShippingRates() {
+    const q = query(collection(db, "shippingRates"));
+    onSnapshot(q, (snap) => {
+        shippingRates = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        renderShippingRates();
+        populateGovSelect();
+    });
+}
+
+function renderShippingRates() {
+    const container = document.getElementById("shippingRatesList");
+    if (!container) return;
+    if (!shippingRates.length) {
+        container.innerHTML = "<p class='loading-error'>لا توجد أسعار شحن محددة بعد</p>";
+        return;
+    }
+    let html = `<table style="width:100%; border-collapse:collapse;">
+        <thead><tr><th>المحافظة</th><th>تكلفة المتجر</th><th>العميل يدفع</th><th></th></tr></thead><tbody>`;
+    shippingRates.forEach(rate => {
+        html += `<tr>
+            <td>${rate.gov}</td>
+            <td>${rate.costForStore} جنيه</td>
+            <td>${rate.customerFee} جنيه</td>
+            <td><button onclick="deleteShippingRate('${rate.id}')" class="delete-btn" style="padding:4px 8px;">حذف</button></td>
+        </tr>`;
+    });
+    html += `</tbody>点心`;
+    container.innerHTML = html;
+}
+
+function populateGovSelect() {
+    const select = document.getElementById("govSelect");
+    if (!select) return;
+    const govs = ["القاهرة","الجيزة","القليوبية","الإسكندرية","الدقهلية","الشرقية","الغربية","المنوفية","البحيرة","كفر الشيخ","دمياط","بورسعيد","الإسماعيلية","السويس","بني سويف","الفيوم","المنيا","أسيوط","سوهاج","قنا","الأقصر","أسوان","البحر الأحمر","الوادي الجديد","مطروح","شمال سيناء","جنوب سيناء"];
+    select.innerHTML = '<option value="">اختر المحافظة</option>' + govs.map(g => `<option value="${g}">${g}</option>`).join('');
+}
+
+window.saveShippingRate = async () => {
+    const gov = document.getElementById("govSelect").value;
+    const costForStore = parseFloat(document.getElementById("shippingCostForStore").value);
+    const customerFee = parseFloat(document.getElementById("customerShippingFee").value) || 70;
+    if (!gov || !costForStore) { customAlert("اختر المحافظة وأدخل تكلفة المتجر", 'warning'); return; }
+    const existing = shippingRates.find(r => r.gov === gov);
+    if (existing) {
+        await updateDoc(doc(db, "shippingRates", existing.id), { costForStore, customerFee });
+        customAlert(`تم تحديث سعر الشحن لمحافظة ${gov}`, 'success');
+    } else {
+        await addDoc(collection(db, "shippingRates"), { gov, costForStore, customerFee, createdAt: serverTimestamp() });
+        customAlert(`تم إضافة سعر الشحن لمحافظة ${gov}`, 'success');
+    }
+    document.getElementById("shippingCostForStore").value = "";
+    document.getElementById("govSelect").value = "";
+};
+
+window.deleteShippingRate = async (id) => {
+    if (await customConfirm("حذف سعر الشحن لهذه المحافظة؟")) {
+        await deleteDoc(doc(db, "shippingRates", id));
+        customAlert("تم الحذف", 'success');
+    }
+};
 // تحديث عداد التقييمات قيد المراجعة
 function updatePendingReviewsBadge() {
     const pendingCount = allReviews.filter(r => !r.approved && !r.deleted).length;
