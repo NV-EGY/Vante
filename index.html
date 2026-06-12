@@ -378,10 +378,18 @@ select{
 /* شريط التصفية المنسدل */
 .filter-bar {
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
-    margin-bottom: 30px;
-    padding: 0 20px;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+@media (max-width: 768px) {
+    .filter-bar {
+        justify-content: flex-start;
+    }
+    .sort-wrapper {
+        margin-left: 0;
+    }
 }
 
 .filter-dropdown {
@@ -3505,6 +3513,117 @@ body.modal-open{
     background-color: #f5f5f5;
     font-style: italic;
 }
+/* أيقونة الترتيب والقائمة المنسدلة */
+/* أيقونة الترتيب والقائمة المنسدلة */
+.sort-wrapper {
+    position: relative;
+    margin-left: auto;  /* تدفع الأيقونة إلى بداية الشريط في RTL */
+}
+.sort-icon-btn {
+    background: #111;
+    border: none;
+    width: 48px;
+    height: 48px;
+    border-radius: 30px;
+    color: #fff;
+    font-size: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+.sort-icon-btn:hover {
+    background: #D4AF37;
+    color: #000;
+    transform: translateY(-2px);
+}
+.sort-option {
+    padding: 12px 20px;
+    font-weight: 600;
+    font-size: 14px;
+    color: #111;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.sort-option:last-child {
+    border-bottom: none;
+}
+.sort-option:hover {
+    background: #f9f9f9;
+    color: #D4AF37;
+}
+.sort-option.active {
+    background: #111;
+    color: #fff;
+}
+.sort-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+    min-width: 180px;
+    overflow: hidden;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 150;
+    direction: rtl;
+}
+.sort-menu.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+@media (max-width: 768px) {
+    .sort-icon-btn { width: 44px; height: 44px; font-size: 18px; }
+    .sort-menu { min-width: 160px; right: 0; left: auto; }
+}
+/* تنسيق الوصف الغني (Rich Text) في المودال */
+.modal-desc {
+    line-height: 1.8;
+    text-align: center;
+}
+.modal-desc ul, .modal-desc ol {
+    padding-right: 25px;
+    margin: 10px 0;
+    text-align: right;
+}
+.modal-desc li {
+    margin-bottom: 6px;
+}
+.modal-desc strong, .modal-desc b {
+    font-weight: 800;
+    color: #111;
+}
+.modal-desc em, .modal-desc i {
+    font-style: italic;
+}
+.modal-desc u {
+    text-decoration: underline;
+}
+.modal-desc strike, .modal-desc s {
+    text-decoration: line-through;
+}
+.modal-desc p {
+    margin-bottom: 12px;
+}
+.modal-desc h1, .modal-desc h2, .modal-desc h3, .modal-desc h4 {
+    margin: 15px 0 8px;
+    color: #D4AF37;
+}
+.modal-desc a {
+    color: #D4AF37;
+    text-decoration: underline;
+}
     </style>
 </head>
 
@@ -3623,40 +3742,51 @@ body.modal-open{
     <div class="gallery-dots" id="galleryDots"></div>
 </section>
 
-   <section class="container">
-    <!-- شريط التصفية المنسدل -->
-    <div class="filter-bar">
-        <div class="filter-dropdown" id="filterDropdown">
-            <div class="filter-selected" id="filterSelected">
-                <span id="filterLabel">كل المنتجات</span>
-                <i class="fas fa-chevron-down"></i>
-            </div>
-            <div class="filter-options" id="filterOptions">
-                <div class="filter-option active" data-category="all">كل المنتجات</div>
-                <div class="filter-option" data-category="necklaces">سلاسل & كوليهات</div>
-                <div class="filter-option" data-category="bracelets">أساور & غوايش</div>
-                <div class="filter-option" data-category="rings">دبل & خواتم</div>
-                <div class="filter-option" data-category="earrings">حلقان</div>
-                <div class="filter-option" data-category="sets">اطقم</div>
-                <div class="filter-option" data-category="anklets">خلخال</div>
-            </div>
+ <section class="container">
+   
+<!-- شريط الفلترة والترتيب -->
+<div class="filter-bar">
+    <!-- أيقونة الترتيب (موضوعة أولاً لتظهر على اليسار) -->
+    <div class="sort-wrapper">
+        <button class="sort-icon-btn" id="sortIconBtn" aria-label="ترتيب المنتجات">
+            <i class="fas fa-sort-amount-down-alt"></i>
+        </button>
+        <div class="sort-menu" id="sortMenu">
+            <div class="sort-option active" data-sort="latest">✨ الأحدث</div>
+            <div class="sort-option" data-sort="price_asc">💰 الأقل سعراً</div>
+            <div class="sort-option" data-sort="price_desc">💰 الأعلى سعراً</div>
+            <div class="sort-option" data-sort="best_selling">🔥 الأكثر مبيعاً</div>
+            <div class="sort-option" data-sort="top_rated">⭐ الأعلى تقييماً</div>
         </div>
     </div>
-    <div class="products"></div>
+
+    <!-- الفلتر المنسدل (الأقسام) -->
+    <div class="filter-dropdown" id="filterDropdown">
+        <div class="filter-selected" id="filterSelected">
+            <span id="filterLabel">كل المنتجات</span>
+            <i class="fas fa-chevron-down"></i>
+        </div>
+        <div class="filter-options" id="filterOptions">
+            <div class="filter-option active" data-category="all">كل المنتجات</div>
+            <div class="filter-option" data-category="necklaces">سلاسل & كوليهات</div>
+            <div class="filter-option" data-category="bracelets">أساور & غوايش</div>
+            <div class="filter-option" data-category="rings">دبل & خواتم</div>
+            <div class="filter-option" data-category="earrings">حلقان</div>
+            <div class="filter-option" data-category="sets">اطقم</div>
+            <div class="filter-option" data-category="anklets">خلخال</div>
+        </div>
+    </div>
+</div>
+
+<!-- مكان عرض المنتجات -->
+<div class="products"></div>
     <!-- عداد المنتجات وزر التحميل -->
 <div class="products-counter" id="productsCounter"></div>
 <div class="load-more-container" id="loadMoreContainer" style="display: none;">
     <button class="load-more-btn" onclick="loadMoreProducts()">
         <i class="fas fa-arrow-down"></i> تحميل المزيد
     </button>
-</div>
-<!-- عداد المنتجات وزر التحميل -->
-<div class="products-counter" id="productsCounter"></div>
-<div class="load-more-container" id="loadMoreContainer" style="display: none;">
-    <button class="load-more-btn" onclick="loadMoreProducts()">
-        <i class="fas fa-arrow-down"></i> تحميل المزيد
-    </button>
-</div>
+    </div>
 <div style="background: #faf7f0; border-radius: 12px; padding: 8px 12px; margin: 30px 0 10px; border-right: 3px solid #D4AF37;">
     <div style="margin-bottom: 6px;">
         <div style="font-weight: 800; color: #B8860B; font-size: 13px;">✨ سلاسل بالأسماء حسب الطلب</div>
@@ -4146,6 +4276,17 @@ window.sendContactMessage = async function() {
         btn.innerHTML = '<i class="fas fa-paper-plane"></i> إرسال الرسالة';
     }
 };
+// أضف هذه الدالة في أعلى الـ module (بعد الاستيرادات)
+function getTotalStock(product) {
+    const stockBySize = product.stockBySize || {};
+    let total = 0;
+    let hasUnlimited = false;
+    for (let qty of Object.values(stockBySize)) {
+        if (qty === null || qty === undefined) hasUnlimited = true;
+        else total += parseInt(qty) || 0;
+    }
+    return hasUnlimited ? null : total;
+}
 
 // ========== دليل المتسوق ==========
 const infoContent = {
@@ -4375,6 +4516,29 @@ function renderProducts() {
     const selectedCategory = normalize(currentCategory);
     let filtered = allProducts.filter(p => selectedCategory === "all" ? true : normalize(p.category || "all") === selectedCategory);
     
+    // ========== تطبيق الترتيب ==========
+if (currentSort === "latest") {
+    filtered.sort((a,b) => {
+        const aTime = a.createdAt?.seconds || 0;
+        const bTime = b.createdAt?.seconds || 0;
+        if (aTime !== bTime) return bTime - aTime;
+        return b.id.localeCompare(a.id);
+    });
+} else if (currentSort === "price_asc") {
+    filtered.sort((a,b) => a.price - b.price);
+} else if (currentSort === "price_desc") {
+    filtered.sort((a,b) => b.price - a.price);
+} else if (currentSort === "best_selling") {
+    filtered.sort((a,b) => (b.salesCount || 0) - (a.salesCount || 0));
+} else if (currentSort === "top_rated") {
+    const getAvgRating = (productId) => {
+        const productReviews = allReviews.filter(r => r.productId === productId && r.rating);
+        if (productReviews.length === 0) return 0;
+        const sum = productReviews.reduce((s, r) => s + r.rating, 0);
+        return sum / productReviews.length;
+    };
+    filtered.sort((a,b) => getAvgRating(b.id) - getAvgRating(a.id));
+}
 // تطبيق البحث الذكي (الكلمات المفتاحية للأقسام) أو البحث النصي العادي
 if (currentSearchFilter && currentSearchFilter.trim() !== "") {
     const searchTerm = currentSearchFilter.trim();
@@ -4598,8 +4762,9 @@ function renderBestSellers() {
     if (!gallery || !allProducts.length) return;
 
     // اختيار 8 منتجات عشوائية
-    const shuffled = [...allProducts].sort(() => 0.5 - Math.random());
-    const selected = shuffled.slice(0, 10);
+    // اختيار أفضل 10 منتجات مبيعاً
+const bestSellers = [...allProducts].sort((a,b) => (b.salesCount || 0) - (a.salesCount || 0));
+const selected = bestSellers.slice(0, 10);
 
     if (isMobile) {
         // الهاتف: العرض القديم (مع أزواج وحركة)
@@ -4792,6 +4957,7 @@ function loadApprovedReviews() {
         if (window.currentProduct) {
             displayReviewsInModal(window.currentProduct.id);
         }
+        renderProducts();
     });
 }
 
@@ -5332,9 +5498,21 @@ async function executeCheckout() {
 
         // ========== 2. حساب قيم الطلب الأساسية ==========
         const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-        const shipping = 70;
-        const finalTotalBefore = subtotal + shipping;
-        const finalTotalAfter = finalTotalBefore - savedDiscount;
+
+// جلب سعر الشحن حسب المحافظة
+let customerShippingFee = 70;
+let storeShippingCost = 70;
+try {
+    const shippingRateSnap = await getDocs(query(collection(db, "shippingRates"), where("gov", "==", gov)));
+    if (!shippingRateSnap.empty) {
+        const rate = shippingRateSnap.docs[0].data();
+        customerShippingFee = rate.customerFee || 70;
+        storeShippingCost = rate.costForStore || 70;
+    }
+} catch(e) { console.warn(e); }
+
+const finalTotalBefore = subtotal + customerShippingFee;
+const finalTotalAfter = finalTotalBefore - savedDiscount;
 
         // ========== 3. إنشاء رقم الطلب وبيانات العميل (نفس الكود الأصلي) ==========
         const ordersRef = collection(db, "orders");
@@ -5374,15 +5552,26 @@ async function executeCheckout() {
         const orderID = `${customerCode}-${dateStr}${customerOrderCount}${String(dailyOrderCount).padStart(3, '0')}`;
 
         // ========== 4. تجهيز تفاصيل الطلب ==========
-        const orderDetails = cart.map(item => ({
-            productId: allProducts.find(p => p.name === item.name)?.id,
-            name: item.name,
-            size: item.size || "",
-            qty: item.qty,
-            price: item.price,
-            image: item.image || ""
-        }));
+        const orderDetails = cart.map(item => {
+    const product = allProducts.find(p => p.id === item.productId);
+    return {
+        productId: item.productId,
+        name: item.name,
+        size: item.size || "",
+        qty: item.qty,
+        price: item.price,
+        image: item.image || "",
+        costPrice: product?.costPrice || 0   // ✅ أضف هذا السطر
+    };
+});
+const totalCost = cart.reduce((sum, item) => {
+    const product = allProducts.find(p => p.id === item.productId);
+    return sum + (item.qty * (product?.costPrice || 0));
+}, 0);
 
+// ثم أضفه داخل orderData:
+orderData.totalCost = totalCost;
+orderData.profit = finalTotalAfter - totalCost - storeShippingCost;
         // ========== 5. بناء رسالة الواتساب باستخدام القيم الصحيحة ==========
         let message = `🛍️ طلب جديد - VANTÉ\n\n`;
         message += `📦 رقم الطلب: ${orderID}\n`;
@@ -5398,8 +5587,8 @@ async function executeCheckout() {
             message += `الكمية: ${item.qty}\n`;
             message += `السعر: ${item.price * item.qty} جنيه\n\n`;
         });
-
-        message += `🚚 الشحن: ${shipping} جنيه\n`;
+        
+message += `🚚 الشحن: ${customerShippingFee} جنيه\n`;
 
         if (savedCoupon && savedDiscount > 0) {
             message += `🎟️ خصم (${savedCoupon.code}): -${savedDiscount} جنيه\n`;
@@ -5414,7 +5603,8 @@ async function executeCheckout() {
             orderDetails,
             quantity: cart.reduce((sum, i) => sum + i.qty, 0),
             price: subtotal,
-            shipping,
+               shipping: customerShippingFee,          // ما يدفعه العميل
+    shippingCostPaid: storeShippingCost,   // التكلفة الفعلية للمتجر
             finalTotal: finalTotalAfter,
             status: "new",
             date: dateStr,
@@ -5465,6 +5655,15 @@ async function executeCheckout() {
             }
             await updateDoc(doc(db, "products", productId), { stockBySize: newStockBySize });
         }
+        
+        // تحديث المبيعات (salesCount)
+for (const [productId, sizes] of Object.entries(stockUpdates)) {
+    const totalQty = Object.values(sizes).reduce((sum, q) => sum + q, 0);
+    const productRef = doc(db, "products", productId);
+    await updateDoc(productRef, {
+        salesCount: increment(totalQty)
+    });
+}
 
         // ========== 9. إرسال واتساب ==========
         const phoneNumber = "201106018685";
@@ -5490,7 +5689,7 @@ async function executeCheckout() {
         console.error(error);
         alert("❌ حدث خطأ أثناء إرسال الطلب. حاول مرة أخرى.");
     } finally {
-        btn.disableda = false;
+        btn.disabled = false;
         btn.innerHTML = '<i class="fas fa-check-circle"></i> تأكيد الطلب';
     }
 }
@@ -6093,7 +6292,7 @@ currentImageIndex = 0;
     
     // باقي الدالة كما هي...
     document.getElementById("modalTitle").textContent = name;
-    document.getElementById("modalDesc").textContent = description || "منتج فاخر من VANTÉ";
+    document.getElementById("modalDesc").innerHTML = description || "منتج فاخر من VANTÉ";
     document.getElementById("modalPrice").textContent = Number(price) + " جنيه";
 
 // ✨ الكود الجديد
@@ -6366,6 +6565,37 @@ function resetProductsDisplay() {
     renderProducts();
 }
 window.setCategory = setCategory;
+
+// متغير الترتيب الحالي
+let currentSort = "latest";
+
+// ========== نظام الترتيب ==========
+const sortIconBtn = document.getElementById("sortIconBtn");
+const sortMenu = document.getElementById("sortMenu");
+const sortOptions = document.querySelectorAll(".sort-option");
+
+if (sortIconBtn) {
+    sortIconBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        sortMenu.classList.toggle("active");
+    });
+}
+
+document.addEventListener("click", () => {
+    if (sortMenu) sortMenu.classList.remove("active");
+});
+
+sortOptions.forEach(opt => {
+    opt.addEventListener("click", () => {
+        const sortValue = opt.dataset.sort;
+        currentSort = sortValue;
+        sortOptions.forEach(o => o.classList.remove("active"));
+        opt.classList.add("active");
+        displayedProductsCount = 20;
+        renderProducts();
+        if (sortMenu) sortMenu.classList.remove("active");
+    });
+});
 
 </script>
 <!-- ========== FOOTER SECTION ========== -->
