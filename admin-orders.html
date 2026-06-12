@@ -651,6 +651,12 @@
     color: #6c757d;
     font-size: 12px;
 }
+.tab-content {
+    display: none;
+}
+.tab-content.active {
+    display: block;
+}
   </style>
 </head>
 <body>
@@ -671,10 +677,8 @@
   <input type="date" id="dateFilter" style="display:none;">
   <div style="display: flex; gap: 10px; margin: 5px 0; justify-content: center;">
     <button onclick="switchTab('orders')" id="tabOrdersBtn" style="background: #0F7B65; color: #fff; border: none; padding: 8px 20px; border-radius: 30px; cursor: pointer; font-weight: bold;">📦 الطلبات</button>
-    <button onclick="switchTab('reviews')" id="tabReviewsBtn" style="background: #ccc; color: #333; border: none; padding: 8px 20px; border-radius: 30px; cursor: pointer; font-weight: bold; position: relative;">
-    ⭐ التقييمات 
-    <span id="pendingReviewsBadge" style="background: #e74c3c; color: #fff; border-radius: 50%; padding: 2px 8px; font-size: 11px; margin-right: 5px; display: none;">0</span>
-</button>
+    <button onclick="switchTab('reviews')" id="tabReviewsBtn" style="background: #ccc; color: #333; border: none; padding: 8px 20px; border-radius: 30px; cursor: pointer; font-weight: bold; position: relative;">⭐ التقييمات <span id="pendingReviewsBadge" style="background: #e74c3c; color: #fff; border-radius: 50%; padding: 2px 8px; font-size: 11px; margin-right: 5px; display: none;">0</span></button>
+    <button onclick="switchTab('shipping')" id="tabShippingBtn" style="background: #ccc; color: #333; border: none; padding: 8px 20px; border-radius: 30px; cursor: pointer; font-weight: bold;">🚚 أسعار الشحن</button>
 </div>
   <div class="filters">
   <button onclick="setFilter(event, 'all')" class="filter-btn active" data-filter="all"><i class="fas fa-list fa-fw"></i></button>
@@ -1336,28 +1340,50 @@ window.switchTab = function(tab) {
     currentTab = tab;
     const ordersDiv = document.getElementById("orders");
     const reviewsPanel = document.getElementById("reviewsPanel");
+    const shippingPanel = document.getElementById("shippingTab");
     const ordersBtn = document.getElementById("tabOrdersBtn");
     const reviewsBtn = document.getElementById("tabReviewsBtn");
+    const shippingBtn = document.getElementById("tabShippingBtn");
     const filtersDiv = document.querySelector('.filters');
+    
+    // إخفاء الكل
+    ordersDiv.style.display = "none";
+    reviewsPanel.style.display = "none";
+    if(shippingPanel) shippingPanel.style.display = "none";
+    
+    // إعادة تعيين ألوان الأزرار
+    ordersBtn.style.background = "#ccc";
+    ordersBtn.style.color = "#333";
+    reviewsBtn.style.background = "#ccc";
+    reviewsBtn.style.color = "#333";
+    if(shippingBtn) {
+        shippingBtn.style.background = "#ccc";
+        shippingBtn.style.color = "#333";
+    }
     
     if (tab === 'orders') {
         ordersDiv.style.display = "flex";
-        reviewsPanel.style.display = "none";
         if (filtersDiv) filtersDiv.style.display = "flex";
         ordersBtn.style.background = "#0F7B65";
         ordersBtn.style.color = "#fff";
-        reviewsBtn.style.background = "#ccc";
-        reviewsBtn.style.color = "#333";
         render();
-    } else {
-        ordersDiv.style.display = "none";
+    } 
+    else if (tab === 'reviews') {
         reviewsPanel.style.display = "block";
         if (filtersDiv) filtersDiv.style.display = "none";
-        ordersBtn.style.background = "#ccc";
-        ordersBtn.style.color = "#333";
         reviewsBtn.style.background = "#0F7B65";
         reviewsBtn.style.color = "#fff";
         renderReviews();
+    }
+    else if (tab === 'shipping') {
+        if(shippingPanel) shippingPanel.style.display = "block";
+        if (filtersDiv) filtersDiv.style.display = "none";
+        if(shippingBtn) {
+            shippingBtn.style.background = "#0F7B65";
+            shippingBtn.style.color = "#fff";
+        }
+        // تحديث عرض أسعار الشحن إن لزم
+        if(typeof renderShippingRates === 'function') renderShippingRates();
     }
 };
 
