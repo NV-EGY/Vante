@@ -809,6 +809,31 @@ h2 {
     opacity: 0.6;
     filter: grayscale(0.2);
 }
+.supplier-link-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #25D366;
+    color: #fff;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    text-decoration: none;
+    margin-right: 10px;
+    transition: 0.2s;
+}
+.supplier-link-btn i { font-size: 12px; }
+.supplier-link-btn:hover { background: #128C7E; transform: translateY(-1px);}
+.cost-price-badge {
+    background: #f39c12;
+    color: #fff;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: bold;
+    display: inline-block;
+    margin-top: 5px;
+}
 
 </style>
 </head>
@@ -827,84 +852,54 @@ h2 {
 <div class="stock-stats" id="stockStats"></div>
 
 <!-- قسم إضافة/تعديل المنتج (قابل للطي) -->
-<div class="form-section" id="productFormSection">
-    <h3 class="form-title" data-toggle="productFormContent">➕ إضافة / تعديل منتج</h3>
-      <div id="productFormContent" class="collapsible-content">
-        <div class="form-row">
-            <div class="form-group"><label><i class="fas fa-tag"></i> اسم المنتج</label><input id="name" placeholder="مثال: سوار ذهبي"></div>
-            <div class="form-group"><label><i class="fas fa-coins"></i> السعر (EGP)</label><input id="price" type="number" placeholder="السعر"></div>
-        </div>
-        <div class="form-row">
-            <div class="form-group"><label><i class="fas fa-image"></i> رابط الصورة الرئيسية</label><input id="image" placeholder="https://..."></div>
-            <div class="form-group"><label><i class="fas fa-images"></i> صور إضافية</label><input id="additionalImages" placeholder="رابط1, رابط2, رابط3"></div>
-        </div>
-        <div class="form-row">
-            <div class="form-group"><label><i class="fas fa-ruler"></i> المقاسات</label><input id="sizes" placeholder="مثال: 16,18,20"><small class="input-hint">أدخل المقاسات المتاحة مفصولة بفاصلة</small></div>
-            <div class="form-group"><label><i class="fas fa-layer-group"></i> القسم / الكولكشن</label><select id="category"><option value="">-- اختر القسم --</option><option value="necklaces">✨ سلاسل & كوليهات</option><option value="bracelets">📿 أساور & غوايش</option><option value="rings">💍 خواتم & دبل</option><option value="sets">🎁 أطقم</option><option value="earrings">💎 حلقان</option><option value="anklets">🦶 خلخال</option></select></div>
-        </div>
-        <div class="form-row">
-            <div class="form-group full-width">
-                <label><i class="fas fa-align-right"></i> وصف المنتج</label>
-                <div style="display: flex; gap: 4px; flex-wrap: nowrap; overflow-x: auto; background: #f8f9fa; padding: 6px 12px; border-radius: 10px; margin-bottom: 8px; border: 1px solid #e9ecef; direction: ltr; scrollbar-width: thin;">
-                    <div style="display: flex; gap: 2px; border-left: 1px solid #dee2e6; padding-left: 8px; margin-left: 8px;">
-                        <button type="button" onclick="formatDoc('bold', this)" data-command="bold" class="tool-btn" title="عريض"><i class="fas fa-bold"></i></button>
-                        <button type="button" onclick="formatDoc('italic', this)" data-command="italic" class="tool-btn" title="مائل"><i class="fas fa-italic"></i></button>
-                        <button type="button" onclick="formatDoc('underline', this)" data-command="underline" class="tool-btn" title="تسطير"><i class="fas fa-underline"></i></button>
-                        <button type="button" onclick="formatDoc('strikeThrough', this)" data-command="strikeThrough" class="tool-btn" title="يتوسطه خط"><i class="fas fa-strikethrough"></i></button>
-                    </div>
-                    <div style="display: flex; gap: 2px; border-left: 1px solid #dee2e6; padding-left: 8px; margin-left: 8px;">
-                        <button type="button" onclick="formatDoc('justifyRight', this)" data-command="justifyRight" class="tool-btn" title="محاذاة لليمين"><i class="fas fa-align-right"></i></button>
-                        <button type="button" onclick="formatDoc('justifyCenter', this)" data-command="justifyCenter" class="tool-btn" title="محاذاة للوسط"><i class="fas fa-align-center"></i></button>
-                        <button type="button" onclick="formatDoc('justifyLeft', this)" data-command="justifyLeft" class="tool-btn" title="محاذاة لليسار"><i class="fas fa-align-left"></i></button>
-                    </div>
-                    <div style="display: flex; gap: 2px; border-left: 1px solid #dee2e6; padding-left: 8px; margin-left: 8px;">
-                        <button type="button" onclick="formatDoc('insertUnorderedList', this)" data-command="insertUnorderedList" class="tool-btn" title="قائمة نقطية"><i class="fas fa-list-ul"></i></button>
-                        <button type="button" onclick="formatDoc('insertOrderedList', this)" data-command="insertOrderedList" class="tool-btn" title="قائمة رقمية"><i class="fas fa-list-ol"></i></button>
-                    </div>
-                    <div style="display: flex; gap: 2px; border-left: 1px solid #dee2e6; padding-left: 8px; margin-left: 8px;">
-                        <button type="button" onclick="formatDoc('increaseFont', this)" class="tool-btn" title="تكبير الخط"><i class="fas fa-search-plus"></i></button>
-                        <button type="button" onclick="formatDoc('decreaseFont', this)" class="tool-btn" title="تصغير الخط"><i class="fas fa-search-minus"></i></button>
-                    </div>
-                    <div style="display: flex; gap: 2px;">
-                        <button type="button" onclick="formatDoc('removeFormat', this)" class="tool-btn" title="مسح التنسيق"><i class="fas fa-eraser"></i></button>
-                        <button type="button" onclick="formatDoc('undo', this)" class="tool-btn" title="تراجع"><i class="fas fa-undo-alt"></i></button>
-                        <button type="button" onclick="formatDoc('redo', this)" class="tool-btn" title="إعادة"><i class="fas fa-redo-alt"></i></button>
-                    </div>
-                </div>
-                <div id="descriptionEditor" contenteditable="true" style="border: 1.5px solid #edf2f7; border-radius: 12px; padding: 12px; min-height: 150px; background: #fff; font-family: Cairo; direction: rtl; text-align: right; overflow-y: auto;"></div>
-                <input type="hidden" id="description" value="">
-                <small class="input-hint">استخدم الأزرار لتنسيق النص (عريض، قوائم، تكبير الخط...)</small>
-            </div>
-        </div>
-        <div class="form-row">
-            <div class="form-group"><label><i class="fas fa-tags"></i> السعر قبل الخصم</label><input id="comparePrice" type="number" placeholder="السعر الأصلي (اختياري)"><small class="input-hint">اتركه فارغاً إذا لا يوجد خصم</small></div>
-            <div class="form-group"></div>
-        </div>
-        <div class="form-row">
-            <div class="form-group"><label><i class="fas fa-ban"></i> قابل للخصم (كوبونات)</label><select id="discountable"><option value="true">✅ نعم، قابل للخصم</option><option value="false">❌ لا، غير قابل للخصم</option></select><small class="input-hint">إذا اخترت "لا"، لن يشمل هذا المنتج أي خصم من الكوبونات</small></div>
-            <div class="form-group"></div>
-        </div>
-        <div id="sizeStockContainer">
-            <h4>📦 الكمية المتاحة لكل مقاس</h4>
-            <div id="sizeStockInputs"><p class="empty-stock-hint">📌 أدخل المقاسات أولاً ثم اضغط "تحديث حقول الكميات"</p></div>
-            <button type="button" onclick="generateSizeStockInputs()" class="secondary-btn"><i class="fas fa-sync-alt"></i> تحديث حقول الكميات</button>
-        </div>
-        <div class="form-actions">
-            <button onclick="addProduct()" id="addBtn" class="primary-btn"><i class="fas fa-save"></i> إضافة منتج</button>
-            <button onclick="cancelEdit()" id="cancelBtn" class="cancel-btn" style="display:none;"><i class="fas fa-times"></i> إلغاء التعديل</button>
-        </div>
-    </div>
-</div>
+   <div class="form-section" id="productFormSection">
+       <h3 class="form-title" data-toggle="productFormContent">➕ إضافة / تعديل منتج</h3>
+       <div id="productFormContent" class="collapsible-content">
+           <div class="form-row">
+               <div class="form-group"><label><i class="fas fa-tag"></i> اسم المنتج</label><input id="name" placeholder="مثال: سوار ذهبي"></div>
+               <div class="form-group"><label><i class="fas fa-coins"></i> سعر البيع (EGP)</label><input id="price" type="number" placeholder="السعر"></div>
+           </div>
+           <div class="form-row">
+               <div class="form-group"><label><i class="fas fa-dollar-sign"></i> سعر الجملة (تكلفة الشراء)</label><input id="costPrice" type="number" placeholder="سعر شراء المنتج من التاجر"></div>
+               <div class="form-group"><label><i class="fas fa-link"></i> رابط التاجر (تيليجرام/واتساب)</label><input id="supplierLink" placeholder="https://t.me/..."></div>
+           </div>
+           <div class="form-row">
+               <div class="form-group"><label><i class="fas fa-image"></i> رابط الصورة الرئيسية</label><input id="image" placeholder="https://..."></div>
+               <div class="form-group"><label><i class="fas fa-images"></i> صور إضافية</label><input id="additionalImages" placeholder="رابط1, رابط2, رابط3"></div>
+           </div>
+           <div class="form-row">
+               <div class="form-group"><label><i class="fas fa-ruler"></i> المقاسات</label><input id="sizes" placeholder="مثال: 16,18,20"><small class="input-hint">أدخل المقاسات مفصولة بفاصلة</small></div>
+               <div class="form-group"><label><i class="fas fa-layer-group"></i> القسم</label><select id="category"><option value="">-- اختر --</option><option value="necklaces">سلاسل</option><option value="bracelets">أساور</option><option value="rings">خواتم</option><option value="sets">أطقم</option><option value="earrings">حلقان</option><option value="anklets">خلخال</option></select></div>
+           </div>
+           <div class="form-row">
+               <div class="form-group full-width"><label><i class="fas fa-align-right"></i> وصف المنتج</label>
+                   <div id="descriptionEditor" contenteditable="true" style="border:1.5px solid #edf2f7; border-radius:12px; padding:12px; min-height:150px; background:#fff;"></div>
+                   <input type="hidden" id="description">
+               </div>
+           </div>
+           <div class="form-row">
+               <div class="form-group"><label><i class="fas fa-tags"></i> السعر قبل الخصم</label><input id="comparePrice" type="number" placeholder="السعر الأصلي (اختياري)"></div>
+               <div class="form-group"><label><i class="fas fa-ban"></i> قابل للخصم (كوبونات)</label><select id="discountable"><option value="true">✅ نعم</option><option value="false">❌ لا</option></select></div>
+           </div>
+           <div id="sizeStockContainer">
+               <h4>📦 الكمية المتاحة لكل مقاس</h4>
+               <div id="sizeStockInputs"><p class="empty-stock-hint">📌 أدخل المقاسات أولاً ثم اضغط "تحديث حقول الكميات"</p></div>
+               <button type="button" onclick="generateSizeStockInputs()" class="secondary-btn"><i class="fas fa-sync-alt"></i> تحديث حقول الكميات</button>
+           </div>
+           <div class="form-actions">
+               <button onclick="addProduct()" id="addBtn" class="primary-btn"><i class="fas fa-save"></i> إضافة منتج</button>
+               <button onclick="cancelEdit()" id="cancelBtn" class="cancel-btn" style="display:none;"><i class="fas fa-times"></i> إلغاء</button>
+           </div>
+       </div>
+   </div>
 
-
-<!-- قسم قائمة المنتجات (قابل للطي) -->
-<div class="form-section" id="productsListSection">
-    <h3 class="form-title" data-toggle="productsListContent">📦 قائمة المنتجات</h3>
-    <div id="productsListContent" class="collapsible-content">
-        <div id="productsList" class="loading-error">⏳ جاري تحميل المنتجات... يرجى الانتظار</div>
-    </div>
-</div>
-
+   <!-- قسم قائمة المنتجات -->
+   <div class="form-section" id="productsListSection">
+       <h3 class="form-title" data-toggle="productsListContent">📦 قائمة المنتجات</h3>
+       <div id="productsListContent" class="collapsible-content">
+           <div id="productsList" class="loading-error">⏳ جاري التحميل...</div>
+       </div>
+   </div>
 </div>
 
 <div id="customAlertOverlay" class="custom-alert-overlay">
@@ -1312,7 +1307,14 @@ window.addProduct = async function() {
         customAlert("يرجى إدخال جميع البيانات الأساسية مع مقاس واحد على الأقل"); 
         return; 
     }
-    const productData = { name, price, image, additionalImages, category, categoryLabel: rawCategory, description, sizes, comparePrice, stockBySize, updatedAt: serverTimestamp(), discountable: document.getElementById("discountable").value === "true" };
+    const productData = {
+    name, price, image, additionalImages, category, categoryLabel: rawCategory,
+    description, sizes, comparePrice, stockBySize,
+    costPrice: Number(document.getElementById("costPrice").value) || 0,
+    supplierLink: document.getElementById("supplierLink").value.trim(),
+    updatedAt: serverTimestamp(),
+    discountable: document.getElementById("discountable").value === "true"
+};
     if (editingProductId) {
         await updateDoc(doc(db, "products", editingProductId), productData);
         customAlert("تم تحديث المنتج بنجاح");
@@ -1330,6 +1332,8 @@ window.addProduct = async function() {
 };
 window.cancelEdit = function() { editingProductId = null; document.getElementById("addBtn").textContent = "إضافة منتج"; document.getElementById("cancelBtn").style.display = "none"; clearForm(); };
 function clearForm() {
+  document.getElementById("costPrice").value = "";
+document.getElementById("supplierLink").value = "";
     document.getElementById("name").value = ""; document.getElementById("price").value = ""; document.getElementById("image").value = "";
     document.getElementById("additionalImages").value = ""; document.getElementById("sizes").value = ""; document.getElementById("category").value = "";
     document.getElementById("comparePrice").value = ""; const editor = document.getElementById("descriptionEditor"); if(editor) editor.innerHTML = "";
@@ -1362,7 +1366,9 @@ function scrollToElement(elementId, delay = 300) {
 window.editProduct = function(id, data) {
     editingProductId = id; 
     window._editingStockBySize = data.stockBySize || {};
-    
+    // داخل editProduct بعد تعبئة باقي الحقول
+document.getElementById("costPrice").value = data.costPrice || "";
+document.getElementById("supplierLink").value = data.supplierLink || "";
     openSection('productFormContent');
     scrollToElement('productFormSection', 350);
     
