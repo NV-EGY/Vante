@@ -5550,9 +5550,8 @@ const finalTotalAfter = finalTotalBefore - savedDiscount;
         }
 
         const orderID = `${customerCode}-${dateStr}${customerOrderCount}${String(dailyOrderCount).padStart(3, '0')}`;
-
-        // ========== 4. تجهيز تفاصيل الطلب ==========
-        const orderDetails = cart.map(item => {
+// ========== 4. تجهيز تفاصيل الطلب ==========
+const orderDetails = cart.map(item => {
     const product = allProducts.find(p => p.id === item.productId);
     return {
         productId: item.productId,
@@ -5561,17 +5560,14 @@ const finalTotalAfter = finalTotalBefore - savedDiscount;
         qty: item.qty,
         price: item.price,
         image: item.image || "",
-        costPrice: product?.costPrice || 0   // ✅ أضف هذا السطر
+        costPrice: product?.costPrice || 0
     };
 });
+
 const totalCost = cart.reduce((sum, item) => {
     const product = allProducts.find(p => p.id === item.productId);
     return sum + (item.qty * (product?.costPrice || 0));
 }, 0);
-
-// ثم أضفه داخل orderData:
-orderData.totalCost = totalCost;
-orderData.profit = finalTotalAfter - totalCost - storeShippingCost;
         // ========== 5. بناء رسالة الواتساب باستخدام القيم الصحيحة ==========
         let message = `🛍️ طلب جديد - VANTÉ\n\n`;
         message += `📦 رقم الطلب: ${orderID}\n`;
@@ -5596,32 +5592,41 @@ message += `🚚 الشحن: ${customerShippingFee} جنيه\n`;
         } else {
             message += `💰 الإجمالي: ${finalTotalBefore} جنيه\n`;
         }
+// ========== 6. حفظ الطلب في Firestore ==========
+const orderData = {
+    orderID,
+    customerName: name,
+    phone,
+    gov,
+    city,
+    address,
+    orderDetails,
+    quantity: cart.reduce((sum, i) => sum + i.qty, 0),
+    price: subtotal,
+    shipping: customerShippingFee,
+    shippingCostPaid: storeShippingCost,
+    finalTotal: finalTotalAfter,
+    status: "new",
+    date: dateStr,
+    createdAt: serverTimestamp(),
+    // ✅ أضف totalCost و profit هنا داخل الكائن
+    totalCost: totalCost,
+    profit: finalTotalAfter - totalCost - storeShippingCost
+};
 
-        // ========== 6. حفظ الطلب في Firestore ==========
-        const orderData = {
-            orderID, customerName: name, phone, gov, city, address,
-            orderDetails,
-            quantity: cart.reduce((sum, i) => sum + i.qty, 0),
-            price: subtotal,
-               shipping: customerShippingFee,          // ما يدفعه العميل
-    shippingCostPaid: storeShippingCost,   // التكلفة الفعلية للمتجر
-            finalTotal: finalTotalAfter,
-            status: "new",
-            date: dateStr,
-            createdAt: serverTimestamp()
-        };
-        if (savedCoupon) {
-            orderData.coupon = {
-                code: savedCoupon.code,
-                discountType: savedCoupon.discountType,
-                discountValue: savedCoupon.discountValue,
-                appliesTo: savedCoupon.appliesTo,
-                productId: savedCoupon.productId || null,
-                discountAmount: savedDiscount,
-                finalTotal: finalTotalAfter
-            };
-        }
-        await addDoc(collection(db, "orders"), orderData);
+if (savedCoupon) {
+    orderData.coupon = {
+        code: savedCoupon.code,
+        discountType: savedCoupon.discountType,
+        discountValue: savedCoupon.discountValue,
+        appliesTo: savedCoupon.appliesTo,
+        productId: savedCoupon.productId || null,
+        discountAmount: savedDiscount,
+        finalTotal: finalTotalAfter
+    };
+}
+
+await addDoc(collection(db, "orders"), orderData);
 
         // ========== 7. تحديث عداد استخدام الكوبون (إذا وجد) ==========
         if (appliedCoupon) {
