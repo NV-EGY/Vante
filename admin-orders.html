@@ -699,13 +699,11 @@
     <div id="reviewsList" style="display: flex; flex-direction: column; gap: 12px;"></div>
 </div>
 </div>
-<!-- قسم إدارة أسعار الشحن - نسخة محسنة واحترافية -->
-<div class="form-section" id="shippingRatesSection" style="margin-top: 20px;">
-    <h3 class="form-title" data-toggle="shippingRatesContent">
-        <i class="fas fa-truck-moving"></i> أسعار الشحن حسب المحافظة
-    </h3>
-    <div id="shippingRatesContent" class="collapsible-content show">
-        <!-- نموذج الإضافة -->
+<!-- تبويب أسعار الشحن (مخفي افتراضياً) -->
+<div id="shippingTab" class="tab-content">
+    <!-- قسم إدارة أسعار الشحن -->
+    <div class="form-section" style="margin-top: 20px;">
+        <h3 class="form-title"><i class="fas fa-truck-moving"></i> أسعار الشحن حسب المحافظة</h3>
         <div style="background: #f8f9fa; padding: 20px; border-radius: 20px; margin-bottom: 25px;">
             <h4 style="margin-bottom: 15px; font-size: 16px; color: #0F7B65;">
                 <i class="fas fa-plus-circle"></i> إضافة أو تعديل سعر الشحن
@@ -736,7 +734,6 @@
             </small>
         </div>
 
-        <!-- جدول عرض الأسعار -->
         <h4 style="margin-bottom: 15px; font-size: 16px; color: #0F7B65;">
             <i class="fas fa-list"></i> قائمة أسعار الشحن الحالية
         </h4>
@@ -751,14 +748,13 @@
                     </tr>
                 </thead>
                 <tbody id="shippingRatesList">
-                    <tr>
-                        <td colspan="4" style="text-align: center; padding: 30px;">⏳ جاري تحميل أسعار الشحن...</td>
-                    </tr>
+                    <tr><td colspan="4" style="text-align: center; padding: 30px;">⏳ جاري تحميل أسعار الشحن...</td></tr>
                 </tbody>
             </table>
         </div>
     </div>
 </div>
+
 <div class="top-stats">
   <div class="select-all-icon-btn" id="selectAllIconBtn" onclick="toggleSelectAll()">
     <i class="fas fa-check-double"></i>
