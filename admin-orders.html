@@ -701,7 +701,6 @@
 </div>
 <!-- تبويب أسعار الشحن (مخفي افتراضياً) -->
 <div id="shippingTab" class="tab-content">
-    <!-- قسم إدارة أسعار الشحن -->
     <div class="form-section" style="margin-top: 20px;">
         <h3 class="form-title"><i class="fas fa-truck-moving"></i> أسعار الشحن حسب المحافظة</h3>
         <div style="background: #f8f9fa; padding: 20px; border-radius: 20px; margin-bottom: 25px;">
@@ -717,11 +716,13 @@
                 </div>
                 <div class="form-group" style="flex: 1;">
                     <label><i class="fas fa-dollar-sign"></i> تكلفة المتجر (الدفع لشركة الشحن)</label>
-                    <input type="number" id="shippingCostForStore" class="form-control" placeholder="مثال: 35" step="1">
+                    <input type="number" id="shippingCostForStore" class="form-control" placeholder="مثال: 35" step="1" value="35">
+                    <small class="text-muted">المبلغ الذي تدفعه أنت فعلياً</small>
                 </div>
                 <div class="form-group" style="flex: 1;">
                     <label><i class="fas fa-hand-holding-usd"></i> العميل يدفع (رسوم الشحن)</label>
                     <input type="number" id="customerShippingFee" class="form-control" placeholder="مثال: 70" value="70" step="1">
+                    <small class="text-muted">المبلغ الذي يظهر للعميل</small>
                 </div>
                 <div class="form-group" style="flex: 0 0 auto; display: flex; align-items: flex-end;">
                     <button onclick="saveShippingRate()" class="btn btn-primary" style="background: #0F7B65; color: white; padding: 10px 25px;">
@@ -729,9 +730,6 @@
                     </button>
                 </div>
             </div>
-            <small class="text-muted" style="display: block; margin-top: 8px;">
-                <i class="fas fa-info-circle"></i> ملاحظة: "تكلفة المتجر" هي التي تدفعها أنت لشركة الشحن، و"العميل يدفع" هي التي تظهر للعميل عند الدفع.
-            </small>
         </div>
 
         <h4 style="margin-bottom: 15px; font-size: 16px; color: #0F7B65;">
@@ -1218,7 +1216,6 @@ window.showPopup = (o) => { let box = document.getElementById("msgPopup"); docum
 
 function load() {
   loadReviews();
-  loadShippingRates();
   onSnapshot(query(collection(db, "messages"), orderBy("createdAt", "desc")), (snap) => {
     let unread = 0, html = "";
     messages = snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -1240,6 +1237,7 @@ document.getElementById("search").addEventListener("input", render);
 document.addEventListener("change", (e) => { if (e.target.classList.contains("selectOrder")) updateBulkBar(); });
 Notification.requestPermission();
 onAuthStateChanged(auth, (user) => { if (user) load(); else window.location.href = "login.html"; });
+loadShippingRates();
 // Custom Confirm - مودال احترافي بديل
 window.customConfirm = function(message) {
     return new Promise((resolve) => {
@@ -1378,6 +1376,8 @@ window.switchTab = function(tab) {
             shippingBtn.style.background = "#0F7B65";
             shippingBtn.style.color = "#fff";
         }
+        renderShippingRates();
+    }
         // تحديث عرض أسعار الشحن إن لزم
         if(typeof renderShippingRates === 'function') renderShippingRates();
     }
@@ -1526,8 +1526,7 @@ function loadReviews() {
         if (currentTab === 'reviews') renderReviews();
     });
 }
-
-// ========== إدارة أسعار الشحن ==========// ========== إدارة أسعار الشحن المحسنة ==========
+// ========== إدارة أسعار الشحن المتكاملة ==========
 let shippingRates = [];
 
 async function loadShippingRates() {
@@ -1566,11 +1565,15 @@ function renderShippingRates() {
 function populateGovSelect() {
     const select = document.getElementById("govSelect");
     if (!select) return;
-    const govs = ["القاهرة","الجيزة","القليوبية","الإسكندرية","الدقهلية","الشرقية","الغربية","المنوفية","البحيرة","كفر الشيخ","دمياط","بورسعيد","الإسماعيلية","السويس","بني سويف","الفيوم","المنيا","أسيوط","سوهاج","قنا","الأقصر","أسوان","البحر الأحمر","الوادي الجديد","مطروح","شمال سيناء","جنوب سيناء"];
+    const govs = [
+        "القاهرة", "الجيزة", "القليوبية", "الإسكندرية", "الدقهلية", "الشرقية", "الغربية",
+        "المنوفية", "البحيرة", "كفر الشيخ", "دمياط", "بورسعيد", "الإسماعيلية", "السويس",
+        "بني سويف", "الفيوم", "المنيا", "أسيوط", "سوهاج", "قنا", "الأقصر", "أسوان",
+        "البحر الأحمر", "الوادي الجديد", "مطروح", "شمال سيناء", "جنوب سيناء"
+    ];
     select.innerHTML = '<option value="">-- اختر المحافظة --</option>' + govs.map(g => `<option value="${g}">${g}</option>`).join('');
 }
 
-// حفظ سعر الشحن (إضافة أو تحديث)
 window.saveShippingRate = async () => {
     const gov = document.getElementById("govSelect").value;
     const costForStore = parseFloat(document.getElementById("shippingCostForStore").value);
@@ -1595,26 +1598,25 @@ window.saveShippingRate = async () => {
             customAlert(`✅ تم إضافة سعر الشحن لمحافظة ${gov} بنجاح`, 'success');
         }
         // تفريغ الحقول بعد الحفظ
-        document.getElementById("shippingCostForStore").value = "";
-        document.getElementById("govSelect").value = "";
+        document.getElementById("shippingCostForStore").value = "35";
         document.getElementById("customerShippingFee").value = "70";
+        document.getElementById("govSelect").value = "";
     } catch (error) {
         console.error(error);
         customAlert("❌ حدث خطأ أثناء حفظ السعر", 'error');
     }
 };
 
-// تعديل سعر الشحن (تعبئة الحقول)
 window.editShippingRate = (id) => {
     const rate = shippingRates.find(r => r.id === id);
     if (!rate) return;
     document.getElementById("govSelect").value = rate.gov;
     document.getElementById("shippingCostForStore").value = rate.costForStore;
     document.getElementById("customerShippingFee").value = rate.customerFee;
-    // تمرير إلى الحقول
+    // التمرير إلى النموذج
+    document.getElementById("shippingTab").scrollIntoView({ behavior: 'smooth', block: 'start' });
 };
 
-// حذف سعر الشحن
 window.deleteShippingRate = async (id) => {
     const confirmed = await window.customConfirm("⚠️ هل أنت متأكد من حذف سعر الشحن لهذه المحافظة؟");
     if (confirmed) {
