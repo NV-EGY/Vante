@@ -591,6 +591,66 @@
     transform: translateY(-1px);
     opacity: 0.9;
 }
+/* تحسين مظهر الجدول وأزرار الإجراءات */
+.shipping-rates-table tbody tr:hover {
+    background-color: #f8f9fa;
+    transition: 0.2s;
+}
+.shipping-rates-table td {
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+    vertical-align: middle;
+}
+.action-buttons {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+}
+.action-buttons button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    transition: 0.2s;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.action-buttons button.edit-shipping {
+    color: #f39c12;
+}
+.action-buttons button.edit-shipping:hover {
+    background: #f39c12;
+    color: white;
+}
+.action-buttons button.delete-shipping {
+    color: #e74c3c;
+}
+.action-buttons button.delete-shipping:hover {
+    background: #e74c3c;
+    color: white;
+}
+/* تنسيق حقول الإدخال في النموذج */
+.form-control {
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    padding: 10px 12px;
+    font-family: 'Cairo', sans-serif;
+    transition: 0.3s;
+}
+.form-control:focus {
+    border-color: #0F7B65;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(15,123,101,0.1);
+}
+/* تحسين النص المساعد */
+.text-muted {
+    color: #6c757d;
+    font-size: 12px;
+}
   </style>
 </head>
 <body>
@@ -635,19 +695,64 @@
     <div id="reviewsList" style="display: flex; flex-direction: column; gap: 12px;"></div>
 </div>
 </div>
-<!-- قسم إدارة أسعار الشحن -->
-<div class="form-section" id="shippingRatesSection">
-    <h3 class="form-title" data-toggle="shippingRatesContent">🚚 أسعار الشحن حسب المحافظة</h3>
-    <div id="shippingRatesContent" class="collapsible-content">
-        <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
-            <select id="govSelect" style="flex:1;">
-                <option value="">اختر المحافظة</option>
-            </select>
-            <input type="number" id="shippingCostForStore" placeholder="التكلفة الفعلية للمتجر (جنيه)" style="flex:1;">
-            <input type="number" id="customerShippingFee" placeholder="العميل يدفع (جنيه)" value="70" style="flex:1;">
-            <button onclick="saveShippingRate()" class="primary-btn" style="width: auto;">حفظ السعر</button>
+<!-- قسم إدارة أسعار الشحن - نسخة محسنة واحترافية -->
+<div class="form-section" id="shippingRatesSection" style="margin-top: 20px;">
+    <h3 class="form-title" data-toggle="shippingRatesContent">
+        <i class="fas fa-truck-moving"></i> أسعار الشحن حسب المحافظة
+    </h3>
+    <div id="shippingRatesContent" class="collapsible-content show">
+        <!-- نموذج الإضافة -->
+        <div style="background: #f8f9fa; padding: 20px; border-radius: 20px; margin-bottom: 25px;">
+            <h4 style="margin-bottom: 15px; font-size: 16px; color: #0F7B65;">
+                <i class="fas fa-plus-circle"></i> إضافة أو تعديل سعر الشحن
+            </h4>
+            <div class="form-row" style="gap: 15px;">
+                <div class="form-group" style="flex: 2;">
+                    <label><i class="fas fa-map-marker-alt"></i> المحافظة</label>
+                    <select id="govSelect" class="form-control" style="width: 100%;">
+                        <option value="">-- اختر المحافظة --</option>
+                    </select>
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label><i class="fas fa-dollar-sign"></i> تكلفة المتجر (الدفع لشركة الشحن)</label>
+                    <input type="number" id="shippingCostForStore" class="form-control" placeholder="مثال: 35" step="1">
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label><i class="fas fa-hand-holding-usd"></i> العميل يدفع (رسوم الشحن)</label>
+                    <input type="number" id="customerShippingFee" class="form-control" placeholder="مثال: 70" value="70" step="1">
+                </div>
+                <div class="form-group" style="flex: 0 0 auto; display: flex; align-items: flex-end;">
+                    <button onclick="saveShippingRate()" class="btn btn-primary" style="background: #0F7B65; color: white; padding: 10px 25px;">
+                        <i class="fas fa-save"></i> حفظ السعر
+                    </button>
+                </div>
+            </div>
+            <small class="text-muted" style="display: block; margin-top: 8px;">
+                <i class="fas fa-info-circle"></i> ملاحظة: "تكلفة المتجر" هي التي تدفعها أنت لشركة الشحن، و"العميل يدفع" هي التي تظهر للعميل عند الدفع.
+            </small>
         </div>
-        <div id="shippingRatesList" style="margin-top: 20px;"></div>
+
+        <!-- جدول عرض الأسعار -->
+        <h4 style="margin-bottom: 15px; font-size: 16px; color: #0F7B65;">
+            <i class="fas fa-list"></i> قائمة أسعار الشحن الحالية
+        </h4>
+        <div style="overflow-x: auto; border-radius: 16px; border: 1px solid #eef2f5;">
+            <table class="shipping-rates-table" style="width: 100%; border-collapse: collapse; background: white;">
+                <thead style="background: #111; color: white;">
+                    <tr>
+                        <th style="padding: 12px; text-align: center;">المحافظة</th>
+                        <th style="padding: 12px; text-align: center;">تكلفة المتجر (جنيه)</th>
+                        <th style="padding: 12px; text-align: center;">العميل يدفع (جنيه)</th>
+                        <th style="padding: 12px; text-align: center;">الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody id="shippingRatesList">
+                    <tr>
+                        <td colspan="4" style="text-align: center; padding: 30px;">⏳ جاري تحميل أسعار الشحن...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 <div class="top-stats">
@@ -1400,7 +1505,7 @@ function loadReviews() {
     });
 }
 
-// ========== إدارة أسعار الشحن ==========
+// ========== إدارة أسعار الشحن ==========// ========== إدارة أسعار الشحن المحسنة ==========
 let shippingRates = [];
 
 async function loadShippingRates() {
@@ -1416,20 +1521,23 @@ function renderShippingRates() {
     const container = document.getElementById("shippingRatesList");
     if (!container) return;
     if (!shippingRates.length) {
-        container.innerHTML = "<p class='loading-error'>لا توجد أسعار شحن محددة بعد</p>";
+        container.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:30px;">📭 لا توجد أسعار شحن محددة بعد. قم بإضافة أول سعر.</td></tr>';
         return;
     }
-    let html = `<table style="width:100%; border-collapse:collapse;">
-        <thead><tr><th>المحافظة</th><th>تكلفة المتجر</th><th>العميل يدفع</th><th></th></tr></thead><tbody>`;
+    let html = '';
     shippingRates.forEach(rate => {
-        html += `<tr>
-            <td>${rate.gov}</td>
-            <td>${rate.costForStore} جنيه</td>
-            <td>${rate.customerFee} جنيه</td>
-            <td><button onclick="deleteShippingRate('${rate.id}')" class="delete-btn" style="padding:4px 8px;">حذف</button></td>
-        </tr>`;
+        html += `
+            <tr>
+                <td><strong>${escapeHtml(rate.gov)}</strong></td>
+                <td>${rate.costForStore} جنيه</td>
+                <td>${rate.customerFee} جنيه</td>
+                <td class="action-buttons">
+                    <button class="edit-shipping" onclick="editShippingRate('${rate.id}')" title="تعديل"><i class="fas fa-edit"></i></button>
+                    <button class="delete-shipping" onclick="deleteShippingRate('${rate.id}')" title="حذف"><i class="fas fa-trash-alt"></i></button>
+                </td>
+            </tr>
+        `;
     });
-    html += `</tbody>点心`;
     container.innerHTML = html;
 }
 
@@ -1437,30 +1545,63 @@ function populateGovSelect() {
     const select = document.getElementById("govSelect");
     if (!select) return;
     const govs = ["القاهرة","الجيزة","القليوبية","الإسكندرية","الدقهلية","الشرقية","الغربية","المنوفية","البحيرة","كفر الشيخ","دمياط","بورسعيد","الإسماعيلية","السويس","بني سويف","الفيوم","المنيا","أسيوط","سوهاج","قنا","الأقصر","أسوان","البحر الأحمر","الوادي الجديد","مطروح","شمال سيناء","جنوب سيناء"];
-    select.innerHTML = '<option value="">اختر المحافظة</option>' + govs.map(g => `<option value="${g}">${g}</option>`).join('');
+    select.innerHTML = '<option value="">-- اختر المحافظة --</option>' + govs.map(g => `<option value="${g}">${g}</option>`).join('');
 }
 
+// حفظ سعر الشحن (إضافة أو تحديث)
 window.saveShippingRate = async () => {
     const gov = document.getElementById("govSelect").value;
     const costForStore = parseFloat(document.getElementById("shippingCostForStore").value);
     const customerFee = parseFloat(document.getElementById("customerShippingFee").value) || 70;
-    if (!gov || !costForStore) { customAlert("اختر المحافظة وأدخل تكلفة المتجر", 'warning'); return; }
-    const existing = shippingRates.find(r => r.gov === gov);
-    if (existing) {
-        await updateDoc(doc(db, "shippingRates", existing.id), { costForStore, customerFee });
-        customAlert(`تم تحديث سعر الشحن لمحافظة ${gov}`, 'success');
-    } else {
-        await addDoc(collection(db, "shippingRates"), { gov, costForStore, customerFee, createdAt: serverTimestamp() });
-        customAlert(`تم إضافة سعر الشحن لمحافظة ${gov}`, 'success');
+
+    if (!gov) {
+        customAlert("⚠️ يرجى اختيار المحافظة أولاً", 'warning');
+        return;
     }
-    document.getElementById("shippingCostForStore").value = "";
-    document.getElementById("govSelect").value = "";
+    if (isNaN(costForStore) || costForStore < 0) {
+        customAlert("⚠️ يرجى إدخال تكلفة صالحة للمتجر", 'warning');
+        return;
+    }
+
+    const existing = shippingRates.find(r => r.gov === gov);
+    try {
+        if (existing) {
+            await updateDoc(doc(db, "shippingRates", existing.id), { costForStore, customerFee });
+            customAlert(`✅ تم تحديث سعر الشحن لمحافظة ${gov} بنجاح`, 'success');
+        } else {
+            await addDoc(collection(db, "shippingRates"), { gov, costForStore, customerFee, createdAt: serverTimestamp() });
+            customAlert(`✅ تم إضافة سعر الشحن لمحافظة ${gov} بنجاح`, 'success');
+        }
+        // تفريغ الحقول بعد الحفظ
+        document.getElementById("shippingCostForStore").value = "";
+        document.getElementById("govSelect").value = "";
+        document.getElementById("customerShippingFee").value = "70";
+    } catch (error) {
+        console.error(error);
+        customAlert("❌ حدث خطأ أثناء حفظ السعر", 'error');
+    }
 };
 
+// تعديل سعر الشحن (تعبئة الحقول)
+window.editShippingRate = (id) => {
+    const rate = shippingRates.find(r => r.id === id);
+    if (!rate) return;
+    document.getElementById("govSelect").value = rate.gov;
+    document.getElementById("shippingCostForStore").value = rate.costForStore;
+    document.getElementById("customerShippingFee").value = rate.customerFee;
+    // تمرير إلى الحقول
+};
+
+// حذف سعر الشحن
 window.deleteShippingRate = async (id) => {
-    if (await customConfirm("حذف سعر الشحن لهذه المحافظة؟")) {
-        await deleteDoc(doc(db, "shippingRates", id));
-        customAlert("تم الحذف", 'success');
+    const confirmed = await window.customConfirm("⚠️ هل أنت متأكد من حذف سعر الشحن لهذه المحافظة؟");
+    if (confirmed) {
+        try {
+            await deleteDoc(doc(db, "shippingRates", id));
+            customAlert("🗑️ تم حذف سعر الشحن بنجاح", 'success');
+        } catch (error) {
+            customAlert("❌ حدث خطأ أثناء الحذف", 'error');
+        }
     }
 };
 // تحديث عداد التقييمات قيد المراجعة
