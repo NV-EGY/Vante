@@ -4884,49 +4884,58 @@ window.addEventListener('resize', function() {
 function goToPair(index) {
     const track = document.getElementById("track");
     if (!track) return;
-
     const totalPairs = track.querySelectorAll('.pair').length;
     const viewportWidth = document.getElementById('viewport').clientWidth;
     const maxAllowed = Math.max(0, totalPairs - Math.ceil(viewportWidth / pairWidth));
 
     if (index < 0) index = 0;
     if (index > maxAllowed) index = maxAllowed;
-
     currentPairIndex = index;
-
     const offset = (viewportWidth / 2) - (pairWidth / 2);
     const x = offset - (currentPairIndex * pairWidth);
-
-    // حركة أبطأ: 0.8 ثانية بدلاً من 0.5
     track.style.transition = 'transform 0.8s cubic-bezier(0.25, 0.8, 0.25, 1)';
     track.style.transform = `translate3d(${x}px, 0, 0)`;
-    updateDots();
+    updateDots();  // يجب أن تكون موجودة
 }
 
 function nextPair() {
     const track = document.getElementById("track");
+    if (!track) return;
     const totalPairs = track.querySelectorAll('.pair').length;
     const viewportWidth = document.getElementById('viewport').clientWidth;
     const maxAllowed = Math.max(0, totalPairs - Math.ceil(viewportWidth / pairWidth));
 
     let next = currentPairIndex + 1;
     if (next > maxAllowed) {
-        // رجوع ناعم: نذهب للزوج 0 بحركة أبطأ
-        next = 0;
-        // إضافة transition أطول للرجوع من الآخر للأول
-        track.style.transition = 'transform 2s cubic-bezier(0.25, 0.8, 0.25, 1)';
+        // الرجوع إلى البداية بحركة أبطأ وسلسة
+        currentPairIndex = 0;
+        const offset = (viewportWidth / 2) - (pairWidth / 2);
+        track.style.transition = 'transform 1.5s cubic-bezier(0.4, 0, 0.2, 1)';
+        track.style.transform = `translate3d(${offset}px, 0, 0)`;
+        updateDots();
+        return;
     }
     goToPair(next);
 }
 
 function prevPair() {
     const track = document.getElementById("track");
+    if (!track) return;
     const totalPairs = track.querySelectorAll('.pair').length;
     const viewportWidth = document.getElementById('viewport').clientWidth;
     const maxAllowed = Math.max(0, totalPairs - Math.ceil(viewportWidth / pairWidth));
 
     let prev = currentPairIndex - 1;
-    if (prev < 0) prev = maxAllowed; // رجوع للآخر
+    if (prev < 0) {
+        // الرجوع إلى النهاية بحركة سلسة
+        currentPairIndex = maxAllowed;
+        const offset = (viewportWidth / 2) - (pairWidth / 2);
+        const x = offset - (currentPairIndex * pairWidth);
+        track.style.transition = 'transform 1.5s cubic-bezier(0.4, 0, 0.2, 1)';
+        track.style.transform = `translate3d(${x}px, 0, 0)`;
+        updateDots();
+        return;
+    }
     goToPair(prev);
 }
 
@@ -4951,42 +4960,70 @@ function bindGalleryEvents() {
     const track = document.getElementById("track");
     if (!track) return;
 
+    let startX = 0, startY = 0;
+    let isHorizontalSwipe = false;
+
     track.addEventListener('touchstart', (e) => {
-        isDragging = true;
         startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+        isHorizontalSwipe = false;
         stopAutoplay();
         clearTimeout(resumeTimer);
     }, { passive: true });
 
+    track.addEventListener('touchmove', (e) => {
+        const dx = Math.abs(e.touches[0].clientX - startX);
+        const dy = Math.abs(e.touches[0].clientY - startY);
+        if (dx > 10 && dx > dy) {
+            isHorizontalSwipe = true;
+            e.preventDefault(); // منع التمرير العمودي أثناء السحب الأفقي
+        }
+    }, { passive: false });
+
+    track.addEventListener('touchend', (e) => {
+        if (!isHorizontalSwipe) {
+            resumeTimer = setTimeout(startAutoplay, 4000);
+            return;
+        }
+        const diffX = e.changedTouches[0].clientX - startX;
+        if (Math.abs(diffX) > 40) {
+            if (diffX < 0) nextPair();
+            else prevPair();
+        } else {
+            goToPair(currentPairIndex);
+        }
+        resumeTimer = setTimeout(startAutoplay, 4000);
+    });
+
+    // نفس الشيء للماوس (اختياري)
+    let mouseStartX = 0, mouseStartY = 0;
+    let isMouseDrag = false;
     track.addEventListener('mousedown', (e) => {
-        isDragging = true;
-        startX = e.clientX;
+        mouseStartX = e.clientX;
+        mouseStartY = e.clientY;
+        isMouseDrag = false;
         stopAutoplay();
         clearTimeout(resumeTimer);
     });
-
-    track.addEventListener('touchend', (e) => {
-        if (!isDragging) return;
-        isDragging = false;
-
-        const diff = e.changedTouches[0].clientX - startX;
-        if (diff < -50) nextPair();      // سحب لليسار
-        else if (diff > 50) prevPair(); // سحب لليمين
-        else goToPair(currentPairIndex);
-
-        resumeTimer = setTimeout(startAutoplay, 3000);
-    }, { passive: true });
-
-    track.addEventListener('mouseup', (e) => {
-        if (!isDragging) return;
-        isDragging = false;
-
-        const diff = e.clientX - startX;
-        if (diff < -50) nextPair();
-        else if (diff > 50) prevPair();
-        else goToPair(currentPairIndex);
-
-        resumeTimer = setTimeout(startAutoplay, 3000);
+    window.addEventListener('mousemove', (e) => {
+        if (!mouseStartX) return;
+        const dx = Math.abs(e.clientX - mouseStartX);
+        const dy = Math.abs(e.clientY - mouseStartY);
+        if (dx > 10 && dx > dy) isMouseDrag = true;
+    });
+    window.addEventListener('mouseup', (e) => {
+        if (!mouseStartX) return;
+        if (isMouseDrag) {
+            const diffX = e.clientX - mouseStartX;
+            if (Math.abs(diffX) > 40) {
+                if (diffX < 0) nextPair();
+                else prevPair();
+            } else {
+                goToPair(currentPairIndex);
+            }
+        }
+        mouseStartX = 0;
+        resumeTimer = setTimeout(startAutoplay, 4000);
     });
 }
 
@@ -5189,12 +5226,8 @@ function createDots() {
 function updateDots() {
     const dotsContainer = document.getElementById("galleryDots");
     if (!dotsContainer) return;
-    
     const dots = dotsContainer.querySelectorAll('span');
-    // عكس الاتجاه بصرياً للـ RTL
-    const reversedIndex = (dots.length - 1) - currentPairIndex;
-    
-        dots.forEach((dot, i) => {
+    dots.forEach((dot, i) => {
         dot.classList.toggle('active', i === currentPairIndex);
     });
 }
