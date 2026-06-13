@@ -1236,8 +1236,10 @@ document.getElementById("dateFilter").addEventListener("change", render);
 document.getElementById("search").addEventListener("input", render);
 document.addEventListener("change", (e) => { if (e.target.classList.contains("selectOrder")) updateBulkBar(); });
 Notification.requestPermission();
-onAuthStateChanged(auth, (user) => { if (user) load(); else window.location.href = "login.html"; });
+onAuthStateChanged(auth, (user) => { if (user) load();
 loadShippingRates();
+else window.location.href = "login.html"; });
+
 // Custom Confirm - مودال احترافي بديل
 window.customConfirm = function(message) {
     return new Promise((resolve) => {
