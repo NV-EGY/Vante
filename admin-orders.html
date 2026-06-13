@@ -1250,6 +1250,15 @@ function load() {
     badge.innerText = unread;
   });
   onSnapshot(query(collection(db, "orders"), orderBy("createdAt", "desc")), (snap) => {
+    if (change.type === "added" && lastCount !== 0) {
+    let o = change.doc.data();
+    // إشعار سطح المكتب
+    if (Notification.permission === "granted") {
+        new Notification("طلب جديد", { body: `${o.customerName} - ${o.phone}` });
+    }
+    // عرض نافذة منبثقة داخل الموقع (اختياري)
+    showPopup(o);
+}
     snap.docChanges().forEach(change => { if (change.type === "added" && lastCount !== 0) { let o = change.doc.data(); new Audio("https://assets.mixkit.co/sfx/preview/mixkit-bell-notification-933.mp3").play().catch(()=>{}); if (Notification.permission === "granted") new Notification("طلب جديد", { body: `${o.customerName} - ${o.phone}` }); showPopup(o); } });
     lastCount = snap.size;
     orders = snap.docs.map(d => ({ id: d.id, ...d.data() }));
