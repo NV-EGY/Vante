@@ -1984,49 +1984,6 @@ body.modal-open{
     color: #111;
     user-select: none;
 }
-
-/* نظام الإشعارات الفاخر (Toast Notifications) */
-.vante-toast {
-    position: fixed;
-    top: 30px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #111;
-    color: #fff;
-    padding: 14px 28px;
-    border-radius: 30px;
-    font-weight: 700;
-    font-size: 15px;
-    z-index: 99999;
-    box-shadow: 0 15px 35px rgba(0,0,0,0.2);
-    border: 1px solid #D4AF37;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    direction: rtl;
-    animation: toastIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    opacity: 1;
-    transition: opacity 0.3s;
-}
-.vante-toast.success {
-    background: #111;
-    border-color: #D4AF37;
-}
-.vante-toast.error {
-    background: #3c0000;
-    border-color: #c0392b;
-}
-.vante-toast i {
-    color: #D4AF37;
-    font-size: 18px;
-}
-.vante-toast.error i {
-    color: #e74c3c;
-}
-@keyframes toastIn {
-    from { opacity: 0; transform: translateX(-50%) translateY(-20px); }
-    to { opacity: 1; transform: translateX(-50%) translateY(0); }
-}
 /* معرض الصور */
 .gallery-main {
     position: relative;
@@ -3624,6 +3581,62 @@ body.modal-open{
     color: #D4AF37;
     text-decoration: underline;
 }
+/* إشعارات أفقية سفلى مع زر إغلاق */
+.vante-toast {
+    position: fixed;
+    bottom: 30px;
+    right: 20px;
+    left: auto;
+    transform: none;
+    background: #111;
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 14px;
+    z-index: 99999;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    border: 1px solid #D4AF37;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+    max-width: 350px;
+    width: auto;
+    direction: rtl;
+    text-align: right;
+}
+.vante-toast.success {
+    background: rgba(0,0,0,0.85);
+    border-color: #D4AF37;
+}
+.vante-toast.error {
+    background: rgba(60,0,0,0.9);
+    border-color: #e74c3c;
+}
+.toast-close-btn {
+    background: rgba(255,255,255,0.2);
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.2s;
+}
+.toast-close-btn:hover {
+    background: #D4AF37;
+    color: #000;
+}
+@media (max-width: 480px) {
+    .vante-toast {
+        left: 10px;
+        right: 10px;
+        bottom: 10px;
+        max-width: calc(100% - 20px);
+        font-size: 12px;
+        padding: 10px 16px;
+    }
+}
     </style>
 </head>
 
@@ -4542,6 +4555,35 @@ if (currentSort === "latest") {
     };
     filtered.sort((a,b) => getAvgRating(b.id) - getAvgRating(a.id));
 }
+
+// فصل المنتجات: المتوفرة أولاً، ثم النافدة
+const inStockProducts = filtered.filter(p => {
+    // منطق تحديد نفاد المنتج (مطابق لما في الـ map)
+    const sizes = Array.isArray(p.sizes) && p.sizes.length ? p.sizes : ["7", "8", "9"];
+    const stockBySize = p.stockBySize || {};
+    const hasUnlimited = Object.values(stockBySize).some(qty => qty === null || qty === undefined);
+    const totalStock = Object.values(stockBySize).reduce((sum, qty) => {
+        if (qty !== null && qty !== undefined) return sum + (parseInt(qty) || 0);
+        return sum;
+    }, 0);
+    const hasStockInfo = sizes.some(s => stockBySize.hasOwnProperty(s));
+    const outOfStock = !hasUnlimited && hasStockInfo && totalStock <= 0;
+    return !outOfStock;
+});
+const outOfStockProducts = filtered.filter(p => {
+    // نفس المنطق
+    const sizes = Array.isArray(p.sizes) && p.sizes.length ? p.sizes : ["7", "8", "9"];
+    const stockBySize = p.stockBySize || {};
+    const hasUnlimited = Object.values(stockBySize).some(qty => qty === null || qty === undefined);
+    const totalStock = Object.values(stockBySize).reduce((sum, qty) => {
+        if (qty !== null && qty !== undefined) return sum + (parseInt(qty) || 0);
+        return sum;
+    }, 0);
+    const hasStockInfo = sizes.some(s => stockBySize.hasOwnProperty(s));
+    const outOfStock = !hasUnlimited && hasStockInfo && totalStock <= 0;
+    return outOfStock;
+});
+filtered = [...inStockProducts, ...outOfStockProducts];
 // تطبيق البحث الذكي (الكلمات المفتاحية للأقسام) أو البحث النصي العادي
 if (currentSearchFilter && currentSearchFilter.trim() !== "") {
     const searchTerm = currentSearchFilter.trim();
@@ -4691,6 +4733,7 @@ if (currentSearchFilter && currentSearchFilter.trim() !== "") {
             </button>
         </div>`;
     }).join("");
+    updateReviewBadges();
 }
 
 // ========== فلترة المنتجات بالقائمة المنسدلة ==========
@@ -5985,19 +6028,41 @@ initOffer();
 // استبدال alert التقليدية بنظام Toast فاخر
 const originalAlert = window.alert;
 window.alert = function(message, type = 'success') {
-    // إزالة أي toast موجود مسبقاً
+    // إزالة أي إشعار موجود مسبقاً
     const existingToast = document.querySelector('.vante-toast');
     if (existingToast) existingToast.remove();
 
+    // إنشاء عنصر الإشعار
     const toast = document.createElement('div');
     toast.className = `vante-toast ${type}`;
-    toast.innerHTML = `<i class="fas fa-${type === 'error' ? 'exclamation-circle' : 'check-circle'}"></i> ${message}`;
+    
+    // أيقونة حسب النوع
+    const icon = type === 'error' ? 'fa-exclamation-circle' : 'fa-check-circle';
+    
+    toast.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <i class="fas ${icon}"></i>
+            <span style="flex: 1;">${message}</span>
+            <button class="toast-close-btn" style="background: none; border: none; color: inherit; cursor: pointer; font-size: 18px; margin-right: 8px;">&times;</button>
+        </div>
+    `;
+    
     document.body.appendChild(toast);
-
-    setTimeout(() => {
+    
+    // إضافة حدث الإغلاق للزر
+    const closeBtn = toast.querySelector('.toast-close-btn');
+    closeBtn.addEventListener('click', () => {
         toast.style.opacity = '0';
         setTimeout(() => toast.remove(), 300);
-    }, 3000);
+    });
+    
+    // إغلاق تلقائي بعد 4 ثوانٍ
+    setTimeout(() => {
+        if (toast.parentElement) {
+            toast.style.opacity = '0';
+            setTimeout(() => toast.remove(), 300);
+        }
+    }, 4000);
 };
 // مستمع تغيير المقاس على الواجهة الرئيسية
 document.addEventListener('change', function(e) {
@@ -6298,6 +6363,9 @@ window.lightboxNav = function(direction) {
 
 // تحديث openProduct لربط lightbox
 window.openProduct = function(id, name, price, image, sizes = [], description = "") {
+  // إعادة تعيين موضع التمرير إلى الأعلى
+const modalContent = document.querySelector("#productModal .modal-content");
+if (modalContent) modalContent.scrollTop = 0;
     const product = allProducts.find(p => p.id === id);
     const stockBySize = product ? product.stockBySize || {} : {};
     const allImages = [image, ...(product?.additionalImages || [])].filter(Boolean);
