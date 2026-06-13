@@ -5499,6 +5499,7 @@ async function executeCheckout() {
         // ========== 2. حساب قيم الطلب الأساسية ==========
         const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
 
+
 // جلب سعر الشحن حسب المحافظة
 let customerShippingFee = 70;
 let storeShippingCost = 70;
@@ -5509,10 +5510,17 @@ try {
         customerShippingFee = rate.customerFee || 70;
         storeShippingCost = rate.costForStore || 70;
     }
+    
+    // ✅ ميزة خصم الشحن للطلبات الكبيرة
+    const discountSettingsSnap = await getDoc(doc(db, "settings", "shipping_discount"));
+    if (discountSettingsSnap.exists()) {
+        const settings = discountSettingsSnap.data();
+        if (settings.enabled && subtotal >= settings.threshold) {
+            customerShippingFee = settings.discounted_shipping;
+            console.log(`تم تطبيق خصم الشحن: ${customerShippingFee} جنيه (الطلب تجاوز ${settings.threshold})`);
+        }
+    }
 } catch(e) { console.warn(e); }
-
-const finalTotalBefore = subtotal + customerShippingFee;
-const finalTotalAfter = finalTotalBefore - savedDiscount;
 
         // ========== 3. إنشاء رقم الطلب وبيانات العميل (نفس الكود الأصلي) ==========
         const ordersRef = collection(db, "orders");
