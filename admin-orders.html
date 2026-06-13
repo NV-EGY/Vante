@@ -1383,10 +1383,10 @@ window.switchTab = function(tab) {
             shippingBtn.style.background = "#0F7B65";
             shippingBtn.style.color = "#fff";
         }
+        // ✅ أهم شيء: تحديث الجدول والقائمة عند فتح التبويب
         renderShippingRates();
+        populateGovSelect();   // تأكيد ملء المحافظات
     }
-        // تحديث عرض أسعار الشحن إن لزم
-        if(typeof renderShippingRates === 'function') renderShippingRates();
 };
 
 window.setReviewFilter = function(filter) {
@@ -1572,13 +1572,15 @@ function renderShippingRates() {
 
 function populateGovSelect() {
     const select = document.getElementById("govSelect");
-    if (!select) return;
+    if (!select) {
+        console.error("عنصر govSelect غير موجود!");
+        return;
+    }
     const govs = [
         "القاهرة", "الجيزة", "القليوبية", "الإسكندرية", "الدقهلية", "الشرقية", "الغربية",
         "المنوفية", "البحيرة", "كفر الشيخ", "دمياط", "بورسعيد", "الإسماعيلية", "السويس",
         "بني سويف", "الفيوم", "المنيا", "أسيوط", "سوهاج", "قنا", "الأقصر", "أسوان",
-        "البحر الأحمر", "الوادي الجديد", "مطروح", "شمال سيناء", "جنوب سيناء"
-    ];
+        "البحر الأحمر", "الوادي الجديد", "مطروح", "شمال سيناء", "جنوب سيناء"];
     select.innerHTML = '<option value="">-- اختر المحافظة --</option>' + govs.map(g => `<option value="${g}">${g}</option>`).join('');
 }
 
