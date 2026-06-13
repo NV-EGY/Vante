@@ -1272,11 +1272,36 @@ Notification.requestPermission();
 onAuthStateChanged(auth, (user) => {
     if (user) {
         load();
+        startOrdersListener();
         loadShippingRates();   // <-- أضف هذا السطر هنا
     } else {
         window.location.href = "login.html";
     }
 });
+// ========== مستمع مباشر للطلبات للتحديث الفوري ==========
+let ordersListener = null;
+
+function startOrdersListener() {
+    if (ordersListener) return; // لمنع التكرار
+    ordersListener = onSnapshot(query(collection(db, "orders"), orderBy("createdAt", "desc")), (snap) => {
+        // تحديث المصفوفة
+        orders = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        // إعادة الرسم
+        render();
+        // إشعار الصوت والمنبثق
+        snap.docChanges().forEach(change => {
+            if (change.type === "added" && lastCount !== 0) {
+                let o = change.doc.data();
+                new Audio("https://assets.mixkit.co/sfx/preview/mixkit-bell-notification-933.mp3").play().catch(()=>{});
+                if (Notification.permission === "granted") {
+                    new Notification("طلب جديد", { body: `${o.customerName} - ${o.phone}` });
+                }
+                showPopup(o);
+            }
+        });
+        lastCount = snap.size;
+    });
+}
 
 // Custom Confirm - مودال احترافي بديل
 window.customConfirm = function(message) {
