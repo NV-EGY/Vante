@@ -1772,6 +1772,46 @@ window.saveShippingDiscountSettings = async function() {
     }
 };
 
+// ========== تحسين التحديث الفوري للطلبات الجديدة ==========
+// التأكد من أن onSnapshot يقوم بتحديث الواجهة بدون تأخير
+const originalOnSnapshot = onSnapshot;
+// لا حاجة لتغيير آلية onSnapshot فهي تعمل، ولكن نضيف مستمعاً إضافياً للتأكيد
+window.forceRender = () => {
+    render();
+    console.log("🔄 تم تحديث الطلبات تلقائياً");
+};
+
+// إذا أردت سماع صوت مع كل طلب جديد (موجود بالفعل لكن نؤكد)
+// نضيف أيضاً مستمعاً لفتح مجموعة اليوم الحالي إذا كانت مغلقة
+function ensureTodayGroupOpen() {
+    const today = new Date().toDateString();
+    const groups = document.querySelectorAll('.day-group');
+    for (let group of groups) {
+        const header = group.querySelector('.day-header');
+        const dateSpan = header.querySelector('span');
+        if (dateSpan && dateSpan.textContent.includes('اليوم')) {
+            const groupId = group.getAttribute('data-group');
+            if (groupId) {
+                const content = document.getElementById(`group-content-${groupId}`);
+                const icon = document.getElementById(`icon-${groupId}`);
+                if (content && content.style.display === 'none') {
+                    content.style.display = 'block';
+                    if (icon) icon.style.transform = 'rotate(0deg)';
+                }
+            }
+            break;
+        }
+    }
+}
+
+// استدعاء ensureTodayGroupOpen بعد كل رندر
+const originalRender = render;
+window.render = function() {
+    originalRender();
+    ensureTodayGroupOpen();
+};
+render = window.render;
+
 // تأكد من استدعاء loadShippingDiscountSettings() عند تحميل الصفحة (داخل onAuthStateChanged)
 // أضف هذا السطر بعد load() أو loadShippingRates()
 loadShippingDiscountSettings();
