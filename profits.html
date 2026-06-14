@@ -35,13 +35,100 @@
         th,td{padding:12px;text-align:center;border-bottom:1px solid #eee;}
         th{background:#111;color:#fff;}
         @media(max-width:700px){th,td{font-size:12px;}}
+
+        /* نافذة إدخال كلمة السر */
+        .password-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(8px);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            visibility: visible;
+            opacity: 1;
+            transition: 0.3s;
+        }
+        .password-overlay.hide {
+            visibility: hidden;
+            opacity: 0;
+        }
+        .password-box {
+            background: #fff;
+            border-radius: 32px;
+            padding: 30px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 30px 50px rgba(0,0,0,0.3);
+        }
+        .password-box h2 {
+            color: #D4AF37;
+            margin-bottom: 20px;
+        }
+        .password-box input {
+            width: 100%;
+            padding: 14px;
+            border-radius: 30px;
+            border: 1px solid #ddd;
+            margin: 15px 0;
+            font-size: 16px;
+            text-align: center;
+            letter-spacing: 2px;
+        }
+        .password-box button {
+            background: #111;
+            color: #fff;
+            width: 100%;
+            padding: 12px;
+            border-radius: 30px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .error-msg {
+            color: #e74c3c;
+            font-size: 13px;
+            margin-top: 8px;
+        }
+        .logout-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 6px 15px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 13px;
+            margin-right: 10px;
+        }
+        .logout-btn:hover {
+            background: #c0392b;
+        }
     </style>
 </head>
 <body>
+
+<div id="passwordOverlay" class="password-overlay">
+    <div class="password-box">
+        <h2><i class="fas fa-lock"></i> دخول خاص للأرباح</h2>
+        <p>أدخل كلمة السر للوصول إلى لوحة الأرباح</p>
+        <input type="password" id="passwordInput" placeholder="********">
+        <div id="passwordError" class="error-msg"></div>
+        <button onclick="checkPassword()">تأكيد</button>
+    </div>
+</div>
+
+<div id="pageContent" style="display: none;">
 <div class="container">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
         <h1><i class="fas fa-chart-line"></i> حساب الأرباح المتكامل</h1>
-        <div><button class="btn" onclick="window.location.href='admin-orders.html'">📦 العودة للطلبات</button></div>
+        <div>
+            <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</button>
+            <button class="btn" onclick="window.location.href='admin-orders.html'">📦 العودة للطلبات</button>
+        </div>
     </div>
     <div class="filter-bar">
         <select id="monthFilter">
@@ -59,6 +146,8 @@
         </table>
     </div>
 </div>
+</div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, collection, query, where, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -75,9 +164,42 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
-onAuthStateChanged(auth, (user) => { if (!user) window.location.href = "login.html"; else loadData(); });
 
+// ========== نظام حماية كلمة السر (بدون تخزين - تطلب في كل دخول) ==========
+const SECRET_HASH = "VmFudGVQcm9maXRAMjAyNg==";
+
+function checkPassword() {
+    const input = document.getElementById("passwordInput").value;
+    const decodedSecret = atob(SECRET_HASH);
+    if (input === decodedSecret) {
+        // إخفاء الـ overlay وإظهار المحتوى
+        document.getElementById("passwordOverlay").classList.add("hide");
+        document.getElementById("pageContent").style.display = "block";
+        // تحميل البيانات
+        if (typeof loadData === 'function') loadData();
+    } else {
+        document.getElementById("passwordError").innerText = "❌ كلمة السر غير صحيحة";
+        document.getElementById("passwordInput").value = "";
+        document.getElementById("passwordInput").focus();
+    }
+}
+
+function logout() {
+    document.getElementById("pageContent").style.display = "none";
+    document.getElementById("passwordOverlay").classList.remove("hide");
+    document.getElementById("passwordInput").value = "";
+    document.getElementById("passwordError").innerText = "";
+}
+
+// التأكد من أن الصفحة تطلب كلمة السر عند كل تحميل (حتى بعد تحديث الصفحة)
+document.addEventListener("DOMContentLoaded", function() {
+    document.getElementById("pageContent").style.display = "none";
+    document.getElementById("passwordOverlay").classList.remove("hide");
+});
+
+// بقية الكود الأصلي للـ Profits.html
 let allDeliveredOrders = [];
+window.totalExpenses = 0;
 
 async function loadData() {
     const q = query(collection(db, "orders"), where("status", "==", "delivered"));
@@ -87,11 +209,10 @@ async function loadData() {
         applyFilter();
     });
 }
-// بعد تحميل الطلبات، أضف:
 onSnapshot(collection(db, "expenses"), (snap) => {
     const expenses = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     window.totalExpenses = expenses.reduce((s,e)=> s + (e.amount || 0), 0);
-    if (typeof applyFilter === 'function') applyFilter(); // إعادة التصفية
+    if (typeof applyFilter === 'function') applyFilter();
 });
 
 function populateMonthFilter() {
@@ -129,7 +250,7 @@ function renderStats(orders) {
     let totalRevenue = orders.reduce((s,o)=> s + (o.finalTotal || 0), 0);
     let totalCostProducts = orders.reduce((s,o)=> s + (o.totalCost || 0), 0);
     let totalShippingCost = orders.reduce((s,o)=> s + (o.shippingCostPaid || 0), 0);
-    let totalExpenses = window.totalExpenses || 0;   // ✅ استخدم المتغير العام
+    let totalExpenses = window.totalExpenses || 0;
     let netProfit = totalRevenue - totalCostProducts - totalShippingCost - totalExpenses;
     document.getElementById("statsGrid").innerHTML = `
         <div class="stat-card"><h3>💰 إجمالي الإيرادات</h3><div class="value">${totalRevenue.toFixed(2)} جنيه</div></div>
@@ -175,14 +296,11 @@ window.exportToExcel = () => {
 
 document.getElementById("monthFilter").addEventListener("change", applyFilter);
 window.loadData = loadData;
+
 </script>
 <script>
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js').then(reg => {
-    console.log('Service Worker registered', reg);
-  }).catch(err => {
-    console.log('Service Worker registration failed', err);
-  });
+  navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW error:', err));
 }
 </script>
 </body>
