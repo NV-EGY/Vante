@@ -1,6 +1,20 @@
 <!DOCTYPE html>
 <html lang="ar">
 <head>
+  <!-- PWA & Web App Meta Tags -->
+<link rel="manifest" href="manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="VANTÉ Admin">
+<meta name="application-name" content="VANTÉ Admin">
+<meta name="theme-color" content="#D4AF37">
+<link rel="icon" type="image/png" sizes="32x32" href="images/favicon.png">
+<link rel="icon" type="image/png" sizes="16x16" href="images/favicon.png">
+<link rel="apple-touch-icon" href="images/favicon.png">
+<link rel="apple-touch-icon" href="images/icon-192x192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="images/icon-192x192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="images/icon-512x512.png">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta charset="UTF-8">
   <title>VANTÉ Dashboard</title>
@@ -1085,7 +1099,7 @@ function render() {
   // تصفية الطلبات أولاً
   let filteredOrders = orders.filter(o => {
     if (currentFilter !== "all" && o.status !== currentFilter) return false;
-    if (search && !o.customerName?.toLowerCase().includes(search) && !o.phone?.includes(search) && !o.orderID?.toLowerCase().includes(search)) return false;
+    if (search && !o.customerName?.toLowerCase().includes(search) && !o.phone?.includes(search) && !o.orderID?.toLowerCase().includes(search) && !(o.orderDetails || []).some(detail => detail.sku?.toLowerCase().includes(search))) return false;
     let d = o.createdAt?.toDate?.();
     if (date && d && d.toDateString() !== new Date(date).toDateString()) return false;
     return true;
@@ -1171,10 +1185,11 @@ function render() {
             ${o.address}<br><br>
             💎 تفاصيل الطلب:
             <div style="display:flex; flex-direction:column; gap:8px; margin-top:6px;">
-              ${(o.orderDetails || []).map(item => `<div style="display:flex; align-items:center; gap:8px; background:#f9f9f9; padding:8px; border-radius:10px;">
-                ${item.image ? `<img src="${item.image}" style="width:40px; height:40px; object-fit:cover; border-radius:8px; cursor:pointer;" onclick="event.stopPropagation(); window.openAdminLightbox('${item.image}')">` : '<div style="width:40px; height:40px; background:#eee; border-radius:8px; display:flex; align-items:center; justify-content:center;">📷</div>'}
-                <div><b>${item.name || 'بدون اسم'}</b><br>المقاس: ${item.size || '--'} | العدد: ${item.qty || 1} | السعر: ${item.price} EGP</div>
-              </div>`).join("")}
+              // داخل render() ، في قسم عرض orderDetails
+${(o.orderDetails || []).map(item => `<div style="display:flex; align-items:center; gap:8px; background:#f9f9f9; padding:8px; border-radius:10px;">
+    ${item.image ? `<img src="${item.image}" style="width:40px; height:40px; object-fit:cover; border-radius:8px; cursor:pointer;" onclick="event.stopPropagation(); window.openAdminLightbox('${item.image}')">` : '<div style="width:40px; height:40px; background:#eee; border-radius:8px; display:flex; align-items:center; justify-content:center;">📷</div>'}
+    <div><b>${item.name || 'بدون اسم'}</b><br>🔖 SKU: ${item.sku || 'غير متوفر'} <button class="copy-sku-btn" onclick="event.stopPropagation(); copyToClipboard('${item.sku || ''}')" style="background:transparent; border:none; cursor:pointer; color:#0F7B65;"><i class="fas fa-copy"></i> نسخ</button><br>المقاس: ${item.size || '--'} | العدد: ${item.qty || 1} | السعر: ${item.price} EGP</div>
+</div>`).join("")}
             </div>
           </div>
           ${couponHtml}
@@ -1849,6 +1864,26 @@ render = window.render;
 // تأكد من استدعاء loadShippingDiscountSettings() عند تحميل الصفحة (داخل onAuthStateChanged)
 // أضف هذا السطر بعد load() أو loadShippingRates()
 loadShippingDiscountSettings();
+window.copyToClipboard = function(text) {
+    if (!text || text === 'غير متوفر') {
+        customAlert("لا يوجد SKU قابل للنسخ", 'warning');
+        return;
+    }
+    navigator.clipboard.writeText(text).then(() => {
+        customAlert(`✅ تم نسخ SKU: ${text}`, 'success');
+    }).catch(() => {
+        customAlert("❌ فشل النسخ", 'error');
+    });
+};
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').then(reg => {
+    console.log('Service Worker registered', reg);
+  }).catch(err => {
+    console.log('Service Worker registration failed', err);
+  });
+}
 </script>
 </body>
 </html>
