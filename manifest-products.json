@@ -1,9 +1,9 @@
 {
   "name": "VANTÉ | إدارة المنتجات",
   "short_name": "منتجات VANTÉ",
-  "description": "لوحة تحكم المنتجات - VANTÉ",
   "start_url": "/admin-products.html",
-  "scope": "/",
+  "scope": "/admin-products.html",
+  "display": "standalone",
   "display": "standalone",
   "theme_color": "#D4AF37",
   "background_color": "#ffffff",
