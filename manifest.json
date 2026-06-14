@@ -1,8 +1,8 @@
 {
   "name": "VANTÉ | Minimal Luxury",
   "short_name": "VANTÉ",
-  "description": "مجوهرات فاخرة - تشكيلات مميزة من السلاسل والخواتم والأساور",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "theme_color": "#D4AF37",
   "background_color": "#ffffff",
