@@ -117,7 +117,7 @@
         <p>أدخل كلمة السر للوصول إلى لوحة الأرباح</p>
         <input type="password" id="passwordInput" placeholder="********">
         <div id="passwordError" class="error-msg"></div>
-        <button onclick="checkPassword()">تأكيد</button>
+        <button id="confirmPasswordBtn">تأكيد</button>
     </div>
 </div>
 
@@ -297,6 +297,15 @@ window.exportToExcel = () => {
 document.getElementById("monthFilter").addEventListener("change", applyFilter);
 window.loadData = loadData;
 
+// ربط حدث زر تأكيد كلمة السر
+document.getElementById("confirmPasswordBtn").addEventListener("click", checkPassword);
+
+// السماح بالضغط على Enter في حقل كلمة السر
+document.getElementById("passwordInput").addEventListener("keypress", function(e) {
+    if (e.key === "Enter") {
+        checkPassword();
+    }
+});
 </script>
 <script>
 if ('serviceWorker' in navigator) {
