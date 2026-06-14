@@ -1,0 +1,14 @@
+{
+  "name": "VANTÉ | الأرباح",
+  "short_name": "أرباح VANTÉ",
+  "description": "لوحة الأرباح - VANTÉ",
+  "start_url": "/Profits.html",
+  "scope": "/",
+  "display": "standalone",
+  "theme_color": "#D4AF37",
+  "background_color": "#ffffff",
+  "icons": [
+    { "src": "images/icon-192x192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "images/icon-512x512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
