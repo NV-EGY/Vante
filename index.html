@@ -8,6 +8,14 @@
 <link rel="icon" type="image/png" sizes="32x32" href="images/favicon.png">
 <link rel="icon" type="image/png" sizes="16x16" href="images/favicon.png">
 <link rel="apple-touch-icon" href="images/favicon.png">
+<!-- PWA & Web App Meta Tags -->
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="VANTÉ">
+<meta name="application-name" content="VANTÉ">
+<meta name="theme-color" content="#D4AF37">
+<link rel="manifest" href="manifest.json">
 <!-- Open Graph - صورة المشاركة (مثل دهب) -->
 <meta property="og:title" content="VANTÉ | مجوهرات فاخرة Minimal Luxury">
 <meta property="og:description" content="اكتشفي تشكيلتنا الفاخرة من السلاسل والخواتم والأساور. خصومات لفترة محدودة ✨">
@@ -3315,15 +3323,15 @@ body.modal-open{
     background: transparent;
     border: 2px solid #D4AF37;
     color: #D4AF37;
-    padding: 12px 32px;
-    border-radius: 40px;
-    font-weight: 800;
-    font-size: 16px;
+    padding: 2px 25px;      /* أصغر */
+    border-radius: 30px;
+    font-weight: 700;
+    font-size: 17px;        /* أصغر */
     cursor: pointer;
     transition: 0.3s;
     display: inline-flex;
     align-items: center;
-    gap: 10px;
+    gap: 6px;
 }
 .load-more-btn:hover {
     background: #D4AF37;
@@ -3331,14 +3339,11 @@ body.modal-open{
     transform: translateY(-2px);
 }
 .products-counter {
-    text-align: center;
-    margin-top: 20px;
-    font-size: 14px;
-    color: #888;
+    font-size: 14px;        /* أصغر قليلاً */
+    color: #666;
+    margin-bottom: 8px;
 }
-.load-more-container {
-    display: none !important;
-}
+
 /* =========================================
    CUSTOM CONFIRM MODAL (فاتح)
 ========================================= */
@@ -3637,6 +3642,113 @@ body.modal-open{
         padding: 10px 16px;
     }
 }
+/* اقتراحات البحث - تصميم عمودي احترافي مع معالجة النصوص الطويلة */
+.sticky-search .search-suggestions {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    background: #fff;
+    border-radius: 32px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+    overflow: hidden;
+    z-index: 1001;
+    display: none;
+    flex-direction: column;
+    max-height: 380px;
+    overflow-y: auto;
+    direction: rtl;
+    width: 140%;
+    box-sizing: border-box;
+}
+
+/* عنصر الاقتراح - يتكيف مع عرض صندوق البحث */
+.search-suggestion-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 8px 12px;
+    background: #fff;
+    border-bottom: 1px solid #f0f0f0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: right;
+    
+    box-sizing: border-box;
+}
+
+.search-suggestion-item:last-child {
+    border-bottom: none;
+}
+
+.search-suggestion-item:hover {
+    background: #faf7f0;
+    transform: translateX(-3px);
+}
+
+.search-suggestion-item img {
+    width: 55px;
+    height: 55px;
+    object-fit: cover;
+    border-radius: 12px;
+    flex-shrink: 0;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.search-suggestion-item .info {
+    flex: 1;
+    min-width: 0; /* مهم للالتفاف */
+    overflow: hidden;
+}
+
+.search-suggestion-item .name {
+    font-size: 15px;
+    font-weight: 700;
+    color: #111;
+    margin-bottom: 6px;
+    line-height: 1.4;
+    word-break: break-word;
+    white-space: normal;
+    max-width: 100%;
+}
+
+.search-suggestion-item .price {
+    font-size: 14px;
+    color: #D4AF37;
+    font-weight: 800;
+    display: inline-block;
+    background: rgba(212,175,55,0.1);
+    padding: 2px 12px;
+    border-radius: 20px;
+    white-space: nowrap;
+}
+
+/* شريط تمرير أنيق */
+.search-suggestions::-webkit-scrollbar {
+    width: 4px;
+}
+.search-suggestions::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+.search-suggestions::-webkit-scrollbar-thumb {
+    background: #D4AF37;
+    border-radius: 10px;
+}
+
+/* للشاشات الصغيرة تقليل حجم الصورة */
+@media (max-width: 600px) {
+    .search-suggestion-item img {
+        width: 45px;
+        height: 45px;
+    }
+    .search-suggestion-item .name {
+        font-size: 13px;
+    }
+    .search-suggestion-item .price {
+        font-size: 12px;
+    }
+}
+
     </style>
 </head>
 
@@ -3793,13 +3905,14 @@ body.modal-open{
 
 <!-- مكان عرض المنتجات -->
 <div class="products"></div>
-    <!-- عداد المنتجات وزر التحميل -->
-<div class="products-counter" id="productsCounter"></div>
-<div class="load-more-container" id="loadMoreContainer" style="display: none;">
-    <button class="load-more-btn" onclick="loadMoreProducts()">
-        <i class="fas fa-arrow-down"></i> تحميل المزيد
+<div class="load-more-container" id="loadMoreContainer" style="display: none; text-align: center; margin-top: 20px;">
+    <button class="load-more-btn" id="loadMoreBtn" onclick="loadMoreProducts()">
+        <i class="fas fa-arrow-down"></i> تحميل المزيد (<span id="remainingCount">0</span> متبقي)
     </button>
-    </div>
+</div>
+<!-- عداد المنتجات وزر التحميل -->
+<div class="products-counter" id="productsCounter" style="text-align: center; margin-top: 30px; font-size: 15px; color: #555;"></div>
+
 <div style="background: #faf7f0; border-radius: 12px; padding: 8px 12px; margin: 30px 0 10px; border-right: 3px solid #D4AF37;">
     <div style="margin-bottom: 6px;">
         <div style="font-weight: 800; color: #B8860B; font-size: 13px;">✨ سلاسل بالأسماء حسب الطلب</div>
@@ -3895,7 +4008,10 @@ body.modal-open{
 <div id="stickySearch" class="sticky-search">
     <div class="sticky-search-box">
         <i class="fas fa-search" onclick="applySearch()"></i>
-        <input type="text" id="searchInput" placeholder="ابحث عن منتج...">
+        <div style="position: relative; flex: 1;">
+    <input type="text" id="searchInput" placeholder="ابحث عن منتج..." autocomplete="off">
+    <div id="searchSuggestions" class="search-suggestions" style="display: none;"></div>
+</div>
         <button class="sticky-search-btn" onclick="applySearch()">بحث</button>
         <button class="sticky-search-close" onclick="closeSearch()">✕</button>
     </div>
@@ -4192,7 +4308,8 @@ function getCategoryFromSearch(searchTerm) {
     }
     return null;
 }
-let displayedProductsCount = 20;
+let displayedProductsCount = 8;
+let pinnedProductId = null;  // معرف المنتج الذي سيظهر أولاً
 let currentSearchFilter = "";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, collection, addDoc, serverTimestamp, onSnapshot, query, orderBy, where, getDocs, updateDoc, doc, increment, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -4585,38 +4702,57 @@ const outOfStockProducts = filtered.filter(p => {
 });
 filtered = [...inStockProducts, ...outOfStockProducts];
 // تطبيق البحث الذكي (الكلمات المفتاحية للأقسام) أو البحث النصي العادي
+// تطبيق البحث الذكي (الكلمات المفتاحية للأقسام) أو البحث النصي العادي أو SKU
 if (currentSearchFilter && currentSearchFilter.trim() !== "") {
-    const searchTerm = currentSearchFilter.trim();
+    const searchTerm = currentSearchFilter.trim().toLowerCase();
     const matchedCategory = getCategoryFromSearch(searchTerm);
     if (matchedCategory) {
         // البحث عن القسم المطابق
         filtered = filtered.filter(p => normalize(p.category || "all") === matchedCategory);
     } else {
-        // بحث نصي عادي في الاسم
-        filtered = filtered.filter(p => p.name?.toLowerCase().includes(searchTerm.toLowerCase()));
+        // بحث شامل في الاسم أو SKU (مع تجاهل الحالة)
+        filtered = filtered.filter(p => 
+            p.name?.toLowerCase().includes(searchTerm) || 
+            (p.sku && p.sku.toLowerCase().includes(searchTerm))
+        );
     }
 }
     
     const totalProducts = filtered.length;
-    
+    // ====== إضافة المنتج المثبت إلى المقدمة ======
+if (pinnedProductId) {
+    const pinnedIndex = filtered.findIndex(p => p.id === pinnedProductId);
+    if (pinnedIndex !== -1) {
+        const pinnedProduct = filtered[pinnedIndex];
+        filtered = [pinnedProduct, ...filtered.slice(0, pinnedIndex), ...filtered.slice(pinnedIndex + 1)];
+    }
+    // بعد استخدامه، نمسحه حتى لا يثبت مرة أخرى في عمليات بحث لاحقة عادية
+    pinnedProductId = null;
+}
     // تطبيق حد العرض (لـ Load More)
     const limitedProducts = filtered.slice(0, displayedProductsCount);
-    
-    // ✅ تحديث عداد المنتجات
-    const counterEl = document.getElementById("productsCounter");
-    if (counterEl) {
-        counterEl.innerHTML = `🛍️ عرض ${limitedProducts.length} من ${totalProducts} منتج`;
-    }
-    
-    // ✅ إظهار/إخفاء زر تحميل المزيد
-    const loadMoreContainer = document.getElementById("loadMoreContainer");
-    if (loadMoreContainer) {
-        if (displayedProductsCount < totalProducts) {
-            loadMoreContainer.style.display = "block";
-        } else {
-            loadMoreContainer.style.display = "none";
+// ✅ تحديث عداد المنتجات
+const counterEl = document.getElementById("productsCounter");
+if (counterEl) {
+    counterEl.innerHTML = `🛍️ عرض ${limitedProducts.length} من ${totalProducts} منتج`;
+}
+
+// ✅ تحديث زر تحميل المزيد مع عرض العدد المتبقي
+const loadMoreContainer = document.getElementById("loadMoreContainer");
+const remainingCountSpan = document.getElementById("remainingCount");
+if (loadMoreContainer) {
+    if (displayedProductsCount < totalProducts) {
+        loadMoreContainer.style.display = "block";
+        const remaining = totalProducts - displayedProductsCount;
+        if (remainingCountSpan) remainingCountSpan.innerText = remaining;
+        const loadBtn = document.getElementById("loadMoreBtn");
+        if (loadBtn) {
+            loadBtn.innerHTML = `<i class="fas fa-arrow-down"></i> عرض المزيد (متبقى ${remaining} منتج)`;
         }
+    } else {
+        loadMoreContainer.style.display = "none";
     }
+}
     
     if (limitedProducts.length === 0) {
         productsContainer.innerHTML = `<div style="grid-column:1/-1; display:flex; align-items:center; justify-content:center; min-height:20vh; text-align:center; font-size:18px; color:#888;">لا توجد منتجات في هذا القسم</div>`;
@@ -5189,12 +5325,12 @@ function formatDate(date) {
 }
 
 // دالة مساعدة لتجنب XSS
-function escapeHtml(text) {
+window.escapeHtml = function(text) {
     if (!text) return '';
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
-}
+};
 // تحميل البيانات
 currentCategory = "all";
 const productsRef = collection(db, "products");
@@ -5299,8 +5435,10 @@ document.head.appendChild(style);
     // ========== السلة ==========
     let cart = JSON.parse(localStorage.getItem('vante_cart') || '[]');
 if (typeof updateCart === 'function') updateCart();
-    window.addToCart = function(name, price, size, image, comparePrice = null, productId = null) {
-    const product = allProducts.find(p => p.name === name);
+    window.addToCart = function(name, price, size, image, comparePrice = null, productId = null, sku = null) {
+    const product = allProducts.find(p => p.id === productId);
+    // إذا لم يتم تمرير SKU، نجربه من المنتج الموجود
+    if (!sku && product) sku = product.sku;
     
     let stockValue = -1;
     if (product && product.stockBySize) {
@@ -5325,16 +5463,16 @@ if (typeof updateCart === 'function') updateCart();
     }
     
     const existing = cart.find(item => item.name === name && item.size === size);
-    const productComparePrice = comparePrice !== null ? comparePrice : (allProducts.find(p => p.name === name)?.comparePrice || null);
+    const productComparePrice = comparePrice !== null ? comparePrice : (allProducts.find(p => p.id === productId)?.comparePrice || null);
     
-    // ✅ تحديد productId النهائي (إذا لم يُمرر، نحاول استخراجه من allProducts)
     const finalProductId = productId || (allProducts.find(p => p.name === name)?.id || null);
     
     if (existing) {
         existing.qty += 1;
         customAlert(`✅ تم زيادة الكمية لـ ${name} - مقاس ${size}`, 'success');
     } else {
-        cart.push({ name, price, size, image, comparePrice: productComparePrice, qty: 1, productId: finalProductId });
+        // ✅ إضافة SKU إلى العنصر
+        cart.push({ name, price, size, image, comparePrice: productComparePrice, qty: 1, productId: finalProductId, sku: sku });
         customAlert(`✅ تم إضافة ${name} - مقاس ${size} إلى السلة`, 'success');
     }
     
@@ -5375,8 +5513,9 @@ if (typeof updateCart === 'function') updateCart();
     }
     
     const comparePrice = product?.comparePrice || null;
-    // ✅ تمرير productId إلى addToCart
-    const addResult = window.addToCart(name, Number(price), size, image, comparePrice, productId);
+    // ✅ تمرير SKU
+    const sku = product?.sku || null;
+    const addResult = window.addToCart(name, Number(price), size, image, comparePrice, productId, sku);
     
     if (addResult !== false) {
         updateCart();
@@ -5657,17 +5796,18 @@ async function executeCheckout() {
         
         // ========== 6. تجهيز تفاصيل الطلب ==========
         const orderDetails = cart.map(item => {
-            const product = allProducts.find(p => p.id === item.productId);
-            return {
-                productId: item.productId,
-                name: item.name,
-                size: item.size || "",
-                qty: item.qty,
-                price: item.price,
-                image: item.image || "",
-                costPrice: product?.costPrice || 0
-            };
-        });
+    const product = allProducts.find(p => p.id === item.productId);
+    return {
+        productId: item.productId,
+        sku: item.sku || product?.sku || null,   // ✅ إضافة SKU
+        name: item.name,
+        size: item.size || "",
+        qty: item.qty,
+        price: item.price,
+        image: item.image || "",
+        costPrice: product?.costPrice || 0
+    };
+});
 
         const totalCost = cart.reduce((sum, item) => {
             const product = allProducts.find(p => p.id === item.productId);
@@ -5684,11 +5824,12 @@ async function executeCheckout() {
         message += `🏠 العنوان: ${address}\n\n`;
 
         cart.forEach(item => {
-            message += `• ${item.name}\n`;
-            message += `المقاس: ${item.size}\n`;
-            message += `الكمية: ${item.qty}\n`;
-            message += `السعر: ${item.price * item.qty} جنيه\n\n`;
-        });
+    message += `• ${item.name}\n`;
+    if (item.sku) message += `🔖 SKU: ${item.sku}\n`;
+    message += `المقاس: ${item.size}\n`;
+    message += `الكمية: ${item.qty}\n`;
+    message += `السعر: ${item.price * item.qty} جنيه\n\n`;
+});
         
         message += `🚚 الشحن: ${customerShippingFee} جنيه\n`;
 
@@ -5830,7 +5971,7 @@ document.querySelectorAll('.desktop-dropdown > a').forEach(link => {
 
     // ========== القوائم والبحث ==========
     function setCategory(category) {
-    displayedProductsCount = 20;   // ← أضف هذا السطر
+    displayedProductsCount = 8;   // ← أضف هذا السطر
     currentCategory = category;
     const url = new URL(window.location);
     url.searchParams.set("category", category);
@@ -5909,6 +6050,28 @@ window.openSearch = () => {
     input.value = lastSearchFilter;
     input.focus();
     
+    // ربط حدث input للاقتراحات (إذا لم يربط سابقاً)
+    if (!window._searchInputBound) {
+        window._searchInputBound = true;
+        input.addEventListener("input", function(e) {
+            const term = e.target.value.trim();
+            currentSearchFilter = term;
+            displayedProductsCount = 8;
+            renderProducts();
+            
+            if (term.length === 0) {
+                hideSuggestions();
+                return;
+            }
+            const lowerTerm = term.toLowerCase();
+            const matches = allProducts.filter(p => 
+                p.name?.toLowerCase().includes(lowerTerm) || 
+                (p.sku && p.sku.toLowerCase().includes(lowerTerm))
+            ).slice(0, 5);
+            showSuggestions(matches);
+        });
+    }
+    
     if (!lastSearchFilter) {
         renderProducts();
     }
@@ -5921,15 +6084,16 @@ window.closeSearch = () => {
     if (overlay) overlay.classList.remove("active");
     document.getElementById("searchInput").value = '';
     currentSearchFilter = '';
-    displayedProductsCount = 20;
+    displayedProductsCount = 8;
     renderProducts();
 };
 
 window.applySearch = () => {
     const input = document.getElementById("searchInput");
     currentSearchFilter = input.value.trim();
-    displayedProductsCount = 20;
+    displayedProductsCount = 8;
     renderProducts();
+    pinnedProductId = null;
   
     document.getElementById("stickySearch").classList.remove("active");
     const overlay = document.getElementById("searchOverlay");
@@ -6690,28 +6854,28 @@ window.submitReview = function() {
 };
 
 window.loadMoreProducts = function() {
-    displayedProductsCount += 20;
-    renderProducts();
+    displayedProductsCount += 8;
+    renderProducts();  // سيتم تحديث العداد والزر تلقائيًا داخل renderProducts
 };
 
 function resetProductsDisplay() {
-    displayedProductsCount = 20;
+    displayedProductsCount = 8;
     renderProducts();
 }
 window.setCategory = setCategory;
 
 // متغير الترتيب الحالي
 let currentSort = "latest";
-
+pinnedProductId = null;
 // ========== نظام الترتيب ==========
 const sortIconBtn = document.getElementById("sortIconBtn");
 const sortMenu = document.getElementById("sortMenu");
 const sortOptions = document.querySelectorAll(".sort-option");
-
 if (sortIconBtn) {
     sortIconBtn.addEventListener("click", (e) => {
         e.stopPropagation();
         sortMenu.classList.toggle("active");
+        pinnedProductId = null;
     });
 }
 
@@ -6721,11 +6885,12 @@ document.addEventListener("click", () => {
 
 sortOptions.forEach(opt => {
     opt.addEventListener("click", () => {
+        pinnedProductId = null;  // أضف هذا السطر
         const sortValue = opt.dataset.sort;
         currentSort = sortValue;
         sortOptions.forEach(o => o.classList.remove("active"));
         opt.classList.add("active");
-        displayedProductsCount = 20;
+        displayedProductsCount = 8;
         renderProducts();
         if (sortMenu) sortMenu.classList.remove("active");
     });
@@ -6971,6 +7136,183 @@ function getTotalStock(product) {
     if (hasUnlimited) return null; // يعني غير محدود
     return total;
 }
+// ========== البحث الذكي مع الاقتراحات ==========
+window.showSuggestions = function(products) {
+    const sticky = document.getElementById("stickySearch");
+    if (!sticky || !sticky.classList.contains("active")) return;
+    
+    const suggestionsDiv = document.getElementById("searchSuggestions");
+    if (!suggestionsDiv) return;
+    
+    if (!products.length) {
+        suggestionsDiv.style.display = "none";
+        suggestionsDiv.innerHTML = "";
+        return;
+    }
+    
+    // بناء الـ HTML مع تخزين المعرف والاسم
+    suggestionsDiv.innerHTML = products.map(p => `
+        <div class="search-suggestion-item" 
+             data-product-id="${p.id}" 
+             data-product-name="${escapeHtml(p.name)}"
+             data-product-price="${p.price}">
+            <img src="${p.image}" alt="${escapeHtml(p.name)}" onerror="this.src='https://via.placeholder.com/55'">
+            <div class="info">
+                <div class="name">${escapeHtml(p.name)}</div>
+                <div class="price">${p.price} جنيه</div>
+            </div>
+        </div>
+    `).join('');
+    
+    suggestionsDiv.style.display = "flex";
+    
+    // إزالة المستمعات القديمة وإضافة مستمع واحد باستخدام delegation
+    suggestionsDiv.querySelectorAll('.search-suggestion-item').forEach(item => {
+        item.removeEventListener('click', suggestionClickHandler);
+        item.addEventListener('click', suggestionClickHandler);
+    });
+};
+
+// دالة معالجة النقر على الاقتراح
+function suggestionClickHandler(e) {
+    e.stopPropagation();
+    const item = e.currentTarget;
+    const productId = item.dataset.productId;
+    const productName = item.dataset.productName;
+    
+    // محاولة البحث باستخدام ID أولاً
+    if (productId && window.allProducts && window.allProducts.length) {
+        window.selectSuggestion(productId);
+    } 
+    // إذا فشل أو لم يجد، نبحث بالاسم
+    else if (productName) {
+        const searchInput = document.getElementById("searchInput");
+        if (searchInput) searchInput.value = productName;
+        window.applySearch();
+    }
+}
+
+function hideSuggestions() {
+    const suggestionsDiv = document.getElementById("searchSuggestions");
+    if (suggestionsDiv) {
+        suggestionsDiv.style.display = "none";
+        suggestionsDiv.innerHTML = "";
+    }
+}
+
+window.selectSuggestion = function(productId) {
+    // ... التحقق من وجود المنتج ...
+
+    pinnedProductId = product.id;
+    const category = product.category || "all";
+    
+    // setCategory تقوم باستدعاء renderProducts، لا حاجة لاستدعائها مرة أخرى
+    setCategory(category);
+    
+    // تعيين حقل البحث باسم المنتج
+    const searchInput = document.getElementById("searchInput");
+    if (searchInput) searchInput.value = product.name;
+    
+    currentSearchFilter = product.name;
+    displayedProductsCount = 8;
+    
+    // لا حاجة لـ renderProducts() هنا لأن setCategory قامت بها
+    
+    hideSuggestions();
+    document.getElementById("stickySearch").classList.remove("active");
+    const activeBar = document.getElementById("activeSearchBar");
+    if (activeBar && currentSearchFilter.length > 0) {
+        activeBar.classList.add("show");
+    }
+    const overlay = document.getElementById("searchOverlay");
+    if (overlay) overlay.classList.remove("active");
+    
+    setTimeout(() => {
+        const productsSection = document.querySelector(".container");
+        if (productsSection) productsSection.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 100);
+    
+    customAlert(`✅ تم البحث عن: ${product.name}`, "success");
+};
+function initSearch() {
+    const searchInput = document.getElementById("searchInput");
+    if (!searchInput) return;
+    
+    // إزالة المستمع القديم إذا وجد
+    if (window._searchInputHandler) {
+        searchInput.removeEventListener("input", window._searchInputHandler);
+    }
+    
+    window._searchInputHandler = function(e) {
+        const term = e.target.value.trim();
+        currentSearchFilter = term;
+        displayedProductsCount = 8;
+        renderProducts();
+        
+        if (term.length === 0) {
+            hideSuggestions();
+            return;
+        }
+        
+        const lowerTerm = term.toLowerCase();
+        const matches = window.allProducts.filter(p => 
+            p.name?.toLowerCase().includes(lowerTerm) || 
+            (p.sku && p.sku.toLowerCase().includes(lowerTerm))
+        ).slice(0, 6);
+        
+        showSuggestions(matches);
+    };
+    
+    searchInput.addEventListener("input", window._searchInputHandler);
+}
+
+// تنفيذ الدالة بعد تحميل DOM
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initSearch);
+} else {
+    initSearch();
+}
+
+// استدعاء الدالة بعد تحميل DOM
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initSearch);
+} else {
+    initSearch();
+}
+
+// إخفاء الاقتراحات عند النقر خارج شريط البحث
+document.addEventListener("click", (e) => {
+    if (!e.target.closest("#stickySearch") && !e.target.closest("#activeSearchBar")) {
+        hideSuggestions();
+    }
+});
+
+// تعديل دالة applySearch لاستخدام التصفية الفورية (موجودة بالفعل، لكن نضمن إخفاء الاقتراحات)
+const originalApplySearch = window.applySearch;
+window.applySearch = function() {
+    originalApplySearch();
+    hideSuggestions();
+};
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+// مراقبة تحميل المنتجات وتفعيل البحث عند اكتمالها
+let productsLoaded = false;
+const originalOnSnapshot = onSnapshot;
+// لا نحتاج لتغيير onSnapshot، فقط نضيف علامة عند أول تحميل
+const checkProductsInterval = setInterval(() => {
+    if (window.allProducts && window.allProducts.length > 0 && !productsLoaded) {
+        productsLoaded = true;
+        clearInterval(checkProductsInterval);
+        console.log("✅ المنتجات جاهزة للبحث");
+        // إعادة تهيئة البحث بعد تحميل المنتجات
+        initSearch();
+    }
+}, 500);
+let pinnedProductId = null; // معرف المنتج الذي سيظهر أولاً
 </script>
 </body>
 </html>
