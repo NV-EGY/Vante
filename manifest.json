@@ -1,7 +1,7 @@
 {
   "name": "VANTÉ | Minimal Luxury",
   "short_name": "VANTÉ",
-  "start_url": "/",
+  "start_url": "https://vante.sbs",
   "scope": "/",
   "display": "standalone",
   "theme_color": "#D4AF37",
@@ -50,5 +50,12 @@
       "type": "image/png",
       "purpose": "any maskable"
     }
+  ],
+  "dir": "auto",
+  "display_override": [
+    "fullscreen",
+    "browser",
+    "minimal-ui",
+    "window-controls-overlay"
   ]
 }
