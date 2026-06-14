@@ -1,9 +1,8 @@
 {
   "name": "VANTÉ | الأرباح",
   "short_name": "أرباح VANTÉ",
-  "description": "لوحة الأرباح - VANTÉ",
   "start_url": "/Profits.html",
-  "scope": "/",
+  "scope": "/Profits.html",
   "display": "standalone",
   "theme_color": "#D4AF37",
   "background_color": "#ffffff",
