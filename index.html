@@ -2,8 +2,9 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
+    <meta name="description" content="تسوقي تشكيلة فانتي VANTÉ الفاخرة من الإكسسوارات الحريمي (دهب استانلس). خواتم، سلاسل، أساور، حلقان بجودة ممتازة وأسعار تنافسية.">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VANTÉ | Minimal Luxury</title>
+    <title>فانتي VANTÉ | إكسسوارات حريمي دهب استانلس فاخرة</title>
  <!-- Favicon - الحل النهائي المضمون -->
 <link rel="icon" type="image/png" sizes="32x32" href="images/favicon.png">
 <link rel="icon" type="image/png" sizes="16x16" href="images/favicon.png">
@@ -21,8 +22,9 @@
 <meta name="theme-color" content="#D4AF37">
 <link rel="manifest" href="manifest.json">
 <!-- Open Graph - صورة المشاركة (مثل دهب) -->
-<meta property="og:title" content="VANTÉ | مجوهرات فاخرة Minimal Luxury">
-<meta property="og:description" content="اكتشفي تشكيلتنا الفاخرة من السلاسل والخواتم والأساور. خصومات لفترة محدودة ✨">
+<meta property="og:title" content="VANTÉ فانتي | إكسسوارات حريمي فاخرة">
+<meta property="og:description" content="اكتشفي تشكيلة فانتي VANTÉ الفاخرة من الدهب الاستانلس. خصومات لفترة محدودة ✨">
+<meta name="twitter:title" content="VANTÉ فانتي | إكسسوارات حريمي فاخرة">
 <meta property="og:image" content="https://Vante.sbs/images/preview.jpg">
 <meta property="og:url" content="https://Vante.sbs">
 <meta property="og:type" content="website">
@@ -31,7 +33,20 @@
 
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "name": "تشكيلة دهب صيني واستانلس - VANTÉ فانتي",
+  "description": "أحدث تشكيلة من الإكسسوارات الحريمي المصنوعة من الدهب الصيني والستانلس في متجر فانتي VANTÉ. خواتم، سلاسل، أساور وحلقان بجودة ممتازة.",
+  "url": "https://vante.sbs/",
+  "about": {
+    "@type": "Thing",
+    "name": "دهب صيني واستانلس"
+  },
+  "keywords": "دهب صينى, دهب استانلس, اكسسوارات حريمي, فانتي, VANTÉ, خواتم دهب صيني, سلاسل استانلس"
+}
+</script>
     <style>
 /* ====================================
    RESET
@@ -4413,6 +4428,20 @@ window.sendContactMessage = async function() {
         btn.innerHTML = '<i class="fas fa-paper-plane"></i> إرسال الرسالة';
     }
 };
+onSnapshot(doc(db, "settings", "bestSellersConfig"), (docSnap) => {
+    if (docSnap.exists()) {
+        bestSellersConfig = {
+            mode: docSnap.data().mode || "sales",
+            limit: docSnap.data().limit || 10,
+            manualIds: docSnap.data().manualIds || [],
+            fillMode: docSnap.data().fillMode || "random"
+        };
+    } else {
+        bestSellersConfig = { mode: "sales", limit: 10, manualIds: [], fillMode: "random" };
+    }
+    renderBestSellers();
+    startRandomRefreshIfNeeded();
+});
 // أضف هذه الدالة في أعلى الـ module (بعد الاستيرادات)
 function getTotalStock(product) {
     const stockBySize = product.stockBySize || {};
@@ -4592,7 +4621,8 @@ const infoContent = {
         </div>
     `
 };
-
+let bestSellersConfig = { mode: "sales", limit: 10, manualIds: [], fillMode: "random" };
+let randomRefreshInterval = null;
 let currentTab = 'shipping';
 
 function renderInfoTab(tabId) {
@@ -4941,29 +4971,97 @@ let autoplayTimer = null;
 let resumeTimer;
 let pairWidth = 0;
 
-// ========== بناء المعرض - نسخة ثابتة على الكمبيوتر، متحركة على الهاتف ==========
-function renderBestSellers() {
+function startRandomRefreshIfNeeded() {
+    if (randomRefreshInterval) {
+        clearInterval(randomRefreshInterval);
+        randomRefreshInterval = null;
+    }
+    if (bestSellersConfig.mode === "random") {
+        // تحديث كامل كل 30 ثانية
+        randomRefreshInterval = setInterval(() => {
+            renderBestSellers();
+        }, 30000);
+    } 
+    else if (bestSellersConfig.mode === "manual" && bestSellersConfig.fillMode === "random") {
+        // تحديث الجزء العشوائي فقط دون المساس بالمنتجات اليدوية
+        randomRefreshInterval = setInterval(() => {
+            // نعيد بناء المعرض مع الحفاظ على المنتجات اليدوية نفسها
+            renderBestSellers();
+        }, 30000);
+    }
+}
+
+function stopRandomRefresh() {
+    if (randomRefreshInterval) {
+        clearInterval(randomRefreshInterval);
+        randomRefreshInterval = null;
+    }
+}
+
+async function renderBestSellers() {
     const isMobile = window.innerWidth < 769;
     const gallery = document.querySelector(".best-sellers-gallery");
     if (!gallery || !allProducts.length) return;
 
-    // اختيار 8 منتجات عشوائية
-    // اختيار أفضل 10 منتجات مبيعاً
-const bestSellers = [...allProducts].sort((a,b) => (b.salesCount || 0) - (a.salesCount || 0));
-const selected = bestSellers.slice(0, 10);
+    const config = bestSellersConfig;
+    let selectedProducts = [];
+    let fixedPart = [];      // المنتجات الثابتة (في حالة manual)
+    let dynamicPart = [];    // المنتجات المتغيرة (العشوائية أو الأكثر مبيعاً)
+    const limit = Math.min(config.limit || 10, 20);
+
+    if (config.mode === "manual" && config.manualIds && config.manualIds.length) {
+        // 1. اجلب المنتجات المختارة يدوياً (ثابتة)
+        for (let id of config.manualIds) {
+            const product = allProducts.find(p => p.id === id);
+            if (product) fixedPart.push(product);
+        }
+        const remaining = limit - fixedPart.length;
+        if (remaining > 0) {
+            // 2. استبعد المنتجات الثابتة من المصادر المحتملة
+            const excludedIds = fixedPart.map(p => p.id);
+            let candidates = allProducts.filter(p => !excludedIds.includes(p.id));
+            if (config.fillMode === "random") {
+                // عشوائي: يختار كل مرة عشوائياً (ويتغير مع التحديث الدوري)
+                const shuffled = [...candidates];
+                for (let i = shuffled.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+                }
+                dynamicPart = shuffled.slice(0, remaining);
+            } else { // sales
+                // الأعلى مبيعاً (ثابت)
+                candidates.sort((a,b) => (b.salesCount || 0) - (a.salesCount || 0));
+                dynamicPart = candidates.slice(0, remaining);
+            }
+        }
+        selectedProducts = [...fixedPart, ...dynamicPart];
+    } 
+    else if (config.mode === "random") {
+        // عشوائي كامل (يتغير بالكامل كل 30 ثانية)
+        const shuffled = [...allProducts];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        selectedProducts = shuffled.slice(0, limit);
+    } 
+    else { // mode === "sales"
+        selectedProducts = [...allProducts].sort((a,b) => (b.salesCount || 0) - (a.salesCount || 0)).slice(0, limit);
+    }
+
+    if (selectedProducts.length === 0) return;
 
     if (isMobile) {
-        // الهاتف: العرض القديم (مع أزواج وحركة)
         let html = '';
-        for (let i = 0; i < selected.length; i += 2) {
-            const pairProducts = selected.slice(i, i + 2);
+        for (let i = 0; i < selectedProducts.length; i += 2) {
+            const pairProducts = selectedProducts.slice(i, i + 2);
             html += '<div class="pair">';
             html += pairProducts.map(p => {
                 const hasDiscount = p.comparePrice && p.comparePrice > p.price;
                 const discountPercent = hasDiscount ? Math.round((1 - p.price / p.comparePrice) * 100) : 0;
                 const badgeHtml = hasDiscount 
-                    ? `<span class="best-seller-badge">%${discountPercent} خصم</span>` 
-                    : `<span class="best-seller-badge">الأكثر مبيعاً</span>`;
+    ? `<span class="best-seller-badge">%${discountPercent} خصم</span>` 
+    : `<span class="best-seller-badge">الأكثر مبيعاً</span>`;
                 const priceHtml = hasDiscount 
                     ? `<div class="price-wrapper"><span class="old-price">${p.comparePrice} EGP</span><span class="current-price">${p.price} EGP</span></div>`
                     : `<div class="price-wrapper"><span class="current-price">${p.price} EGP</span></div>`;
@@ -4979,24 +5077,20 @@ const selected = bestSellers.slice(0, 10);
         }
         const track = document.getElementById("track");
         if (track) track.innerHTML = html;
-        
-        // إعادة تهيئة معرض الهاتف (حركة تلقائية)
-        const firstPair = track.querySelector('.pair');
+        const firstPair = track?.querySelector('.pair');
         if (firstPair) pairWidth = firstPair.offsetWidth + 16;
         goToPair(0);
         startAutoplay();
         bindGalleryEvents();
         createDots();
-        
     } else {
-        // الكمبيوتر: شبكة ثابتة بدون حركة
         let html = '';
-        selected.forEach(p => {
+        selectedProducts.forEach(p => {
             const hasDiscount = p.comparePrice && p.comparePrice > p.price;
             const discountPercent = hasDiscount ? Math.round((1 - p.price / p.comparePrice) * 100) : 0;
             const badgeHtml = hasDiscount 
-                ? `<span class="best-seller-badge">%${discountPercent} خصم</span>` 
-                : `<span class="best-seller-badge">الأكثر مبيعاً</span>`;
+    ? `<span class="best-seller-badge">%${discountPercent} خصم</span>` 
+    : `<span class="best-seller-badge">الأكثر مبيعاً</span>`;
             const priceHtml = hasDiscount 
                 ? `<div class="price-wrapper"><span class="old-price">${p.comparePrice} EGP</span><span class="current-price">${p.price} EGP</span></div>`
                 : `<div class="price-wrapper"><span class="current-price">${p.price} EGP</span></div>`;
@@ -5009,8 +5103,6 @@ const selected = bestSellers.slice(0, 10);
             </div>`;
         });
         gallery.innerHTML = html;
-        
-        // إيقاف الحركة التلقائية على الكمبيوتر
         stopAutoplay();
     }
 }
@@ -5343,7 +5435,8 @@ onSnapshot(query(productsRef), (snapshot) => {
     updateCart();
     renderProducts();
     renderBestSellers();
-    loadApprovedReviews(); // استدعاء التقييمات
+    loadApprovedReviews();
+    startRandomRefreshIfNeeded();   // ← أضف هذا السطر
 });
 
 // ========== نقاط المعرض ==========
@@ -7317,6 +7410,217 @@ const checkProductsInterval = setInterval(() => {
     }
 }, 500);
 let pinnedProductId = null; // معرف المنتج الذي سيظهر أولاً
+</script>
+<script>
+// ========== حل الرجوع بالهاش (مضمون 100%) ==========
+(function() {
+    // دالة إغلاق جميع العناصر المنبثقة
+    function closeAllModals() {
+        let closed = false;
+        
+        // مودال المنتج
+        const productModal = document.getElementById("productModal");
+        if (productModal && productModal.classList.contains("active")) {
+            productModal.classList.remove("active");
+            const overlay = document.getElementById("overlay");
+            if (overlay) overlay.classList.remove("active");
+            document.body.classList.remove("modal-open");
+            closed = true;
+        }
+        
+        // سلة التسوق
+        const cartDrawer = document.getElementById("cartDrawer");
+        if (cartDrawer && cartDrawer.classList.contains("active")) {
+            cartDrawer.classList.remove("active");
+            const overlay = document.getElementById("overlay");
+            if (overlay) overlay.classList.remove("active");
+            document.body.style.overflow = "";
+            closed = true;
+        }
+        
+        // مودال التقييم
+        const ratingModal = document.getElementById("ratingModal");
+        if (ratingModal && ratingModal.classList.contains("active")) {
+            ratingModal.classList.remove("active");
+            const overlay = document.getElementById("overlay");
+            if (overlay) overlay.classList.remove("active");
+            closed = true;
+        }
+        
+        // مودال التواصل
+        const contactModal = document.getElementById("contactModal");
+        if (contactModal && contactModal.classList.contains("active")) {
+            contactModal.classList.remove("active");
+            const overlay = document.getElementById("overlay");
+            if (overlay) overlay.classList.remove("active");
+            closed = true;
+        }
+        
+        // مودال دليل المتسوق
+        const infoModal = document.getElementById("infoModal");
+        if (infoModal && infoModal.classList.contains("active")) {
+            infoModal.classList.remove("active");
+            const overlay = document.getElementById("overlay");
+            if (overlay) overlay.classList.remove("active");
+            closed = true;
+        }
+        
+        // شريط البحث
+        const stickySearch = document.getElementById("stickySearch");
+        if (stickySearch && stickySearch.classList.contains("active")) {
+            stickySearch.classList.remove("active");
+            const activeBar = document.getElementById("activeSearchBar");
+            if (activeBar) activeBar.classList.remove("show");
+            const searchOverlay = document.getElementById("searchOverlay");
+            if (searchOverlay) searchOverlay.classList.remove("active");
+            document.getElementById("searchInput").value = "";
+            closed = true;
+        }
+        
+        // القائمة الجانبية
+        const mobileMenu = document.getElementById("mobileMenu");
+        const menuOverlay = document.getElementById("menuOverlay");
+        if (mobileMenu && mobileMenu.classList.contains("active")) {
+            mobileMenu.classList.remove("active");
+            if (menuOverlay) menuOverlay.classList.remove("active");
+            document.body.style.overflow = "";
+            closed = true;
+        }
+        
+        return closed;
+    }
+    
+    // دالة إضافة الهاش عند فتح أي مودال
+    function addHash() {
+        if (window.location.hash !== "#modal-open") {
+            history.pushState(null, "", "#modal-open");
+        }
+    }
+    
+    // دالة إزالة الهاش عند إغلاق آخر مودال
+    function removeHashIfNoModals() {
+        const anyOpen = document.querySelector(
+            '#productModal.active, #cartDrawer.active, #ratingModal.active, ' +
+            '#contactModal.active, #infoModal.active, #stickySearch.active, ' +
+            '#mobileMenu.active'
+        );
+        if (!anyOpen && window.location.hash === "#modal-open") {
+            history.replaceState(null, "", window.location.pathname + window.location.search);
+        }
+    }
+    
+    // ربط دوال الفتح الأصلية لإضافة الهاش (نقوم بتعديلها بعد تحميل الصفحة)
+    function patchOpenFunctions() {
+        // openProduct
+        if (typeof window.openProduct === 'function') {
+            const orig = window.openProduct;
+            window.openProduct = function(...args) {
+                addHash();
+                return orig.apply(this, args);
+            };
+        }
+        // openCart
+        if (typeof window.openCart === 'function') {
+            const orig = window.openCart;
+            window.openCart = function() {
+                addHash();
+                return orig.apply(this);
+            };
+        }
+        // openRatingModal
+        if (typeof window.openRatingModal === 'function') {
+            const orig = window.openRatingModal;
+            window.openRatingModal = function() {
+                addHash();
+                return orig.apply(this);
+            };
+        }
+        // openContactModal
+        if (typeof window.openContactModal === 'function') {
+            const orig = window.openContactModal;
+            window.openContactModal = function(e) {
+                addHash();
+                return orig.apply(this, [e]);
+            };
+        }
+        // openInfoModal
+        if (typeof window.openInfoModal === 'function') {
+            const orig = window.openInfoModal;
+            window.openInfoModal = function() {
+                addHash();
+                return orig.apply(this);
+            };
+        }
+        // openSearch
+        if (typeof window.openSearch === 'function') {
+            const orig = window.openSearch;
+            window.openSearch = function() {
+                addHash();
+                return orig.apply(this);
+            };
+        }
+        // toggleMobileMenu (للقائمة الجانبية)
+        if (typeof window.toggleMobileMenu === 'function') {
+            const orig = window.toggleMobileMenu;
+            window.toggleMobileMenu = function(e) {
+                const wasActive = document.getElementById("mobileMenu")?.classList.contains("active");
+                const result = orig.apply(this, [e]);
+                const isActive = document.getElementById("mobileMenu")?.classList.contains("active");
+                if (!wasActive && isActive) addHash();
+                else if (wasActive && !isActive) removeHashIfNoModals();
+                return result;
+            };
+        }
+        
+        // ربط دوال الإغلاق لإزالة الهاش عند الحاجة
+        const closeFunctions = [
+            'closeProduct', 'closeCart', 'closeRatingModal', 'closeContactModal',
+            'closeInfoModal', 'closeSearch', 'closeMobileMenu'
+        ];
+        closeFunctions.forEach(funcName => {
+            if (typeof window[funcName] === 'function') {
+                const orig = window[funcName];
+                window[funcName] = function() {
+                    const result = orig.apply(this, arguments);
+                    removeHashIfNoModals();
+                    return result;
+                };
+            }
+        });
+    }
+    
+    // انتظار تحميل الصفحة وتطبيق التعديلات
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(patchOpenFunctions, 500);
+        });
+    } else {
+        setTimeout(patchOpenFunctions, 500);
+    }
+    
+    // الاستماع لتغير الهاش (الحدث الذي يحدث عند الضغط على زر الرجوع)
+    window.addEventListener('hashchange', function() {
+        if (window.location.hash !== "#modal-open") {
+            // الهاش تغير إلى شيء آخر (يعني المستخدم ضغط رجوع)
+            const closed = closeAllModals();
+            if (closed) {
+                // إعادة تعيين الهاش إلى #modal-open إذا كان لازال هناك مودال مفتوح؟ لا، لكننا نمنع الخروج
+                // نضيف الهاش مرة أخرى فقط إذا كان لا يزال هناك مودال (لن يحدث بسبب الإغلاق)
+                // نمنع إعادة التوجيه
+                if (closeAllModals()) {
+                    // نعيد الهاش فقط إذا تم إغلاق شيء
+                    history.pushState(null, "", "#modal-open");
+                }
+            }
+        }
+    });
+    
+    // معالجة حالة التحميل الأولي (إذا كان هناك هاش عند التحميل نزيله)
+    if (window.location.hash === "#modal-open") {
+        history.replaceState(null, "", window.location.pathname + window.location.search);
+    }
+})();
+
 </script>
 </body>
 </html>
