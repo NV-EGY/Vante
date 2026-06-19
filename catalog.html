@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>كتالوج فانتي VANTÉ - إكسسوارات دهب صيني واستانلس</title>
+    <meta name="description" content="معرض صور منتجات VANTÉ فانتي من الدهب الصيني والستانلس. تصفحي التشكيلة الكاملة بخيارات تكبير الصور.">
+    
+    <link rel="icon" type="image/png" href="images/favicon.png">
+    <link rel="apple-touch-icon" href="images/icon-192x192.png">
+    <meta name="theme-color" content="#D4AF37">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+        /* ===== إعادة تعيين وتنسيق عام ===== */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: #fafafa;
+            color: #111;
+            direction: rtl;
+            padding: 20px 15px 50px;
+        }
+        img { max-width: 100%; display: block; -webkit-user-drag: none; user-select: none; }
+
+        /* ===== رأس الصفحة ===== */
+        .catalog-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 15px;
+            max-width: 1300px;
+            margin: 0 auto 30px;
+            padding: 10px 0;
+            border-bottom: 2px solid #eee;
+        }
+        .catalog-header .logo-area h1 {
+            font-size: 28px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #D4AF37, #FFD700, #B8860B);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .catalog-header .logo-area small {
+            display: block;
+            font-size: 14px;
+            color: #B8860B;
+            font-weight: 700;
+            -webkit-text-fill-color: #B8860B;
+        }
+        .catalog-header .actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        .catalog-header .actions a,
+        .catalog-header .actions button {
+            background: #111;
+            color: #fff;
+            border: none;
+            padding: 10px 22px;
+            border-radius: 40px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .catalog-header .actions a:hover,
+        .catalog-header .actions button:hover {
+            background: #D4AF37;
+            color: #000;
+            transform: translateY(-2px);
+        }
+        .catalog-header .actions .cart-btn {
+            background: #D4AF37;
+            color: #000;
+            position: relative;
+        }
+        .catalog-header .actions .cart-btn:hover {
+            background: #111;
+            color: #fff;
+        }
+        .cart-count-badge {
+            background: #e74c3c;
+            color: #fff;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            font-size: 11px;
+            font-weight: 900;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 4px;
+        }
+
+        /* ===== شبكة الكتالوج (صور كبيرة) ===== */
+        .catalog-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 25px;
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+        .catalog-item {
+            background: #fff;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.06);
+            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            cursor: pointer;
+            position: relative;
+            border: 1px solid #f0f0f0;
+        }
+        .catalog-item:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.12);
+            border-color: #D4AF37;
+        }
+        .catalog-item .image-wrap {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            background: #f5f5f5;
+            overflow: hidden;
+            position: relative;
+        }
+        .catalog-item .image-wrap img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.6s ease;
+        }
+        .catalog-item:hover .image-wrap img {
+            transform: scale(1.05);
+        }
+        .catalog-item .info {
+            padding: 15px 18px 20px;
+            text-align: center;
+        }
+        .catalog-item .info h3 {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            color: #111;
+        }
+        .catalog-item .info .price {
+            font-size: 18px;
+            font-weight: 900;
+            color: #D4AF37;
+        }
+        .catalog-item .info .old-price {
+            font-size: 14px;
+            color: #999;
+            text-decoration: line-through;
+            margin-left: 8px;
+        }
+        .catalog-item .info .sku-tag {
+            display: inline-block;
+            background: #f5f5f5;
+            font-size: 11px;
+            color: #888;
+            padding: 2px 12px;
+            border-radius: 30px;
+            margin-top: 6px;
+        }
+        /* شارة الخصم */
+        .discount-flag {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            background: linear-gradient(135deg, #D4AF37, #FFD700);
+            color: #000;
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-weight: 900;
+            font-size: 12px;
+            z-index: 10;
+            box-shadow: 0 4px 12px rgba(212,175,55,0.4);
+        }
+
+        /* ===== مودال المنتج (نفس نظام الموقع الأصلي) ===== */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(6px);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: 0.3s;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-box {
+            background: #fff;
+            width: 92%;
+            max-width: 480px;
+            max-height: 90vh;
+            border-radius: 30px;
+            overflow-y: auto;
+            padding: 25px;
+            transform: scale(0.9) translateY(20px);
+            transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+        .modal-overlay.active .modal-box {
+            transform: scale(1) translateY(0);
+        }
+        .modal-box .close-modal {
+            position: sticky;
+            top: 0;
+            float: left;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background: #111;
+            color: #fff;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 50;
+            margin-bottom: 15px;
+        }
+        .modal-box .modal-img {
+            width: 100%;
+            aspect-ratio: 1/1;
+            object-fit: cover;
+            border-radius: 16px;
+            margin-bottom: 15px;
+            background: #f5f5f5;
+        }
+        .modal-box h2 {
+            font-size: 22px;
+            margin-bottom: 8px;
+        }
+        .modal-box .modal-price-row {
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
+            margin: 10px 0 15px;
+        }
+        .modal-box .modal-price {
+            font-size: 24px;
+            font-weight: 900;
+            color: #D4AF37;
+        }
+        .modal-box .modal-old-price {
+            text-decoration: line-through;
+            color: #999;
+            font-size: 16px;
+        }
+        .modal-box label {
+            font-weight: 700;
+            display: block;
+            margin: 15px 0 5px;
+        }
+        .modal-box select {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid #ddd;
+            border-radius: 14px;
+            font-size: 15px;
+            background: #fff;
+            margin-bottom: 15px;
+        }
+        .modal-box .add-btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 16px;
+            background: #111;
+            color: #fff;
+            font-weight: 800;
+            font-size: 17px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .modal-box .add-btn:hover {
+            background: #D4AF37;
+            color: #000;
+        }
+        .modal-box .stock-info {
+            font-size: 13px;
+            color: #27ae60;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        .modal-box::-webkit-scrollbar { width: 4px; }
+        .modal-box::-webkit-scrollbar-thumb { background: #D4AF37; border-radius: 10px; }
+
+        /* ===== تذييل بسيط ===== */
+        .catalog-footer {
+            text-align: center;
+            margin-top: 50px;
+            padding-top: 25px;
+            border-top: 1px solid #eee;
+            color: #888;
+            font-size: 13px;
+        }
+
+        /* ===== استجابة للهواتف ===== */
+        @media (max-width: 600px) {
+            .catalog-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+            .catalog-item .info { padding: 10px 8px 14px; }
+            .catalog-item .info h3 { font-size: 13px; }
+            .catalog-item .info .price { font-size: 14px; }
+            .catalog-header .logo-area h1 { font-size: 22px; }
+            .catalog-header .actions a { padding: 6px 14px; font-size: 12px; }
+            .modal-box { padding: 18px; }
+        }
+        @media (max-width: 400px) {
+            .catalog-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+            .catalog-item .info .old-price { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== HEADER ===== -->
+    <header class="catalog-header">
+        <div class="logo-area">
+            <h1>📸 كتالوج VANTÉ</h1>
+            <small>فانتي · إكسسوارات دهب صيني واستانلس</small>
+        </div>
+        <div class="actions">
+            <a href="index.html"><i class="fas fa-home"></i> الرئيسية</a>
+            <button class="cart-btn" onclick="openCartDrawer()">
+                <i class="fas fa-shopping-bag"></i> السلة <span class="cart-count-badge" id="catalogCartCount">0</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- ===== شبكة الكتالوج ===== -->
+    <div class="catalog-grid" id="catalogGrid">
+        <div style="grid-column:1/-1; text-align:center; padding:60px 20px; color:#999;">
+            <i class="fas fa-spinner fa-spin" style="font-size:32px; color:#D4AF37;"></i>
+            <p style="margin-top:15px;">جاري تحميل الكتالوج...</p>
+        </div>
+    </div>
+
+    <!-- ===== مودال عرض المنتج ===== -->
+    <div class="modal-overlay" id="catalogModal">
+        <div class="modal-box">
+            <button class="close-modal" onclick="closeCatalogModal()">✕</button>
+            <img class="modal-img" id="modalImg" src="" alt="صورة المنتج">
+            <h2 id="modalTitle"></h2>
+            <div class="modal-price-row">
+                <span class="modal-price" id="modalPrice"></span>
+                <span class="modal-old-price" id="modalOldPrice"></span>
+            </div>
+            <div class="stock-info" id="modalStock"></div>
+            <label for="modalSizeSelect">اختر المقاس</label>
+            <select id="modalSizeSelect"></select>
+            <button class="add-btn" onclick="addFromCatalog()"><i class="fas fa-shopping-bag"></i> أضف للسلة</button>
+        </div>
+    </div>
+
+    <!-- ===== FOOTER ===== -->
+    <div class="catalog-footer">
+        <p>© 2026 VANTÉ فانتي · جميع الحقوق محفوظة</p>
+    </div>
+
+    <!-- ===== FIREBASE (نفس إعداداتك) ===== -->
+    <script type="importmap">
+        {
+            "imports": {
+                "firebase/app": "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js",
+                "firebase/firestore": "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"
+            }
+        }
+    </script>
+
+    <script type="module">
+        // ===== استيراد Firebase =====
+        import { initializeApp } from "firebase/app";
+        import { getFirestore, collection, onSnapshot, query } from "firebase/firestore";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCotT8EP2uy_HsgHknxeGBorKoEUORPtmU",
+            authDomain: "vante-orders.firebaseapp.com",
+            projectId: "vante-orders",
+            storageBucket: "vante-orders.firebasestorage.app",
+            messagingSenderId: "842319700646",
+            appId: "1:842319700646:web:f6afd78ef7038c3be4ca67"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // ===== متغيرات عامة =====
+        let allProducts = [];
+        let currentProduct = null;
+        let currentCart = JSON.parse(localStorage.getItem('vante_cart') || '[]');
+
+        // ===== السلة (نفس نظام الموقع الأصلي) =====
+        function updateCartUI() {
+            const badge = document.getElementById('catalogCartCount');
+            if (badge) {
+                const total = currentCart.reduce((sum, item) => sum + item.qty, 0);
+                badge.textContent = total;
+            }
+            localStorage.setItem('vante_cart', JSON.stringify(currentCart));
+            // تحديث السلة في التاب المفتوح (index) لو موجود
+            if (window.opener) {
+                try { window.opener.localStorage.setItem('vante_cart', JSON.stringify(currentCart)); } catch(e) {}
+            }
+        }
+
+        window.openCartDrawer = function() {
+            // محاولة فتح سلة الموقع الرئيسي في تاب آخر، أو عرض تنبيه
+            window.location.href = 'index.html#cart';
+            // بديل: نفتح سلة بسيطة هنا
+            alert(`🛒 سلة التسوق:\n${currentCart.map(i => `${i.name} (${i.size}) × ${i.qty} = ${i.price*i.qty} جنيه`).join('\n') || 'فارغة'}`);
+        };
+
+        // ===== عرض الكتالوج =====
+        function renderCatalog() {
+            const grid = document.getElementById('catalogGrid');
+            if (!grid) return;
+
+            if (allProducts.length === 0) {
+                grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:60px 20px; color:#999;">لا توجد منتجات لعرضها حالياً</div>`;
+                return;
+            }
+
+            grid.innerHTML = allProducts.map(p => {
+                const hasDiscount = p.comparePrice && p.comparePrice > p.price;
+                const discountPercent = hasDiscount ? Math.round((1 - p.price / p.comparePrice) * 100) : 0;
+                const discountBadge = hasDiscount ? `<span class="discount-flag">-${discountPercent}%</span>` : '';
+                const oldPriceHtml = hasDiscount ? `<span class="old-price">${p.comparePrice} ج.م</span>` : '';
+                
+                return `
+                    <div class="catalog-item" onclick="openCatalogProduct('${p.id}')">
+                        ${discountBadge}
+                        <div class="image-wrap">
+                            <img src="${p.image || 'https://via.placeholder.com/300'}" alt="${p.name}" loading="lazy" onerror="this.src='https://via.placeholder.com/300/111/fff?text=VANTÉ'">
+                        </div>
+                        <div class="info">
+                            <h3>${p.name}</h3>
+                            <div>
+                                ${oldPriceHtml}
+                                <span class="price">${p.price} ج.م</span>
+                            </div>
+                            ${p.sku ? `<span class="sku-tag">#${p.sku}</span>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ===== فتح مودال المنتج =====
+        window.openCatalogProduct = function(productId) {
+            const product = allProducts.find(p => p.id === productId);
+            if (!product) return;
+            
+            currentProduct = product;
+            const modal = document.getElementById('catalogModal');
+            document.getElementById('modalImg').src = product.image || 'https://via.placeholder.com/300';
+            document.getElementById('modalTitle').textContent = product.name;
+            
+            const priceEl = document.getElementById('modalPrice');
+            const oldPriceEl = document.getElementById('modalOldPrice');
+            priceEl.textContent = `${product.price} ج.م`;
+            if (product.comparePrice && product.comparePrice > product.price) {
+                oldPriceEl.textContent = `${product.comparePrice} ج.م`;
+                oldPriceEl.style.display = '';
+            } else {
+                oldPriceEl.style.display = 'none';
+            }
+
+            // عرض المخزون
+            const stockInfo = document.getElementById('modalStock');
+            const sizes = Array.isArray(product.sizes) && product.sizes.length ? product.sizes : ["7", "8", "9"];
+            const stockBySize = product.stockBySize || {};
+            const hasUnlimited = Object.values(stockBySize).some(q => q === null || q === undefined);
+            const totalStock = Object.values(stockBySize).reduce((s, q) => s + (parseInt(q) || 0), 0);
+            if (hasUnlimited) {
+                stockInfo.innerHTML = '♾️ كمية غير محدودة';
+                stockInfo.style.color = '#800080';
+            } else if (totalStock > 0) {
+                stockInfo.innerHTML = `✅ متوفر: ${totalStock} قطعة`;
+                stockInfo.style.color = '#27ae60';
+            } else {
+                stockInfo.innerHTML = '🚫 نفذت الكمية';
+                stockInfo.style.color = '#c0392b';
+            }
+
+            // تعبئة خيارات المقاس
+            const select = document.getElementById('modalSizeSelect');
+            select.innerHTML = '';
+            sizes.forEach(s => {
+                const qty = stockBySize[s] !== undefined ? stockBySize[s] : null;
+                let label = `مقاس: ${s}`;
+                let disabled = false;
+                if (qty === null) { label += ' (غير محدود)'; }
+                else if (qty === 0) { label += ' (نفذ)'; disabled = true; }
+                else { label += ` (باقى ${qty})`; }
+                const opt = document.createElement('option');
+                opt.value = s;
+                opt.textContent = label;
+                opt.disabled = disabled;
+                select.appendChild(opt);
+            });
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        };
+
+        window.closeCatalogModal = function() {
+            document.getElementById('catalogModal').classList.remove('active');
+            document.body.style.overflow = '';
+        };
+
+        // ===== إضافة من الكتالوج للسلة =====
+        window.addFromCatalog = function() {
+            if (!currentProduct) return;
+            const size = document.getElementById('modalSizeSelect').value;
+            if (!size) { alert('⚠️ اختر المقاس أولاً'); return; }
+
+            // التحقق من المخزون
+            const stockBySize = currentProduct.stockBySize || {};
+            const qtyAvailable = stockBySize[size];
+            if (qtyAvailable === 0) {
+                alert('❌ هذا المقاس نفد من المخزون');
+                return;
+            }
+
+            // التحقق من الكمية في السلة
+            const existing = currentCart.find(item => item.name === currentProduct.name && item.size === size);
+            if (existing) {
+                if (qtyAvailable !== null && existing.qty + 1 > qtyAvailable) {
+                    alert(`❌ الكمية المتاحة لمقاس ${size} هي ${qtyAvailable} قطعة فقط.`);
+                    return;
+                }
+                existing.qty += 1;
+            } else {
+                currentCart.push({
+                    name: currentProduct.name,
+                    price: currentProduct.price,
+                    size: size,
+                    image: currentProduct.image,
+                    comparePrice: currentProduct.comparePrice || null,
+                    qty: 1,
+                    productId: currentProduct.id,
+                    sku: currentProduct.sku || null
+                });
+            }
+
+            updateCartUI();
+            alert(`✅ تم إضافة ${currentProduct.name} - مقاس ${size} إلى السلة`);
+            closeCatalogModal();
+        };
+
+        // ===== تحميل المنتجات من Firebase =====
+        const productsRef = collection(db, "products");
+        onSnapshot(query(productsRef), (snapshot) => {
+            allProducts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            renderCatalog();
+            updateCartUI();
+        });
+
+        // ===== إغلاق المودال بالضغط على الخلفية =====
+        document.getElementById('catalogModal').addEventListener('click', function(e) {
+            if (e.target === this) closeCatalogModal();
+        });
+
+        // ===== تحديث السلة عند التحميل =====
+        updateCartUI();
+
+        // ===== السماح بالرجوع بالهاش =====
+        window.addEventListener('hashchange', function() {
+            if (window.location.hash === '#cart') {
+                window.openCartDrawer();
+                window.location.hash = '';
+            }
+        });
+        if (window.location.hash === '#cart') {
+            window.openCartDrawer();
+            window.location.hash = '';
+        }
+    </script>
+
+</body>
+</html>
