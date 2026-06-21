@@ -1886,5 +1886,47 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
+<!-- ========== تكامل QP Express ========== -->
+<script type="module">
+import { listenForOrderStatusChanges, startPeriodicSync, manualSyncOrders } from './js/sync-orders.js';
+import { addQPInfoToOrderCard, addSyncButtonToOrder } from './js/ui-integration.js';
+
+// تهيئة التكامل
+console.log('🚀 بدء تشغيل تكامل QP Express...');
+
+// بدء الاستماع لتغييرات الحالات
+listenForOrderStatusChanges();
+
+// بدء المزامنة الدورية
+startPeriodicSync(3); // كل 3 دقائق
+
+// إضافة أزرار المزامنة على الطلبات الموجودة
+document.addEventListener('DOMContentLoaded', function() {
+    // إضافة المزامنة لكل طلب موجود
+    setTimeout(() => {
+        document.querySelectorAll('.order-id').forEach(el => {
+            const orderId = el.getAttribute('data-id');
+            if (orderId) {
+                addSyncButtonToOrder(orderId);
+            }
+        });
+    }, 2000);
+});
+
+// جعل الدوال متاحة في النطاق العام
+window.manualSyncOrders = manualSyncOrders;
+
+// دالة للتحديث اليدوي
+window.syncQPOrders = async function() {
+    const result = await manualSyncOrders();
+    if (result.error) {
+        alert(`❌ ${result.error}`);
+    } else {
+        alert(`✅ تمت المزامنة:\n- ${result.syncedCount} طلب تم تحديث حالته\n- ${result.notesAddedCount} ملاحظة جديدة`);
+    }
+};
+
+console.log('✅ تم تفعيل تكامل QP Express بنجاح');
+</script>
 </body>
 </html>
