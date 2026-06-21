@@ -871,14 +871,7 @@ import { getFirestore, collection, query, orderBy, onSnapshot, updateDoc, delete
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { addQPInfoToOrderCard, addSyncButtonToOrder } from './js/ui-integration.js';
 
-// بعد كل تحديث للطلبات، قم بإضافة معلومات QP
-onSnapshot(query(collection(db, "orders")), (snapshot) => {
-    snapshot.docs.forEach(doc => {
-        const order = { id: doc.id, ...doc.data() };
-        addQPInfoToOrderCard(order.id, order);
-        addSyncButtonToOrder(order.id);
-    });
-});
+
 const firebaseConfig = {
   apiKey: "AIzaSyCotT8EP2uy_HsgHknxeGBorKoEUORPtmU",
   authDomain: "vante-orders.firebaseapp.com",
@@ -1345,6 +1338,14 @@ function load() {
     badge.style.display = unread > 0 ? "inline-block" : "none";
     badge.innerText = unread;
   });
+  // بعد كل تحديث للطلبات، قم بإضافة معلومات QP
+onSnapshot(query(collection(db, "orders")), (snapshot) => {
+    snapshot.docs.forEach(doc => {
+        const order = { id: doc.id, ...doc.data() };
+        addQPInfoToOrderCard(order.id, order);
+        addSyncButtonToOrder(order.id);
+    });
+});
   onSnapshot(query(collection(db, "orders"), orderBy("createdAt", "desc")), (snap) => {
     snap.docChanges().forEach(change => {
         if (change.type === "added" && lastCount !== 0) {
