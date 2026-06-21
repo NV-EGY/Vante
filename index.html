@@ -5938,25 +5938,27 @@ async function executeCheckout() {
         }
         
         // ========== 8. حفظ الطلب في Firestore ==========
-        const orderData = {
-            orderID,
-            customerName: name,
-            phone,
-            gov,
-            city,
-            address,
-            orderDetails,
-            quantity: cart.reduce((sum, i) => sum + i.qty, 0),
-            price: subtotal,
-            shipping: customerShippingFee,
-            shippingCostPaid: storeShippingCost,
-            finalTotal: finalTotalAfter,
-            status: "new",
-            date: dateStr,
-            createdAt: serverTimestamp(),
-            totalCost: totalCost,
-            profit: finalTotalAfter - totalCost - storeShippingCost
-        };
+        // ========== 8. حفظ الطلب في Firestore ==========
+const orderData = {
+    orderID,
+    customerName: name,
+    phone,
+    gov,
+    city,
+    address,
+    orderDetails,
+    quantity: cart.reduce((sum, i) => sum + i.qty, 0),
+    price: subtotal,
+    shipping: customerShippingFee,
+    shippingCostPaid: storeShippingCost,
+    finalTotal: finalTotalAfter,
+    status: "new",
+    date: dateStr,
+    createdAt: serverTimestamp(),
+    originalCreatedAt: serverTimestamp(),  // <--- ⬅️ أضف هذا السطر هنا
+    totalCost: totalCost,
+    profit: finalTotalAfter - totalCost - storeShippingCost
+};
 
         if (savedCoupon) {
             orderData.coupon = {
