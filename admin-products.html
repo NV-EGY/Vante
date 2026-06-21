@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
  <!-- PWA لكل تطبيق على حدة (المنتجات) -->
 <link rel="manifest" href="manifest-products.json">
 <meta name="mobile-web-app-capable" content="yes">
@@ -847,7 +848,54 @@ h2 {
     display: inline-block;
     margin-top: 5px;
 }
-
+/* أزرار SKU والباركود الجديدة */
+.sku-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+}
+.sku-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 40px;
+    font-size: 12px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: 'Cairo', sans-serif;
+    background: #f0f2f5;
+    color: #111;
+}
+.sku-btn i {
+    font-size: 13px;
+}
+.sku-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+.sku-btn:active {
+    transform: translateY(1px);
+}
+/* زر الباركود */
+.sku-barcode {
+    background: #0F7B65;
+    color: white;
+}
+.sku-barcode:hover {
+    background: #0a5a4a;
+}
+/* زر النسخ */
+.sku-copy {
+    background: #D4AF37;
+    color: #000;
+}
+.sku-copy:hover {
+    background: #b8941a;
+}
 </style>
 </head>
 <body>
@@ -942,9 +990,7 @@ h2 {
    <div class="form-section" id="productsListSection">
        <div style="display: flex; justify-content: space-between; align-items: center;">
            <h3 class="form-title" data-toggle="productsListContent" style="margin-bottom:0;">📦 قائمة المنتجات</h3>
-           <button onclick="generateMissingSKUs()" class="primary-btn" style="width: auto; padding: 8px 16px; background: #0F7B65; color: #fff; border-radius: 30px;">
-               <i class="fas fa-barcode"></i> توليد SKU للناقصين
-           </button>
+           
        </div>
        <div id="productsListContent" class="collapsible-content">
     <div style="display: flex; gap: 10px; align-items: center; margin: 0 0 15px 0; position: relative;">
@@ -1008,7 +1054,41 @@ h2 {
         <div id="couponsList">⏳ جاري تحميل الكوبونات...</div>
     </div>
 </div>
-
+<!-- قسم التحكم في عرض الأكثر مبيعاً -->
+<div class="form-section" id="bestSellersConfigSection">
+    <h3 class="form-title" data-toggle="bestSellersConfigContent">🔥 التحكم في عرض "الأكثر مبيعاً"</h3>
+    <div id="bestSellersConfigContent" class="collapsible-content">
+        <div class="form-row">
+            <div class="form-group">
+                <label><i class="fas fa-chart-line"></i> طريقة الترتيب</label>
+                <select id="bestSellersMode">
+                    <option value="sales">📊 حسب الأكثر مبيعاً (المبيعات)</option>
+                    <option value="random">🎲 عشوائي</option>
+                    <option value="manual">✋ يدوي (اختيار المنتجات)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label><i class="fas fa-hashtag"></i> عدد المنتجات المعروضة</label>
+                <input type="number" id="bestSellersLimit" min="1" max="20" value="10">
+            </div>
+        </div>
+        <div class="form-group" id="fillModeGroup" style="display: none;">
+    <label><i class="fas fa-random"></i> طريقة ملء الباقي (عند اختيار يدوي)</label>
+    <select id="bestSellersFillMode">
+        <option value="random">🎲 عشوائي (يتغير تلقائياً)</option>
+        <option value="sales">📊 الأكثر مبيعاً (ثابت)</option>
+    </select>
+</div>
+        <div id="manualProductsContainer" style="display: none;">
+            <label><i class="fas fa-list-ul"></i> اختر المنتجات (يدوياً):</label>
+            <div id="manualProductsList" style="max-height: 250px; overflow-y: auto; border: 1px solid #eef2f5; border-radius: 12px; padding: 10px; margin-top: 8px;"></div>
+        </div>
+        <div class="form-actions">
+            <button id="saveBestSellersConfigBtn" class="primary-btn"><i class="fas fa-save"></i> حفظ إعدادات الأكثر مبيعاً</button>
+        </div>
+        <div id="bestSellersConfigMsg" class="text-muted" style="margin-top: 10px;"></div>
+    </div>
+</div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -1386,12 +1466,18 @@ function generateProductDetails(product, stockBySize) {
     let extraHtml = `<div style="margin-top:12px; border-top:1px dashed #ccc; padding-top:8px;">
                         <button class="show-more-btn" data-extra="${extraDetailsId}" style="background: none; border: none; color: #D4AF37; font-weight: bold; cursor: pointer; width: auto; padding: 4px 8px;">🔽 عرض المزيد</button>
                         <div id="${extraDetailsId}" style="display: none; margin-top: 10px;">
-                            <div style="margin-bottom:8px;">
-                                <strong>📦 SKU:</strong> ${sku} 
-                                <button class="tool-btn" onclick="showQRCode('${sku}', '${qrId}')" style="background:#D4AF37; border-radius:20px; padding:2px 10px;"><i class="fas fa-qrcode"></i> QR</button>
-                                <button class="tool-btn" onclick="copyToClipboard('${sku}')" style="background:#0F7B65; border-radius:20px; padding:2px 10px; color:#fff;"><i class="fas fa-copy"></i> نسخ</button>
-                                <div id="${qrId}" style="display:none; margin-top:5px;"></div>
-                            </div>
+                   <div style="margin-bottom:8px;">
+    <strong>📦 SKU:</strong> ${sku}
+    <div class="sku-actions">
+        <button class="sku-btn sku-barcode" onclick="showBarcode('${sku}', '${qrId}')">
+            <i class="fas fa-barcode"></i> باركود
+        </button>
+        <button class="sku-btn sku-copy" onclick="copyToClipboard('${sku}')">
+            <i class="fas fa-copy"></i> نسخ
+        </button>
+    </div>
+    <div id="${qrId}" style="display:none; margin-top:8px;"></div>
+</div>
                             <div><strong>💸 سعر الجملة:</strong> ${product.costPrice ? product.costPrice + ' جنيه' : 'غير محدد'}</div>
                             ${product.supplierLink ? `<div><strong>📞 رابط التاجر:</strong> <a href="${product.supplierLink}" target="_blank" class="supplier-link-btn" style="background:#0088cc;"><i class="fab fa-telegram"></i> تليجرام</a></div>` : ''}
                             <div><strong>📝 الوصف:</strong> <div style="background:#f9f9f9; padding:8px; border-radius:12px; margin-top:5px;">${product.description || "لا يوجد وصف"}</div></div>
@@ -1547,18 +1633,58 @@ onSnapshot(productsQuery, (snapshot) => {
     loadProductsForCouponSelect();
     if (typeof loadCoupons === 'function') loadCoupons();
     renderFilteredProducts();
+    loadBestSellersConfig();   // <--- أضف هذا السطر
 });
-function showQRCode(sku, elementId) {
-    const qrContainer = document.getElementById(elementId);
-    if (!qrContainer) return;
-    if (qrContainer.style.display === 'block') {
-        qrContainer.style.display = 'none';
+window.showBarcode = function(sku, elementId) {
+    const container = document.getElementById(elementId);
+    if (!container) return customAlert("عنصر الباركود غير موجود", "error");
+    
+    // إخفاء وإظهار
+    if (container.style.display === 'block') {
+        container.style.display = 'none';
+        container.innerHTML = "";
         return;
     }
-    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(sku)}`;
-    qrContainer.innerHTML = `<img src="${qrUrl}" alt="QR Code SKU: ${sku}" style="width:100px; height:100px; border-radius:12px; margin-top:8px;">`;
-    qrContainer.style.display = 'block';
-}
+    if (!sku || sku === "غير محدد") {
+        return customAlert("لا يوجد SKU صالح", "warning");
+    }
+    container.innerHTML = ""; // تنظيف
+    // إنشاء عنصر canvas لرسم الباركود
+    const canvas = document.createElement("canvas");
+    canvas.id = `barcode-canvas-${Date.now()}`;
+    canvas.style.width = "200px";
+    canvas.style.height = "60px";
+    container.appendChild(canvas);
+    container.style.display = "block";
+    
+    // رسم الباركود
+    JsBarcode(canvas, sku, {
+        format: "CODE128",
+        width: 1.5,
+        height: 50,
+        displayValue: true,
+        fontSize: 14,
+        margin: 5
+    });
+    
+    // إضافة زر إغلاق
+    const closeBtn = document.createElement("button");
+    closeBtn.innerHTML = "✖ إغلاق";
+    closeBtn.style.background = "#e74c3c";
+    closeBtn.style.color = "#fff";
+    closeBtn.style.border = "none";
+    closeBtn.style.borderRadius = "20px";
+    closeBtn.style.padding = "4px 12px";
+    closeBtn.style.fontSize = "11px";
+    closeBtn.style.marginTop = "8px";
+    closeBtn.style.cursor = "pointer";
+    closeBtn.onclick = (e) => {
+        e.stopPropagation();
+        container.style.display = "none";
+        container.innerHTML = "";
+    };
+    container.appendChild(closeBtn);
+};
 
 // ========== Sorting and Filtering ==========
 let currentSort = "newest";
@@ -1720,16 +1846,105 @@ window.copyToClipboard = function(text) {
     }).catch(() => {
         customAlert("❌ فشل النسخ", 'error');
     });
-};
-</script>
-<script>
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js').then(reg => {
-    console.log('Service Worker registered', reg);
-  }).catch(err => {
-    console.log('Service Worker registration failed', err);
-  });
 }
+const modeSelect = document.getElementById('bestSellersMode');
+const fillModeGroup = document.getElementById('fillModeGroup');
+
+function toggleFillModeVisibility() {
+    if (modeSelect.value === 'manual') {
+        fillModeGroup.style.display = 'flex';
+    } else {
+        fillModeGroup.style.display = 'none';
+    }
+}
+modeSelect.addEventListener('change', toggleFillModeVisibility);
+toggleFillModeVisibility();
+// ========== إعدادات عرض الأكثر مبيعاً ==========
+async function loadBestSellersConfig() {
+    try {
+        const docRef = doc(db, "settings", "bestSellersConfig");
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            document.getElementById("bestSellersMode").value = data.mode || "sales";
+            document.getElementById("bestSellersLimit").value = data.limit || 10;
+            document.getElementById("bestSellersFillMode").value = data.fillMode || "random";
+            window._bestSellersManualIds = data.manualIds || [];
+        } else {
+            document.getElementById("bestSellersMode").value = "sales";
+            document.getElementById("bestSellersLimit").value = 10;
+            document.getElementById("bestSellersFillMode").value = "random";
+            window._bestSellersManualIds = [];
+        }
+        toggleManualProductsVisibility();
+        renderManualProductsCheckboxes(); // هذه الدالة ستستخدم window._bestSellersManualIds
+        toggleFillModeVisibility();
+    } catch(e) { console.error(e); }
+}
+
+function toggleManualProductsVisibility() {
+    const mode = document.getElementById("bestSellersMode").value;
+    const manualDiv = document.getElementById("manualProductsContainer");
+    manualDiv.style.display = mode === "manual" ? "block" : "none";
+}
+
+function renderManualProductsCheckboxes() {
+    const container = document.getElementById("manualProductsList");
+    if (!container) return;
+    const products = window.allProducts || [];
+    if (products.length === 0) {
+        container.innerHTML = "<p class='text-muted'>لا توجد منتجات لعرضها</p>";
+        return;
+    }
+    const selectedIds = window._bestSellersManualIds || [];
+    let html = '';
+    products.forEach(p => {
+        const checked = selectedIds.includes(p.id) ? 'checked' : '';
+        html += `<div style="margin-bottom: 8px;">
+                    <label style="display: flex; align-items: center; gap: 8px;">
+                        <input type="checkbox" class="manual-product-checkbox" value="${p.id}" ${checked}>
+                        <img src="${p.image}" style="width: 35px; height: 35px; object-fit: cover; border-radius: 8px;">
+                        <span>${p.name}</span>
+                    </label>
+                </div>`;
+    });
+    container.innerHTML = html;
+}
+
+window.saveBestSellersConfig = async function() {
+    const mode = document.getElementById("bestSellersMode").value;
+    const limit = parseInt(document.getElementById("bestSellersLimit").value);
+    const fillMode = document.getElementById("bestSellersFillMode").value;
+    let manualIds = [];
+    if (mode === "manual") {
+        document.querySelectorAll('.manual-product-checkbox:checked').forEach(cb => {
+            manualIds.push(cb.value);
+        });
+    }
+    try {
+        await setDoc(doc(db, "settings", "bestSellersConfig"), {
+            mode: mode,
+            limit: limit,
+            fillMode: fillMode,   // ← أضف هذا السطر
+            manualIds: manualIds,
+            updatedAt: serverTimestamp()
+        });
+        customAlert("✅ تم حفظ إعدادات الأكثر مبيعاً بنجاح", "success");
+        // ...
+    } catch(e) {
+        customAlert("❌ حدث خطأ أثناء الحفظ", "error");
+    }
+};
+
+// ربط الأحداث
+document.getElementById("bestSellersMode")?.addEventListener("change", () => {
+    toggleManualProductsVisibility();
+    if (document.getElementById("bestSellersMode").value === "manual") {
+        renderManualProductsCheckboxes();
+    }
+});
+document.getElementById("saveBestSellersConfigBtn")?.addEventListener("click", window.saveBestSellersConfig);
+
 </script>
 </body>
 </html>
