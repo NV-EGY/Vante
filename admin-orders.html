@@ -893,6 +893,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
 import { getFirestore, collection, query, orderBy, onSnapshot, updateDoc, deleteDoc, doc, serverTimestamp, getDoc, getDocs, where, addDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { addQPInfoToOrderCard, addSyncButtonToOrder } from './js/ui-integration.js';
+import { listenForOrderStatusChanges, startPeriodicSync, manualSyncOrders } from './js/sync-orders.js';
 
 
 const firebaseConfig = {
@@ -1993,6 +1994,15 @@ if ('serviceWorker' in navigator) {
     console.log('Service Worker registration failed', err);
   });
 }
+// ========== تفعيل المزامنة التلقائية مع QP Express ==========
+
+// بدء الاستماع لتغييرات الحالات (عند تغيير الحالة إلى "شحن" يتم الإرسال تلقائياً)
+listenForOrderStatusChanges();
+
+// بدء المزامنة الدورية (لجلب التحديثات من QP)
+startPeriodicSync(3); // كل 3 دقائق
+
+console.log('✅ تم تفعيل المزامنة التلقائية مع QP Express');
 </script>
 </body>
 </html>
