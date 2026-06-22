@@ -1366,29 +1366,31 @@ function load() {
     badge.style.display = unread > 0 ? "inline-block" : "none";
     badge.innerText = unread;
   });
-  // بعد كل تحديث للطلبات، قم بإضافة معلومات QP
-onSnapshot(query(collection(db, "orders")), (snapshot) => {
-    snapshot.docs.forEach(doc => {
-        const order = { id: doc.id, ...doc.data() };
-        addQPInfoToOrderCard(order.id, order);
-        addSyncButtonToOrder(order.id);
-    });
-});
-  onSnapshot(query(collection(db, "orders"), orderBy("createdAt", "desc")), (snap) => {
-    snap.docChanges().forEach(change => {
-        if (change.type === "added" && lastCount !== 0) {
-            let o = change.doc.data();
-            new Audio("https://assets.mixkit.co/sfx/preview/mixkit-bell-notification-933.mp3").play().catch(()=>{});
-            if (Notification.permission === "granted") {
-                new Notification("طلب جديد", { body: `${o.customerName} - ${o.phone}` });
+    // مستمع الطلبات (مرة واحدة)
+    onSnapshot(query(collection(db, "orders"), orderBy("createdAt", "desc")), (snap) => {
+        snap.docChanges().forEach(change => {
+            if (change.type === "added" && lastCount !== 0) {
+                let o = change.doc.data();
+                new Audio("https://assets.mixkit.co/sfx/preview/mixkit-bell-notification-933.mp3").play().catch(()=>{});
+                if (Notification.permission === "granted") {
+                    new Notification("طلب جديد", { body: `${o.customerName} - ${o.phone}` });
+                }
+                showPopup(o);
             }
-            showPopup(o);
-        }
+        });
+        lastCount = snap.size;
+        orders = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        render();
     });
-    lastCount = snap.size;
-    orders = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    render();
-});
+
+    // إضافة معلومات QP لكل طلب (هذا المستمع منفصل ولا بأس به)
+    onSnapshot(query(collection(db, "orders")), (snapshot) => {
+        snapshot.docs.forEach(doc => {
+            const order = { id: doc.id, ...doc.data() };
+            addQPInfoToOrderCard(order.id, order);
+            addSyncButtonToOrder(order.id);
+        });
+    });
 }
 document.getElementById("dateFilter").addEventListener("change", render);
 document.getElementById("search").addEventListener("input", render);
@@ -1398,12 +1400,9 @@ Notification.requestPermission();
 onAuthStateChanged(auth, (user) => {
     if (user) {
         load();
-        startOrdersListener();
         loadShippingRates();
-
-        // ========== تفعيل المزامنة التلقائية ==========
-        listenForOrderStatusChanges();   // استماع لتغييرات الحالات
-        startPeriodicSync(3);            // مزامنة دورية كل 3 دقائق
+        listenForOrderStatusChanges();
+        startPeriodicSync(3);
         console.log('✅ تم تفعيل المزامنة التلقائية مع QP Express');
     } else {
         window.location.href = "login.html";
