@@ -1992,35 +1992,5 @@ window.copyToClipboard = function(text) {
     });
 };
 </script>
-<script>
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js').then(reg => {
-    console.log('Service Worker registered', reg);
-  }).catch(err => {
-    console.log('Service Worker registration failed', err);
-  });
-}
-
-// ========== تفعيل المزامنة التلقائية مع QP Express ==========
-// نستخدم setTimeout لتأكيد تحميل الـ module أولاً
-setTimeout(() => {
-    // استدعاء الدوال من النطاق العام بعد تحميلها
-    if (typeof window.startPeriodicSync === 'function') {
-        window.startPeriodicSync(3);
-        console.log('✅ تم تفعيل المزامنة الدورية (3 دقائق)');
-    } else {
-        console.warn('⏳ انتظار تحميل دوال المزامنة...');
-        // محاولة مرة أخرى بعد ثانية
-        setTimeout(() => {
-            if (typeof window.startPeriodicSync === 'function') {
-                window.startPeriodicSync(3);
-                console.log('✅ تم تفعيل المزامنة الدورية (بعد التأخير)');
-            } else {
-                console.error('❌ فشل تحميل دوال المزامنة');
-            }
-        }, 2000);
-    }
-}, 500);
-</script>
 </body>
 </html>
