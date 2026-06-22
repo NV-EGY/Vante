@@ -1251,8 +1251,8 @@ function render() {
     returned: 'مرتجع',
     cancelled: 'لاغـي',
     hold: 'معلق',
-    undelivered: 'لم يصل',   // إضافة
-    rejected: 'رفض'         // إضافة
+    undelivered: 'لم يصل',
+    rejected: 'رفض'
 }[status] || status;
 
       let msg = `VANTÉ\nكود: ${o.orderID}\n👤 ${o.customerName}\n📞 ${o.phone}\n📍 ${o.gov} - ${o.city}\n${o.address}\n💎 ${(o.orderDetails || []).map(i => `${i.name} (${i.size}) x${i.qty}`).join(', ')}\n💰 ${o.finalTotal} جنيه`;
@@ -1994,15 +1994,27 @@ if ('serviceWorker' in navigator) {
     console.log('Service Worker registration failed', err);
   });
 }
+
 // ========== تفعيل المزامنة التلقائية مع QP Express ==========
-
-// بدء الاستماع لتغييرات الحالات (عند تغيير الحالة إلى "شحن" يتم الإرسال تلقائياً)
-listenForOrderStatusChanges();
-
-// بدء المزامنة الدورية (لجلب التحديثات من QP)
-startPeriodicSync(3); // كل 3 دقائق
-
-console.log('✅ تم تفعيل المزامنة التلقائية مع QP Express');
+// نستخدم setTimeout لتأكيد تحميل الـ module أولاً
+setTimeout(() => {
+    // استدعاء الدوال من النطاق العام بعد تحميلها
+    if (typeof window.startPeriodicSync === 'function') {
+        window.startPeriodicSync(3);
+        console.log('✅ تم تفعيل المزامنة الدورية (3 دقائق)');
+    } else {
+        console.warn('⏳ انتظار تحميل دوال المزامنة...');
+        // محاولة مرة أخرى بعد ثانية
+        setTimeout(() => {
+            if (typeof window.startPeriodicSync === 'function') {
+                window.startPeriodicSync(3);
+                console.log('✅ تم تفعيل المزامنة الدورية (بعد التأخير)');
+            } else {
+                console.error('❌ فشل تحميل دوال المزامنة');
+            }
+        }, 2000);
+    }
+}, 500);
 </script>
 </body>
 </html>
