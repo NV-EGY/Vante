@@ -1,3 +1,5 @@
+import { db } from './sync-orders.js';
+import { doc, getDoc } from "firebase/firestore"; // تأكد من استيراد الدوال
 // ui-integration.js - إضافة عناصر واجهة المستخدم لعرض بيانات QP
 
 /**
