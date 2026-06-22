@@ -26,7 +26,7 @@ import {
     orderBy,
     limit
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
+export { db };
 // تهيئة Firebase
 const firebaseConfig = {
     apiKey: "AIzaSyCotT8EP2uy_HsgHknxeGBorKoEUORPtmU",
@@ -134,8 +134,15 @@ async function fetchAndSyncQPUpdates() {
             if (!snapshot.empty) {
                 const docRef = snapshot.docs[0].ref;
                 const currentData = snapshot.docs[0].data();
-                const qpStatus = qpOrder.Order_Delivery_Status || qpOrder.status;
-                const vanteStatus = mapQPStatusToVante(qpStatus);
+                // داخل sync-orders.js (داخل حلقة for ... of updates)
+const qpStatus = qpOrder.Order_Delivery_Status || qpOrder.status;
+let vanteStatus = mapQPStatusToVante(qpStatus);
+
+// ✅ إضافة منطق المرتجع
+if (qpOrder.has_return === true || qpOrder.has_return === "true") {
+    vanteStatus = 'returned';
+    finalNote = `↩️ مرتجع (عدد القطع: ${qpOrder.return_count || 0}). ${finalNote}`;
+}
                 let finalNote = qpOrder.StatusNote || '';
 
                 // ➕ إضافة ملاحظات توضيحية حسب الحالة (مصاريف الشحن)
