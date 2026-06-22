@@ -1394,11 +1394,17 @@ document.getElementById("dateFilter").addEventListener("change", render);
 document.getElementById("search").addEventListener("input", render);
 document.addEventListener("change", (e) => { if (e.target.classList.contains("selectOrder")) updateBulkBar(); });
 Notification.requestPermission();
+// بعد التأكد من تسجيل الدخول وتحميل البيانات
 onAuthStateChanged(auth, (user) => {
     if (user) {
         load();
         startOrdersListener();
-        loadShippingRates();   // <-- أضف هذا السطر هنا
+        loadShippingRates();
+
+        // ========== تفعيل المزامنة التلقائية ==========
+        listenForOrderStatusChanges();   // استماع لتغييرات الحالات
+        startPeriodicSync(3);            // مزامنة دورية كل 3 دقائق
+        console.log('✅ تم تفعيل المزامنة التلقائية مع QP Express');
     } else {
         window.location.href = "login.html";
     }
