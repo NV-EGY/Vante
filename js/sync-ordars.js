@@ -26,7 +26,6 @@ import {
     orderBy,
     limit
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-export { db };
 // تهيئة Firebase
 const firebaseConfig = {
     apiKey: "AIzaSyCotT8EP2uy_HsgHknxeGBorKoEUORPtmU",
@@ -278,4 +277,5 @@ export {
     createOrderInQPWhenNew,
     listenForNewOrders,
     getQPUpdateHistory
+    db
 };
