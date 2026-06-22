@@ -137,14 +137,13 @@ async function fetchAndSyncQPUpdates() {
                 // داخل sync-orders.js (داخل حلقة for ... of updates)
 const qpStatus = qpOrder.Order_Delivery_Status || qpOrder.status;
 let vanteStatus = mapQPStatusToVante(qpStatus);
+let finalNote = qpOrder.StatusNote || ''; // ✅ عرف finalNote هنا أولاً
 
 // ✅ إضافة منطق المرتجع
 if (qpOrder.has_return === true || qpOrder.has_return === "true") {
     vanteStatus = 'returned';
     finalNote = `↩️ مرتجع (عدد القطع: ${qpOrder.return_count || 0}). ${finalNote}`;
 }
-                let finalNote = qpOrder.StatusNote || '';
-
                 // ➕ إضافة ملاحظات توضيحية حسب الحالة (مصاريف الشحن)
                 if (qpStatus === 'Undelivered') {
                     finalNote = `🚫 لم يصل للعميل - لا توجد مصاريف شحن. ${finalNote}`;
