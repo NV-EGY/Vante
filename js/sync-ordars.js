@@ -276,6 +276,6 @@ export {
     manualSyncOrders,
     createOrderInQPWhenNew,
     listenForNewOrders,
-    getQPUpdateHistory
+    getQPUpdateHistory,
     db
 };
