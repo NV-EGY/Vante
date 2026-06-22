@@ -683,7 +683,12 @@
 /* أزرار الشريط الثابت */
 .bulk-status-btn.confirmed { background: #f39c12; color: #fff; }
 .bulk-status-btn.returned { background: #9b59b6; color: #fff; }
+/* حالة معلق - تظهر بالفلتر فقط */
+.status.hold { background: #f1c40f; color: #000; }
+.status.hold::before { content: "⏸️"; font-size: 11px; font-weight: normal; }
 
+/* زر الفلتر */
+.filter-btn[data-filter="hold"]:hover { background: #f1c40f; color: #000; }
   </style>
 </head>
 <body>
@@ -719,6 +724,7 @@
   <button onclick="setFilter(event, 'delivered')" class="filter-btn" data-filter="delivered"><i class="fas fa-check-circle fa-fw"></i></button>
 <button onclick="setFilter(event, 'returned')" class="filter-btn" data-filter="returned"><i class="fas fa-undo-alt fa-fw"></i></button>
   <button onclick="setFilter(event, 'cancelled')" class="filter-btn" data-filter="cancelled"><i class="fas fa-ban fa-fw"></i></button>
+  <button onclick="setFilter(event, 'hold')" class="filter-btn" data-filter="hold"><i class="fas fa-pause fa-fw"></i></button>
 </div>
 <div id="reviewsPanel" style="display: none;">
     <div id="reviewFiltersContainer" style="display: flex; gap: 8px; margin-bottom: 15px; overflow-x: auto; justify-content: center; flex-wrap: nowrap;">
@@ -1218,15 +1224,17 @@ function render() {
     for (let o of ordersInDay) {
       totalOrders++;
       let status = o.status || "new";
-      let statusText = {
+    let statusText = {
     new: 'جديد',
+    confirmed: 'تم التأكيد',
     processing: 'قيد التجهيز',
     shipped: 'تم الشحن',
     delivered: 'تم التسليم',
+    returned: 'مرتجع',
     cancelled: 'لاغـي',
-    confirmed: 'تم التأكيد',   // <-- هذا السطر
-    returned: 'مرتجع'          // <-- وهذا السطر
+    hold: 'معلق'   // <-- أضف هذا السطر
 }[status] || status;
+
       let msg = `VANTÉ\nكود: ${o.orderID}\n👤 ${o.customerName}\n📞 ${o.phone}\n📍 ${o.gov} - ${o.city}\n${o.address}\n💎 ${(o.orderDetails || []).map(i => `${i.name} (${i.size}) x${i.qty}`).join(', ')}\n💰 ${o.finalTotal} جنيه`;
       
       let couponHtml = '';
