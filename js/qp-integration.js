@@ -185,7 +185,7 @@ function mapStatusToQP(status) {
  */
 function mapQPStatusToVante(qpStatus) {
     const statusMap = {
-        'Pending': 'processing',       // ✅ Pending يصبح "قيد التجهيز" وليس "جديد"
+        'Pending': 'shipped',       // ✅ Pending يصبح "قيد التجهيز" وليس "جديد"
         'Out For Delivery': 'shipped', // ✅ جاري التوصيل يصبح "جاري الشحن" في فانتي
         'Delivered': 'delivered',
         'Hold': 'hold',
