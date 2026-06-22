@@ -1,10 +1,6 @@
 import { db } from './sync-orders.js';
-import { doc, getDoc } from "firebase/firestore"; // تأكد من استيراد الدوال
-// ui-integration.js - إضافة عناصر واجهة المستخدم لعرض بيانات QP
-
-/**
- * إضافة معلومات QP Express إلى بطاقة الطلب في لوحة التحكم
- */
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { updateOrderStatusInQP } from './qp-integration.js';
 function addQPInfoToOrderCard(orderId, orderData) {
     const orderElement = document.querySelector(`.order-id[data-id="${orderId}"]`)?.closest('.card');
     if (!orderElement) return;
