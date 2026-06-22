@@ -43,70 +43,89 @@ const db = getFirestore(app);
 // ========== 1. الاستماع لتغييرات الحالات في فانتي ==========
 // عند تغيير حالة الطلب في فانتي، يتم إرسال التحديث إلى QP Express
 
+// sync-orders.js (الجزء المعدل بالكامل لوظيفة الاستماع والمزامنة)
+
+// ========== 1. الاستماع لتغييرات الحالات في فانتي (معدلة) ==========
 function listenForOrderStatusChanges() {
-    // الاستماع للطلبات التي تغيرت حالتها إلى "shipped" أو "processing"
+    // الاستماع لجميع الطلبات، وليس فقط حالات معينة
     const ordersRef = collection(db, "orders");
-    const q = query(ordersRef, where("status", "in", ["shipped", "processing", "delivered"]));
+    const q = query(ordersRef);
 
     onSnapshot(q, async (snapshot) => {
-        snapshot.docChanges().forEach(async (change) => {
+        for (const change of snapshot.docChanges()) {
             if (change.type === "modified") {
-                const order = { id: change.doc.id, ...change.doc.data() };
-                const oldOrder = change.doc.data(); // لا يوجد old data في onSnapshot مباشرة
-                
-                // نتحقق مما إذا كانت الحالة قد تغيرت
+                const newOrder = { id: change.doc.id, ...change.doc.data() };
+                // نستخدم حقل qp_last_status لتجنب التكرار والحلقات اللانهائية
+                if (newOrder.status === newOrder.qp_last_status) continue;
+
+                console.log(`🔄 تغيرت حالة الطلب ${newOrder.orderID} إلى ${newOrder.status}`);
+
                 try {
-                    // جلب البيانات القديمة من مستند آخر (نستخدم حل مؤقت)
-                    // أو نعتمد على حقل lastSync لتجنب التكرار
-                    if (order.status === "shipped" && !order.qp_synced) {
-                        console.log(`🔄 مزامنة الطلب ${order.orderID} إلى QP Express...`);
-                        
-                        // تحديث الحالة في QP Express
-                        const result = await updateOrderStatusInQP(order.id, order.status, 
-                            `تم شحن الطلب من VANTÉ - ${new Date().toLocaleString()}`
-                        );
-                        
+                    // 1. إذا كانت الحالة "shipped" ولم يتم إنشاؤه في QP بعد، ننشئه أولاً
+                    if (newOrder.status === 'shipped' && !newOrder.qp_serial) {
+                        console.log(`📦 إنشاء طلب ${newOrder.orderID} في QP Express...`);
+                        const createResult = await createOrderInQP(newOrder);
+                        // حفظ الرقم التسلسلي
+                        await updateDoc(doc(db, "orders", newOrder.id), {
+                            qp_serial: createResult.serial,
+                            qp_created: serverTimestamp()
+                        });
+                        // نعيد تعيين newOrder.qp_serial بعد الحفظ
+                        newOrder.qp_serial = createResult.serial;
+                    }
+
+                    // 2. تحديث الحالة في QP Express (إذا كان لدينا qp_serial)
+                    if (newOrder.qp_serial) {
+                        // تحويل الحالة
+                        const qpStatus = mapStatusToQP(newOrder.status);
+                        // ملاحظة افتراضية
+                        let note = `تحديث من VANTÉ: ${newOrder.status}`;
+
+                        // إضافة ملاحظات خاصة للحالات التي تتطلب توضيح مصاريف
+                        if (newOrder.status === 'undelivered') {
+                            note = `لم يصل للعميل - لا توجد مصاريف شحن على العميل. ملاحظة QP: ${newOrder.qp_notes || ''}`;
+                        } else if (newOrder.status === 'rejected') {
+                            note = `رفض العميل الاستلام - مصاريف الشحن واجبة على المتجر. ملاحظة QP: ${newOrder.qp_notes || ''}`;
+                        }
+
+                        console.log(`🔄 مزامنة الطلب ${newOrder.orderID} إلى QP Express (${qpStatus})...`);
+                        await updateOrderStatusInQP(newOrder.id, newOrder.status, note);
+
                         // تحديث حالة المزامنة في Firestore
-                        await updateDoc(doc(db, "orders", order.id), {
+                        await updateDoc(doc(db, "orders", newOrder.id), {
                             qp_synced: true,
                             qp_last_sync: serverTimestamp(),
-                            qp_status: mapStatusToQP(order.status)
+                            qp_status: qpStatus,
+                            qp_last_status: newOrder.status, // حفظ الحالة لمنع التكرار
+                            qp_notes: note
                         });
-                        
-                        console.log(`✅ تم مزامنة الطلب ${order.orderID} بنجاح`);
                     }
                 } catch (error) {
-                    console.error(`❌ فشل مزامنة الطلب ${order.orderID}:`, error);
+                    console.error(`❌ فشل مزامنة الطلب ${newOrder.orderID}:`, error);
                 }
             }
-        });
+        }
     });
 }
 
-// ========== 2. جلب تحديثات الحالات من QP Express ==========
-// يتم جلب التحديثات من QP Express بشكل دوري وتحديث الطلبات في فانتي
-
+// ========== 2. جلب تحديثات QP Express (معدلة لإضافة الملاحظات) ==========
 async function fetchAndSyncQPUpdates() {
     try {
         console.log('🔄 جلب تحديثات الحالات من QP Express...');
-        const updates = await fetchQPUpdates();
-        
+        const updates = await fetchQPUpdates(); // ترجع قائمة الطلبات من QP
         let syncedCount = 0;
         let notesAddedCount = 0;
 
         for (const qpOrder of updates) {
-            // البحث عن الطلب في قاعدة بيانات فانتي باستخدام referenceID أو serial
+            // البحث عن الطلب في فانتي باستخدام referenceID أو orderID أو qp_serial
             const orderRef = collection(db, "orders");
             let q = query(orderRef, where("referenceID", "==", qpOrder.referenceID || ''));
             let snapshot = await getDocs(q);
-            
-            // إذا لم يتم العثور عليه، حاول البحث بـ orderID
+
             if (snapshot.empty) {
                 q = query(orderRef, where("orderID", "==", qpOrder.referenceID || ''));
                 snapshot = await getDocs(q);
             }
-            
-            // إذا لم يتم العثور عليه، جرب البحث بالرقم التسلسلي
             if (snapshot.empty && qpOrder.serial) {
                 q = query(orderRef, where("qp_serial", "==", qpOrder.serial));
                 snapshot = await getDocs(q);
@@ -115,27 +134,32 @@ async function fetchAndSyncQPUpdates() {
             if (!snapshot.empty) {
                 const docRef = snapshot.docs[0].ref;
                 const currentData = snapshot.docs[0].data();
-                
-                const vanteStatus = mapQPStatusToVante(qpOrder.Order_Delivery_Status || qpOrder.status);
-                
-                // التحقق مما إذا كانت الحالة قد تغيرت
+                const qpStatus = qpOrder.Order_Delivery_Status || qpOrder.status;
+                const vanteStatus = mapQPStatusToVante(qpStatus);
+                let finalNote = qpOrder.StatusNote || '';
+
+                // ➕ إضافة ملاحظات توضيحية حسب الحالة (مصاريف الشحن)
+                if (qpStatus === 'Undelivered') {
+                    finalNote = `🚫 لم يصل للعميل - لا توجد مصاريف شحن. ${finalNote}`;
+                } else if (qpStatus === 'Rejected') {
+                    finalNote = `🚫 رفض العميل الاستلام - مصاريف الشحن واجبة. ${finalNote}`;
+                }
+
+                // تحديث الحالة في فانتي إذا كانت مختلفة
                 if (currentData.status !== vanteStatus) {
                     console.log(`🔄 تحديث حالة الطلب ${qpOrder.serial}: ${currentData.status} → ${vanteStatus}`);
-                    
-                    // تحديث الحالة في فانتي
                     await updateDoc(docRef, {
                         status: vanteStatus,
-                        qp_status: qpOrder.Order_Delivery_Status || qpOrder.status,
+                        qp_status: qpStatus,
                         qp_last_update: serverTimestamp(),
-                        qp_notes: qpOrder.StatusNote || '',
+                        qp_notes: finalNote,
+                        qp_last_status: vanteStatus, // حفظ لمنع التكرار
                         last_updated_at: serverTimestamp(),
-                        // حفظ الملاحظات الإضافية
                         qp_order_data: qpOrder
                     });
-                    
                     syncedCount++;
-                    
-                    // إضافة ملاحظة إلى سجل التحديثات
+
+                    // تسجيل في سجل التحديثات
                     await addDoc(collection(db, "order_updates"), {
                         orderId: snapshot.docs[0].id,
                         orderID: currentData.orderID,
@@ -143,23 +167,16 @@ async function fetchAndSyncQPUpdates() {
                         old_value: currentData.status,
                         new_value: vanteStatus,
                         source: "qp_express",
-                        qp_status: qpOrder.Order_Delivery_Status || qpOrder.status,
-                        qp_note: qpOrder.StatusNote || '',
+                        qp_note: finalNote,
                         createdAt: serverTimestamp()
                     });
                 }
-                
-                // إضافة ملاحظات QP Express إذا كانت جديدة
-                if (qpOrder.StatusNote && qpOrder.StatusNote !== currentData.qp_notes) {
-                    await updateDoc(docRef, {
-                        qp_notes: qpOrder.StatusNote,
-                        qp_last_note: serverTimestamp()
-                    });
+
+                // إذا كانت الملاحظة جديدة
+                if (finalNote && finalNote !== currentData.qp_notes) {
+                    await updateDoc(docRef, { qp_notes: finalNote, qp_last_note: serverTimestamp() });
                     notesAddedCount++;
                 }
-            } else {
-                // الطلب غير موجود في قاعدة بيانات فانتي - ربما تم إنشاؤه مباشرة في QP
-                console.log(`⚠️ الطلب ${qpOrder.serial} غير موجود في قاعدة بيانات فانتي`);
             }
         }
 
