@@ -42,7 +42,14 @@ async function getQPToken() {
         throw error;
     }
 }
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "./sync-orders.js"; // أو استخدم db الموجود في ملف آخر
 
+async function getOrderFromDB(orderId) {
+    const docRef = doc(db, "orders", orderId);
+    const docSnap = await getDoc(docRef);
+    return docSnap.exists() ? { id: docSnap.id, ...docSnap.data() } : null;
+}
 /**
  * إنشاء طلب جديد في نظام QP Express
  */
@@ -152,15 +159,23 @@ async function updateOrderStatusInQP(orderId, status, note = '') {
 /**
  * تحويل حالة فانتي إلى حالة QP Express
  */
+// qp-integration.js (الجزء المعدل)
+
+/**
+ * تحويل حالة فانتي إلى حالة QP Express
+ */
 function mapStatusToQP(status) {
     const statusMap = {
         'new': 'Pending',
-        'processing': 'Pending',
-        'shipped': 'Out For Delivery',
+        'processing': 'Pending',      // تم تغييرها من 'Pending' لتصبح 'Pending'
+        'shipped': 'Out For Delivery', // عند الضغط على "شحن" في فانتي، تصبح "Out For Delivery" في QP
         'delivered': 'Delivered',
-        'cancelled': 'Rejected',
+        'confirmed': 'Pending',        // تم التأكيد -> Pending
         'hold': 'Hold',
-        'undelivered': 'Undelivered'
+        'undelivered': 'Undelivered',  // حالة جديدة
+        'rejected': 'Rejected',        // حالة جديدة (بدلاً من cancelled)
+        'cancelled': 'Rejected',       // إلغاء عادي -> Rejected (حماية)
+        'returned': 'Delivered'        // مرتجع -> Delivered (أو Retured حسب API)
     };
     return statusMap[status] || 'Pending';
 }
@@ -170,12 +185,12 @@ function mapStatusToQP(status) {
  */
 function mapQPStatusToVante(qpStatus) {
     const statusMap = {
-        'Pending': 'new',
-        'Out For Delivery': 'shipped',
+        'Pending': 'processing',       // ✅ Pending يصبح "قيد التجهيز" وليس "جديد"
+        'Out For Delivery': 'shipped', // ✅ جاري التوصيل يصبح "جاري الشحن" في فانتي
         'Delivered': 'delivered',
         'Hold': 'hold',
-        'Undelivered': 'undelivered',
-        'Rejected': 'cancelled'
+        'Undelivered': 'undelivered',  // ✅ حالة جديدة
+        'Rejected': 'rejected'         // ✅ حالة جديدة (بدلاً من cancelled)
     };
     return statusMap[qpStatus] || 'new';
 }
