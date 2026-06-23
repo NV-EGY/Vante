@@ -57,31 +57,35 @@ async function createOrderInQP(orderData) {
     try {
         const token = await getQPToken();
         const orderDetails = orderData.orderDetails || [];
-        
-        // تحويل بيانات الطلب إلى صيغة QP Express
+
+        // ✅ تأكد من أن البيانات نصية (String) عشان مشاكل الترميز
+        const shipmentContents = orderDetails.map(item =>
+            `${item.name || ''} (${item.size || ''}) x${item.qty || 0}`
+        ).join(', ');
+
+        const notes = [
+            orderData.notes || '',
+            orderDetails.map(item =>
+                `- ${item.name || ''} (مقاس ${item.size || ''}) × ${item.qty || 0}`
+            ).join('\n')
+        ].filter(Boolean).join('\n');
+
         const payload = {
-            full_name: orderData.customerName || orderData.full_name || '',
-            phone: orderData.phone || '',
-            address: orderData.address || '',
+            full_name: (orderData.customerName || orderData.full_name || '').toString(),
+            phone: (orderData.phone || '').toString(),
+            address: (orderData.address || '').toString(),
             total_amount: parseFloat(orderData.finalTotal) || 0,
-            notes: `طلب من VANTÉ - ${orderData.orderID || ''}`,
+            notes: notes.toString(),
             order_date: new Date().toISOString(),
-            shipment_contents: orderDetails.map(item => 
-                `${item.name} (${item.size}) x${item.qty}`
-            ).join(', '),
-            weight: orderData.weight || '50.00',
-            city: orderData.city || orderData.gov || '',
-            referenceID: orderData.orderID || orderData.id || '',
-            // إضافة ملاحظات إضافية
-            notes: [
-                orderData.notes || '',
-                orderDetails.map(item => 
-                    `- ${item.name} (مقاس ${item.size}) × ${item.qty}`
-                ).join('\n')
-            ].filter(Boolean).join('\n')
+            shipment_contents: shipmentContents.toString(),
+            weight: (orderData.weight || '50.00').toString(),
+            city: (orderData.city || orderData.gov || '').toString(),
+            referenceID: (orderData.orderID || orderData.id || '').toString()
         };
 
-        // ✅ استخدام order_serial إذا كان موجوداً (تحديث)، وإلا إنشاء جديد
+        // ✅ التحويل إلى JSON
+        const jsonPayload = JSON.stringify(payload);
+
         let response;
         if (orderData.qp_serial) {
             // تحديث طلب موجود
@@ -91,7 +95,9 @@ async function createOrderInQP(orderData) {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(payload)
+                body: jsonPayload,
+                mode: 'cors',   // ✅ مهم جداً
+                credentials: 'omit'
             });
         } else {
             // إنشاء طلب جديد
@@ -101,7 +107,9 @@ async function createOrderInQP(orderData) {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(payload)
+                body: jsonPayload,
+                mode: 'cors',   // ✅ مهم جداً
+                credentials: 'omit'
             });
         }
 
@@ -133,8 +141,252 @@ async function updateOrderStatusInQP(orderId, status, note = '') {
         const payload = {
             serial: order.qp_serial || orderId,
             status: qpStatus,
-            StatusNote: note || `تحديث الحالة: ${status}`,
+async function updateOrderStatusInQP(orderId, status, note = '') {
+    try {
+        const token = await getQPToken();
+        const order = await getOrderFromDB(orderId);
+        if (!order) throw new Error('الطلب غير موجود');
+
+        const qpStatus = mapStatusToQP(status);
+        const payload = {
+            serial: order.qp_serial || orderId,
+            status: qpStatus,
+            StatusNote: (note || `تحديث الحالة: ${status}`).toString()
         };
+
+        const jsonPayload = JSON.stringify(payload);
+
+        const response = await fetch(`${QP_API_BASE}/order/${order.qp_serial || orderId}`, {
+            method: 'PATCH',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+            body: jsonPayload,
+            mode: 'cors',   // ✅ مهم جداً
+            credentials: 'omit'
+        });
+
+        if (!response.ok) {
+            throw new Error(`فشل تحديث الحالة: ${response.status}`);
+        }
+
+        returasync function updateOrderStatusInQP(orderId, status, note = '') {
+    try {
+        const token = await getQPToken();
+        const order = await getOrderFromDB(orderId);
+        if (!order) throw new Error('الطلب غير موجود');
+
+        const qpStatus = mapStatusToQP(status);
+        const payload = {
+            serial: order.qp_serial || orderId,
+            status: qpStatus,
+            StatusNote: (note || `تحديث الحالة: ${status}`).toString()
+        };
+
+        const jsonPayload = JSON.stringify(payload);
+
+        const response = await fetch(`${QP_API_BASE}/order/${order.qp_serial || orderId}`, {
+            method: 'PATCH',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+            body: jsonPayload,
+            mode: 'cors',   // ✅ مهم جداً
+            credentials: 'omit'
+        });
+
+        if (!response.ok) {
+            throw new Error(`فشل تحديث الحالة: ${response.status}`);
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('خطأ في تحديث حالة الطلب بـ QP:', error);
+        throw error;
+    }
+}orderData.notesasync function updateOrderStatusInQP(orderId, status, note = '') {
+    try {
+        const token = await getQPToken();
+        const order = await getOrderFromDB(orderId);
+        if (!order) throw new Error('الطلب غير موجود');
+
+        const qpStatus = mapStatusToQP(status);
+        const payload = {
+            serial: order.qp_serial || orderId,
+            status: qpStatus,
+            StatusNote: (note || `تحديث الحالة: ${status}`).toString()
+        };
+
+        const jsonPayload = JSON.stringify(payload);
+
+        const response = await fetch(`${QP_API_BASE}/order/${order.qp_serial || orderId}`, {
+            method: 'PATCH',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+            body: jsonPayload,
+            mode: 'cors',   // ✅ مهم جداً
+            credentials: 'omit'
+        });
+
+        if (!response.ok) {
+            throw new Error(`فشل تحديث الحالة: ${response.status}`);
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('خطأ في تحديث حالة الطلب بـ QP:', error);
+        throw error;
+    }
+}async function updateOrderStatusInQP(orderId, status, note = '') {
+    try {
+        const token = await getQPToken();
+        const order = await getOrderFromDB(orderId);
+        if (!order) throw new Error('الطلب غير موجود');
+
+        const qpStatus = mapStatusToQP(status);
+        const payload = {
+            serial: order.qp_serial || orderId,
+            status: qpStatus,
+            StatusNote: (note || `تحديث الحالة: ${status}`).toString()
+        };
+
+        const jsonPayload = JSON.stringify(payload);
+
+        const response = await fetch(`${QP_API_BASE}/order/${order.qp_serial || orderId}`, {
+            method: 'PATCH',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+            body: jsonPayload,
+            mode: 'cors',   // ✅ مهم جداً
+            credentials: 'omit'
+        });
+
+        if (!response.ok) {
+            throw new Error(`فشل تحديث الحالة: ${response.status}`);
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('خطأ في تحديث حالة الطلب بـ QP:', error);
+        throw error;
+    }
+}async function updateOrderStatusInQP(orderId, status, note = '') {
+    try {
+        const token = await getQPToken();
+        const order = await getOrderFromDB(orderId);
+        if (!order) throw new Error('الطلب غير موجود');
+
+        const qpStatus = mapStatusToQP(status);
+        const payload = {
+            serial: order.qp_serial || orderId,
+            status: qpStatus,
+            StatusNote: (note || `تحديث الحالة: ${status}`).toString()
+        };
+
+        const jsonPayload = JSON.stringify(payload);
+
+        const response = await fetch(`${QP_API_BASE}/order/${order.qp_serial || orderId}`, {
+            method: 'PATCH',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+            body: jsonPayload,
+            mode: 'cors',   // ✅ مهم جداً
+            credentials: 'omit'
+        });
+
+        if (!response.ok) {
+            throw new Error(`فشل تحديث الحالة: ${response.status}`);
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('خطأ في تحديث حالة الطلب بـ QP:', error);
+        throw error;
+    }
+}orderData.notesorderData.notesasync function updateOrderStatusInQP(orderId, status, note = '') {
+    try {
+        const token = await getQPToken();
+        const order = await getOrderFromDB(orderId);
+        if (!order) throw new Error('الطلب غير موجود');
+
+        const qpStatus = mapStatusToQP(status);
+        const payload = {
+            serial: order.qp_serial || orderId,
+            status: qpStatus,
+            StatusNote: (note || `تحديث الحالة: ${status}`).toString()
+        };
+
+        const jsonPayload = JSON.stringify(payload);
+
+        const response = await fetch(`${QP_API_BASE}/order/${order.qp_serial || orderId}`, {
+            method: 'PATCH',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+            body: jsonPayload,
+            mode: 'cors',   // ✅ مهم جداً
+            credentials: 'omit'
+        });
+
+        if (!response.ok) {
+            throw new Error(`فشل تحديث الحالة: ${response.status}`);
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('خطأ في تحديث حالة الطلب بـ QP:', error);
+        throw error;
+    }
+}orderData.orderDetailsorderData.orderDetailsorderData.orderDetailsasync function updateOrderStatusInQP(orderId, status, note = '') {
+    try {
+        const token = await getQPToken();
+        const order = await getOrderFromDB(orderId);
+        if (!order) throw new Error('الطلب غير موجود');
+
+        const qpStatus = mapStatusToQP(status);
+        const payload = {
+            serial: order.qp_serial || orderId,
+            status: qpStatus,
+            StatusNote: (note || `تحديث الحالة: ${status}`).toString()
+        };
+
+        const jsonPayload = JSON.stringify(payload);
+
+        const response = await fetch(`${QP_API_BASE}/order/${order.qp_serial || orderId}`, {
+            method: 'PATCH',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+            body: jsonPayload,
+            mode: 'cors',   // ✅ مهم جداً
+            credentials: 'omit'
+        });
+
+        if (!response.ok) {
+            throw new Error(`فشل تحديث dd4tçgcch: ${response.status}`);
+        }
+
+tt2t54544454,2tddd,t2d,rd,r,drr,r,r,d,,tfft,,,,,ff,55,f,t,t,t,5,ttfreturn await response.json();
+    } catch (error) {
+        console.error('خطأ في تحديث حالة الطلب بـ QP:', error);
+        throw error;
+    }
+}orderData.orderDetailsorderData.notesorderData.orderDetailsn await response.json();
+    } xrdf,tt5144447catch (error) {
+        console.error('خطأ في تحديث حالة الطلب بـ QP:', error);
+        throw error;
+    }
+dffeśsseżeďrdrdŕ2        };
 
         const response = await fetch(`${QP_API_BASE}/order/${order.qp_serial || orderId}`, {
             method: 'PATCH',
