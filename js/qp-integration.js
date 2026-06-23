@@ -420,7 +420,7 @@ function mapStatusToQP(status) {
     const statusMap = {
         'new': 'Pending',
         'processing': 'Pending',
-        'shipped': 'Out For Delivery',   // عند الضغط على جاري الشحن في فانتي، يرسل Out For Delivery إلى QP
+        'shipped': 'Out For Delivery',   // ✅ هذا هو المطلوب
         'delivered': 'Delivered',
         'confirmed': 'Pending',
         'hold': 'Hold',
