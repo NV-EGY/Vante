@@ -46,7 +46,6 @@ const db = getFirestore(app);
 
 // ========== 1. الاستماع لتغييرات الحالات في فانتي (معدلة) ==========
 function listenForOrderStatusChanges() {
-    // الاستماع لجميع الطلبات، وليس فقط حالات معينة
     const ordersRef = collection(db, "orders");
     const q = query(ordersRef);
 
@@ -54,33 +53,35 @@ function listenForOrderStatusChanges() {
         for (const change of snapshot.docChanges()) {
             if (change.type === "modified") {
                 const newOrder = { id: change.doc.id, ...change.doc.data() };
-                // نستخدم حقل qp_last_status لتجنب التكرار والحلقات اللانهائية
+
+                // ✅ منع التكرار: إذا كانت الحالة مطابقة لآخر حالة مسجلة، تخطى
                 if (newOrder.status === newOrder.qp_last_status) continue;
 
                 console.log(`🔄 تغيرت حالة الطلب ${newOrder.orderID} إلى ${newOrder.status}`);
 
                 try {
-                    // 1. إذا كانت الحالة "shipped" ولم يتم إنشاؤه في QP بعد، ننشئه أولاً
+                    // ✅ حالة الإنشاء: فقط إذا كانت الحالة 'shipped' ولا يوجد qp_serial
                     if (newOrder.status === 'shipped' && !newOrder.qp_serial) {
                         console.log(`📦 إنشاء طلب ${newOrder.orderID} في QP Express...`);
                         const createResult = await createOrderInQP(newOrder);
                         // حفظ الرقم التسلسلي
                         await updateDoc(doc(db, "orders", newOrder.id), {
                             qp_serial: createResult.serial,
-                            qp_created: serverTimestamp()
+                            qp_created: serverTimestamp(),
+                            qp_status: 'Pending',          // الحالة الأولية
+                            qp_last_status: newOrder.status // منع التكرار
                         });
-                        // نعيد تعيين newOrder.qp_serial بعد الحفظ
-                        newOrder.qp_serial = createResult.serial;
+                        // ✅ بعد الإنشاء، لا نقوم بتحديث الحالة مرة أخرى هنا
+                        // سيتم التحديث عبر المزامنة الدورية أو عند تغيير آخر
+                        console.log(`✅ تم إنشاء الطلب ${newOrder.orderID} برقم ${createResult.serial}`);
+                        continue; // تخطى باقي الكود لهذه الدورة
                     }
 
-                    // 2. تحديث الحالة في QP Express (إذا كان لدينا qp_serial)
+                    // ✅ تحديث الحالة في QP Express (إذا كان لدينا qp_serial ولم يتم منع التكرار)
                     if (newOrder.qp_serial) {
-                        // تحويل الحالة
                         const qpStatus = mapStatusToQP(newOrder.status);
-                        // ملاحظة افتراضية
                         let note = `تحديث من VANTÉ: ${newOrder.status}`;
 
-                        // إضافة ملاحظات خاصة للحالات التي تتطلب توضيح مصاريف
                         if (newOrder.status === 'undelivered') {
                             note = `لم يصل للعميل - لا توجد مصاريف شحن على العميل. ملاحظة QP: ${newOrder.qp_notes || ''}`;
                         } else if (newOrder.status === 'rejected') {
