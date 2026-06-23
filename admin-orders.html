@@ -670,25 +670,6 @@
 .tab-content.active {
     display: block;
 }
-/* الحالتين الجديدتين */
-.status.confirmed { background: #f39c12; color: #fff; }
-.status.returned { background: #9b59b6; color: #fff; }
-.status.confirmed::before { content: "✅"; font-size: 11px; font-weight: normal; }
-.status.returned::before { content: "↩️"; font-size: 11px; font-weight: normal; }
-
-/* أزرار الفلتر */
-.filter-btn[data-filter="confirmed"]:hover { background: #f39c12; color: #fff; }
-.filter-btn[data-filter="returned"]:hover { background: #9b59b6; color: #fff; }
-
-/* أزرار الشريط الثابت */
-.bulk-status-btn.confirmed { background: #f39c12; color: #fff; }
-.bulk-status-btn.returned { background: #9b59b6; color: #fff; }
-/* حالة معلق - تظهر بالفلتر فقط */
-.status.hold { background: #f1c40f; color: #000; }
-.status.hold::before { content: "⏸️"; font-size: 11px; font-weight: normal; }
-
-/* زر الفلتر */
-.filter-btn[data-filter="hold"]:hover { background: #f1c40f; color: #000; }
   </style>
 </head>
 <body>
@@ -718,13 +699,10 @@
   <div class="filters">
   <button onclick="setFilter(event, 'all')" class="filter-btn active" data-filter="all"><i class="fas fa-list fa-fw"></i></button>
   <button onclick="setFilter(event, 'new')" class="filter-btn" data-filter="new"><i class="fas fa-star fa-fw"></i></button>
-  <button onclick="setFilter(event, 'confirmed')" class="filter-btn" data-filter="confirmed"><i class="fas fa-check-double fa-fw"></i></button>
   <button onclick="setFilter(event, 'processing')" class="filter-btn" data-filter="processing"><i class="fas fa-boxes fa-fw"></i></button>
   <button onclick="setFilter(event, 'shipped')" class="filter-btn" data-filter="shipped"><i class="fas fa-truck fa-fw"></i></button>
   <button onclick="setFilter(event, 'delivered')" class="filter-btn" data-filter="delivered"><i class="fas fa-check-circle fa-fw"></i></button>
-<button onclick="setFilter(event, 'returned')" class="filter-btn" data-filter="returned"><i class="fas fa-undo-alt fa-fw"></i></button>
   <button onclick="setFilter(event, 'cancelled')" class="filter-btn" data-filter="cancelled"><i class="fas fa-ban fa-fw"></i></button>
-  <button onclick="setFilter(event, 'hold')" class="filter-btn" data-filter="hold"><i class="fas fa-pause fa-fw"></i></button>
 </div>
 <div id="reviewsPanel" style="display: none;">
     <div id="reviewFiltersContainer" style="display: flex; gap: 8px; margin-bottom: 15px; overflow-x: auto; justify-content: center; flex-wrap: nowrap;">
@@ -827,11 +805,9 @@
 <div id="bulkActionsBar" class="bulk-actions-bar">
   <div class="selected-info" id="bulkSelectedInfo">0</div>
   <button class="bulk-status-btn new" onclick="applyBulkStatus('new')"><i class="fas fa-star"></i> <span>جديد</span></button>
-  <button class="bulk-status-btn confirmed" onclick="applyBulkStatus('confirmed')"><i class="fas fa-check-double"></i> <span>تم التأكيد</span></button>
   <button class="bulk-status-btn processing" onclick="applyBulkStatus('processing')"><i class="fas fa-boxes"></i> <span>تجهيز</span></button>
   <button class="bulk-status-btn shipped" onclick="applyBulkStatus('shipped')"><i class="fas fa-truck"></i> <span>شحن</span></button>
   <button class="bulk-status-btn delivered" onclick="applyBulkStatus('delivered')"><i class="fas fa-check-circle"></i> <span>تسليم</span></button>
-<button class="bulk-status-btn returned" onclick="applyBulkStatus('returned')"><i class="fas fa-undo-alt"></i> <span>مرتجع</span></button>
   <button class="bulk-status-btn cancelled" onclick="applyBulkStatus('cancelled')"><i class="fas fa-ban"></i> <span>إلغاء</span></button>
   <button class="clear-selection-btn" onclick="clearAllSelections()"><i class="fas fa-times"></i> <span>إلغاء</span></button>
 </div>
@@ -875,8 +851,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, collection, query, orderBy, onSnapshot, updateDoc, deleteDoc, doc, serverTimestamp, getDoc, getDocs, where, addDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { addQPInfoToOrderCard, addSyncButtonToOrder } from './js/ui-integration.js';
-
 
 const firebaseConfig = {
   apiKey: "AIzaSyCotT8EP2uy_HsgHknxeGBorKoEUORPtmU",
@@ -903,23 +877,7 @@ window.openMsg = async (id) => {
   document.getElementById("messageView").innerHTML = `<div style="text-align:right"><div style="font-size:18px;font-weight:bold;">👤 ${m.name}</div><div style="color:#666;">📞 ${m.phone}</div><hr><div>💬 ${m.message}</div><a href="https://wa.me/2${m.phone}" target="_blank" style="display:block;margin-top:15px;background:#25D366;color:#fff;padding:10px;border-radius:10px;text-align:center;">💬 رد واتساب</a></div>`;
 };
 
-window.update = async (id, status) => {
-    try {
-        const docRef = doc(db, "orders", id);
-        const docSnap = await getDoc(docRef);
-        if (!docSnap.exists()) return;
-        const data = docSnap.data();
-        let updateData = { status, statusUpdatedAt: serverTimestamp() };
-        // إذا رجعنا إلى "جديد" واستخدمنا originalCreatedAt المخزن
-        if (status === 'new' && data.originalCreatedAt) {
-            updateData.createdAt = data.originalCreatedAt;
-        }
-        await updateDoc(docRef, updateData);
-    } catch(e) {
-        console.error(e);
-        customAlert("حدث خطأ أثناء الحفظ", 'error');
-    }
-};;
+window.update = async (id, status) => { try { await updateDoc(doc(db, "orders", id), { status }); } catch(e) { customAlert("حدث خطأ أثناء الحفظ", 'error'); } };
 
 window.deleteOrder = async (id) => {
   const confirmed = await window.customConfirm("⚠️ هل أنت متأكد من حذف هذا الطلب وإعادة الكميات إلى المخزون؟");
@@ -1097,41 +1055,18 @@ window.toggleSelectAll = () => {
 };
 
 window.applyBulkStatus = async (newStatus) => {
-    let selected = document.querySelectorAll(".selectOrder:checked");
-    if (selected.length === 0) return;
-    const statusNames = {
-        new: 'جديد', processing: 'قيد التجهيز', shipped: 'تم الشحن',
-        delivered: 'تم التسليم', confirmed: 'تم التأكيد', returned: 'مرتجع', cancelled: 'لاغـي'
-    };
-    const confirmed = await window.customConfirm(`تطبيق حالة "${statusNames[newStatus] || newStatus}" على ${selected.length} طلب؟`);
-    if (!confirmed) return;
-
-    let updates = [];
-    selected.forEach(cb => {
-        let card = cb.closest(".card");
-        let orderId = card.querySelector(".order-id")?.getAttribute("data-id");
-        if (orderId) {
-            updates.push((async () => {
-                const docRef = doc(db, "orders", orderId);
-                const docSnap = await getDoc(docRef);
-                if (!docSnap.exists()) return;
-                const data = docSnap.data();
-                let updateData = { status: newStatus, statusUpdatedAt: serverTimestamp() };
-                if (newStatus === 'new' && data.originalCreatedAt) {
-                    updateData.createdAt = data.originalCreatedAt;
-                }
-                await updateDoc(docRef, updateData);
-            })());
-        }
-    });
-    try {
-        await Promise.all(updates);
-        customAlert(`تم تحديث ${updates.length} طلب بنجاح`, 'success');
-        clearAllSelections();
-    } catch(e) {
-        console.error(e);
-        customAlert("❌ خطأ", 'error');
-    }
+  let selected = document.querySelectorAll(".selectOrder:checked");
+  if (selected.length === 0) return;
+  const confirmed = await window.customConfirm(`تطبيق حالة "${newStatus === 'new' ? 'جديد' : newStatus === 'processing' ? 'قيد التجهيز' : newStatus === 'shipped' ? 'تم الشحن' : newStatus === 'delivered' ? 'تم التسليم' : 'لاغـي'}" على ${selected.length} طلب؟`);
+if (!confirmed) return;
+  let updates = [];
+  selected.forEach(cb => {
+    let card = cb.closest(".card");
+    let orderId = card.querySelector(".order-id")?.getAttribute("data-id");
+    if (orderId) updates.push(updateDoc(doc(db, "orders", orderId), { status: newStatus }));
+  });
+  try { await Promise.all(updates); customAlert(`تم تحديث ${updates.length} طلب بنجاح`, 'success'); clearAllSelections(); }
+  catch(e) { alert("❌ خطأ"); }
 };
 
 // تنسيق التاريخ (اليوم، أمس، أو يوم/شهر)
@@ -1224,17 +1159,7 @@ function render() {
     for (let o of ordersInDay) {
       totalOrders++;
       let status = o.status || "new";
-    let statusText = {
-    new: 'جديد',
-    confirmed: 'تم التأكيد',
-    processing: 'قيد التجهيز',
-    shipped: 'تم الشحن',
-    delivered: 'تم التسليم',
-    returned: 'مرتجع',
-    cancelled: 'لاغـي',
-    hold: 'معلق'   // <-- أضف هذا السطر
-}[status] || status;
-
+      let statusText = { new: 'جديد', processing: 'قيد التجهيز', shipped: 'تم الشحن', delivered: 'تم التسليم', cancelled: 'لاغـي' }[status] || status;
       let msg = `VANTÉ\nكود: ${o.orderID}\n👤 ${o.customerName}\n📞 ${o.phone}\n📍 ${o.gov} - ${o.city}\n${o.address}\n💎 ${(o.orderDetails || []).map(i => `${i.name} (${i.size}) x${i.qty}`).join(', ')}\n💰 ${o.finalTotal} جنيه`;
       
       let couponHtml = '';
@@ -1247,11 +1172,6 @@ function render() {
       }
       
       const orderTime = o.createdAt?.toDate?.() ? formatOrderTime(o.createdAt.toDate()) : '';
-      let updatedTime = '';
-if (o.statusUpdatedAt?.toDate) {
-    const d = o.statusUpdatedAt.toDate();
-    updatedTime = `🕒 ${d.toLocaleString('ar-EG')}`;
-}
       
       html += `<div class="card ${status}" style="position:relative;">
         <div class="order-header">
@@ -1278,7 +1198,6 @@ ${(o.orderDetails || []).map(item => `<div style="display:flex; align-items:cent
             📦 ${o.quantity}<br>💰 ${o.price}<br>🚚 ${o.shipping}<br>💵 <b>${o.finalTotal}</b>
             <div class="actions"><a class="action-btn whatsapp" target="_blank" href="https://wa.me/2${o.phone}"><i class="fab fa-whatsapp"></i></a><button class="action-btn copy" onclick='copyText(${JSON.stringify(msg)})'><i class="fas fa-copy"></i></button></div>
             ⏰ ${orderTime}
-            ${updatedTime ? `<div style="font-size: 11px; color: #888; margin-top: 2px;">${updatedTime}</div>` : ''}
             <div style="display:flex; gap:6px; margin-top:10px;"><button onclick="editOrder('${o.id}')" style="flex:1;background:#ffc107;border:none;padding:6px;border-radius:8px;cursor:pointer;">✏️</button><button onclick="deleteOrder('${o.id}')" style="flex:1;background:#dc3545;color:#fff;border:none;padding:6px;border-radius:8px;cursor:pointer;">🗑️</button></div>
           </div>
         </div>
@@ -1346,14 +1265,6 @@ function load() {
     badge.style.display = unread > 0 ? "inline-block" : "none";
     badge.innerText = unread;
   });
-  // بعد كل تحديث للطلبات، قم بإضافة معلومات QP
-onSnapshot(query(collection(db, "orders")), (snapshot) => {
-    snapshot.docs.forEach(doc => {
-        const order = { id: doc.id, ...doc.data() };
-        addQPInfoToOrderCard(order.id, order);
-        addSyncButtonToOrder(order.id);
-    });
-});
   onSnapshot(query(collection(db, "orders"), orderBy("createdAt", "desc")), (snap) => {
     snap.docChanges().forEach(change => {
         if (change.type === "added" && lastCount !== 0) {
@@ -1974,6 +1885,48 @@ if ('serviceWorker' in navigator) {
     console.log('Service Worker registration failed', err);
   });
 }
+</script>
+<!-- ========== تكامل QP Express ========== -->
+<script type="module">
+import { listenForOrderStatusChanges, startPeriodicSync, manualSyncOrders } from './js/sync-orders.js';
+import { addQPInfoToOrderCard, addSyncButtonToOrder } from './js/ui-integration.js';
+
+// تهيئة التكامل
+console.log('🚀 بدء تشغيل تكامل QP Express...');
+
+// بدء الاستماع لتغييرات الحالات
+listenForOrderStatusChanges();
+
+// بدء المزامنة الدورية
+startPeriodicSync(3); // كل 3 دقائق
+
+// إضافة أزرار المزامنة على الطلبات الموجودة
+document.addEventListener('DOMContentLoaded', function() {
+    // إضافة المزامنة لكل طلب موجود
+    setTimeout(() => {
+        document.querySelectorAll('.order-id').forEach(el => {
+            const orderId = el.getAttribute('data-id');
+            if (orderId) {
+                addSyncButtonToOrder(orderId);
+            }
+        });
+    }, 2000);
+});
+
+// جعل الدوال متاحة في النطاق العام
+window.manualSyncOrders = manualSyncOrders;
+
+// دالة للتحديث اليدوي
+window.syncQPOrders = async function() {
+    const result = await manualSyncOrders();
+    if (result.error) {
+        alert(`❌ ${result.error}`);
+    } else {
+        alert(`✅ تمت المزامنة:\n- ${result.syncedCount} طلب تم تحديث حالته\n- ${result.notesAddedCount} ملاحظة جديدة`);
+    }
+};
+
+console.log('✅ تم تفعيل تكامل QP Express بنجاح');
 </script>
 </body>
 </html>
