@@ -419,15 +419,15 @@ dffeśsseżeďrdrdŕ2        };
 function mapStatusToQP(status) {
     const statusMap = {
         'new': 'Pending',
-        'processing': 'Pending',      // تم تغييرها من 'Pending' لتصبح 'Pending'
-        'shipped': 'Out For Delivery', // عند الضغط على "شحن" في فانتي، تصبح "Out For Delivery" في QP
+        'processing': 'Pending',
+        'shipped': 'Out For Delivery',   // عند الضغط على جاري الشحن في فانتي، يرسل Out For Delivery إلى QP
         'delivered': 'Delivered',
-        'confirmed': 'Pending',        // تم التأكيد -> Pending
+        'confirmed': 'Pending',
         'hold': 'Hold',
-        'undelivered': 'Undelivered',  // حالة جديدة
-        'rejected': 'Rejected',        // حالة جديدة (بدلاً من cancelled)
-        'cancelled': 'Rejected',       // إلغاء عادي -> Rejected (حماية)
-        'returned': 'Delivered'        // مرتجع -> Delivered (أو Retured حسب API)
+        'undelivered': 'Undelivered',
+        'rejected': 'Rejected',
+        'cancelled': 'Rejected',
+        'returned': 'Delivered'
     };
     return statusMap[status] || 'Pending';
 }
@@ -437,12 +437,12 @@ function mapStatusToQP(status) {
  */
 function mapQPStatusToVante(qpStatus) {
     const statusMap = {
-        'Pending': 'shipped',       // ✅ Pending يصبح "قيد التجهيز" وليس "جديد"
-        'Out For Delivery': 'shipped', // ✅ جاري التوصيل يصبح "جاري الشحن" في فانتي
-        'Delivered': 'delivered',
-        'Hold': 'hold',
-        'Undelivered': 'undelivered',  // ✅ حالة جديدة
-        'Rejected': 'rejected'         // ✅ حالة جديدة (بدلاً من cancelled)
+        'Pending': 'shipped',            // يبقى جاري الشحن
+        'Out For Delivery': 'shipped',   // يبقى جاري الشحن
+        'Delivered': 'delivered',        // تم التسليم
+        'Hold': 'hold',                  // معلق
+        'Undelivered': 'undelivered',    // لاغي (لم يصل)
+        'Rejected': 'rejected'           // لاغي (رفض)
     };
     return statusMap[qpStatus] || 'new';
 }
