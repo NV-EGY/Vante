@@ -689,19 +689,6 @@
 
 /* زر الفلتر */
 .filter-btn[data-filter="hold"]:hover { background: #f1c40f; color: #000; }
-/* الحالتين الجديدتين */
-.status.undelivered { background: #e67e22; color: #fff; }
-.status.rejected { background: #c0392b; color: #fff; }
-.status.undelivered::before { content: "❌"; font-size: 11px; font-weight: normal; }
-.status.rejected::before { content: "🚫"; font-size: 11px; font-weight: normal; }
-
-/* أزرار الفلتر */
-.filter-btn[data-filter="undelivered"]:hover { background: #e67e22; color: #fff; }
-.filter-btn[data-filter="rejected"]:hover { background: #c0392b; color: #fff; }
-
-/* أزرار الشريط الثابت */
-.bulk-status-btn.undelivered { background: #e67e22; color: #fff; }
-.bulk-status-btn.rejected { background: #c0392b; color: #fff; }
   </style>
 </head>
 <body>
@@ -738,8 +725,6 @@
 <button onclick="setFilter(event, 'returned')" class="filter-btn" data-filter="returned"><i class="fas fa-undo-alt fa-fw"></i></button>
   <button onclick="setFilter(event, 'cancelled')" class="filter-btn" data-filter="cancelled"><i class="fas fa-ban fa-fw"></i></button>
   <button onclick="setFilter(event, 'hold')" class="filter-btn" data-filter="hold"><i class="fas fa-pause fa-fw"></i></button>
-  <button onclick="setFilter(event, 'undelivered')" class="filter-btn" data-filter="undelivered"><i class="fas fa-times-circle fa-fw"></i></button>
-<button onclick="setFilter(event, 'rejected')" class="filter-btn" data-filter="rejected"><i class="fas fa-hand-paper fa-fw"></i></button>
 </div>
 <div id="reviewsPanel" style="display: none;">
     <div id="reviewFiltersContainer" style="display: flex; gap: 8px; margin-bottom: 15px; overflow-x: auto; justify-content: center; flex-wrap: nowrap;">
@@ -849,8 +834,6 @@
 <button class="bulk-status-btn returned" onclick="applyBulkStatus('returned')"><i class="fas fa-undo-alt"></i> <span>مرتجع</span></button>
   <button class="bulk-status-btn cancelled" onclick="applyBulkStatus('cancelled')"><i class="fas fa-ban"></i> <span>إلغاء</span></button>
   <button class="clear-selection-btn" onclick="clearAllSelections()"><i class="fas fa-times"></i> <span>إلغاء</span></button>
-  <button class="bulk-status-btn undelivered" onclick="applyBulkStatus('undelivered')"><i class="fas fa-times-circle"></i> <span>لم يصل</span></button>
-<button class="bulk-status-btn rejected" onclick="applyBulkStatus('rejected')"><i class="fas fa-hand-paper"></i> <span>رفض</span></button>
 </div>
 
 <div id="reviewsPanel" style="display: none;">
@@ -893,7 +876,6 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
 import { getFirestore, collection, query, orderBy, onSnapshot, updateDoc, deleteDoc, doc, serverTimestamp, getDoc, getDocs, where, addDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { addQPInfoToOrderCard, addSyncButtonToOrder } from './js/ui-integration.js';
-import { listenForOrderStatusChanges, startPeriodicSync, manualSyncOrders } from './js/sync-orders.js';
 
 
 const firebaseConfig = {
@@ -1246,13 +1228,11 @@ function render() {
     new: 'جديد',
     confirmed: 'تم التأكيد',
     processing: 'قيد التجهيز',
-    shipped: 'جاري الشحن',
+    shipped: 'تم الشحن',
     delivered: 'تم التسليم',
     returned: 'مرتجع',
     cancelled: 'لاغـي',
-    hold: 'معلق',
-    undelivered: 'لم يصل',
-    rejected: 'رفض'
+    hold: 'معلق'   // <-- أضف هذا السطر
 }[status] || status;
 
       let msg = `VANTÉ\nكود: ${o.orderID}\n👤 ${o.customerName}\n📞 ${o.phone}\n📍 ${o.gov} - ${o.city}\n${o.address}\n💎 ${(o.orderDetails || []).map(i => `${i.name} (${i.size}) x${i.qty}`).join(', ')}\n💰 ${o.finalTotal} جنيه`;
@@ -1366,44 +1346,39 @@ function load() {
     badge.style.display = unread > 0 ? "inline-block" : "none";
     badge.innerText = unread;
   });
-    // مستمع الطلبات (مرة واحدة)
-    onSnapshot(query(collection(db, "orders"), orderBy("createdAt", "desc")), (snap) => {
-        snap.docChanges().forEach(change => {
-            if (change.type === "added" && lastCount !== 0) {
-                let o = change.doc.data();
-                new Audio("https://assets.mixkit.co/sfx/preview/mixkit-bell-notification-933.mp3").play().catch(()=>{});
-                if (Notification.permission === "granted") {
-                    new Notification("طلب جديد", { body: `${o.customerName} - ${o.phone}` });
-                }
-                showPopup(o);
+  // بعد كل تحديث للطلبات، قم بإضافة معلومات QP
+onSnapshot(query(collection(db, "orders")), (snapshot) => {
+    snapshot.docs.forEach(doc => {
+        const order = { id: doc.id, ...doc.data() };
+        addQPInfoToOrderCard(order.id, order);
+        addSyncButtonToOrder(order.id);
+    });
+});
+  onSnapshot(query(collection(db, "orders"), orderBy("createdAt", "desc")), (snap) => {
+    snap.docChanges().forEach(change => {
+        if (change.type === "added" && lastCount !== 0) {
+            let o = change.doc.data();
+            new Audio("https://assets.mixkit.co/sfx/preview/mixkit-bell-notification-933.mp3").play().catch(()=>{});
+            if (Notification.permission === "granted") {
+                new Notification("طلب جديد", { body: `${o.customerName} - ${o.phone}` });
             }
-        });
-        lastCount = snap.size;
-        orders = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        render();
+            showPopup(o);
+        }
     });
-
-    // إضافة معلومات QP لكل طلب (هذا المستمع منفصل ولا بأس به)
-    onSnapshot(query(collection(db, "orders")), (snapshot) => {
-        snapshot.docs.forEach(doc => {
-            const order = { id: doc.id, ...doc.data() };
-            addQPInfoToOrderCard(order.id, order);
-            addSyncButtonToOrder(order.id);
-        });
-    });
+    lastCount = snap.size;
+    orders = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    render();
+});
 }
 document.getElementById("dateFilter").addEventListener("change", render);
 document.getElementById("search").addEventListener("input", render);
 document.addEventListener("change", (e) => { if (e.target.classList.contains("selectOrder")) updateBulkBar(); });
 Notification.requestPermission();
-// بعد التأكد من تسجيل الدخول وتحميل البيانات
 onAuthStateChanged(auth, (user) => {
     if (user) {
         load();
-        loadShippingRates();
-        listenForOrderStatusChanges();
-        startPeriodicSync(3);
-        console.log('✅ تم تفعيل المزامنة التلقائية مع QP Express');
+        startOrdersListener();
+        loadShippingRates();   // <-- أضف هذا السطر هنا
     } else {
         window.location.href = "login.html";
     }
@@ -1990,6 +1965,15 @@ window.copyToClipboard = function(text) {
         customAlert("❌ فشل النسخ", 'error');
     });
 };
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').then(reg => {
+    console.log('Service Worker registered', reg);
+  }).catch(err => {
+    console.log('Service Worker registration failed', err);
+  });
+}
 </script>
 </body>
 </html>
