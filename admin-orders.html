@@ -670,6 +670,29 @@
 .tab-content.active {
     display: block;
 }
+.status.confirmed { background: #f39c12; color: #fff; }
+.status.hold { background: #f1c40f; color: #000; }
+.status.returned { background: #9b59b6; color: #fff; }
+.status.undelivered { background: #e67e22; color: #fff; }
+.status.rejected { background: #c0392b; color: #fff; }
+
+.status.confirmed::before { content: "✅"; font-size: 11px; font-weight: normal; }
+.status.hold::before { content: "⏸️"; font-size: 11px; font-weight: normal; }
+.status.returned::before { content: "↩️"; font-size: 11px; font-weight: normal; }
+.status.undelivered::before { content: "❌"; font-size: 11px; font-weight: normal; }
+.status.rejected::before { content: "🚫"; font-size: 11px; font-weight: normal; }
+
+.filter-btn[data-filter="confirmed"]:hover { background: #f39c12; color: #fff; }
+.filter-btn[data-filter="hold"]:hover { background: #f1c40f; color: #000; }
+.filter-btn[data-filter="returned"]:hover { background: #9b59b6; color: #fff; }
+.filter-btn[data-filter="undelivered"]:hover { background: #e67e22; color: #fff; }
+.filter-btn[data-filter="rejected"]:hover { background: #c0392b; color: #fff; }
+
+.bulk-status-btn.confirmed { background: #f39c12; color: #fff; }
+.bulk-status-btn.hold { background: #f1c40f; color: #000; }
+.bulk-status-btn.returned { background: #9b59b6; color: #fff; }
+.bulk-status-btn.undelivered { background: #e67e22; color: #fff; }
+.bulk-status-btn.rejected { background: #c0392b; color: #fff; }
   </style>
 </head>
 <body>
@@ -703,6 +726,11 @@
   <button onclick="setFilter(event, 'shipped')" class="filter-btn" data-filter="shipped"><i class="fas fa-truck fa-fw"></i></button>
   <button onclick="setFilter(event, 'delivered')" class="filter-btn" data-filter="delivered"><i class="fas fa-check-circle fa-fw"></i></button>
   <button onclick="setFilter(event, 'cancelled')" class="filter-btn" data-filter="cancelled"><i class="fas fa-ban fa-fw"></i></button>
+  <button onclick="setFilter(event, 'confirmed')" class="filter-btn" data-filter="confirmed"><i class="fas fa-check-double fa-fw"></i></button>
+<button onclick="setFilter(event, 'hold')" class="filter-btn" data-filter="hold"><i class="fas fa-pause fa-fw"></i></button>
+<button onclick="setFilter(event, 'returned')" class="filter-btn" data-filter="returned"><i class="fas fa-undo-alt fa-fw"></i></button>
+<button onclick="setFilter(event, 'undelivered')" class="filter-btn" data-filter="undelivered"><i class="fas fa-times-circle fa-fw"></i></button>
+<button onclick="setFilter(event, 'rejected')" class="filter-btn" data-filter="rejected"><i class="fas fa-hand-paper fa-fw"></i></button>
 </div>
 <div id="reviewsPanel" style="display: none;">
     <div id="reviewFiltersContainer" style="display: flex; gap: 8px; margin-bottom: 15px; overflow-x: auto; justify-content: center; flex-wrap: nowrap;">
@@ -809,6 +837,11 @@
   <button class="bulk-status-btn shipped" onclick="applyBulkStatus('shipped')"><i class="fas fa-truck"></i> <span>شحن</span></button>
   <button class="bulk-status-btn delivered" onclick="applyBulkStatus('delivered')"><i class="fas fa-check-circle"></i> <span>تسليم</span></button>
   <button class="bulk-status-btn cancelled" onclick="applyBulkStatus('cancelled')"><i class="fas fa-ban"></i> <span>إلغاء</span></button>
+  <button class="bulk-status-btn confirmed" onclick="applyBulkStatus('confirmed')"><i class="fas fa-check-double"></i> <span>تأكيد</span></button>
+<button class="bulk-status-btn hold" onclick="applyBulkStatus('hold')"><i class="fas fa-pause"></i> <span>معلق</span></button>
+<button class="bulk-status-btn returned" onclick="applyBulkStatus('returned')"><i class="fas fa-undo-alt"></i> <span>مرتجع</span></button>
+<button class="bulk-status-btn undelivered" onclick="applyBulkStatus('undelivered')"><i class="fas fa-times-circle"></i> <span>لم يصل</span></button>
+<button class="bulk-status-btn rejected" onclick="applyBulkStatus('rejected')"><i class="fas fa-hand-paper"></i> <span>رفض</span></button>
   <button class="clear-selection-btn" onclick="clearAllSelections()"><i class="fas fa-times"></i> <span>إلغاء</span></button>
 </div>
 
@@ -1159,7 +1192,18 @@ function render() {
     for (let o of ordersInDay) {
       totalOrders++;
       let status = o.status || "new";
-      let statusText = { new: 'جديد', processing: 'قيد التجهيز', shipped: 'تم الشحن', delivered: 'تم التسليم', cancelled: 'لاغـي' }[status] || status;
+      let statusText = {
+    new: 'جديد',
+    confirmed: 'تم التأكيد',
+    processing: 'قيد التجهيز',
+    shipped: 'جاري الشحن',
+    delivered: 'تم التسليم',
+    returned: 'مرتجع',
+    cancelled: 'لاغـي',
+    hold: 'معلق',
+    undelivered: 'لم يصل',
+    rejected: 'رفض'
+}[status] || status;
       let msg = `VANTÉ\nكود: ${o.orderID}\n👤 ${o.customerName}\n📞 ${o.phone}\n📍 ${o.gov} - ${o.city}\n${o.address}\n💎 ${(o.orderDetails || []).map(i => `${i.name} (${i.size}) x${i.qty}`).join(', ')}\n💰 ${o.finalTotal} جنيه`;
       
       let couponHtml = '';
@@ -1287,9 +1331,11 @@ document.addEventListener("change", (e) => { if (e.target.classList.contains("se
 Notification.requestPermission();
 onAuthStateChanged(auth, (user) => {
     if (user) {
-        load();
-        startOrdersListener();
-        loadShippingRates();   // <-- أضف هذا السطر هنا
+        load();  // المستمع الوحيد للطلبات
+        // loadShippingRates(); // إذا كانت موجودة
+        listenForOrderStatusChanges();
+        startPeriodicSync(3);
+        console.log('✅ تم تفعيل المزامنة التلقائية مع QP Express');
     } else {
         window.location.href = "login.html";
     }
