@@ -1,426 +1,290 @@
-// qp-integration.js - وحدة التكامل مع QP Express API
+// ============================================================
+// qp-integration.js - الوحدة الأساسية للتكامل مع QP Express API
+// الإصدار: 2.0 (نظيف، محسّن، وجاهز للإنتاج)
+// ============================================================
 
-const QP_API_BASE = "https://qpxpress.com:8001/integration";
-const QP_USERNAME = "VNT@QPX"; // استبدل بالبيانات الصحيحة
-const QP_PASSWORD = "80977701"; // استبدل بالبيانات الصحيحة
+// ========== الاستيرادات (في الأعلى كما يجب) ==========
+import { getQPConfig } from './env-config.js';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from './sync-orders.js'; // تأكد من أن المسار صحيح
 
+// ========== إعدادات البيئة ==========
+const config = getQPConfig('PRODUCTION');
+const QP_API_BASE = config.API_BASE;
+const QP_USERNAME = config.USERNAME;
+const QP_PASSWORD = config.PASSWORD;
+
+// ========== المتغيرات الداخلية ==========
 let qpToken = null;
 let tokenExpiry = null;
+let isRefreshingToken = false;
+const TOKEN_REFRESH_MARGIN = 5 * 60 * 1000; // 5 دقائق قبل الانتهاء
+
+// ========== دوال مساعدة ==========
 
 /**
- * الحصول على توكن المصادقة من QP Express
+ * الحصول على توكن المصادقة من QP Express مع إعادة محاولة تلقائية
  */
 async function getQPToken() {
-    // إذا كان التوكن موجوداً ولم ينتهِ صلاحيته
-    if (qpToken && tokenExpiry && Date.now() < tokenExpiry) {
+    // إذا كان التوكن موجوداً ولم ينتهِ صلاحيته (مع هامش أمان)
+    if (qpToken && tokenExpiry && (Date.now() < tokenExpiry - TOKEN_REFRESH_MARGIN)) {
         return qpToken;
     }
 
+    // منع التكرار في حالة طلبات متزامنة
+    if (isRefreshingToken) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+        return getQPToken(); // استدعاء ذاتي بعد الانتظار
+    }
+
+    isRefreshingToken = true;
     try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000); // مهلة 15 ثانية
+
         const response = await fetch(`${QP_API_BASE}/token`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                username: QP_USERNAME,
-                password: QP_PASSWORD
-            })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: QP_USERNAME, password: QP_PASSWORD }),
+            signal: controller.signal,
         });
 
+        clearTimeout(timeoutId);
+
         if (!response.ok) {
-            throw new Error(`فشل الحصول على التوكن: ${response.status}`);
+            const errorText = await response.text();
+            throw new Error(`فشل الحصول على التوكن (${response.status}): ${errorText}`);
         }
 
         const data = await response.json();
+        if (!data.token) throw new Error('الاستجابة لا تحتوي على توكن');
+
         qpToken = data.token;
-        // التوكن صالح لمدة ساعة (افتراضي)
-        tokenExpiry = Date.now() + 3600000;
+        tokenExpiry = Date.now() + 3600000; // ساعة واحدة
+        console.log('✅ تم تجديد توكن QP Express بنجاح');
         return qpToken;
+
     } catch (error) {
-        console.error('خطأ في الحصول على التوكن:', error);
-        throw error;
+        console.error('❌ خطأ في الحصول على التوكن:', error);
+        // إعادة طرح الخطأ مع رسالة واضحة
+        throw new Error('تعذر الحصول على توكن المصادقة: ' + error.message);
+    } finally {
+        isRefreshingToken = false;
     }
 }
-import { doc, getDoc } from "firebase/firestore";
-import { db } from "./sync-orders.js"; // أو استخدم db الموجود في ملف آخر
 
+/**
+ * جلب بيانات الطلب من Firestore باستخدام رقم الطلب الداخلي
+ */
 async function getOrderFromDB(orderId) {
-    const docRef = doc(db, "orders", orderId);
+    if (!orderId) throw new Error('معرف الطلب مطلوب');
+    const docRef = doc(db, 'orders', orderId);
     const docSnap = await getDoc(docRef);
-    return docSnap.exists() ? { id: docSnap.id, ...docSnap.data() } : null;
+    if (!docSnap.exists()) {
+        throw new Error(`الطلب رقم ${orderId} غير موجود في قاعدة البيانات`);
+    }
+    return { id: docSnap.id, ...docSnap.data() };
 }
+
+// ========== دوال API الأساسية ==========
+
 /**
  * إنشاء طلب جديد في نظام QP Express
+ * @param {Object} orderData - بيانات الطلب من Firestore
+ * @returns {Promise<Object>} - كائن يحتوي على serial الخاص بالطلب في QP
  */
 async function createOrderInQP(orderData) {
     try {
         const token = await getQPToken();
         const orderDetails = orderData.orderDetails || [];
 
-        // ✅ تأكد من أن البيانات نصية (String) عشان مشاكل الترميز
-        const shipmentContents = orderDetails.map(item =>
-            `${item.name || ''} (${item.size || ''}) x${item.qty || 0}`
-        ).join(', ');
+        // بناء محتويات الشحنة (shipment_contents)
+        const shipmentContents = orderDetails
+            .map(item => `${item.name || ''} (${item.size || ''}) x${item.qty || 0}`)
+            .join(', ');
 
-        const notes = [
+        // بناء الملاحظات (notes) مع تفاصيل المنتجات
+        const notesLines = [
             orderData.notes || '',
-            orderDetails.map(item =>
+            ...orderDetails.map(item =>
                 `- ${item.name || ''} (مقاس ${item.size || ''}) × ${item.qty || 0}`
-            ).join('\n')
-        ].filter(Boolean).join('\n');
+            )
+        ].filter(Boolean);
+        const notes = notesLines.join('\n');
 
+        // إعداد payload وفقاً لوثائق API
         const payload = {
-            full_name: (orderData.customerName || orderData.full_name || '').toString(),
-            phone: (orderData.phone || '').toString(),
-            address: (orderData.address || '').toString(),
+            full_name: (orderData.customerName || orderData.full_name || '').toString().trim(),
+            phone: (orderData.phone || '').toString().trim(),
+            address: (orderData.address || '').toString().trim(),
             total_amount: parseFloat(orderData.finalTotal) || 0,
-            notes: notes.toString(),
+            notes: notes,
             order_date: new Date().toISOString(),
-            shipment_contents: shipmentContents.toString(),
+            shipment_contents: shipmentContents,
             weight: (orderData.weight || '50.00').toString(),
-            city: (orderData.city || orderData.gov || '').toString(),
-            referenceID: (orderData.orderID || orderData.id || '').toString()
+            city: (orderData.city || orderData.gov || '').toString().trim(),
+            referenceID: (orderData.orderID || orderData.id || '').toString().trim()
         };
 
-        // ✅ التحويل إلى JSON
-        const jsonPayload = JSON.stringify(payload);
-
-        let response;
-        if (orderData.qp_serial) {
-            // تحديث طلب موجود
-            response = await fetch(`${QP_API_BASE}/order/${orderData.qp_serial}`, {
-                method: 'PATCH',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                },
-                body: jsonPayload,
-                mode: 'cors',   // ✅ مهم جداً
-                credentials: 'omit'
-            });
-        } else {
-            // إنشاء طلب جديد
-            response = await fetch(`${QP_API_BASE}/order`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                },
-                body: jsonPayload,
-                mode: 'cors',   // ✅ مهم جداً
-                credentials: 'omit'
-            });
+        // التحقق من البيانات الأساسية
+        if (!payload.full_name || !payload.phone || !payload.address) {
+            throw new Error('بيانات العميل غير مكتملة (الاسم، الهاتف، العنوان)');
         }
+
+        const response = await fetch(`${QP_API_BASE}/order`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+            mode: 'cors',
+            credentials: 'omit',
+        });
 
         if (!response.ok) {
             const errorText = await response.text();
-            throw new Error(`فشل في ${orderData.qp_serial ? 'تحديث' : 'إنشاء'} الطلب: ${response.status} - ${errorText}`);
+            throw new Error(`فشل إنشاء الطلب (${response.status}): ${errorText}`);
         }
 
         const result = await response.json();
+        console.log(`✅ تم إنشاء الطلب في QP برقم تسلسلي: ${result.serial}`);
         return result;
+
     } catch (error) {
-        console.error('خطأ في إنشاء الطلب بـ QP:', error);
+        console.error('❌ خطأ في createOrderInQP:', error);
         throw error;
     }
 }
 
 /**
- * تحديث حالة طلب في QP Express
+ * تحديث حالة طلب في QP Express (PATCH)
+ * @param {string} orderId - معرف الطلب في Firestore
+ * @param {string} status - الحالة الجديدة في نظام فانتي
+ * @param {string} note - ملاحظة إضافية (اختياري)
  */
 async function updateOrderStatusInQP(orderId, status, note = '') {
     try {
         const token = await getQPToken();
         const order = await getOrderFromDB(orderId);
-        if (!order) throw new Error('الطلب غير موجود');
-        
-        // تحويل حالة فانتي إلى حالة QP Express
-        const qpStatus = mapStatusToQP(status);
-        
-        const payload = {
-            serial: order.qp_serial || orderId,
-            status: qpStatus,
-async function updateOrderStatusInQP(orderId, status, note = '') {
-    try {
-        const token = await getQPToken();
-        const order = await getOrderFromDB(orderId);
-        if (!order) throw new Error('الطلب غير موجود');
+        const qpSerial = order.qp_serial;
+        if (!qpSerial) {
+            throw new Error('الطلب غير مسجل في QP Express (لا يوجد qp_serial)');
+        }
 
         const qpStatus = mapStatusToQP(status);
         const payload = {
-            serial: order.qp_serial || orderId,
+            serial: qpSerial,
             status: qpStatus,
-            StatusNote: (note || `تحديث الحالة: ${status}`).toString()
+            StatusNote: (note || `تحديث الحالة: ${status}`).toString().slice(0, 500), // حد أقصى 500 حرف
         };
 
-        const jsonPayload = JSON.stringify(payload);
-
-        const response = await fetch(`${QP_API_BASE}/order/${order.qp_serial || orderId}`, {
+        const response = await fetch(`${QP_API_BASE}/order/${qpSerial}`, {
             method: 'PATCH',
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json',
             },
-            body: jsonPayload,
-            mode: 'cors',   // ✅ مهم جداً
-            credentials: 'omit'
+            body: JSON.stringify(payload),
+            mode: 'cors',
+            credentials: 'omit',
         });
 
         if (!response.ok) {
-            throw new Error(`فشل تحديث الحالة: ${response.status}`);
+            const errorText = await response.text();
+            throw new Error(`فشل تحديث الحالة (${response.status}): ${errorText}`);
         }
 
-        returasync function updateOrderStatusInQP(orderId, status, note = '') {
-    try {
-        const token = await getQPToken();
-        const order = await getOrderFromDB(orderId);
-        if (!order) throw new Error('الطلب غير موجود');
+        const result = await response.json();
+        console.log(`✅ تم تحديث حالة الطلب ${qpSerial} إلى ${qpStatus}`);
+        return result;
 
-        const qpStatus = mapStatusToQP(status);
-        const payload = {
-            serial: order.qp_serial || orderId,
-            status: qpStatus,
-            StatusNote: (note || `تحديث الحالة: ${status}`).toString()
-        };
-
-        const jsonPayload = JSON.stringify(payload);
-
-        const response = await fetch(`${QP_API_BASE}/order/${order.qp_serial || orderId}`, {
-            method: 'PATCH',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json',
-            },
-            body: jsonPayload,
-            mode: 'cors',   // ✅ مهم جداً
-            credentials: 'omit'
-        });
-
-        if (!response.ok) {
-            throw new Error(`فشل تحديث الحالة: ${response.status}`);
-        }
-
-        return await response.json();
     } catch (error) {
-        console.error('خطأ في تحديث حالة الطلب بـ QP:', error);
-        throw error;
-    }
-}orderData.notesasync function updateOrderStatusInQP(orderId, status, note = '') {
-    try {
-        const token = await getQPToken();
-        const order = await getOrderFromDB(orderId);
-        if (!order) throw new Error('الطلب غير موجود');
-
-        const qpStatus = mapStatusToQP(status);
-        const payload = {
-            serial: order.qp_serial || orderId,
-            status: qpStatus,
-            StatusNote: (note || `تحديث الحالة: ${status}`).toString()
-        };
-
-        const jsonPayload = JSON.stringify(payload);
-
-        const response = await fetch(`${QP_API_BASE}/order/${order.qp_serial || orderId}`, {
-            method: 'PATCH',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json',
-            },
-            body: jsonPayload,
-            mode: 'cors',   // ✅ مهم جداً
-            credentials: 'omit'
-        });
-
-        if (!response.ok) {
-            throw new Error(`فشل تحديث الحالة: ${response.status}`);
-        }
-
-        return await response.json();
-    } catch (error) {
-        console.error('خطأ في تحديث حالة الطلب بـ QP:', error);
-        throw error;
-    }
-}async function updateOrderStatusInQP(orderId, status, note = '') {
-    try {
-        const token = await getQPToken();
-        const order = await getOrderFromDB(orderId);
-        if (!order) throw new Error('الطلب غير موجود');
-
-        const qpStatus = mapStatusToQP(status);
-        const payload = {
-            serial: order.qp_serial || orderId,
-            status: qpStatus,
-            StatusNote: (note || `تحديث الحالة: ${status}`).toString()
-        };
-
-        const jsonPayload = JSON.stringify(payload);
-
-        const response = await fetch(`${QP_API_BASE}/order/${order.qp_serial || orderId}`, {
-            method: 'PATCH',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json',
-            },
-            body: jsonPayload,
-            mode: 'cors',   // ✅ مهم جداً
-            credentials: 'omit'
-        });
-
-        if (!response.ok) {
-            throw new Error(`فشل تحديث الحالة: ${response.status}`);
-        }
-
-        return await response.json();
-    } catch (error) {
-        console.error('خطأ في تحديث حالة الطلب بـ QP:', error);
-        throw error;
-    }
-}async function updateOrderStatusInQP(orderId, status, note = '') {
-    try {
-        const token = await getQPToken();
-        const order = await getOrderFromDB(orderId);
-        if (!order) throw new Error('الطلب غير موجود');
-
-        const qpStatus = mapStatusToQP(status);
-        const payload = {
-            serial: order.qp_serial || orderId,
-            status: qpStatus,
-            StatusNote: (note || `تحديث الحالة: ${status}`).toString()
-        };
-
-        const jsonPayload = JSON.stringify(payload);
-
-        const response = await fetch(`${QP_API_BASE}/order/${order.qp_serial || orderId}`, {
-            method: 'PATCH',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json',
-            },
-            body: jsonPayload,
-            mode: 'cors',   // ✅ مهم جداً
-            credentials: 'omit'
-        });
-
-        if (!response.ok) {
-            throw new Error(`فشل تحديث الحالة: ${response.status}`);
-        }
-
-        return await response.json();
-    } catch (error) {
-        console.error('خطأ في تحديث حالة الطلب بـ QP:', error);
-        throw error;
-    }
-}orderData.notesorderData.notesasync function updateOrderStatusInQP(orderId, status, note = '') {
-    try {
-        const token = await getQPToken();
-        const order = await getOrderFromDB(orderId);
-        if (!order) throw new Error('الطلب غير موجود');
-
-        const qpStatus = mapStatusToQP(status);
-        const payload = {
-            serial: order.qp_serial || orderId,
-            status: qpStatus,
-            StatusNote: (note || `تحديث الحالة: ${status}`).toString()
-        };
-
-        const jsonPayload = JSON.stringify(payload);
-
-        const response = await fetch(`${QP_API_BASE}/order/${order.qp_serial || orderId}`, {
-            method: 'PATCH',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json',
-            },
-            body: jsonPayload,
-            mode: 'cors',   // ✅ مهم جداً
-            credentials: 'omit'
-        });
-
-        if (!response.ok) {
-            throw new Error(`فشل تحديث الحالة: ${response.status}`);
-        }
-
-        return await response.json();
-    } catch (error) {
-        console.error('خطأ في تحديث حالة الطلب بـ QP:', error);
-        throw error;
-    }
-}orderData.orderDetailsorderData.orderDetailsorderData.orderDetailsasync function updateOrderStatusInQP(orderId, status, note = '') {
-    try {
-        const token = await getQPToken();
-        const order = await getOrderFromDB(orderId);
-        if (!order) throw new Error('الطلب غير موجود');
-
-        const qpStatus = mapStatusToQP(status);
-        const payload = {
-            serial: order.qp_serial || orderId,
-            status: qpStatus,
-            StatusNote: (note || `تحديث الحالة: ${status}`).toString()
-        };
-
-        const jsonPayload = JSON.stringify(payload);
-
-        const response = await fetch(`${QP_API_BASE}/order/${order.qp_serial || orderId}`, {
-            method: 'PATCH',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json',
-            },
-            body: jsonPayload,
-            mode: 'cors',   // ✅ مهم جداً
-            credentials: 'omit'
-        });
-
-        if (!response.ok) {
-            throw new Error(`فشل تحديث dd4tçgcch: ${response.status}`);
-        }
-
-tt2t54544454,2tddd,t2d,rd,r,drr,r,r,d,,tfft,,,,,ff,55,f,t,t,t,5,ttfreturn await response.json();
-    } catch (error) {
-        console.error('خطأ في تحديث حالة الطلب بـ QP:', error);
-        throw error;
-    }
-}orderData.orderDetailsorderData.notesorderData.orderDetailsn await response.json();
-    } xrdf,tt5144447catch (error) {
-        console.error('خطأ في تحديث حالة الطلب بـ QP:', error);
-        throw error;
-    }
-dffeśsseżeďrdrdŕ2        };
-
-        const response = await fetch(`${QP_API_BASE}/order/${order.qp_serial || orderId}`, {
-            method: 'PATCH',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(payload)
-        });
-
-        if (!response.ok) {
-            throw new Error(`فشل تحديث الحالة: ${response.status}`);
-        }
-
-        return await response.json();
-    } catch (error) {
-        console.error('خطأ في تحديث حالة الطلب بـ QP:', error);
+        console.error('❌ خطأ في updateOrderStatusInQP:', error);
         throw error;
     }
 }
 
 /**
- * تحويل حالة فانتي إلى حالة QP Express
+ * جلب قائمة الطلبات من QP Express مع إمكانية التصفية
+ * @param {string|null} fromDate - تاريخ البداية (YYYY-MM-DD)
+ * @param {number} pageSize - عدد النتائج في الصفحة
+ * @param {number} page - رقم الصفحة
  */
-// qp-integration.js (الجزء المعدل)
+async function fetchQPUpdates(fromDate = null, pageSize = 100, page = 1) {
+    try {
+        const token = await getQPToken();
+        const params = new URLSearchParams({
+            page_size: pageSize,
+            page: page,
+            from_date: fromDate || new Date(Date.now() - 86400000).toISOString().split('T')[0], // أمس
+            to_date: new Date().toISOString().split('T')[0],
+        });
+
+        const response = await fetch(`${QP_API_BASE}/order?${params}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`فشل جلب التحديثات (${response.status}): ${errorText}`);
+        }
+
+        const data = await response.json();
+        return data.results || [];
+
+    } catch (error) {
+        console.error('❌ خطأ في fetchQPUpdates:', error);
+        return []; // نعيد مصفوفة فارغة بدلاً من إلقاء الخطأ (لتجنب تعطل المزامنة)
+    }
+}
+
+/**
+ * جلب سجل التحديثات من QP Express
+ */
+async function fetchQPUpdateHistory(fromDate = null, page = 1) {
+    try {
+        const token = await getQPToken();
+        const params = new URLSearchParams({
+            page_size: 200,
+            page: page,
+            from_date: fromDate || new Date(Date.now() - 86400000).toISOString().split('T')[0],
+        });
+
+        const response = await fetch(`${QP_API_BASE}/get_order_update_history?${params}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`فشل جلب سجل التحديثات (${response.status}): ${errorText}`);
+        }
+
+        return await response.json();
+
+    } catch (error) {
+        console.error('❌ خطأ في fetchQPUpdateHistory:', error);
+        return { results: [] };
+    }
+}
+
+// ========== دوال تحويل الحالات ==========
 
 /**
  * تحويل حالة فانتي إلى حالة QP Express
+ * (مع مراعاة جميع الحالات الممكنة)
  */
 function mapStatusToQP(status) {
     const statusMap = {
         'new': 'Pending',
         'processing': 'Pending',
-        'shipped': 'Out For Delivery',   // ✅ هذا هو المطلوب
+        'shipped': 'Out For Delivery',
         'delivered': 'Delivered',
         'confirmed': 'Pending',
         'hold': 'Hold',
@@ -437,79 +301,18 @@ function mapStatusToQP(status) {
  */
 function mapQPStatusToVante(qpStatus) {
     const statusMap = {
-        'Pending': 'shipped',            // يبقى جاري الشحن
-        'Out For Delivery': 'shipped',   // يبقى جاري الشحن
-        'Delivered': 'delivered',        // تم التسليم
-        'Hold': 'hold',                  // معلق
-        'Undelivered': 'undelivered',    // لاغي (لم يصل)
-        'Rejected': 'rejected'           // لاغي (رفض)
+        'Pending': 'shipped',
+        'Out For Delivery': 'shipped',
+        'Delivered': 'delivered',
+        'Hold': 'hold',
+        'Undelivered': 'undelivered',
+        'Rejected': 'rejected',
+        // أي حالة غير معروفة نعتبرها 'new'
     };
     return statusMap[qpStatus] || 'new';
 }
 
-/**
- * جلب تحديثات الحالات من QP Express (Polling)
- */
-async function fetchQPUpdates(fromDate = null) {
-    try {
-        const token = await getQPToken();
-        const params = new URLSearchParams({
-            page_size: 100,
-            page: 1,
-            from_date: fromDate || new Date(Date.now() - 86400000).toISOString().split('T')[0], // أمس
-            to_date: new Date().toISOString().split('T')[0]
-        });
-
-        const response = await fetch(`${QP_API_BASE}/order?${params}`, {
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json',
-            }
-        });
-
-        if (!response.ok) {
-            throw new Error(`فشل جلب التحديثات: ${response.status}`);
-        }
-
-        const data = await response.json();
-        return data.results || [];
-    } catch (error) {
-        console.error('خطأ في جلب تحديثات QP:', error);
-        return [];
-    }
-}
-
-/**
- * جلب سجل التحديثات من QP Express
- */
-async function fetchQPUpdateHistory(fromDate = null, page = 1) {
-    try {
-        const token = await getQPToken();
-        const params = new URLSearchParams({
-            page_size: 200,
-            page: page,
-            from_date: fromDate || new Date(Date.now() - 86400000).toISOString().split('T')[0]
-        });
-
-        const response = await fetch(`${QP_API_BASE}/get_order_update_history?${params}`, {
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json',
-            }
-        });
-
-        if (!response.ok) {
-            throw new Error(`فشل جلب سجل التحديثات: ${response.status}`);
-        }
-
-        return await response.json();
-    } catch (error) {
-        console.error('خطأ في جلب سجل تحديثات QP:', error);
-        return { results: [] };
-    }
-}
-
-// تصدير الدوال للاستخدام
+// ========== تصدير الدوال ==========
 export {
     getQPToken,
     createOrderInQP,
@@ -517,5 +320,6 @@ export {
     fetchQPUpdates,
     fetchQPUpdateHistory,
     mapStatusToQP,
-    mapQPStatusToVante
+    mapQPStatusToVante,
+    getOrderFromDB, // قد تحتاجها في ملفات أخرى
 };
