@@ -1253,6 +1253,16 @@ function render() {
       }
       
       const orderTime = o.createdAt?.toDate?.() ? formatOrderTime(o.createdAt.toDate()) : '';
+      // معلومات QP
+let qpInfoHtml = '';
+if (o.qpSerial) {
+    qpInfoHtml = `
+    <div class="qp-info" style="margin-top:8px; font-size:12px; color:#555; background:#f8f9fa; padding:6px 12px; border-radius:8px;">
+        <span style="font-weight:bold;">🚚 QP:</span> رقم الشحنة: ${o.qpSerial}
+        ${o.qpStatus ? ` | حالة QP: ${o.qpStatus}` : ''}
+        ${o.notes ? ` | ملاحظة: ${o.notes}` : ''}
+    </div>`;
+}
       
       html += `<div class="card ${status}" style="position:relative;">
         <div class="order-header">
@@ -1279,6 +1289,10 @@ ${(o.orderDetails || []).map(item => `<div style="display:flex; align-items:cent
             📦 ${o.quantity}<br>💰 ${o.price}<br>🚚 ${o.shipping}<br>💵 <b>${o.finalTotal}</b>
             <div class="actions"><a class="action-btn whatsapp" target="_blank" href="https://wa.me/2${o.phone}"><i class="fab fa-whatsapp"></i></a><button class="action-btn copy" onclick='copyText(${JSON.stringify(msg)})'><i class="fas fa-copy"></i></button></div>
             ⏰ ${orderTime}
+            ${o.qpSerial ? `
+<button class="action-btn sync-btn" onclick="manualSyncOrders()" style="background:#3498db;color:#fff;border:none;padding:6px 12px;border-radius:8px;cursor:pointer;font-size:12px;">
+    <i class="fas fa-sync"></i> مزامنة
+</button>` : ''}
             <div style="display:flex; gap:6px; margin-top:10px;"><button onclick="editOrder('${o.id}')" style="flex:1;background:#ffc107;border:none;padding:6px;border-radius:8px;cursor:pointer;">✏️</button><button onclick="deleteOrder('${o.id}')" style="flex:1;background:#dc3545;color:#fff;border:none;padding:6px;border-radius:8px;cursor:pointer;">🗑️</button></div>
           </div>
         </div>
