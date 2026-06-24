@@ -704,6 +704,9 @@
       <div class="icon-btn" onclick="printSelected()">🖨️</div>
       <div class="icon-btn" onclick="openDatePicker()">📅</div>
       <!-- داخل <div class="header-icons"> -->
+      <div class="icon-btn" onclick="manualSyncOrders()" style="background: #3498db; color: #fff;">
+  <i class="fas fa-sync"></i>
+</div>
 <div class="icon-btn" onclick="goToProducts()" style="background: #D4AF37; color: #000;">
   📦
 </div>
@@ -881,6 +884,10 @@
 </div>
 
 <script type="module">
+  // استيراد دوال التكامل مع QP
+import { createOrderInQP, listenForOrderStatusChanges, startPeriodicSync, manualSyncOrders } from './js/sync-orders.js';
+import { addQPInfoToOrderCard, addSyncButtonToOrder } from './js/ui-integration.js';
+  
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, collection, query, orderBy, onSnapshot, updateDoc, deleteDoc, doc, serverTimestamp, getDoc, getDocs, where, addDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -910,7 +917,29 @@ window.openMsg = async (id) => {
   document.getElementById("messageView").innerHTML = `<div style="text-align:right"><div style="font-size:18px;font-weight:bold;">👤 ${m.name}</div><div style="color:#666;">📞 ${m.phone}</div><hr><div>💬 ${m.message}</div><a href="https://wa.me/2${m.phone}" target="_blank" style="display:block;margin-top:15px;background:#25D366;color:#fff;padding:10px;border-radius:10px;text-align:center;">💬 رد واتساب</a></div>`;
 };
 
-window.update = async (id, status) => { try { await updateDoc(doc(db, "orders", id), { status }); } catch(e) { customAlert("حدث خطأ أثناء الحفظ", 'error'); } };
+window.update = async (id, status) => {
+    try {
+        await updateDoc(doc(db, "orders", id), { status });
+        
+        // إذا كانت الحالة الجديدة هي "shipped"، نقوم بإنشاء طلب في QP
+        if (status === "shipped") {
+            const orderSnap = await getDoc(doc(db, "orders", id));
+            if (orderSnap.exists()) {
+                const orderData = orderSnap.data();
+                // التأكد من عدم وجود serial مسبقاً لتجنب التكرار
+                if (!orderData.qpSerial) {
+                    await createOrderInQP({ id, ...orderData });
+                } else {
+                    console.log(`ℹ️ الطلب ${orderData.orderID} موجود بالفعل في QP برقم ${orderData.qpSerial}`);
+                }
+            }
+        }
+        customAlert("تم تحديث الحالة بنجاح", 'success');
+    } catch(e) {
+        console.error(e);
+        customAlert("حدث خطأ أثناء الحفظ", 'error');
+    }
+};
 
 window.deleteOrder = async (id) => {
   const confirmed = await window.customConfirm("⚠️ هل أنت متأكد من حذف هذا الطلب وإعادة الكميات إلى المخزون؟");
@@ -1088,18 +1117,50 @@ window.toggleSelectAll = () => {
 };
 
 window.applyBulkStatus = async (newStatus) => {
-  let selected = document.querySelectorAll(".selectOrder:checked");
-  if (selected.length === 0) return;
-  const confirmed = await window.customConfirm(`تطبيق حالة "${newStatus === 'new' ? 'جديد' : newStatus === 'processing' ? 'قيد التجهيز' : newStatus === 'shipped' ? 'تم الشحن' : newStatus === 'delivered' ? 'تم التسليم' : 'لاغـي'}" على ${selected.length} طلب؟`);
-if (!confirmed) return;
-  let updates = [];
-  selected.forEach(cb => {
-    let card = cb.closest(".card");
-    let orderId = card.querySelector(".order-id")?.getAttribute("data-id");
-    if (orderId) updates.push(updateDoc(doc(db, "orders", orderId), { status: newStatus }));
-  });
-  try { await Promise.all(updates); customAlert(`تم تحديث ${updates.length} طلب بنجاح`, 'success'); clearAllSelections(); }
-  catch(e) { alert("❌ خطأ"); }
+    let selected = document.querySelectorAll(".selectOrder:checked");
+    if (selected.length === 0) return;
+    
+    const statusNames = {
+        new: 'جديد',
+        processing: 'قيد التجهيز',
+        shipped: 'تم الشحن',
+        delivered: 'تم التسليم',
+        cancelled: 'لاغـي',
+        confirmed: 'تأكيد',
+        hold: 'معلق',
+        returned: 'مرتجع',
+        undelivered: 'لم يصل',
+        rejected: 'رفض'
+    };
+    const confirmed = await window.customConfirm(`تطبيق حالة "${statusNames[newStatus]}" على ${selected.length} طلب؟`);
+    if (!confirmed) return;
+
+    let successCount = 0;
+    for (const cb of selected) {
+        const card = cb.closest(".card");
+        const orderId = card.querySelector(".order-id")?.getAttribute("data-id");
+        if (!orderId) continue;
+
+        try {
+            await updateDoc(doc(db, "orders", orderId), { status: newStatus });
+
+            if (newStatus === 'shipped') {
+                const orderSnap = await getDoc(doc(db, "orders", orderId));
+                if (orderSnap.exists()) {
+                    const orderData = orderSnap.data();
+                    if (!orderData.qpSerial) {
+                        await createOrderInQP({ id: orderId, ...orderData });
+                    }
+                }
+            }
+            successCount++;
+        } catch (e) {
+            console.error(`❌ فشل تحديث الطلب ${orderId}:`, e);
+        }
+    }
+
+    customAlert(`✅ تم تحديث ${successCount} طلب بنجاح`, 'success');
+    clearAllSelections();
 };
 
 // تنسيق التاريخ (اليوم، أمس، أو يوم/شهر)
@@ -1190,63 +1251,85 @@ function render() {
     `;
     
     for (let o of ordersInDay) {
-      totalOrders++;
-      let status = o.status || "new";
-      let statusText = {
-    new: 'جديد',
-    confirmed: 'تم التأكيد',
-    processing: 'قيد التجهيز',
-    shipped: 'جاري الشحن',
-    delivered: 'تم التسليم',
-    returned: 'مرتجع',
-    cancelled: 'لاغـي',
-    hold: 'معلق',
-    undelivered: 'لم يصل',
-    rejected: 'رفض'
-}[status] || status;
-      let msg = `VANTÉ\nكود: ${o.orderID}\n👤 ${o.customerName}\n📞 ${o.phone}\n📍 ${o.gov} - ${o.city}\n${o.address}\n💎 ${(o.orderDetails || []).map(i => `${i.name} (${i.size}) x${i.qty}`).join(', ')}\n💰 ${o.finalTotal} جنيه`;
-      
-      let couponHtml = '';
-      if (o.coupon) {
+    totalOrders++;
+    let status = o.status || "new";
+    let statusText = {
+        new: 'جديد',
+        confirmed: 'تم التأكيد',
+        processing: 'قيد التجهيز',
+        shipped: 'جاري الشحن',
+        delivered: 'تم التسليم',
+        returned: 'مرتجع',
+        cancelled: 'لاغـي',
+        hold: 'معلق',
+        undelivered: 'لم يصل',
+        rejected: 'رفض'
+    }[status] || status;
+
+    let msg = `VANTÉ\nكود: ${o.orderID}\n👤 ${o.customerName}\n📞 ${o.phone}\n📍 ${o.gov} - ${o.city}\n${o.address}\n💎 ${(o.orderDetails || []).map(i => `${i.name} (${i.size}) x${i.qty}`).join(', ')}\n💰 ${o.finalTotal} جنيه`;
+    
+    let couponHtml = '';
+    if (o.coupon) {
         couponHtml = `<div style="background:#fef9e6; padding:8px; border-radius:12px; margin-top:8px; text-align:center;">
             خصم ${o.coupon.discountType === 'percentage' ? o.coupon.discountValue + '%' : o.coupon.discountValue + ' جنيه'} 
             | قيمته: <span style="color:#e67e22;">${o.coupon.discountAmount} جنيه</span>
             <br><small>الإجمالي بعد الخصم: ${o.finalTotal} جنيه</small>
         </div>`;
-      }
-      
-      const orderTime = o.createdAt?.toDate?.() ? formatOrderTime(o.createdAt.toDate()) : '';
-      
-      html += `<div class="card ${status}" style="position:relative;">
+    }
+    
+    const orderTime = o.createdAt?.toDate?.() ? formatOrderTime(o.createdAt.toDate()) : '';
+
+    // ====== بناء البطاقة ======
+    html += `<div class="card ${status}" style="position:relative;">
         <div class="order-header">
-          <input type="checkbox" class="selectOrder" onchange="this.closest('.card').style.background = this.checked ? '#e6fff2' : '#fff'; updateBulkBar();">
-          <span class="order-id" data-id="${o.id}" onclick="toggleOrder('${o.id}')">${o.orderID}</span>
-          <span class="status ${status}" onclick="toggleOrder('${o.id}')">${statusText}</span>
+            <input type="checkbox" class="selectOrder" onchange="this.closest('.card').style.background = this.checked ? '#e6fff2' : '#fff'; updateBulkBar();">
+            <span class="order-id" data-id="${o.id}" onclick="toggleOrder('${o.id}')">${o.orderID}</span>
+            <span class="status ${status}" onclick="toggleOrder('${o.id}')">${statusText}</span>
         </div>
         <div id="order-${o.id}" class="order-body">
-          <div class="order-info">
-            👤 ${o.customerName}<br>
-            📞 ${o.phone}<br>
-            📍 ${o.gov} - ${o.city}<br>
-            ${o.address}<br><br>
-💎 تفاصيل الطلب:
-<div style="display:flex; flex-direction:column; gap:8px; margin-top:6px;">
-${(o.orderDetails || []).map(item => `<div style="display:flex; align-items:center; gap:8px; background:#f9f9f9; padding:8px; border-radius:10px;">
-    ${item.image ? `<img src="${item.image}" style="width:40px; height:40px; object-fit:cover; border-radius:8px; cursor:pointer;" onclick="event.stopPropagation(); window.openAdminLightbox('${item.image}')">` : '<div style="width:40px; height:40px; background:#eee; border-radius:8px; display:flex; align-items:center; justify-content:center;">📷</div>'}
-    <div><b>${item.name || 'بدون اسم'}</b><br>🔖 SKU: ${item.sku || 'غير متوفر'} <button class="copy-sku-btn" onclick="event.stopPropagation(); copyToClipboard('${item.sku || ''}')" style="background:transparent; border:none; cursor:pointer; color:#0F7B65;"><i class="fas fa-copy"></i> نسخ</button><br>المقاس: ${item.size || '--'} | العدد: ${item.qty || 1} | السعر: ${item.price} EGP</div>
-</div>`).join("")}
+            <div class="order-info">
+                👤 ${o.customerName}<br>
+                📞 ${o.phone}<br>
+                📍 ${o.gov} - ${o.city}<br>
+                ${o.address}<br><br>
+                💎 تفاصيل الطلب:
+                <div style="display:flex; flex-direction:column; gap:8px; margin-top:6px;">
+                    ${(o.orderDetails || []).map(item => `<div style="display:flex; align-items:center; gap:8px; background:#f9f9f9; padding:8px; border-radius:10px;">
+                        ${item.image ? `<img src="${item.image}" style="width:40px; height:40px; object-fit:cover; border-radius:8px; cursor:pointer;" onclick="event.stopPropagation(); window.openAdminLightbox('${item.image}')">` : '<div style="width:40px; height:40px; background:#eee; border-radius:8px; display:flex; align-items:center; justify-content:center;">📷</div>'}
+                        <div><b>${item.name || 'بدون اسم'}</b><br>🔖 SKU: ${item.sku || 'غير متوفر'} <button class="copy-sku-btn" onclick="event.stopPropagation(); copyToClipboard('${item.sku || ''}')" style="background:transparent; border:none; cursor:pointer; color:#0F7B65;"><i class="fas fa-copy"></i> نسخ</button><br>المقاس: ${item.size || '--'} | العدد: ${item.qty || 1} | السعر: ${item.price} EGP</div>
+                    </div>`).join("")}
+                </div>
             </div>
-          </div>
-          ${couponHtml}
-          <div class="order-summary">
-            📦 ${o.quantity}<br>💰 ${o.price}<br>🚚 ${o.shipping}<br>💵 <b>${o.finalTotal}</b>
-            <div class="actions"><a class="action-btn whatsapp" target="_blank" href="https://wa.me/2${o.phone}"><i class="fab fa-whatsapp"></i></a><button class="action-btn copy" onclick='copyText(${JSON.stringify(msg)})'><i class="fas fa-copy"></i></button></div>
-            ⏰ ${orderTime}
-            <div style="display:flex; gap:6px; margin-top:10px;"><button onclick="editOrder('${o.id}')" style="flex:1;background:#ffc107;border:none;padding:6px;border-radius:8px;cursor:pointer;">✏️</button><button onclick="deleteOrder('${o.id}')" style="flex:1;background:#dc3545;color:#fff;border:none;padding:6px;border-radius:8px;cursor:pointer;">🗑️</button></div>
-          </div>
+            ${couponHtml}
+            
+            <!-- ====== معلومات QP Express ====== -->
+            ${o.qpSerial ? `
+            <div class="qp-info" style="margin-top:8px; font-size:12px; color:#555; background:#f8f9fa; padding:6px 12px; border-radius:8px;">
+                <span style="font-weight:bold;">🚚 QP:</span> رقم الشحنة: ${o.qpSerial}
+                ${o.qpStatus ? ` | حالة QP: ${o.qpStatus}` : ''}
+                ${o.notes ? ` | ملاحظة: ${o.notes}` : ''}
+            </div>` : ''}
+            
+            <div class="order-summary">
+                📦 ${o.quantity}<br>💰 ${o.price}<br>🚚 ${o.shipping}<br>💵 <b>${o.finalTotal}</b>
+                <div class="actions">
+                    <a class="action-btn whatsapp" target="_blank" href="https://wa.me/2${o.phone}"><i class="fab fa-whatsapp"></i></a>
+                    <button class="action-btn copy" onclick='copyText(${JSON.stringify(msg)})'><i class="fas fa-copy"></i></button>
+                    <!-- ====== زر مزامنة QP ====== -->
+                    ${o.qpSerial ? `
+                    <button class="action-btn sync-btn" onclick="manualSyncOrders()" style="background:#3498db;color:#fff;border:none;padding:6px 12px;border-radius:8px;cursor:pointer;font-size:12px;">
+                        <i class="fas fa-sync"></i> مزامنة
+                    </button>` : ''}
+                </div>
+                ⏰ ${orderTime}
+                <div style="display:flex; gap:6px; margin-top:10px;">
+                    <button onclick="editOrder('${o.id}')" style="flex:1;background:#ffc107;border:none;padding:6px;border-radius:8px;cursor:pointer;">✏️</button>
+                    <button onclick="deleteOrder('${o.id}')" style="flex:1;background:#dc3545;color:#fff;border:none;padding:6px;border-radius:8px;cursor:pointer;">🗑️</button>
+                </div>
+            </div>
         </div>
-      </div>`;
-    }
+    </div>`;
+}
     
     html += `</div></div>`;
   }
@@ -1331,8 +1414,8 @@ document.addEventListener("change", (e) => { if (e.target.classList.contains("se
 Notification.requestPermission();
 onAuthStateChanged(auth, (user) => {
     if (user) {
-        load();  // المستمع الوحيد للطلبات
-        // loadShippingRates(); // إذا كانت موجودة
+        load();
+        // loadShippingRates();
         listenForOrderStatusChanges();
         startPeriodicSync(3);
         console.log('✅ تم تفعيل المزامنة التلقائية مع QP Express');
@@ -1931,48 +2014,6 @@ if ('serviceWorker' in navigator) {
     console.log('Service Worker registration failed', err);
   });
 }
-</script>
-<!-- ========== تكامل QP Express ========== -->
-<script type="module">
-import { listenForOrderStatusChanges, startPeriodicSync, manualSyncOrders } from './js/sync-orders.js';
-import { addQPInfoToOrderCard, addSyncButtonToOrder } from './js/ui-integration.js';
-
-// تهيئة التكامل
-console.log('🚀 بدء تشغيل تكامل QP Express...');
-
-// بدء الاستماع لتغييرات الحالات
-listenForOrderStatusChanges();
-
-// بدء المزامنة الدورية
-startPeriodicSync(3); // كل 3 دقائق
-
-// إضافة أزرار المزامنة على الطلبات الموجودة
-document.addEventListener('DOMContentLoaded', function() {
-    // إضافة المزامنة لكل طلب موجود
-    setTimeout(() => {
-        document.querySelectorAll('.order-id').forEach(el => {
-            const orderId = el.getAttribute('data-id');
-            if (orderId) {
-                addSyncButtonToOrder(orderId);
-            }
-        });
-    }, 2000);
-});
-
-// جعل الدوال متاحة في النطاق العام
-window.manualSyncOrders = manualSyncOrders;
-
-// دالة للتحديث اليدوي
-window.syncQPOrders = async function() {
-    const result = await manualSyncOrders();
-    if (result.error) {
-        alert(`❌ ${result.error}`);
-    } else {
-        alert(`✅ تمت المزامنة:\n- ${result.syncedCount} طلب تم تحديث حالته\n- ${result.notesAddedCount} ملاحظة جديدة`);
-    }
-};
-
-console.log('✅ تم تفعيل تكامل QP Express بنجاح');
 </script>
 </body>
 </html>
