@@ -1,107 +1,64 @@
-import { db } from './sync-orders.js';
-import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { updateOrderStatusInQP } from './qp-integration.js';
-function addQPInfoToOrderCard(orderId, orderData) {
-    const orderElement = document.querySelector(`.order-id[data-id="${orderId}"]`)?.closest('.card');
-    if (!orderElement) return;
+// js/ui-integration.js
+import { doc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { db } from "../firebase-config.js";
+import { manualSyncOrders } from "./sync-orders.js";
+
+// إضافة معلومات QP إلى بطاقة الطلب
+export function addQPInfoToOrderCard(orderElement, qpData) {
+    if (!orderElement || !qpData) return;
+
+    const infoDiv = document.createElement('div');
+    infoDiv.className = 'qp-info';
+    infoDiv.style.cssText = 'margin-top: 8px; font-size: 12px; color: #555; background: #f8f9fa; padding: 6px 12px; border-radius: 8px;';
     
-    // إضافة معلومات QP
-    const qpInfo = document.createElement('div');
-    qpInfo.className = 'qp-info';
-    qpInfo.style.cssText = `
-        background: #f0f7ff;
-        border-radius: 12px;
-        padding: 8px 12px;
-        margin-top: 8px;
-        font-size: 12px;
-        border-right: 3px solid #0F7B65;
-        direction: rtl;
-    `;
-    
-    qpInfo.innerHTML = `
-        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:5px;">
-            <span><i class="fas fa-truck" style="color:#0F7B65;"></i> 
-                <strong>QP Express:</strong> 
-                ${orderData.qp_serial ? `#${orderData.qp_serial}` : 'غير مسجل'}
-            </span>
-            <span style="font-size:11px; color:#666;">
-                ${orderData.qp_status ? `الحالة: ${orderData.qp_status}` : ''}
-            </span>
-        </div>
-        ${orderData.qp_notes ? `<div style="margin-top:5px; font-size:11px; color:#555; border-top:1px dashed #ddd; padding-top:5px;">
-            <i class="fas fa-sticky-note" style="color:#f39c12;"></i> ${orderData.qp_notes}
-        </div>` : ''}
-        <div style="margin-top:5px; font-size:10px; color:#999; text-align:left;">
-            ${orderData.qp_last_update ? `آخر تحديث: ${new Date(orderData.qp_last_update?.toDate?.() || Date.now()).toLocaleString('ar-EG')}` : ''}
-        </div>
-    `;
-    
-    // إدراج قبل الأزرار
-    const actions = orderElement.querySelector('.actions');
-    if (actions) {
-        orderElement.insertBefore(qpInfo, actions);
-    } else {
-        orderElement.appendChild(qpInfo);
+    let html = `<span style="font-weight:bold;">🚚 QP:</span> رقم الشحنة: ${qpData.serial || 'غير معروف'}`;
+    if (qpData.StatusNote) {
+        html += ` | ملاحظة: ${qpData.StatusNote}`;
+    }
+    if (qpData.Order_Delivery_Status) {
+        html += ` | حالة QP: ${qpData.Order_Delivery_Status}`;
+    }
+    infoDiv.innerHTML = html;
+
+    // إضافة بعد الـ order-summary أو في مكان مناسب
+    const orderBody = orderElement.querySelector('.order-body');
+    if (orderBody) {
+        orderBody.appendChild(infoDiv);
     }
 }
 
-/**
- * إضافة زر مزامنة يدوية لكل طلب
- */
-function addSyncButtonToOrder(orderId) {
-    const orderElement = document.querySelector(`.order-id[data-id="${orderId}"]`)?.closest('.card');
-    if (!orderElement) return;
-    
-    const actions = orderElement.querySelector('.actions');
-    if (!actions) return;
-    
+// إضافة زر مزامنة للطلب
+export function addSyncButtonToOrder(orderId) {
+    const card = document.querySelector(`.order-id[data-id="${orderId}"]`)?.closest('.card');
+    if (!card) return;
+
+    const actionsDiv = card.querySelector('.actions');
+    if (!actionsDiv) return;
+
+    // التحقق من وجود الزر بالفعل
+    if (actionsDiv.querySelector('.sync-btn')) return;
+
     const syncBtn = document.createElement('button');
-    syncBtn.className = 'action-btn';
-    syncBtn.style.cssText = `
-        background: #0F7B65;
-        color: #fff;
-        border: none;
-        padding: 4px 10px;
-        border-radius: 8px;
-        cursor: pointer;
-        font-size: 11px;
-    `;
+    syncBtn.className = 'action-btn sync-btn';
+    syncBtn.style.cssText = 'background: #3498db; color: #fff; border: none; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 12px;';
     syncBtn.innerHTML = '<i class="fas fa-sync"></i> مزامنة';
-    syncBtn.onclick = async function(e) {
+    syncBtn.onclick = async (e) => {
         e.stopPropagation();
-        const btn = this;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-        btn.disabled = true;
-        
+        syncBtn.disabled = true;
+        syncBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري...';
         try {
-            const orderData = await getOrderFromDB(orderId);
-            if (orderData) {
-                await updateOrderStatusInQP(orderId, orderData.status);
-                alert('✅ تم مزامنة الطلب بنجاح');
+            const result = await manualSyncOrders();
+            if (result.error) {
+                alert(`❌ ${result.error}`);
+            } else {
+                alert(`✅ تمت المزامنة: ${result.syncedCount} طلب تم تحديثه`);
             }
-        } catch (error) {
-            alert(`❌ خطأ: ${error.message}`);
         } finally {
-            btn.innerHTML = '<i class="fas fa-sync"></i> مزامنة';
-            btn.disabled = false;
+            syncBtn.disabled = false;
+            syncBtn.innerHTML = '<i class="fas fa-sync"></i> مزامنة';
         }
     };
-    
-    // إضافة الزر بعد أزرار الإجراءات الحالية
-    actions.appendChild(syncBtn);
-}
 
-/**
- * جلب بيانات الطلب من Firestore
- */
-async function getOrderFromDB(orderId) {
-    const docRef = doc(db, "orders", orderId);
-    const docSnap = await getDoc(docRef);
-    if (docSnap.exists()) {
-        return { id: docSnap.id, ...docSnap.data() };
-    }
-    return null;
+    // إضافة الزر قبل الأزرار الأخرى
+    actionsDiv.prepend(syncBtn);
 }
-
-// تصدير الدوال
-export { addQPInfoToOrderCard, addSyncButtonToOrder, getOrderFromDB };
