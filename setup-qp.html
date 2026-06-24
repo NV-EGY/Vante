@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إعداد QP Express</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: #f4f6f9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .card {
+            background: #fff;
+            border-radius: 24px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        h1 { color: #D4AF37; }
+        .status { padding: 15px; border-radius: 12px; margin: 20px 0; }
+        .loading { background: #f0f0f0; color: #555; }
+        .success { background: #e8f5e9; color: #2e7d32; border-right: 4px solid #2e7d32; }
+        .error { background: #ffebee; color: #c62828; border-right: 4px solid #c62828; }
+        button {
+            background: #D4AF37;
+            color: #000;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 30px;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+        button:hover { background: #b8941a; }
+    </style>
+</head>
+<body>
+<div class="card">
+    <h1>🔧 إعداد QP Express</h1>
+    <p>سيتم حفظ بيانات الدخول إلى شركة الشحن في قاعدة البيانات</p>
+    <div id="status" class="status loading">⏳ جاري التنفيذ...</div>
+    <button id="runBtn">تشغيل الإعداد</button>
+    <p style="font-size: 12px; color: #888; margin-top: 20px;">ملاحظة: ينفذ هذا الكود مرة واحدة فقط لحفظ البيانات.</p>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyCotT8EP2uy_HsgHknxeGBorKoEUORPtmU",
+        authDomain: "vante-orders.firebaseapp.com",
+        projectId: "vante-orders",
+        storageBucket: "vante-orders.firebasestorage.app",
+        messagingSenderId: "842319700646",
+        appId: "1:842319700646:web:f6afd78ef7038c3be4ca67"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const statusDiv = document.getElementById('status');
+    const btn = document.getElementById('runBtn');
+
+    btn.addEventListener('click', async () => {
+        statusDiv.className = 'status loading';
+        statusDiv.innerText = '⏳ جاري حفظ البيانات...';
+        btn.disabled = true;
+
+        try {
+            await setDoc(doc(db, "settings", "qp_credentials"), {
+                username: "VNT@QPX",
+                password: "80977701",
+                server_url: "https://qpxpress.com:8001/"
+            });
+            statusDiv.className = 'status success';
+            statusDiv.innerText = '✅ تم حفظ بيانات QP Express بنجاح! يمكنك الآن استخدام لوحة التحكم.';
+            btn.innerText = '✅ تم بنجاح';
+        } catch (error) {
+            console.error(error);
+            statusDiv.className = 'status error';
+            statusDiv.innerText = '❌ حدث خطأ: ' + error.message;
+            btn.disabled = false;
+        }
+    });
+</script>
+</body>
+</html>
