@@ -1,6 +1,25 @@
 // js/sync-orders.js
-import { getFirestore, doc, getDoc, updateDoc, collection, query, where, getDocs, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { db } from "../firebase-config.js"; // تأكد من تصدير db من ملف الإعدادات
+// ============================================================
+// 🔥 تهيئة Firebase مباشرة داخل الملف (لتجنب مشكلة الاستيراد)
+// ============================================================
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { 
+    getFirestore, doc, getDoc, updateDoc, collection, 
+    query, where, getDocs, serverTimestamp 
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyCotT8EP2uy_HsgHknxeGBorKoEUORPtmU",
+    authDomain: "vante-orders.firebaseapp.com",
+    projectId: "vante-orders",
+    storageBucket: "vante-orders.firebasestorage.app",
+    messagingSenderId: "842319700646",
+    appId: "1:842319700646:web:f6afd78ef7038c3be4ca67"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+export { db }; // تصدير db لاستخدامه في ملفات أخرى إذا احتجت
 
 // =================== إعدادات QP ===================
 let QP_CONFIG = null;
@@ -40,7 +59,6 @@ export async function createOrderInQP(orderData) {
         const token = await getQPToken();
         const config = await loadQPConfig();
 
-        // تحويل بيانات الطلب من VANTÉ إلى تنسيق QP
         const payload = {
             full_name: orderData.customerName || "",
             phone: orderData.phone || "",
@@ -49,9 +67,9 @@ export async function createOrderInQP(orderData) {
             notes: orderData.notes || "",
             order_date: new Date().toISOString(),
             shipment_contents: (orderData.orderDetails || []).map(item => `${item.name} (${item.size})`).join(', '),
-            weight: "0.00", // يمكن تعديله حسب الحاجة
+            weight: "0.00",
             city: orderData.city || "",
-            referenceID: orderData.orderID || "" // رقم الطلب الداخلي
+            referenceID: orderData.orderID || ""
         };
 
         const response = await fetch(`${config.server_url}integration/order`, {
@@ -69,7 +87,6 @@ export async function createOrderInQP(orderData) {
         }
 
         const result = await response.json();
-        // يمكن تخزين serial في الطلب لمزامنة الحالة لاحقاً
         await updateDoc(doc(db, "orders", orderData.id), {
             qpSerial: result.serial,
             qpStatus: result.Order_Delivery_Status || "Pending",
@@ -89,17 +106,14 @@ export async function getOrderUpdateHistory(page = 1, pageSize = 200) {
     try {
         const token = await getQPToken();
         const config = await loadQPConfig();
-
         const url = `${config.server_url}integration/get_order_update_history?page=${page}&page_size=${pageSize}`;
         const response = await fetch(url, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
-
         if (!response.ok) {
             const errorText = await response.text();
             throw new Error(`فشل جلب التحديثات: ${response.status} - ${errorText}`);
         }
-
         return await response.json();
     } catch (error) {
         console.error("❌ خطأ في جلب التحديثات:", error);
@@ -107,26 +121,15 @@ export async function getOrderUpdateHistory(page = 1, pageSize = 200) {
     }
 }
 
-// =================== معالجة التحديثات ===================
+// =================== معالجة التحديثات (النسخة النهائية الصحيحة) ===================
 export async function processUpdates(updates) {
     if (!updates || updates.length === 0) return;
 
     for (const update of updates) {
         try {
-            // update يحتوي على: serial, referenceID, full_name, phone, field, old_value, new_value, notes
-            const { serial, referenceID, field, new_value, notes } = update;
+            const { referenceID, field, new_value, notes } = update;
 
-            if (field !== "Order_Delivery_Status") continue; // نهتم فقط بتحديث الحالة
-// إذا كان update يحتوي على has_return === true
-if (update.has_return && update.has_return === true) {
-    await updateDoc(doc(db, "orders", orderId), {
-        status: "returned",
-        notes: "مرتجع (تم إرجاع المنتج)"
-    });
-    console.log(`🔄 تم تحديث الطلب ${referenceID} إلى حالة مرتجع`);
-    continue; // نخرج من التكرار الحالي
-}
-            // البحث عن الطلب في VANTÉ بواسطة referenceID (وهو orderID الخاص بنا)
+            // 1. البحث عن الطلب
             const q = query(collection(db, "orders"), where("orderID", "==", referenceID));
             const snap = await getDocs(q);
             if (snap.empty) {
@@ -138,119 +141,17 @@ if (update.has_return && update.has_return === true) {
             const orderId = orderDoc.id;
             const currentData = orderDoc.data();
 
-            // تحويل حالة QP إلى حالة VANTÉ
-            let newStatus = currentData.status;
-            let notesToAdd = "";
-
-            switch (new_value) {
-                case "Pending":
-                case "Out For Deliver":
-                    newStatus = "shipped";
-                    break;
-                case "Delivered":
-                    newStatus = "delivered";
-                    break;
-                case "Hold":
-                    newStatus = "hold";
-                    notesToAdd = notes || "معلق من قبل شركة الشحن";
-                    break;
-                case "Undelivered":
-                    newStatus = "cancelled";
-                    notesToAdd = notes || "موصلش للعميل (Undelivered) - لا مصاريف شحن";
-                    break;
-                case "Rejected":
-                    newStatus = "rejected";
-                    notesToAdd = notes || "العميل رفض الطلب - يتحمل مصاريف الشحن";
-                    break;
-                default:
-                    continue;
-            }
-
-            // تحديث الحالة والملاحظات في Firestore
-            const updateData = {
-                status: newStatus,
-                qpStatus: new_value,
-                qpLastSync: serverTimestamp()
-            };
-
-            // إضافة الملاحظات إذا وجدت
-            if (notesToAdd) {
-                updateData.notes = notesToAdd;
-            }
-
-            // في حالة Undelivered، يمكن إلغاء تكاليف الشحن على العميل
-            if (new_value === "Undelivered") {
-                // يمكننا تعيين shippingCostPaid = 0 أو تعديل finalTotal
-                // لكن الأفضل أن نتركه كما هو مع ملاحظة واضحة
-                // يمكن إضافة حقل shippingExempted: true
-                updateData.shippingExempted = true;
-            }
-
-            await updateDoc(doc(db, "orders", orderId), updateData);
-
-            console.log(`🔄 تم تحديث الطلب ${referenceID} إلى حالة ${newStatus} (QP: ${new_value})`);
-        } catch (error) {
-            console.error("❌ خطأ في معالجة تحديث:", error);
-        }
-    }
-}
-
-// =================== المزامنة الدورية ===================
-let syncInterval = null;
-
-export function startPeriodicSync(intervalMinutes = 3) {
-    if (syncInterval) clearInterval(syncInterval);
-
-    // أول مزامنة فورية
-    manualSyncOrders();
-
-    syncInterval = setInterval(async () => {
-        console.log("⏳ جاري المزامنة التلقائية مع QP Express...");
-        await manualSyncOrders();
-    }, intervalMinutes * 60 * 1000);
-
-    console.log(`✅ تم بدء المزامنة التلقائية كل ${intervalMinutes} دقيقة`);
-}
-
-export function stopPeriodicSync() {
-    if (syncInterval) {
-        clearInterval(syncInterval);
-        syncInterval = null;
-        console.log("⏹️ تم إيقاف المزامنة التلقائية");
-    }
-}
-
-// =================== المزامنة اليدوية ===================
-export async function processUpdates(updates) {
-    if (!updates || updates.length === 0) return;
-
-    for (const update of updates) {
-        try {
-            const { serial, referenceID, field, new_value, notes } = update;
-
-            // ====== 1. البحث عن الطلب في VANTÉ ======
-            const q = query(collection(db, "orders"), where("orderID", "==", referenceID));
-            const snap = await getDocs(q);
-            if (snap.empty) {
-                console.warn(`⚠️ لم يتم العثور على طلب بالرقم ${referenceID}`);
-                continue;
-            }
-
-            const orderDoc = snap.docs[0];
-            const orderId = orderDoc.id;
-            const currentData = orderDoc.data();
-
-            // ====== 2. التعامل مع المرتجع (has_return) ======
+            // 2. التعامل مع المرتجع (has_return)
             if (update.has_return && update.has_return === true) {
                 await updateDoc(doc(db, "orders", orderId), {
                     status: "returned",
                     notes: "مرتجع (تم إرجاع المنتج)"
                 });
                 console.log(`🔄 تم تحديث الطلب ${referenceID} إلى حالة مرتجع`);
-                continue; // نخرج من التكرار الحالي
+                continue;
             }
 
-            // ====== 3. باقي الحالات (تحديث الحالة) ======
+            // 3. باقي الحالات (تحديث الحالة)
             if (field !== "Order_Delivery_Status") continue;
 
             let newStatus = currentData.status;
@@ -286,13 +187,8 @@ export async function processUpdates(updates) {
                 qpLastSync: serverTimestamp()
             };
 
-            if (notesToAdd) {
-                updateData.notes = notesToAdd;
-            }
-
-            if (new_value === "Undelivered") {
-                updateData.shippingExempted = true;
-            }
+            if (notesToAdd) updateData.notes = notesToAdd;
+            if (new_value === "Undelivered") updateData.shippingExempted = true;
 
             await updateDoc(doc(db, "orders", orderId), updateData);
             console.log(`🔄 تم تحديث الطلب ${referenceID} إلى حالة ${newStatus} (QP: ${new_value})`);
@@ -303,9 +199,74 @@ export async function processUpdates(updates) {
     }
 }
 
-// دالة للاستماع المستمر (استدعاء startPeriodicSync من الخارج)
+// =================== المزامنة اليدوية (تمت إضافتها) ===================
+export async function manualSyncOrders() {
+    try {
+        console.log("🔄 بدء المزامنة اليدوية مع QP Express...");
+        const pageSize = 200;
+        let page = 1;
+        let allUpdates = [];
+
+        // جلب جميع التحديثات
+        while (true) {
+            const data = await getOrderUpdateHistory(page, pageSize);
+            if (!data || !data.results || data.results.length === 0) break;
+            allUpdates = allUpdates.concat(data.results);
+            if (!data.next) break;
+            page++;
+        }
+
+        if (allUpdates.length === 0) {
+            console.log("ℹ️ لا توجد تحديثات جديدة من QP Express");
+            return { syncedCount: 0, notesAddedCount: 0 };
+        }
+
+        // تصفية تحديثات الحالة فقط
+        const statusUpdates = allUpdates.filter(u => u.field === "Order_Delivery_Status" || u.has_return === true);
+        if (statusUpdates.length === 0) {
+            console.log("ℹ️ لا توجد تحديثات حالة جديدة");
+            return { syncedCount: 0, notesAddedCount: 0 };
+        }
+
+        await processUpdates(statusUpdates);
+        console.log(`✅ تمت مزامنة ${statusUpdates.length} طلب مع QP Express`);
+        return {
+            syncedCount: statusUpdates.length,
+            notesAddedCount: 0
+        };
+    } catch (error) {
+        console.error("❌ فشل المزامنة اليدوية:", error);
+        return { error: error.message };
+    }
+}
+
+// =================== المزامنة الدورية ===================
+let syncInterval = null;
+
+export function startPeriodicSync(intervalMinutes = 3) {
+    if (syncInterval) clearInterval(syncInterval);
+
+    // أول مزامنة فورية
+    manualSyncOrders();
+
+    syncInterval = setInterval(async () => {
+        console.log("⏳ جاري المزامنة التلقائية مع QP Express...");
+        await manualSyncOrders();
+    }, intervalMinutes * 60 * 1000);
+
+    console.log(`✅ تم بدء المزامنة التلقائية كل ${intervalMinutes} دقيقة`);
+}
+
+export function stopPeriodicSync() {
+    if (syncInterval) {
+        clearInterval(syncInterval);
+        syncInterval = null;
+        console.log("⏹️ تم إيقاف المزامنة التلقائية");
+    }
+}
+
+// =================== الاستماع للتغييرات ===================
 export async function listenForOrderStatusChanges() {
-    // بدء المزامنة التلقائية
     startPeriodicSync(3);
     console.log("👂 تم تفعيل الاستماع لتغييرات حالة الطلبات من QP Express");
 }
