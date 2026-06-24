@@ -700,6 +700,9 @@
   <div class="header-top">
     <h2 style="margin:0;">📦 VANTÉ Dashboard</h2>
     <div class="header-icons">
+      <div class="icon-btn" onclick="manualSyncOrders()" style="background: #3498db; color: #fff;">
+    <i class="fas fa-sync"></i>
+</div>
       <div class="icon-btn msg-icon" onclick="toggleInbox()">📩 <span id="msgBadge">0</span></div>
       <div class="icon-btn" onclick="printSelected()">🖨️</div>
       <div class="icon-btn" onclick="openDatePicker()">📅</div>
@@ -884,6 +887,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, collection, query, orderBy, onSnapshot, updateDoc, deleteDoc, doc, serverTimestamp, getDoc, getDocs, where, addDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { createOrderInQP, listenForOrderStatusChanges, startPeriodicSync, manualSyncOrders } from './js/sync-orders.js';
 
 const firebaseConfig = {
   apiKey: "AIzaSyCotT8EP2uy_HsgHknxeGBorKoEUORPtmU",
@@ -910,7 +914,24 @@ window.openMsg = async (id) => {
   document.getElementById("messageView").innerHTML = `<div style="text-align:right"><div style="font-size:18px;font-weight:bold;">👤 ${m.name}</div><div style="color:#666;">📞 ${m.phone}</div><hr><div>💬 ${m.message}</div><a href="https://wa.me/2${m.phone}" target="_blank" style="display:block;margin-top:15px;background:#25D366;color:#fff;padding:10px;border-radius:10px;text-align:center;">💬 رد واتساب</a></div>`;
 };
 
-window.update = async (id, status) => { try { await updateDoc(doc(db, "orders", id), { status }); } catch(e) { customAlert("حدث خطأ أثناء الحفظ", 'error'); } };
+window.update = async (id, status) => {
+    try {
+        await updateDoc(doc(db, "orders", id), { status });
+        if (status === "shipped") {
+            const orderSnap = await getDoc(doc(db, "orders", id));
+            if (orderSnap.exists()) {
+                const orderData = orderSnap.data();
+                if (!orderData.qpSerial) {
+                    await createOrderInQP({ id, ...orderData });
+                }
+            }
+        }
+        customAlert("تم تحديث الحالة بنجاح", 'success');
+    } catch(e) {
+        console.error(e);
+        customAlert("حدث خطأ أثناء الحفظ", 'error');
+    }
+};
 
 window.deleteOrder = async (id) => {
   const confirmed = await window.customConfirm("⚠️ هل أنت متأكد من حذف هذا الطلب وإعادة الكميات إلى المخزون؟");
@@ -997,7 +1018,6 @@ window.calculateProfitFromEdit = () => {
     let profit = finalTotal - totalCost - shippingPaid;
     document.getElementById("editProfit").value = profit.toFixed(2);
 };
-
 
 window.saveEdit = async (id) => {
   let detailsCount = (orders.find(x => x.id === id)?.orderDetails || []).length;
@@ -1089,18 +1109,34 @@ window.toggleSelectAll = () => {
 };
 
 window.applyBulkStatus = async (newStatus) => {
-  let selected = document.querySelectorAll(".selectOrder:checked");
-  if (selected.length === 0) return;
-  const confirmed = await window.customConfirm(`تطبيق حالة "${newStatus === 'new' ? 'جديد' : newStatus === 'processing' ? 'قيد التجهيز' : newStatus === 'shipped' ? 'تم الشحن' : newStatus === 'delivered' ? 'تم التسليم' : 'لاغـي'}" على ${selected.length} طلب؟`);
-if (!confirmed) return;
-  let updates = [];
-  selected.forEach(cb => {
-    let card = cb.closest(".card");
-    let orderId = card.querySelector(".order-id")?.getAttribute("data-id");
-    if (orderId) updates.push(updateDoc(doc(db, "orders", orderId), { status: newStatus }));
-  });
-  try { await Promise.all(updates); customAlert(`تم تحديث ${updates.length} طلب بنجاح`, 'success'); clearAllSelections(); }
-  catch(e) { alert("❌ خطأ"); }
+    let selected = document.querySelectorAll(".selectOrder:checked");
+    if (selected.length === 0) return;
+    const confirmed = await window.customConfirm(`تطبيق حالة "${newStatus === 'new' ? 'جديد' : newStatus === 'processing' ? 'قيد التجهيز' : newStatus === 'shipped' ? 'تم الشحن' : newStatus === 'delivered' ? 'تم التسليم' : 'لاغـي'}" على ${selected.length} طلب؟`);
+    if (!confirmed) return;
+    
+    let successCount = 0;
+    for (const cb of selected) {
+        const card = cb.closest(".card");
+        const orderId = card.querySelector(".order-id")?.getAttribute("data-id");
+        if (!orderId) continue;
+        try {
+            await updateDoc(doc(db, "orders", orderId), { status: newStatus });
+            if (newStatus === 'shipped') {
+                const orderSnap = await getDoc(doc(db, "orders", orderId));
+                if (orderSnap.exists()) {
+                    const orderData = orderSnap.data();
+                    if (!orderData.qpSerial) {
+                        await createOrderInQP({ id: orderId, ...orderData });
+                    }
+                }
+            }
+            successCount++;
+        } catch(e) {
+            console.error(`❌ فشل تحديث الطلب ${orderId}:`, e);
+        }
+    }
+    customAlert(`✅ تم تحديث ${successCount} طلب بنجاح`, 'success');
+    clearAllSelections();
 };
 
 // تنسيق التاريخ (اليوم، أمس، أو يوم/شهر)
@@ -1332,8 +1368,7 @@ document.addEventListener("change", (e) => { if (e.target.classList.contains("se
 Notification.requestPermission();
 onAuthStateChanged(auth, (user) => {
     if (user) {
-        load();  // المستمع الوحيد للطلبات
-        // loadShippingRates(); // إذا كانت موجودة
+        load();
         listenForOrderStatusChanges();
         startPeriodicSync(3);
         console.log('✅ تم تفعيل المزامنة التلقائية مع QP Express');
@@ -1923,57 +1958,6 @@ window.copyToClipboard = function(text) {
         customAlert("❌ فشل النسخ", 'error');
     });
 };
-</script>
-<script>
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js').then(reg => {
-    console.log('Service Worker registered', reg);
-  }).catch(err => {
-    console.log('Service Worker registration failed', err);
-  });
-}
-</script>
-<!-- ========== تكامل QP Express ========== -->
-<script type="module">
-import { listenForOrderStatusChanges, startPeriodicSync, manualSyncOrders } from './js/sync-orders.js';
-import { addQPInfoToOrderCard, addSyncButtonToOrder } from './js/ui-integration.js';
-
-// تهيئة التكامل
-console.log('🚀 بدء تشغيل تكامل QP Express...');
-
-// بدء الاستماع لتغييرات الحالات
-listenForOrderStatusChanges();
-
-// بدء المزامنة الدورية
-startPeriodicSync(3); // كل 3 دقائق
-
-// إضافة أزرار المزامنة على الطلبات الموجودة
-document.addEventListener('DOMContentLoaded', function() {
-    // إضافة المزامنة لكل طلب موجود
-    setTimeout(() => {
-        document.querySelectorAll('.order-id').forEach(el => {
-            const orderId = el.getAttribute('data-id');
-            if (orderId) {
-                addSyncButtonToOrder(orderId);
-            }
-        });
-    }, 2000);
-});
-
-// جعل الدوال متاحة في النطاق العام
-window.manualSyncOrders = manualSyncOrders;
-
-// دالة للتحديث اليدوي
-window.syncQPOrders = async function() {
-    const result = await manualSyncOrders();
-    if (result.error) {
-        alert(`❌ ${result.error}`);
-    } else {
-        alert(`✅ تمت المزامنة:\n- ${result.syncedCount} طلب تم تحديث حالته\n- ${result.notesAddedCount} ملاحظة جديدة`);
-    }
-};
-
-console.log('✅ تم تفعيل تكامل QP Express بنجاح');
 </script>
 </body>
 </html>
