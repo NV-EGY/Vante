@@ -117,7 +117,15 @@ export async function processUpdates(updates) {
             const { serial, referenceID, field, new_value, notes } = update;
 
             if (field !== "Order_Delivery_Status") continue; // نهتم فقط بتحديث الحالة
-
+// إذا كان update يحتوي على has_return === true
+if (update.has_return && update.has_return === true) {
+    await updateDoc(doc(db, "orders", orderId), {
+        status: "returned",
+        notes: "مرتجع (تم إرجاع المنتج)"
+    });
+    console.log(`🔄 تم تحديث الطلب ${referenceID} إلى حالة مرتجع`);
+    continue; // نخرج من التكرار الحالي
+}
             // البحث عن الطلب في VANTÉ بواسطة referenceID (وهو orderID الخاص بنا)
             const q = query(collection(db, "orders"), where("orderID", "==", referenceID));
             const snap = await getDocs(q);
@@ -213,44 +221,85 @@ export function stopPeriodicSync() {
 }
 
 // =================== المزامنة اليدوية ===================
-export async function manualSyncOrders() {
-    try {
-        const pageSize = 200;
-        let page = 1;
-        let allUpdates = [];
+export async function processUpdates(updates) {
+    if (!updates || updates.length === 0) return;
 
-        // جلب جميع التحديثات من الصفحات (يمكن تحديد تاريخ معين لتقليل الحجم)
-        while (true) {
-            const data = await getOrderUpdateHistory(page, pageSize);
-            if (!data || !data.results || data.results.length === 0) break;
-            allUpdates = allUpdates.concat(data.results);
-            if (!data.next) break;
-            page++;
+    for (const update of updates) {
+        try {
+            const { serial, referenceID, field, new_value, notes } = update;
+
+            // ====== 1. البحث عن الطلب في VANTÉ ======
+            const q = query(collection(db, "orders"), where("orderID", "==", referenceID));
+            const snap = await getDocs(q);
+            if (snap.empty) {
+                console.warn(`⚠️ لم يتم العثور على طلب بالرقم ${referenceID}`);
+                continue;
+            }
+
+            const orderDoc = snap.docs[0];
+            const orderId = orderDoc.id;
+            const currentData = orderDoc.data();
+
+            // ====== 2. التعامل مع المرتجع (has_return) ======
+            if (update.has_return && update.has_return === true) {
+                await updateDoc(doc(db, "orders", orderId), {
+                    status: "returned",
+                    notes: "مرتجع (تم إرجاع المنتج)"
+                });
+                console.log(`🔄 تم تحديث الطلب ${referenceID} إلى حالة مرتجع`);
+                continue; // نخرج من التكرار الحالي
+            }
+
+            // ====== 3. باقي الحالات (تحديث الحالة) ======
+            if (field !== "Order_Delivery_Status") continue;
+
+            let newStatus = currentData.status;
+            let notesToAdd = "";
+
+            switch (new_value) {
+                case "Pending":
+                case "Out For Deliver":
+                    newStatus = "shipped";
+                    break;
+                case "Delivered":
+                    newStatus = "delivered";
+                    break;
+                case "Hold":
+                    newStatus = "hold";
+                    notesToAdd = notes || "معلق من قبل شركة الشحن";
+                    break;
+                case "Undelivered":
+                    newStatus = "cancelled";
+                    notesToAdd = notes || "موصلش للعميل (Undelivered) - لا مصاريف شحن";
+                    break;
+                case "Rejected":
+                    newStatus = "rejected";
+                    notesToAdd = notes || "العميل رفض الطلب - يتحمل مصاريف الشحن";
+                    break;
+                default:
+                    continue;
+            }
+
+            const updateData = {
+                status: newStatus,
+                qpStatus: new_value,
+                qpLastSync: serverTimestamp()
+            };
+
+            if (notesToAdd) {
+                updateData.notes = notesToAdd;
+            }
+
+            if (new_value === "Undelivered") {
+                updateData.shippingExempted = true;
+            }
+
+            await updateDoc(doc(db, "orders", orderId), updateData);
+            console.log(`🔄 تم تحديث الطلب ${referenceID} إلى حالة ${newStatus} (QP: ${new_value})`);
+
+        } catch (error) {
+            console.error("❌ خطأ في معالجة تحديث:", error);
         }
-
-        if (allUpdates.length === 0) {
-            console.log("ℹ️ لا توجد تحديثات جديدة من QP Express");
-            return { syncedCount: 0, notesAddedCount: 0 };
-        }
-
-        // تصفية التحديثات التي تحتوي على field === "Order_Delivery_Status"
-        const statusUpdates = allUpdates.filter(u => u.field === "Order_Delivery_Status");
-        if (statusUpdates.length === 0) {
-            console.log("ℹ️ لا توجد تحديثات حالة جديدة");
-            return { syncedCount: 0, notesAddedCount: 0 };
-        }
-
-        // معالجة التحديثات
-        await processUpdates(statusUpdates);
-
-        console.log(`✅ تمت مزامنة ${statusUpdates.length} طلب مع QP Express`);
-        return {
-            syncedCount: statusUpdates.length,
-            notesAddedCount: 0 // يمكننا حساب عدد الملاحظات المضافة
-        };
-    } catch (error) {
-        console.error("❌ فشل المزامنة اليدوية:", error);
-        return { error: error.message };
     }
 }
 
