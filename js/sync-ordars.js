@@ -129,7 +129,7 @@ export async function processUpdates(updates) {
         try {
             const { referenceID, field, new_value, notes } = update;
 
-            // 1. البحث عن الطلب
+            // 1. البحث عن الطلب (يتم هنا تعريف orderId)
             const q = query(collection(db, "orders"), where("orderID", "==", referenceID));
             const snap = await getDocs(q);
             if (snap.empty) {
@@ -138,10 +138,10 @@ export async function processUpdates(updates) {
             }
 
             const orderDoc = snap.docs[0];
-            const orderId = orderDoc.id;
+            const orderId = orderDoc.id;          // ✅ تم تعريف orderId هنا
             const currentData = orderDoc.data();
 
-            // 2. التعامل مع المرتجع (has_return)
+            // 2. التعامل مع المرتجع (has_return) - تم نقل الشرط إلى الأسفل
             if (update.has_return && update.has_return === true) {
                 await updateDoc(doc(db, "orders", orderId), {
                     status: "returned",
