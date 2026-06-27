@@ -52,12 +52,48 @@ async function getQPToken() {
     const data = await response.json();
     return data.token;
 }
+// =================== جلب معرف المدينة ===================
+// =================== جلب معرف المدينة ===================
+async function getCityId(cityName) {
+    if (!cityName) return null;
+    try {
+        // البحث عن المدينة في Firestore
+        const cityDoc = await getDoc(doc(db, "cities", cityName));
+        if (cityDoc.exists()) {
+            return cityDoc.data().id;
+        }
+        // إذا لم توجد، حاول البحث بالاسم بعد إزالة "أحياء أخرى"
+        const cleanName = cityName.replace("أحياء أخرى", "").trim();
+        if (cleanName && cleanName !== cityName) {
+            const cityDoc2 = await getDoc(doc(db, "cities", cleanName));
+            if (cityDoc2.exists()) {
+                return cityDoc2.data().id;
+            }
+        }
+        console.warn(`⚠️ لم يتم العثور على معرف للمدينة: ${cityName}`);
+        return null;
+    } catch (error) {
+        console.error("❌ خطأ في جلب معرف المدينة:", error);
+        return null;
+    }
+}
 
 // =================== إنشاء طلب في QP ===================
 export async function createOrderInQP(orderData) {
     try {
         const token = await getQPToken();
         const config = await loadQPConfig();
+
+        // جلب معرف المدينة من Firestore
+        let cityId = orderData.cityId; // إذا كان موجوداً مسبقاً
+        if (!cityId && orderData.city) {
+            cityId = await getCityId(orderData.city);
+        }
+        // إذا لم نجد معرف، نستخدم القيمة الافتراضية 1 (القاهرة)
+        if (!cityId) {
+            console.warn(`⚠️ استخدام معرف افتراضي (1) للمدينة: ${orderData.city || 'غير معروف'}`);
+            cityId = 1;
+        }
 
         const payload = {
             full_name: orderData.customerName || "",
@@ -68,7 +104,7 @@ export async function createOrderInQP(orderData) {
             order_date: new Date().toISOString(),
             shipment_contents: (orderData.orderDetails || []).map(item => `${item.name} (${item.size})`).join(', '),
             weight: "0.00",
-            city: orderData.city || "",
+            city: cityId,   // ✅ الآن نرسل رقم المعرف
             referenceID: orderData.orderID || ""
         };
 
@@ -80,6 +116,8 @@ export async function createOrderInQP(orderData) {
             },
             body: JSON.stringify(payload)
         });
+
+        //
 
         if (!response.ok) {
             const errorText = await response.text();
