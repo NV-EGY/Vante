@@ -72,7 +72,7 @@ export async function createOrderInQP(orderData) {
             referenceID: orderData.orderID || ""
         };
 
-        const response = await fetch(`${config.server_url}integration/order`, {
+        const response = await fetch(`${config.server_url}/integration/order`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -106,7 +106,7 @@ export async function getOrderUpdateHistory(page = 1, pageSize = 200) {
     try {
         const token = await getQPToken();
         const config = await loadQPConfig();
-        const url = `${config.server_url}integration/get_order_update_history?page=${page}&page_size=${pageSize}`;
+        const url = `${config.server_url}/integration/get_order_update_history?page=${page}&page_size=${pageSize}`;
         const response = await fetch(url, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
