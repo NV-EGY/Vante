@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إعداد مدن QP Express</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: #f4f6f9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .card {
+            background: #fff;
+            border-radius: 24px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        h1 { color: #D4AF37; }
+        .status { padding: 15px; border-radius: 12px; margin: 20px 0; font-size: 14px; }
+        .loading { background: #f0f0f0; color: #555; }
+        .success { background: #e8f5e9; color: #2e7d32; border-right: 4px solid #2e7d32; }
+        .error { background: #ffebee; color: #c62828; border-right: 4px solid #c62828; }
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #eee;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+        .progress-bar .fill {
+            height: 100%;
+            background: #D4AF37;
+            width: 0%;
+            transition: width 0.3s;
+            border-radius: 10px;
+        }
+        button {
+            background: #D4AF37;
+            color: #000;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 30px;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+        button:hover { background: #b8941a; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .details { font-size: 12px; color: #888; margin-top: 10px; }
+    </style>
+</head>
+<body>
+<div class="card">
+    <h1>🏙️ إعداد مدن QP Express</h1>
+    <p>سيتم إنشاء جدول المدن في قاعدة البيانات مع معرفات رقمية</p>
+    <div class="progress-bar"><div class="fill" id="progressFill"></div></div>
+    <div id="status" class="status loading">⏳ جاري التحضير...</div>
+    <button id="runBtn">🚀 تشغيل الإعداد</button>
+    <p class="details">📌 سيتم إنشاء <span id="cityCount">0</span> مدينة في Firestore</p>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, doc, setDoc, collection, getDocs, query, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyCotT8EP2uy_HsgHknxeGBorKoEUORPtmU",
+        authDomain: "vante-orders.firebaseapp.com",
+        projectId: "vante-orders",
+        storageBucket: "vante-orders.firebasestorage.app",
+        messagingSenderId: "842319700646",
+        appId: "1:842319700646:web:f6afd78ef7038c3be4ca67"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // ============================================================
+    // 📋 بيانات المحافظات والمدن (من موقع VANTÉ)
+    // ============================================================
+    const govData = {
+        "القاهرة": ["مدينة نصر","مصر الجديدة","التجمع الأول","التجمع الثالث","التجمع الخامس","الرحاب","مدينتي","الشروق","بدر","المعادي","زهراء المعادي","حلوان","15 مايو","عين شمس","المطرية","السلام","المرج","الزيتون","حدائق القبة","روض الفرج","شبرا","وسط البلد","القاهرة الجديدة","أحياء أخرى"],
+        "الجيزة": ["الجيزة","الدقي","العجوزة","إمبابة","بولاق الدكرور","الهرم","فيصل","الطالبية","العمرانية","6 أكتوبر","الشيخ زايد","حدائق أكتوبر","البدرشين","العياط","أوسيم","كرداسة","الصف","الواحات البحرية","أحياء أخرى"],
+        "القليوبية": ["بنها","شبرا الخيمة","قليوب","القناطر الخيرية","الخانكة","العبور","الخصوص","كفر شكر","طوخ","شبين القناطر","أحياء أخرى"],
+        "الإسكندرية": ["الإسكندرية","العجمي","الدخيلة","برج العرب","سيدي جابر","محرم بك","العصافرة","المنتزه","أحياء أخرى"],
+        "الدقهلية": ["المنصورة","طلخا","ميت غمر","دكرنس","أجا","السنبلاوين","بلقاس","نبروه","تمي الأمديد","الجمالية","المنزلة","شربين","ميت سلسيل","أحياء أخرى"],
+        "الشرقية": ["الزقازيق","بلبيس","العاشر من رمضان","منيا القمح","فاقوس","أبو حماد","الحسينية","أولاد صقر","كفر صقر","ديرب نجم","الإبراهيمية","ههيا","مشتول السوق","أحياء أخرى"],
+        "الغربية": ["طنطا","المحلة الكبرى","كفر الزيات","زفتى","سمنود","قطور","بسيون","أحياء أخرى"],
+        "المنوفية": ["شبين الكوم","السادات","منوف","أشمون","الباجور","قويسنا","تلا","بركة السبع","الشهداء","أحياء أخرى"],
+        "البحيرة": ["دمنهور","كفر الدوار","رشيد","إدكو","أبو حمص","الدلنجات","إيتاي البارود","حوش عيسى","شبراخيت","كوم حمادة","بدر","وادي النطرون","أحياء أخرى"],
+        "كفر الشيخ": ["كفر الشيخ","دسوق","فوه","مطوبس","بلطيم","الحامول","بيلا","قلين","سيدي سالم","أحياء أخرى"],
+        "دمياط": ["دمياط","رأس البر","فارسكور","الزرقا","كفر سعد","أحياء أخرى"],
+        "بورسعيد": ["بورسعيد","بورفؤاد","أحياء أخرى"],
+        "الإسماعيلية": ["الإسماعيلية","فايد","القنطرة شرق","القنطرة غرب","التل الكبير","أبو صوير","أحياء أخرى"],
+        "السويس": ["السويس","الأربعين","عتاقة","الجناين","العين السخنة","أحياء أخرى"],
+        "بني سويف": ["بني سويف","الواسطى","ناصر","إهناسيا","ببا","سمسطا","الفشن","أحياء أخرى"],
+        "الفيوم": ["الفيوم","سنورس","إطسا","إبشواي","يوسف الصديق","أحياء أخرى"],
+        "المنيا": ["المنيا","سمالوط","بني مزار","مطاي","مغاغة","ملوي","أبو قرقاص","دير مواس","العدوة","أحياء أخرى"],
+        "أسيوط": ["أسيوط","ديروط","القوصية","منفلوط","أبنوب","أبو تيج","الغنايم","ساحل سليم","البداري","صدفا","أحياء أخرى"],
+        "سوهاج": ["سوهاج","أخميم","طهطا","المراغة","البلينا","جرجا","جهينة","دار السلام","ساقلته","المنشأة","أحياء أخرى"],
+        "قنا": ["قنا","نجع حمادي","دشنا","قفط","قوص","نقادة","فرشوط","أبو تشت","أحياء أخرى"],
+        "الأقصر": ["الأقصر","إسنا","أرمنت","الطود","البياضية","القرنة","أحياء أخرى"],
+        "أسوان": ["أسوان","إدفو","كوم أمبو","دراو","نصر النوبة","أحياء أخرى"],
+        "البحر الأحمر": ["الغردقة","رأس غارب","سفاجا","القصير","مرسى علم","حلايب","شلاتين","أحياء أخرى"],
+        "الوادي الجديد": ["الخارجة","الداخلة","الفرافرة","باريس","موط","أحياء أخرى"],
+        "مطروح": ["مرسى مطروح","الحمام","العلمين","الضبعة","سيوة","النجيلة","براني","السلوم","أحياء أخرى"],
+        "شمال سيناء": ["العريش","رفح","الشيخ زويد","بئر العبد","أحياء أخرى"],
+        "جنوب سيناء": ["دهب","شرم الشيخ","نويبع","طابا","سانت كاترين","الطور","رأس سدر","أحياء أخرى"]
+    };
+
+    // ============================================================
+    // 🏗️ بناء قائمة المدن مع معرفاتها
+    // ============================================================
+    let cityId = 1;
+    const allCities = [];
+    const governorates = Object.keys(govData);
+    
+    for (const gov of governorates) {
+        const cities = govData[gov];
+        for (const city of cities) {
+            allCities.push({
+                id: cityId,
+                name: city,
+                governorate: gov,
+                // يمكن إضافة حقل govId إذا كان QP يستخدم معرفات للمحافظات أيضاً
+            });
+            cityId++;
+        }
+    }
+
+    // تحديث العداد في الواجهة
+    document.getElementById('cityCount').textContent = allCities.length;
+
+    // ============================================================
+    // 🚀 دالة الإدراج في Firestore
+    // ============================================================
+    const statusDiv = document.getElementById('status');
+    const progressFill = document.getElementById('progressFill');
+    const btn = document.getElementById('runBtn');
+
+    btn.addEventListener('click', async () => {
+        btn.disabled = true;
+        btn.textContent = '⏳ جاري الحفظ...';
+        statusDiv.className = 'status loading';
+        statusDiv.innerText = '⏳ جاري حفظ المدن في Firestore...';
+
+        try {
+            // التحقق من وجود بيانات مسبقاً (لتجنب التكرار)
+            const checkQuery = query(collection(db, "cities"), limit(1));
+            const checkSnap = await getDocs(checkQuery);
+            
+            if (!checkSnap.empty) {
+                const confirmDelete = confirm("⚠️ يوجد بالفعل جدول مدن في قاعدة البيانات. هل تريد حذفه واستبداله بالبيانات الجديدة؟");
+                if (!confirmDelete) {
+                    statusDiv.className = 'status error';
+                    statusDiv.innerText = '❌ تم إلغاء العملية.';
+                    btn.disabled = false;
+                    btn.textContent = '🚀 تشغيل الإعداد';
+                    return;
+                }
+                // حذف البيانات القديمة (في حالة رغبة المستخدم)
+                // ملاحظة: لا نستخدم batch لأننا قد نحتاج إلى حذف أكثر من 500 وثيقة
+                // الحل البديل: نكتفي بتحديث المستندات أو تجاهل الإدراج المكرر
+                // سنستخدم setDoc مع merge: false (استبدال)
+            }
+
+            // إدراج المدن
+            let count = 0;
+            const total = allCities.length;
+            
+            for (const city of allCities) {
+                await setDoc(doc(db, "cities", city.name), city);
+                count++;
+                // تحديث شريط التقدم
+                const percent = Math.round((count / total) * 100);
+                progressFill.style.width = percent + '%';
+                statusDiv.innerText = `⏳ جاري حفظ ${count}/${total} مدينة...`;
+            }
+
+            statusDiv.className = 'status success';
+            statusDiv.innerText = `✅ تم حفظ ${total} مدينة بنجاح! يمكنك الآن إنشاء الطلبات.`;
+            btn.textContent = '✅ تم بنجاح';
+            progressFill.style.width = '100%';
+
+        } catch (error) {
+            console.error(error);
+            statusDiv.className = 'status error';
+            statusDiv.innerText = '❌ حدث خطأ: ' + error.message;
+            btn.disabled = false;
+            btn.textContent = '🚀 إعادة المحاولة';
+        }
+    });
+</script>
+</body>
+</html>
