@@ -80,43 +80,23 @@ async function getCityId(cityName) {
 // =================== إنشاء طلب في QP ===================
 export async function createOrderInQP(orderData) {
     try {
-      
-if (orderData.qpSerial && !orderData.qpDeleted) {
-    console.log(`ℹ️ الطلب ${orderData.orderID} له بالفعل رقم شحنة ${orderData.qpSerial}، لن يتم إعادة إنشائه.`);
-    return null;
-}
+        // التحقق من وجود شحنة سابقة
+        if (orderData.qpSerial && !orderData.qpDeleted) {
+            console.log(`ℹ️ الطلب ${orderData.orderID} له بالفعل رقم شحنة ${orderData.qpSerial}، لن يتم إعادة إنشائه.`);
+            return null;
+        }
+
         const token = await getQPToken();
         const config = await loadQPConfig();
 
-        // جلب معرف المدينة
-        // جلب معرف المدينة
-let cityId = 1; // القيمة الافتراضية (القاهرة)
+        // ✅ استخدام معرف ثابت للقاهرة (1) حتى يتم الحصول على قائمة المدن الصحيحة من QP
+        // يمكنك تغيير هذا الرقم لاحقاً عند معرفة المعرف الصحيح لكل مدينة
+        const cityId = 1; 
 
-try {
-    if (orderData.city) {
-        const cityDoc = await getDoc(doc(db, "cities", orderData.city));
-        if (cityDoc.exists()) {
-            cityId = cityDoc.data().id;
-        }
-    }
-    // إذا لم نجد، نحاول البحث بالمحافظة
-    if (!cityId && orderData.gov) {
-        const q = query(collection(db, "cities"), where("governorate", "==", orderData.gov));
-        const querySnapshot = await getDocs(q);
-        if (!querySnapshot.empty) {
-            cityId = querySnapshot.docs[0].data().id;
-        }
-    }
-} catch (error) {
-    console.warn(`⚠️ فشل جلب معرف المدينة، استخدام المعرف الافتراضي (1):`, error.message);
-}
+        // تسجيل المدينة المستخدمة للمراجعة
+        console.log(`🏙️ سيتم استخدام معرف المدينة (${cityId}) للطلب ${orderData.orderID} (المدينة: ${orderData.city || orderData.gov || 'غير معروف'})`);
 
-// التأكد من أن cityId رقم صحيح (إن لم يكن، استخدم 1)
-if (!cityId || isNaN(cityId)) {
-    cityId = 1;
-    console.log(`ℹ️ تم استخدام المعرف الافتراضي (1) للمدينة: ${orderData.city || orderData.gov || 'غير معروف'}`);
-}
-
+        // بناء البيانات المطلوبة للـ API
         const payload = {
             full_name: orderData.customerName || "",
             phone: orderData.phone || "",
@@ -149,7 +129,7 @@ if (!cityId || isNaN(cityId)) {
             qpSerial: result.serial,
             qpStatus: result.Order_Delivery_Status || "Pending",
             qpLastSync: serverTimestamp(),
-            qpDeleted: false // ✅ إزالة علامة الحذف بعد الإنشاء
+            qpDeleted: false
         });
 
         console.log(`✅ تم إنشاء الطلب في QP برقم: ${result.serial}`);
