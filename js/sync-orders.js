@@ -77,21 +77,35 @@ async function getCityId(cityName) {
         return null;
     }
 }
-
+// نتحقق إذا كان هناك qpSerial و qpDeleted === false، فهذا يعني أن الطلب موجود بالفعل ولا نحتاج لإعادة الإنشاء
+if (orderData.qpSerial && !orderData.qpDeleted) {
+    console.log(`ℹ️ الطلب ${orderData.orderID} له بالفعل رقم شحنة ${orderData.qpSerial}، لن يتم إعادة إنشائه.`);
+    return null;
+}
 // =================== إنشاء طلب في QP ===================
 export async function createOrderInQP(orderData) {
     try {
         const token = await getQPToken();
         const config = await loadQPConfig();
 
-        // جلب معرف المدينة من Firestore
-        let cityId = orderData.cityId; // إذا كان موجوداً مسبقاً
+        // جلب معرف المدينة
+        let cityId = orderData.cityId;
         if (!cityId && orderData.city) {
             cityId = await getCityId(orderData.city);
         }
+        // إذا لم نجد، نحاول البحث باستخدام المحافظة (gov) إذا كانت موجودة
+        if (!cityId && orderData.gov) {
+            const citiesRef = collection(db, "cities");
+            const q = query(citiesRef, where("governorate", "==", orderData.gov));
+            const querySnapshot = await getDocs(q);
+            if (!querySnapshot.empty) {
+                cityId = querySnapshot.docs[0].data().id;
+                console.log(`ℹ️ تم العثور على مدينة (${querySnapshot.docs[0].data().name}) للمحافظة ${orderData.gov} برقم ${cityId}`);
+            }
+        }
         // إذا لم نجد معرف، نستخدم القيمة الافتراضية 1 (القاهرة)
         if (!cityId) {
-            console.warn(`⚠️ استخدام معرف افتراضي (1) للمدينة: ${orderData.city || 'غير معروف'}`);
+            console.warn(`⚠️ استخدام معرف افتراضي (1) للمدينة: ${orderData.city || orderData.gov || 'غير معروف'}`);
             cityId = 1;
         }
 
@@ -104,7 +118,7 @@ export async function createOrderInQP(orderData) {
             order_date: new Date().toISOString(),
             shipment_contents: (orderData.orderDetails || []).map(item => `${item.name} (${item.size})`).join(', '),
             weight: "0.00",
-            city: cityId,   // ✅ الآن نرسل رقم المعرف
+            city: cityId,
             referenceID: orderData.orderID || ""
         };
 
@@ -117,8 +131,6 @@ export async function createOrderInQP(orderData) {
             body: JSON.stringify(payload)
         });
 
-        //
-
         if (!response.ok) {
             const errorText = await response.text();
             throw new Error(`فشل إنشاء الطلب في QP: ${response.status} - ${errorText}`);
@@ -128,7 +140,8 @@ export async function createOrderInQP(orderData) {
         await updateDoc(doc(db, "orders", orderData.id), {
             qpSerial: result.serial,
             qpStatus: result.Order_Delivery_Status || "Pending",
-            qpLastSync: serverTimestamp()
+            qpLastSync: serverTimestamp(),
+            qpDeleted: false // ✅ إزالة علامة الحذف بعد الإنشاء
         });
 
         console.log(`✅ تم إنشاء الطلب في QP برقم: ${result.serial}`);
@@ -307,4 +320,55 @@ export function stopPeriodicSync() {
 export async function listenForOrderStatusChanges() {
     startPeriodicSync(3);
     console.log("👂 تم تفعيل الاستماع لتغييرات حالة الطلبات من QP Express");
+}
+// =================== إلغاء طلب في QP ===================
+export async function cancelOrderInQP(orderId, serial) {
+    try {
+        if (!serial) {
+            console.warn(`⚠️ لا يوجد serial للطلب ${orderId} لإلغائه.`);
+            // فقط نضع علامة الحذف في قاعدة البيانات
+            await updateDoc(doc(db, "orders", orderId), {
+                qpDeleted: true,
+                qpStatus: "Cancelled",
+                qpLastSync: serverTimestamp()
+            });
+            return { success: true, message: "تم وضع علامة إلغاء محلياً" };
+        }
+
+        const token = await getQPToken();
+        const config = await loadQPConfig();
+
+        // محاولة إلغاء الطلب عبر API (نفترض وجود endpoint /integration/cancel)
+        const response = await fetch(`${config.server_url}/integration/cancel`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ serial })
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            // إذا فشل الإلغاء، نكتفي بتحديث الحالة محلياً
+            console.warn(`⚠️ فشل إلغاء الطلب في QP: ${response.status} - ${errorText}`);
+        }
+
+        // تحديث الحقل qpDeleted في قاعدة البيانات
+        await updateDoc(doc(db, "orders", orderId), {
+            qpDeleted: true,
+            qpStatus: "Cancelled",
+            qpLastSync: serverTimestamp()
+        });
+
+        return { success: true, message: "تم إلغاء الطلب في QP (أو وضع علامة إلغاء محلياً)" };
+    } catch (error) {
+        console.error("❌ خطأ في إلغاء الطلب:", error);
+        // حتى في حالة الخطأ، نضع علامة الإلغاء محلياً لتجنب إعادة الإنشاء
+        await updateDoc(doc(db, "orders", orderId), {
+            qpDeleted: true,
+            qpLastSync: serverTimestamp()
+        });
+        return { success: false, error: error.message };
+    }
 }
