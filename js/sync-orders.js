@@ -89,25 +89,33 @@ if (orderData.qpSerial && !orderData.qpDeleted) {
         const config = await loadQPConfig();
 
         // جلب معرف المدينة
-        let cityId = orderData.cityId;
-        if (!cityId && orderData.city) {
-            cityId = await getCityId(orderData.city);
+        // جلب معرف المدينة
+let cityId = 1; // القيمة الافتراضية (القاهرة)
+
+try {
+    if (orderData.city) {
+        const cityDoc = await getDoc(doc(db, "cities", orderData.city));
+        if (cityDoc.exists()) {
+            cityId = cityDoc.data().id;
         }
-        // إذا لم نجد، نحاول البحث باستخدام المحافظة (gov) إذا كانت موجودة
-        if (!cityId && orderData.gov) {
-            const citiesRef = collection(db, "cities");
-            const q = query(citiesRef, where("governorate", "==", orderData.gov));
-            const querySnapshot = await getDocs(q);
-            if (!querySnapshot.empty) {
-                cityId = querySnapshot.docs[0].data().id;
-                console.log(`ℹ️ تم العثور على مدينة (${querySnapshot.docs[0].data().name}) للمحافظة ${orderData.gov} برقم ${cityId}`);
-            }
+    }
+    // إذا لم نجد، نحاول البحث بالمحافظة
+    if (!cityId && orderData.gov) {
+        const q = query(collection(db, "cities"), where("governorate", "==", orderData.gov));
+        const querySnapshot = await getDocs(q);
+        if (!querySnapshot.empty) {
+            cityId = querySnapshot.docs[0].data().id;
         }
-        // إذا لم نجد معرف، نستخدم القيمة الافتراضية 1 (القاهرة)
-        if (!cityId) {
-            console.warn(`⚠️ استخدام معرف افتراضي (1) للمدينة: ${orderData.city || orderData.gov || 'غير معروف'}`);
-            cityId = 1;
-        }
+    }
+} catch (error) {
+    console.warn(`⚠️ فشل جلب معرف المدينة، استخدام المعرف الافتراضي (1):`, error.message);
+}
+
+// التأكد من أن cityId رقم صحيح (إن لم يكن، استخدم 1)
+if (!cityId || isNaN(cityId)) {
+    cityId = 1;
+    console.log(`ℹ️ تم استخدام المعرف الافتراضي (1) للمدينة: ${orderData.city || orderData.gov || 'غير معروف'}`);
+}
 
         const payload = {
             full_name: orderData.customerName || "",
