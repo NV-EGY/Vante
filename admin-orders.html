@@ -884,6 +884,7 @@
 </div>
 
 <script type="module">
+  import { enhanceAllOrderCards, refreshSingleOrderCard } from './js/ui-integration.js';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, collection, query, orderBy, onSnapshot, updateDoc, deleteDoc, doc, serverTimestamp, getDoc, getDocs, where, addDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -1225,6 +1226,13 @@ function render() {
         </div>
         <div id="group-content-${groupId}" class="group-content" style="display: ${isOpen ? 'block' : 'none'};">
     `;
+    // داخل دالة render() في admin-orders.html
+// بعد السطر الذي ينفذ: document.getElementById("orders").innerHTML = html;
+
+// 🔥 نضيف هذا السطر لتزيين البطاقات
+enhanceAllOrderCards(orders);
+// عندما يتغير طلب معين
+refreshSingleOrderCard(updatedOrderId);
     
     for (let o of ordersInDay) {
       totalOrders++;
@@ -1972,28 +1980,6 @@ window.copyToClipboard = function(text) {
         customAlert("❌ فشل النسخ", 'error');
     });
 };
-// جعل الدوال المستخدمة في HTML عامة
-window.updateBulkBar = updateBulkBar;
-window.manualSyncOrders = manualSyncOrders;
-window.render = render;
-window.toggleDayGroup = toggleDayGroup;
-window.toggleOrder = toggleOrder;
-window.copyText = copyText;
-window.setFilter = setFilter;
-window.toggleInbox = toggleInbox;
-window.openDatePicker = openDatePicker;
-window.closeMsg = closeMsg;
-window.openAdminLightbox = openAdminLightbox;
-window.showPopup = showPopup;
-window.printSelected = printSelected;
-window.editOrder = editOrder;
-window.deleteOrder = deleteOrder;
-window.applyBulkStatus = applyBulkStatus;
-window.clearAllSelections = clearAllSelections;
-window.toggleSelectAll = toggleSelectAll;
-window.goToProducts = goToProducts;
-window.customConfirm = customConfirm;
-window.customAlert = customAlert;
 </script>
 </body>
 </html>
