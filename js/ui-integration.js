@@ -53,6 +53,9 @@ export function injectQPInfo(orderElement, orderData) {
         // نعرض الملاحظات العامة إذا لم تكن متعلقة بـ QP
         html += ` | 📝 ${orderData.notes}`;
     }
+    if (orderData.qpDeleted) {
+    html += ` | 🚫 (ملغى في QP)`;
+}
 
     // تحديث المحتوى
     infoDiv.innerHTML = html;
@@ -176,7 +179,4 @@ export async function refreshSingleOrderCard(orderId) {
     } catch (e) {
         console.warn("فشل تحديث بطاقة فردية:", e);
     }
-}
-if (orderData.qpDeleted) {
-    html += ` | 🚫 (ملغى في QP)`;
 }
