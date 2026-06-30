@@ -89,14 +89,10 @@ export async function createOrderInQP(orderData) {
         const token = await getQPToken();
         const config = await loadQPConfig();
 
-        // ✅ استخدام معرف ثابت للقاهرة (1) حتى يتم الحصول على قائمة المدن الصحيحة من QP
-        // يمكنك تغيير هذا الرقم لاحقاً عند معرفة المعرف الصحيح لكل مدينة
+        // ✅ تعيين معرف المدينة بشكل ثابت (القاهرة) حتى يتم الحصول على القائمة الصحيحة من QP
         const cityId = 1; 
+        console.log(`🏙️ سيتم استخدام معرف المدينة (${cityId}) للطلب ${orderData.orderID}`);
 
-        // تسجيل المدينة المستخدمة للمراجعة
-        console.log(`🏙️ سيتم استخدام معرف المدينة (${cityId}) للطلب ${orderData.orderID} (المدينة: ${orderData.city || orderData.gov || 'غير معروف'})`);
-
-        // بناء البيانات المطلوبة للـ API
         const payload = {
             full_name: orderData.customerName || "",
             phone: orderData.phone || "",
