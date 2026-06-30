@@ -77,14 +77,14 @@ async function getCityId(cityName) {
         return null;
     }
 }
-// نتحقق إذا كان هناك qpSerial و qpDeleted === false، فهذا يعني أن الطلب موجود بالفعل ولا نحتاج لإعادة الإنشاء
+// =================== إنشاء طلب في QP ===================
+export async function createOrderInQP(orderData) {
+    try {
+      
 if (orderData.qpSerial && !orderData.qpDeleted) {
     console.log(`ℹ️ الطلب ${orderData.orderID} له بالفعل رقم شحنة ${orderData.qpSerial}، لن يتم إعادة إنشائه.`);
     return null;
 }
-// =================== إنشاء طلب في QP ===================
-export async function createOrderInQP(orderData) {
-    try {
         const token = await getQPToken();
         const config = await loadQPConfig();
 
