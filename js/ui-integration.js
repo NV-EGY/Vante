@@ -177,3 +177,6 @@ export async function refreshSingleOrderCard(orderId) {
         console.warn("فشل تحديث بطاقة فردية:", e);
     }
 }
+if (orderData.qpDeleted) {
+    html += ` | 🚫 (ملغى في QP)`;
+}
