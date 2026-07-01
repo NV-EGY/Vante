@@ -53,8 +53,9 @@ export function injectQPInfo(orderElement, orderData) {
         // نعرض الملاحظات العامة إذا لم تكن متعلقة بـ QP
         html += ` | 📝 ${orderData.notes}`;
     }
-    if (orderData.qpDeleted) {
-    html += ` | 🚫 (ملغى في QP)`;
+    // داخل injectQPInfo
+if (orderData.qpDeleted) {
+    html += ` | 🚫 <span style="color:#e74c3c;">ملغى في QP</span>`;
 }
 
     // تحديث المحتوى
