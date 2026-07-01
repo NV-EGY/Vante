@@ -318,54 +318,26 @@ export async function listenForOrderStatusChanges() {
     console.log("👂 تم تفعيل الاستماع لتغييرات حالة الطلبات من QP Express");
 }
 // =================== إلغاء طلب في QP ===================
+// =================== إلغاء طلب في QP (محلياً) ===================
 export async function cancelOrderInQP(orderId, serial) {
     try {
-        // إذا لم يوجد serial، فقط نضع علامة الحذف
-        if (!serial) {
-            await updateDoc(doc(db, "orders", orderId), {
-                qpDeleted: true,
-                qpStatus: "Cancelled",
-                qpSerial: null,
-                qpLastSync: serverTimestamp()
-            });
-            return { success: true, message: "تم وضع علامة إلغاء محلياً" };
-        }
-
-        const token = await getQPToken();
-        const config = await loadQPConfig();
-
-        // محاولة إلغاء الطلب عبر API
-        const response = await fetch(`${config.server_url}/integration/cancel`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ serial })
-        });
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.warn(`⚠️ فشل إلغاء الطلب في QP: ${response.status} - ${errorText}`);
-        }
-
-        // بغض النظر عن نتيجة API، نضع علامة الإلغاء في قاعدة البيانات
+        // بغض النظر عن الـ serial، نضع علامة الإلغاء محلياً
+        // لأن نظام QP لا يوفر نقطة نهاية للإلغاء حالياً
+        console.log(`🗑️ إلغاء الطلب ${orderId} محلياً (serial: ${serial || 'غير موجود'})`);
+        
         await updateDoc(doc(db, "orders", orderId), {
             qpDeleted: true,
-            qpStatus: "Cancelled",
-            qpSerial: null, // إزالة الرقم التسلسلي
+            qpStatus: "Cancelled (local)",
+            qpSerial: null,          // إزالة الرقم التسلسلي
             qpLastSync: serverTimestamp()
         });
-
-        return { success: true, message: "تم إلغاء الطلب في QP (أو وضع علامة إلغاء محلياً)" };
+        
+        return { 
+            success: true, 
+            message: "تم وضع علامة إلغاء محلياً (API الإلغاء غير متوفر في QP Express)" 
+        };
     } catch (error) {
-        console.error("❌ خطأ في إلغاء الطلب:", error);
-        // حتى في حالة الخطأ، نضع علامة الإلغاء محلياً
-        await updateDoc(doc(db, "orders", orderId), {
-            qpDeleted: true,
-            qpStatus: "Cancelled",
-            qpLastSync: serverTimestamp()
-        });
+        console.error("❌ خطأ في تحديث حالة الإلغاء محلياً:", error);
         return { success: false, error: error.message };
     }
 }
