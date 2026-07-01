@@ -54,27 +54,36 @@ async function getQPToken() {
 }
 // =================== جلب معرف المدينة ===================
 // =================== جلب معرف المدينة ===================
-async function getCityId(cityName) {
-    if (!cityName) return null;
+// استبدل دالة getCityId بالكود التالي
+async function getCityId(govName) {
+    if (!govName) return 1; // fallback للقاهرة
+
     try {
-        // البحث عن المدينة في Firestore
-        const cityDoc = await getDoc(doc(db, "cities", cityName));
-        if (cityDoc.exists()) {
-            return cityDoc.data().id;
+        // 1. البحث عن المحافظة في جدول cities
+        const citiesRef = collection(db, "cities");
+        const q = query(citiesRef, where("governorate", "==", govName));
+        const snap = await getDocs(q);
+        if (!snap.empty) {
+            return snap.docs[0].data().id;
         }
-        // إذا لم توجد، حاول البحث بالاسم بعد إزالة "أحياء أخرى"
-        const cleanName = cityName.replace("أحياء أخرى", "").trim();
-        if (cleanName && cleanName !== cityName) {
-            const cityDoc2 = await getDoc(doc(db, "cities", cleanName));
-            if (cityDoc2.exists()) {
-                return cityDoc2.data().id;
-            }
+
+        // 2. إذا لم نجد، نحاول البحث باسم المحافظة كـ city name
+        const docSnap = await getDoc(doc(db, "cities", govName));
+        if (docSnap.exists()) {
+            return docSnap.data().id;
         }
-        console.warn(`⚠️ لم يتم العثور على معرف للمدينة: ${cityName}`);
-        return null;
+
+        // 3. إذا لم نجد، نبحث في جدول المحافظات (governorates) إن وجد
+        const govDoc = await getDoc(doc(db, "governorates", govName));
+        if (govDoc.exists()) {
+            return govDoc.data().cityId; // افترض وجود حقل cityId
+        }
+
+        console.warn(`⚠️ لم يتم العثور على معرف للمحافظة: ${govName}`);
+        return 1; // fallback للقاهرة
     } catch (error) {
-        console.error("❌ خطأ في جلب معرف المدينة:", error);
-        return null;
+        console.error("❌ خطأ في جلب معرف المحافظة:", error);
+        return 1;
     }
 }
 // =================== إنشاء طلب في QP ===================
@@ -89,20 +98,23 @@ export async function createOrderInQP(orderData) {
         const token = await getQPToken();
         const config = await loadQPConfig();
 
-        // ✅ تعيين معرف المدينة بشكل ثابت (القاهرة) حتى يتم الحصول على القائمة الصحيحة من QP
-        const cityId = 1; 
-        console.log(`🏙️ سيتم استخدام معرف المدينة (${cityId}) للطلب ${orderData.orderID}`);
+        // ✅ جلب معرف المحافظة الصحيح
+        const cityId = await getCityId(orderData.gov);
+        console.log(`🏙️ تم استخدام معرف المدينة (${cityId}) للمحافظة ${orderData.gov}`);
+
+        // ✅ تجميع العنوان التفصيلي والمدينة في حقل address
+        const fullAddress = `المدينة: ${orderData.city || ''}، ${orderData.address || ''}`;
 
         const payload = {
             full_name: orderData.customerName || "",
             phone: orderData.phone || "",
-            address: orderData.address || "",
+            address: fullAddress,   // هنا نضع العنوان الكامل
             total_amount: Number(orderData.finalTotal) || 0,
             notes: orderData.notes || "",
             order_date: new Date().toISOString(),
             shipment_contents: (orderData.orderDetails || []).map(item => `${item.name} (${item.size})`).join(', '),
             weight: "0.00",
-            city: cityId,
+            city: cityId,           // المعرف الصحيح للمحافظة
             referenceID: orderData.orderID || ""
         };
 
@@ -308,12 +320,12 @@ export async function listenForOrderStatusChanges() {
 // =================== إلغاء طلب في QP ===================
 export async function cancelOrderInQP(orderId, serial) {
     try {
+        // إذا لم يوجد serial، فقط نضع علامة الحذف
         if (!serial) {
-            console.warn(`⚠️ لا يوجد serial للطلب ${orderId} لإلغائه.`);
-            // فقط نضع علامة الحذف في قاعدة البيانات
             await updateDoc(doc(db, "orders", orderId), {
                 qpDeleted: true,
                 qpStatus: "Cancelled",
+                qpSerial: null,
                 qpLastSync: serverTimestamp()
             });
             return { success: true, message: "تم وضع علامة إلغاء محلياً" };
@@ -322,7 +334,7 @@ export async function cancelOrderInQP(orderId, serial) {
         const token = await getQPToken();
         const config = await loadQPConfig();
 
-        // محاولة إلغاء الطلب عبر API (نفترض وجود endpoint /integration/cancel)
+        // محاولة إلغاء الطلب عبر API
         const response = await fetch(`${config.server_url}/integration/cancel`, {
             method: 'POST',
             headers: {
@@ -334,23 +346,24 @@ export async function cancelOrderInQP(orderId, serial) {
 
         if (!response.ok) {
             const errorText = await response.text();
-            // إذا فشل الإلغاء، نكتفي بتحديث الحالة محلياً
             console.warn(`⚠️ فشل إلغاء الطلب في QP: ${response.status} - ${errorText}`);
         }
 
-        // تحديث الحقل qpDeleted في قاعدة البيانات
+        // بغض النظر عن نتيجة API، نضع علامة الإلغاء في قاعدة البيانات
         await updateDoc(doc(db, "orders", orderId), {
             qpDeleted: true,
             qpStatus: "Cancelled",
+            qpSerial: null, // إزالة الرقم التسلسلي
             qpLastSync: serverTimestamp()
         });
 
         return { success: true, message: "تم إلغاء الطلب في QP (أو وضع علامة إلغاء محلياً)" };
     } catch (error) {
         console.error("❌ خطأ في إلغاء الطلب:", error);
-        // حتى في حالة الخطأ، نضع علامة الإلغاء محلياً لتجنب إعادة الإنشاء
+        // حتى في حالة الخطأ، نضع علامة الإلغاء محلياً
         await updateDoc(doc(db, "orders", orderId), {
             qpDeleted: true,
+            qpStatus: "Cancelled",
             qpLastSync: serverTimestamp()
         });
         return { success: false, error: error.message };
