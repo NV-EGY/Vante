@@ -915,37 +915,116 @@ window.openMsg = async (id) => {
   document.getElementById("messageView").innerHTML = `<div style="text-align:right"><div style="font-size:18px;font-weight:bold;">👤 ${m.name}</div><div style="color:#666;">📞 ${m.phone}</div><hr><div>💬 ${m.message}</div><a href="https://wa.me/2${m.phone}" target="_blank" style="display:block;margin-top:15px;background:#25D366;color:#fff;padding:10px;border-radius:10px;text-align:center;">💬 رد واتساب</a></div>`;
 };
 
+// =================== دالة تحديث حالة فردية ===================
 window.update = async (id, status) => {
     try {
+        // 1. جلب أحدث بيانات الطلب
         const orderSnap = await getDoc(doc(db, "orders", id));
         if (!orderSnap.exists()) throw new Error("الطلب غير موجود");
         const orderData = orderSnap.data();
 
-        // تحديث الحالة أولاً
+        console.log(`🔄 محاولة تغيير حالة الطلب ${orderData.orderID} إلى ${status}`);
+        console.log(`📦 بيانات QP الحالية: serial=${orderData.qpSerial}, deleted=${orderData.qpDeleted}`);
+
+        // 2. تحديث الحالة في Firestore
         await updateDoc(doc(db, "orders", id), { status });
 
-        // التعامل مع QP بناءً على الحالة الجديدة
+        // 3. التعامل مع QP
         if (status === "shipped") {
+            // إنشاء شحنة جديدة في QP
             if (!orderData.qpSerial || orderData.qpDeleted === true) {
+                console.log(`🚀 إنشاء شحنة جديدة للطلب ${orderData.orderID}`);
                 await createOrderInQP({ id, ...orderData });
             } else {
                 console.log(`ℹ️ الطلب ${orderData.orderID} لديه بالفعل رقم شحنة ${orderData.qpSerial}`);
             }
         } else {
-            // الحالة الجديدة ليست shipped
-            // إذا كان هناك qpSerial ولم يتم حذفه مسبقاً، نلغي الطلب
+            // الحالة الجديدة ليست shipped → نحاول إلغاء الشحنة
             if (orderData.qpSerial && orderData.qpDeleted !== true) {
+                console.log(`🗑️ محاولة إلغاء الشحنة ${orderData.qpSerial} للطلب ${orderData.orderID}`);
                 await cancelOrderInQP(id, orderData.qpSerial);
+            } else if (orderData.qpSerial && orderData.qpDeleted === true) {
+                console.log(`ℹ️ الطلب ${orderData.orderID} ملغى بالفعل في QP`);
             } else {
-                console.log(`ℹ️ لا يوجد طلب نشط في QP لإلغائه للطلب ${orderData.orderID}`);
+                console.log(`ℹ️ لا يوجد شحنة نشطة لإلغائها للطلب ${orderData.orderID}`);
+                // ✅ حتى لو لم يوجد serial، نضع علامة الإلغاء لضمان إخفاء أي بيانات وهمية
+                await updateDoc(doc(db, "orders", id), {
+                    qpDeleted: true,
+                    qpStatus: "Cancelled (local)",
+                    qpSerial: null
+                });
             }
         }
 
-        customAlert("تم تحديث الحالة بنجاح", 'success');
+        // 4. عرض رسالة نجاح
+        customAlert("✅ تم تحديث الحالة بنجاح", 'success');
+        
+        // 5. إعادة الرسم الفوري (للتأكد من تحديث الواجهة)
+        render();
+
     } catch(e) {
-        console.error(e);
-        customAlert("حدث خطأ أثناء الحفظ", 'error');
+        console.error("❌ خطأ في تحديث الحالة:", e);
+        customAlert("❌ حدث خطأ أثناء الحفظ: " + e.message, 'error');
     }
+};
+
+// =================== دالة تحديث مجموعة (Bulk) ===================
+window.applyBulkStatus = async (newStatus) => {
+    let selected = document.querySelectorAll(".selectOrder:checked");
+    if (selected.length === 0) {
+        customAlert("⚠️ يرجى اختيار طلب واحد على الأقل", 'warning');
+        return;
+    }
+    
+    const confirmed = await window.customConfirm(`تطبيق حالة "${newStatus}" على ${selected.length} طلب؟`);
+    if (!confirmed) return;
+    
+    let successCount = 0;
+    let errorCount = 0;
+    
+    for (const cb of selected) {
+        const card = cb.closest(".card");
+        const orderId = card.querySelector(".order-id")?.getAttribute("data-id");
+        if (!orderId) continue;
+        
+        try {
+            // جلب أحدث بيانات الطلب
+            const orderSnap = await getDoc(doc(db, "orders", orderId));
+            if (!orderSnap.exists()) continue;
+            const orderData = orderSnap.data();
+            
+            console.log(`🔄 تحديث جماعي: ${orderData.orderID} → ${newStatus}`);
+            
+            // تحديث الحالة
+            await updateDoc(doc(db, "orders", orderId), { status: newStatus });
+            
+            // التعامل مع QP
+            if (newStatus === "shipped") {
+                if (!orderData.qpSerial || orderData.qpDeleted === true) {
+                    await createOrderInQP({ id: orderId, ...orderData });
+                }
+            } else {
+                if (orderData.qpSerial && orderData.qpDeleted !== true) {
+                    await cancelOrderInQP(orderId, orderData.qpSerial);
+                } else {
+                    // حتى لو لم يوجد serial، نضع علامة الإلغاء
+                    await updateDoc(doc(db, "orders", orderId), {
+                        qpDeleted: true,
+                        qpStatus: "Cancelled (local)",
+                        qpSerial: null
+                    });
+                }
+            }
+            successCount++;
+        } catch(e) {
+            console.error(`❌ فشل تحديث الطلب ${orderId}:`, e);
+            errorCount++;
+        }
+    }
+    
+    customAlert(`✅ تم تحديث ${successCount} طلب بنجاح${errorCount > 0 ? `، فشل ${errorCount} طلب` : ''}`, 'success');
+    clearAllSelections();
+    render(); // تحديث الواجهة فوراً
 };
 
 window.deleteOrder = async (id) => {
@@ -1121,45 +1200,6 @@ window.toggleSelectAll = () => {
   }
   
   updateBulkBar();
-};
-
-window.applyBulkStatus = async (newStatus) => {
-    let selected = document.querySelectorAll(".selectOrder:checked");
-    if (selected.length === 0) return;
-    const confirmed = await window.customConfirm(`تطبيق حالة "${newStatus}" على ${selected.length} طلب؟`);
-    if (!confirmed) return;
-    
-    let successCount = 0;
-    for (const cb of selected) {
-        const card = cb.closest(".card");
-        const orderId = card.querySelector(".order-id")?.getAttribute("data-id");
-        if (!orderId) continue;
-        try {
-            // جلب بيانات الطلب الحالية
-            const orderSnap = await getDoc(doc(db, "orders", orderId));
-            if (!orderSnap.exists()) continue;
-            const orderData = orderSnap.data();
-
-            // تحديث الحالة
-            await updateDoc(doc(db, "orders", orderId), { status: newStatus });
-
-            // التعامل مع QP
-            if (newStatus === "shipped") {
-                if (!orderData.qpSerial || orderData.qpDeleted === true) {
-                    await createOrderInQP({ id: orderId, ...orderData });
-                }
-            } else {
-                if (orderData.qpSerial && orderData.qpDeleted !== true) {
-                    await cancelOrderInQP(orderId, orderData.qpSerial);
-                }
-            }
-            successCount++;
-        } catch(e) {
-            console.error(`❌ فشل تحديث الطلب ${orderId}:`, e);
-        }
-    }
-    customAlert(`✅ تم تحديث ${successCount} طلب بنجاح`, 'success');
-    clearAllSelections();
 };
 
 // تنسيق التاريخ (اليوم، أمس، أو يوم/شهر)
