@@ -1048,39 +1048,28 @@ window.clearQPSerial = async (id) => {
     }
 };
 window.sendWhatsAppLinks = function(orderId) {
-    // جلب بيانات الطلب من مصفوفة orders (المتاحة عالمياً)
-    const orderData = orders.find(o => o.id === orderId);
-    if (!orderData) {
+    // جلب بيانات الطلب من المصفوفة العالمية orders
+    const o = orders.find(order => order.id === orderId);
+    if (!o) {
         customAlert('❌ الطلب غير موجود', 'error');
         return;
     }
 
-    const orderID = orderData.orderID;
-    const phone = orderData.phone;
+    // مفتاح الأمان (يجب أن يكون مطابقاً لما في index.html)
     const secret = 'your-secret-key'; 
     const hash = btoa(orderId + secret);
     const confirmLink = `https://vante.sbs/?confirm=${orderId}&hash=${hash}`;
     const rejectLink = `https://vante.sbs/?reject=${orderId}&hash=${hash}`;
+    
+    // ✅ الرسالة الجديدة المختصرة حسب طلبك
+    let message = `🛒 مرحباً ${o.customerName || 'عميلنا'}\n`;
+    message += `طلبك رقم ${o.orderID}\n\n`;
+    message += `✅ لتأكيد استلام الطلب، اضغط على الرابط:\n${confirmLink}\n\n`;
+    message += `❌ لرفض الطلب، اضغط على الرابط:\n${rejectLink}\n\n`;
+    message += `شكراً لتسوقك مع VANTÉ ✨`;
 
-    let details = `🛍️ طلب جديد - VANTÉ\n\n`;
-    details += `📦 رقم الطلب: ${orderID}\n`;
-    details += `👤 الاسم: ${orderData.customerName || 'غير معروف'}\n`;
-    details += `📱 الهاتف: ${phone}\n`;
-    details += `📍 المحافظة: ${orderData.gov || ''}\n`;
-    details += `🏙️ المدينة: ${orderData.city || ''}\n`;
-    details += `🏠 العنوان: ${orderData.address || ''}\n\n`;
-    details += `💎 المنتجات:\n`;
-    (orderData.orderDetails || []).forEach(item => {
-        details += `- ${item.name} (${item.size}) × ${item.qty} = ${item.price * item.qty} جنيه\n`;
-    });
-    details += `\n💰 الإجمالي: ${orderData.finalTotal || 0} جنيه\n`;
-    details += `🚚 الشحن: ${orderData.shipping || 0} جنيه\n\n`;
-    details += `✅ لتأكيد الطلب، اضغط على الرابط:\n${confirmLink}\n\n`;
-    details += `❌ لرفض الطلب، اضغط على الرابط:\n${rejectLink}\n\n`;
-    details += `شكراً لتسوقك مع VANTÉ ✨`;
-
-    const encoded = encodeURIComponent(details);
-    const waUrl = `https://wa.me/2${phone}?text=${encoded}`;
+    const encoded = encodeURIComponent(message);
+    const waUrl = `https://wa.me/2${o.phone}?text=${encoded}`;
     window.open(waUrl, '_blank');
 };
 window.deleteOrder = async (id) => {
