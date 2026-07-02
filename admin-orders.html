@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="ar">
 <head>
-
 <!-- PWA لكل تطبيق على حدة (طلبات) -->
 <link rel="manifest" href="manifest-orders.json">
 <meta name="mobile-web-app-capable" content="yes">
@@ -1049,6 +1048,10 @@ window.clearQPSerial = async (id) => {
     }
 };
 window.sendWhatsAppLinks = function(orderId, orderID, phone, orderData) {
+    const secret = 'your-secret-key'; // ضع مفتاحاً سرياً
+    const hash = btoa(orderId + secret); // تشفير بسيط
+    const confirmLink = `https://vante.sbs/?confirm=${orderId}&hash=${hash}`;
+    const rejectLink = `https://vante.sbs/?reject=${orderId}&hash=${hash}`;
     // بناء تفاصيل الطلب
     let details = `🛍️ طلب جديد - VANTÉ\n\n`;
     details += `📦 رقم الطلب: ${orderID}\n`;
