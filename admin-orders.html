@@ -1272,74 +1272,44 @@ const isOpen = openStates[o.id] !== undefined ? openStates[o.id] : false;
     `;
     
     for (let o of ordersInDay) {
-      totalOrders++;
-      let status = o.status || "new";
-      let statusText = {
-    new: 'جديد',
-    confirmed: 'تم التأكيد',
-    processing: 'قيد التجهيز',
-    shipped: 'جاري الشحن',
-    delivered: 'تم التسليم',
-    returned: 'مرتجع',
-    cancelled: 'لاغـي',
-    hold: 'معلق',
-    undelivered: 'لم يصل',
-    rejected: 'رفض'
-}[status] || status;
-      let msg = `VANTÉ\nكود: ${o.orderID}\n👤 ${o.customerName}\n📞 ${o.phone}\n📍 ${o.gov} - ${o.city}\n${o.address}\n💎 ${(o.orderDetails || []).map(i => `${i.name} (${i.size}) x${i.qty}`).join(', ')}\n💰 ${o.finalTotal} جنيه`;
-      
-      let couponHtml = '';
-      if (o.coupon) {
-        couponHtml = `<div style="background:#fef9e6; padding:8px; border-radius:12px; margin-top:8px; text-align:center;">
-            خصم ${o.coupon.discountType === 'percentage' ? o.coupon.discountValue + '%' : o.coupon.discountValue + ' جنيه'} 
-            | قيمته: <span style="color:#e67e22;">${o.coupon.discountAmount} جنيه</span>
-            <br><small>الإجمالي بعد الخصم: ${o.finalTotal} جنيه</small>
-        </div>`;
-      }
-      
-      const orderTime = o.createdAt?.toDate?.() ? formatOrderTime(o.createdAt.toDate()) : '';
-      // معلومات QP
-let qpInfoHtml = '';
-if (o.qpSerial) {
-    qpInfoHtml = `
-    <div class="qp-info" style="margin-top:8px; font-size:12px; color:#555; background:#f8f9fa; padding:6px 12px; border-radius:8px;">
-        <span style="font-weight:bold;">🚚 QP:</span> رقم الشحنة: ${o.qpSerial}
-        ${o.qpStatus ? ` | حالة QP: ${o.qpStatus}` : ''}
-        ${o.notes ? ` | ملاحظة: ${o.notes}` : ''}
-    </div>`;
-}
-      
-      html += `<div class="card ${status}" style="position:relative;">
-        <div class="order-header">
-          <input type="checkbox" class="selectOrder" onchange="this.closest('.card').style.background = this.checked ? '#e6fff2' : '#fff'; updateBulkBar();">
-          <span class="order-id" data-id="${o.id}" onclick="toggleOrder('${o.id}')">${o.orderID}</span>
-          <span class="status ${status}" onclick="toggleOrder('${o.id}')">${statusText}</span>
-        </div>
-        <div id="order-${o.id}" class="order-body">
-          <div class="order-info">
-            👤 ${o.customerName}<br>
-            📞 ${o.phone}<br>
-            📍 ${o.gov} - ${o.city}<br>
-            ${o.address}<br><br>
+  totalOrders++;
+  let status = o.status || "new";
+  // ... باقي الكود (statusText, msg, couponHtml, orderTime, qpInfoHtml)
+  
+  // ✅ تعريف isOpen هنا (داخل الحلقة)
+  const isOpen = openStates[o.id] !== undefined ? openStates[o.id] : false;
+
+  // بناء البطاقة مع استخدام isOpen في style الخاص بـ order-body
+  html += `<div class="card ${status}" style="position:relative;">
+    <div class="order-header">
+      <input type="checkbox" class="selectOrder" onchange="this.closest('.card').style.background = this.checked ? '#e6fff2' : '#fff'; updateBulkBar();">
+      <span class="order-id" data-id="${o.id}" onclick="toggleOrder('${o.id}')">${o.orderID}</span>
+      <span class="status ${status}" onclick="toggleOrder('${o.id}')">${statusText}</span>
+    </div>
+    <div id="order-${o.id}" class="order-body" style="display: ${isOpen ? 'flex' : 'none'};">
+      <div class="order-info">
+        👤 ${o.customerName}<br>
+        📞 ${o.phone}<br>
+        📍 ${o.gov} - ${o.city}<br>
+        ${o.address}<br><br>
 💎 تفاصيل الطلب:
 <div style="display:flex; flex-direction:column; gap:8px; margin-top:6px;">
 ${(o.orderDetails || []).map(item => `<div style="display:flex; align-items:center; gap:8px; background:#f9f9f9; padding:8px; border-radius:10px;">
     ${item.image ? `<img src="${item.image}" style="width:40px; height:40px; object-fit:cover; border-radius:8px; cursor:pointer;" onclick="event.stopPropagation(); window.openAdminLightbox('${item.image}')">` : '<div style="width:40px; height:40px; background:#eee; border-radius:8px; display:flex; align-items:center; justify-content:center;">📷</div>'}
     <div><b>${item.name || 'بدون اسم'}</b><br>🔖 SKU: ${item.sku || 'غير متوفر'} <button class="copy-sku-btn" onclick="event.stopPropagation(); copyToClipboard('${item.sku || ''}')" style="background:transparent; border:none; cursor:pointer; color:#0F7B65;"><i class="fas fa-copy"></i> نسخ</button><br>المقاس: ${item.size || '--'} | العدد: ${item.qty || 1} | السعر: ${item.price} EGP</div>
 </div>`).join("")}
-            </div>
-          </div>
-          ${couponHtml}
-          <div class="order-summary">
-            📦 ${o.quantity}<br>💰 ${o.price}<br>🚚 ${o.shipping}<br>💵 <b>${o.finalTotal}</b>
-            <div class="actions"><a class="action-btn whatsapp" target="_blank" href="https://wa.me/2${o.phone}"><i class="fab fa-whatsapp"></i></a><button class="action-btn copy" onclick='copyText(${JSON.stringify(msg)})'><i class="fas fa-copy"></i></button></div>
-            ⏰ ${orderTime}
-            
-            <div style="display:flex; gap:6px; margin-top:10px;"><button onclick="editOrder('${o.id}')" style="flex:1;background:#ffc107;border:none;padding:6px;border-radius:8px;cursor:pointer;">✏️</button><button onclick="deleteOrder('${o.id}')" style="flex:1;background:#dc3545;color:#fff;border:none;padding:6px;border-radius:8px;cursor:pointer;">🗑️</button></div>
-          </div>
         </div>
-      </div>`;
-    }
+      </div>
+      ${couponHtml}
+      <div class="order-summary">
+        📦 ${o.quantity}<br>💰 ${o.price}<br>🚚 ${o.shipping}<br>💵 <b>${o.finalTotal}</b>
+        <div class="actions"><a class="action-btn whatsapp" target="_blank" href="https://wa.me/2${o.phone}"><i class="fab fa-whatsapp"></i></a><button class="action-btn copy" onclick='copyText(${JSON.stringify(msg)})'><i class="fas fa-copy"></i></button></div>
+        ⏰ ${orderTime}
+        <div style="display:flex; gap:6px; margin-top:10px;"><button onclick="editOrder('${o.id}')" style="flex:1;background:#ffc107;border:none;padding:6px;border-radius:8px;cursor:pointer;">✏️</button><button onclick="deleteOrder('${o.id}')" style="flex:1;background:#dc3545;color:#fff;border:none;padding:6px;border-radius:8px;cursor:pointer;">🗑️</button></div>
+      </div>
+    </div>
+  </div>`;
+}
     
     html += `</div></div>`;
   }
