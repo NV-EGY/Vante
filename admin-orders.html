@@ -904,6 +904,7 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 
 let orders = [], lastCount = 0, currentFilter = "all", messages = [];
+let openStates = {};
 let allReviews = [], currentReviewFilter = "all", reviewSearchTerm = "";
 let currentTab = "orders";
 
@@ -1269,6 +1270,7 @@ function render() {
     
     for (let o of ordersInDay) {
       totalOrders++;
+      const isOpen = openStates[o.id] !== undefined ? openStates[o.id] : false;
       let status = o.status || "new";
       let statusText = {
     new: 'جديد',
@@ -1311,7 +1313,7 @@ if (o.qpSerial) {
           <span class="order-id" data-id="${o.id}" onclick="toggleOrder('${o.id}')">${o.orderID}</span>
           <span class="status ${status}" onclick="toggleOrder('${o.id}')">${statusText}</span>
         </div>
-        <div id="order-${o.id}" class="order-body">
+        <div id="order-${o.id}" class="order-body" style="display: ${isOpen ? 'flex' : 'none'};">
           <div class="order-info">
             👤 ${o.customerName}<br>
             📞 ${o.phone}<br>
@@ -1330,10 +1332,6 @@ ${(o.orderDetails || []).map(item => `<div style="display:flex; align-items:cent
             📦 ${o.quantity}<br>💰 ${o.price}<br>🚚 ${o.shipping}<br>💵 <b>${o.finalTotal}</b>
             <div class="actions"><a class="action-btn whatsapp" target="_blank" href="https://wa.me/2${o.phone}"><i class="fab fa-whatsapp"></i></a><button class="action-btn copy" onclick='copyText(${JSON.stringify(msg)})'><i class="fas fa-copy"></i></button></div>
             ⏰ ${orderTime}
-            ${o.qpSerial ? `
-<button class="action-btn sync-btn" onclick="manualSyncOrders()" style="background:#3498db;color:#fff;border:none;padding:6px 12px;border-radius:8px;cursor:pointer;font-size:12px;">
-    <i class="fas fa-sync"></i> مزامنة
-</button>` : ''}
             <div style="display:flex; gap:6px; margin-top:10px;"><button onclick="editOrder('${o.id}')" style="flex:1;background:#ffc107;border:none;padding:6px;border-radius:8px;cursor:pointer;">✏️</button><button onclick="deleteOrder('${o.id}')" style="flex:1;background:#dc3545;color:#fff;border:none;padding:6px;border-radius:8px;cursor:pointer;">🗑️</button></div>
           </div>
         </div>
@@ -1364,10 +1362,14 @@ window.toggleDayGroup = function(groupId) {
 };
 
 window.toggleOrder = (id) => {
-  let el = document.getElementById("order-" + id);
-  if (el) el.style.display = el.style.display === "flex" ? "none" : "flex";
-  let actions = el?.parentElement?.querySelector(".actions");
-  if (actions) actions.style.display = actions.style.display === "flex" ? "none" : "flex";
+    let el = document.getElementById("order-" + id);
+    if (el) {
+        const isOpen = el.style.display === "flex";
+        el.style.display = isOpen ? "none" : "flex";
+        openStates[id] = !isOpen;
+    }
+    let actions = el?.parentElement?.querySelector(".actions");
+    if (actions) actions.style.display = actions.style.display === "flex" ? "none" : "flex";
 };
 window.copyText = (t) => { navigator.clipboard.writeText(decodeURIComponent(t)); showToast("📋 تم نسخ التفاصيل"); };
 window.setFilter = (e, filter) => { currentFilter = filter; document.querySelectorAll(".filter-btn").forEach(btn => btn.classList.remove("active")); e.target.classList.add("active"); render(); };
