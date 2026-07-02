@@ -17,7 +17,6 @@ import { manualSyncOrders } from "./sync-orders.js";
 export function injectQPInfo(orderElement, orderData) {
     if (!orderElement || !orderData) return;
 
-    // ✅ منع التكرار: إذا كان هناك عنصر .qp-info بالفعل، نعيد تعبئته بدلاً من إضافته جديد
     let infoDiv = orderElement.querySelector('.qp-info');
     const isNew = !infoDiv;
 
@@ -26,38 +25,36 @@ export function injectQPInfo(orderElement, orderData) {
         infoDiv.className = 'qp-info';
         infoDiv.style.cssText = 'margin-top: 8px; font-size: 12px; color: #555; background: #f8f9fa; padding: 6px 12px; border-radius: 8px; border-right: 3px solid #D4AF37;';
         
-        // نضعه قبل الـ actions (أو في نهاية الـ order-body)
         const orderBody = orderElement.querySelector('.order-body');
         if (orderBody) {
             orderBody.appendChild(infoDiv);
         } else {
-            // إذا لم يوجد order-body (نادراً)، نضعه في نهاية الكارد
             orderElement.appendChild(infoDiv);
         }
     }
 
-    // بناء المحتوى
     let html = `<span style="font-weight:bold; color: #0F7B65;">🚚 QP Express:</span>`;
     
     if (orderData.qpSerial) {
         html += ` رقم الشحنة: <strong style="direction:ltr; display:inline-block;">${orderData.qpSerial}</strong>`;
+        
+        // ⚠️ إذا كانت الحالة الحالية ليست "شحن"، نضيف تنبيه "تم الإنشاء سابقاً"
+        if (orderData.status !== "shipped") {
+            html += ` | ⚠️ <span style="color:#e67e22; font-weight:bold;">تم الإنشاء سابقاً</span>`;
+        }
+        
+        if (orderData.qpStatus) {
+            html += ` | حالة QP: ${orderData.qpStatus}`;
+        }
     } else {
         html += ` <span style="color:#999;">(لم يتم إنشاء الشحنة بعد)</span>`;
     }
 
-    if (orderData.qpStatus) {
-        html += ` | الحالة: ${orderData.qpStatus}`;
-    }
-
     if (orderData.notes && !orderData.notes.includes('QP')) {
-        // نعرض الملاحظات العامة إذا لم تكن متعلقة بـ QP
         html += ` | 📝 ${orderData.notes}`;
     }
 
-    // تحديث المحتوى
     infoDiv.innerHTML = html;
-
-    // ✅ إضافة زر المزامنة إذا لم يكن موجوداً
     ensureSyncButton(orderElement, orderData.id);
 }
 
