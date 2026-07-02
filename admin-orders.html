@@ -835,10 +835,6 @@
 <!-- الشريط الثابت -->
 <div id="bulkActionsBar" class="bulk-actions-bar">
   <div class="selected-info" id="bulkSelectedInfo">0</div>
-  <button onclick="sendWhatsAppLinks('${o.id}', '${o.orderID}', '${o.phone}')" 
-        style="flex:1; background:#25D366; color:#fff; border:none; padding:6px; border-radius:8px; cursor:pointer;">
-    <i class="fab fa-whatsapp"></i> إرسال روابط
-</button>
   <button class="bulk-status-btn new" onclick="applyBulkStatus('new')"><i class="fas fa-star"></i> <span>جديد</span></button>
   <button class="bulk-status-btn processing" onclick="applyBulkStatus('processing')"><i class="fas fa-boxes"></i> <span>تجهيز</span></button>
   <button class="bulk-status-btn shipped" onclick="applyBulkStatus('shipped')"><i class="fas fa-truck"></i> <span>شحن</span></button>
@@ -1051,14 +1047,26 @@ window.clearQPSerial = async (id) => {
         customAlert("❌ حدث خطأ أثناء مسح البيانات: " + e.message, 'error');
     }
 };
-window.sendWhatsAppLinks = function(orderId, orderID, phone) {
-    const confirmLink = `https://vante.sbs/?confirm=${orderId}`;
-    const rejectLink = `https://vante.sbs/?reject=${orderId}`;
-    const message = `🛒 مرحباً! طلبك رقم ${orderID}.\n\n` +
-                    `✅ لتأكيد استلام الطلب، اضغط على الرابط:\n${confirmLink}\n\n` +
-                    `❌ لرفض الطلب، اضغط على الرابط:\n${rejectLink}\n\n` +
-                    `شكراً لتسوقك مع VANTÉ ✨`;
-    const encoded = encodeURIComponent(message);
+window.sendWhatsAppLinks = function(orderId, orderID, phone, orderData) {
+    // بناء تفاصيل الطلب
+    let details = `🛍️ طلب جديد - VANTÉ\n\n`;
+    details += `📦 رقم الطلب: ${orderID}\n`;
+    details += `👤 الاسم: ${orderData.customerName || 'غير معروف'}\n`;
+    details += `📱 الهاتف: ${orderData.phone || phone}\n`;
+    details += `📍 المحافظة: ${orderData.gov || ''}\n`;
+    details += `🏙️ المدينة: ${orderData.city || ''}\n`;
+    details += `🏠 العنوان: ${orderData.address || ''}\n\n`;
+    details += `💎 المنتجات:\n`;
+    (orderData.orderDetails || []).forEach(item => {
+        details += `- ${item.name} (${item.size}) × ${item.qty} = ${item.price * item.qty} جنيه\n`;
+    });
+    details += `\n💰 الإجمالي: ${orderData.finalTotal || 0} جنيه\n`;
+    details += `🚚 الشحن: ${orderData.shipping || 0} جنيه\n\n`;
+    details += `✅ لتأكيد الطلب، اضغط على الرابط:\nhttps://vante.sbs/?confirm=${orderId}\n\n`;
+    details += `❌ لرفض الطلب، اضغط على الرابط:\nhttps://vante.sbs/?reject=${orderId}\n\n`;
+    details += `شكراً لتسوقك مع VANTÉ ✨`;
+
+    const encoded = encodeURIComponent(details);
     const waUrl = `https://wa.me/2${phone}?text=${encoded}`;
     window.open(waUrl, '_blank');
 };
@@ -1372,6 +1380,14 @@ ${(o.orderDetails || []).map(item => `<div style="display:flex; align-items:cent
             📦 ${o.quantity}<br>💰 ${o.price}<br>🚚 ${o.shipping}<br>💵 <b>${o.finalTotal}</b>
             <div class="actions"><a class="action-btn whatsapp" target="_blank" href="https://wa.me/2${o.phone}"><i class="fab fa-whatsapp"></i></a><button class="action-btn copy" onclick='copyText(${JSON.stringify(msg)})'><i class="fas fa-copy"></i></button></div>
             ⏰ ${orderTime}
+            <div class="actions" style="display: ${isOpen ? 'flex' : 'none'};">
+  <a class="action-btn whatsapp" target="_blank" href="https://wa.me/2${o.phone}"><i class="fab fa-whatsapp"></i></a>
+  <button class="action-btn copy" onclick='copyText(${JSON.stringify(msg)})'><i class="fas fa-copy"></i></button>
+  <button class="action-btn" onclick="sendWhatsAppLinks('${o.id}', '${o.orderID}', '${o.phone}', ${JSON.stringify(o)})" 
+          style="background:#25D366; color:#fff; border:none; padding:6px; border-radius:8px; cursor:pointer; flex:1;">
+    <i class="fab fa-whatsapp"></i> تأكيد الطلب
+  </button>
+</div>
             <div style="display:flex; gap:6px; margin-top:10px; flex-wrap:wrap;">
   <button onclick="editOrder('${o.id}')" style="flex:1;min-width:45px;background:#ffc107;border:none;padding:6px;border-radius:8px;cursor:pointer;">✏️</button>
   ${o.qpSerial ? `<button onclick="clearQPSerial('${o.id}')" style="flex:1;min-width:45px;background:#f39c12;color:#000;border:none;padding:6px;border-radius:8px;cursor:pointer;font-weight:bold;">🔄 مسح QP</button>` : ''}
