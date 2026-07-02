@@ -835,6 +835,10 @@
 <!-- الشريط الثابت -->
 <div id="bulkActionsBar" class="bulk-actions-bar">
   <div class="selected-info" id="bulkSelectedInfo">0</div>
+  <button onclick="sendWhatsAppLinks('${o.id}', '${o.orderID}', '${o.phone}')" 
+        style="flex:1; background:#25D366; color:#fff; border:none; padding:6px; border-radius:8px; cursor:pointer;">
+    <i class="fab fa-whatsapp"></i> إرسال روابط
+</button>
   <button class="bulk-status-btn new" onclick="applyBulkStatus('new')"><i class="fas fa-star"></i> <span>جديد</span></button>
   <button class="bulk-status-btn processing" onclick="applyBulkStatus('processing')"><i class="fas fa-boxes"></i> <span>تجهيز</span></button>
   <button class="bulk-status-btn shipped" onclick="applyBulkStatus('shipped')"><i class="fas fa-truck"></i> <span>شحن</span></button>
@@ -1046,6 +1050,17 @@ window.clearQPSerial = async (id) => {
         console.error(e);
         customAlert("❌ حدث خطأ أثناء مسح البيانات: " + e.message, 'error');
     }
+};
+window.sendWhatsAppLinks = function(orderId, orderID, phone) {
+    const confirmLink = `https://vante.sbs/?confirm=${orderId}`;
+    const rejectLink = `https://vante.sbs/?reject=${orderId}`;
+    const message = `🛒 مرحباً! طلبك رقم ${orderID}.\n\n` +
+                    `✅ لتأكيد استلام الطلب، اضغط على الرابط:\n${confirmLink}\n\n` +
+                    `❌ لرفض الطلب، اضغط على الرابط:\n${rejectLink}\n\n` +
+                    `شكراً لتسوقك مع VANTÉ ✨`;
+    const encoded = encodeURIComponent(message);
+    const waUrl = `https://wa.me/2${phone}?text=${encoded}`;
+    window.open(waUrl, '_blank');
 };
 window.deleteOrder = async (id) => {
   const confirmed = await window.customConfirm("⚠️ هل أنت متأكد من حذف هذا الطلب وإعادة الكميات إلى المخزون؟");
