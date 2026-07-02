@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="ar">
 <head>
-  
 <!-- PWA لكل تطبيق على حدة (طلبات) -->
 <link rel="manifest" href="manifest-orders.json">
 <meta name="mobile-web-app-capable" content="yes">
@@ -1021,7 +1020,33 @@ window.applyBulkStatus = async (newStatus) => {
     clearAllSelections();
     render();
 };
+// =================== مسح بيانات شحنة QP يدوياً ===================
+window.clearQPSerial = async (id) => {
+    const confirmed = await window.customConfirm("⚠️ هل أنت متأكد من مسح بيانات شحنة QP لهذا الطلب؟\n\nسيؤدي هذا إلى حذف رقم الشحنة من قاعدة البيانات، ويمكنك لاحقاً إنشاء شحنة جديدة بتغيير الحالة إلى 'شحن'.");
+    if (!confirmed) return;
 
+    try {
+        const orderSnap = await getDoc(doc(db, "orders", id));
+        if (!orderSnap.exists()) {
+            customAlert("❌ الطلب غير موجود", 'error');
+            return;
+        }
+        const orderData = orderSnap.data();
+        
+        if (!orderData.qpSerial) {
+            customAlert("⚠️ هذا الطلب ليس له شحنة في QP", 'warning');
+            return;
+        }
+
+        await cancelOrderInQP(id, orderData.qpSerial);
+        
+        customAlert("✅ تم مسح بيانات شحنة QP بنجاح! يمكنك الآن تغيير الحالة إلى 'شحن' لإنشاء شحنة جديدة.", 'success');
+        render();
+    } catch (e) {
+        console.error(e);
+        customAlert("❌ حدث خطأ أثناء مسح البيانات: " + e.message, 'error');
+    }
+};
 window.deleteOrder = async (id) => {
   const confirmed = await window.customConfirm("⚠️ هل أنت متأكد من حذف هذا الطلب وإعادة الكميات إلى المخزون؟");
   if (!confirmed) return;
@@ -1332,7 +1357,11 @@ ${(o.orderDetails || []).map(item => `<div style="display:flex; align-items:cent
             📦 ${o.quantity}<br>💰 ${o.price}<br>🚚 ${o.shipping}<br>💵 <b>${o.finalTotal}</b>
             <div class="actions"><a class="action-btn whatsapp" target="_blank" href="https://wa.me/2${o.phone}"><i class="fab fa-whatsapp"></i></a><button class="action-btn copy" onclick='copyText(${JSON.stringify(msg)})'><i class="fas fa-copy"></i></button></div>
             ⏰ ${orderTime}
-            <div style="display:flex; gap:6px; margin-top:10px;"><button onclick="editOrder('${o.id}')" style="flex:1;background:#ffc107;border:none;padding:6px;border-radius:8px;cursor:pointer;">✏️</button><button onclick="deleteOrder('${o.id}')" style="flex:1;background:#dc3545;color:#fff;border:none;padding:6px;border-radius:8px;cursor:pointer;">🗑️</button></div>
+            <div style="display:flex; gap:6px; margin-top:10px; flex-wrap:wrap;">
+  <button onclick="editOrder('${o.id}')" style="flex:1;min-width:45px;background:#ffc107;border:none;padding:6px;border-radius:8px;cursor:pointer;">✏️</button>
+  ${o.qpSerial ? `<button onclick="clearQPSerial('${o.id}')" style="flex:1;min-width:45px;background:#f39c12;color:#000;border:none;padding:6px;border-radius:8px;cursor:pointer;font-weight:bold;">🔄 مسح QP</button>` : ''}
+  <button onclick="deleteOrder('${o.id}')" style="flex:1;min-width:45px;background:#dc3545;color:#fff;border:none;padding:6px;border-radius:8px;cursor:pointer;">🗑️</button>
+</div>
           </div>
         </div>
       </div>`;
