@@ -4354,6 +4354,52 @@ const productsContainer = document.querySelector(".products");
 
 const normalize = (str) => (str || "").toString().trim().toLowerCase();
 
+// ====== معالجة تأكيد أو رفض الطلب عبر الرابط ======
+(async function handleConfirmReject() {
+    const params = new URLSearchParams(window.location.search);
+    const confirmOrderId = params.get('confirm');
+    const rejectOrderId = params.get('reject');
+    const orderId = confirmOrderId || rejectOrderId;
+    if (!orderId) return;
+
+    try {
+        // تأكد من أن Firebase جاهز (المتغير db موجود)
+        if (typeof db === 'undefined') {
+            console.error('Firebase not initialized');
+            return;
+        }
+
+        const orderRef = doc(db, "orders", orderId);
+        const orderSnap = await getDoc(orderRef);
+        if (!orderSnap.exists()) {
+            alert('⚠️ الطلب غير موجود');
+            return;
+        }
+
+        const orderData = orderSnap.data();
+        const newStatus = confirmOrderId ? 'delivered' : 'cancelled';
+
+        // لا نسمح بتغيير الحالة إذا كانت نهائية (اختياري)
+        if (orderData.status === 'delivered' || orderData.status === 'cancelled') {
+            alert(`⚠️ هذا الطلب تم ${orderData.status === 'delivered' ? 'تأكيده' : 'رفضه'} مسبقاً`);
+            return;
+        }
+
+        // تحديث الحالة
+        await updateDoc(orderRef, { status: newStatus });
+
+        const msg = confirmOrderId ? '✅ تم تأكيد استلام الطلب بنجاح! شكراً لك.' : '❌ تم رفض الطلب.';
+        alert(msg);
+
+        // حذف الـ params من الرابط لتجنب إعادة التفعيل
+        window.history.replaceState({}, document.title, window.location.pathname);
+    } catch (error) {
+        console.error(error);
+        alert('❌ حدث خطأ أثناء معالجة الطلب، حاول مرة أخرى.');
+    }
+})();
+
+
 // ========== تواصل مع المسئول (داخل module) ==========
 window.openContactModal = function(event) {
     if (event) event.preventDefault();
@@ -6925,6 +6971,7 @@ window.confirmAndSubmitReview = async function() {
         btn.innerHTML = '<i class="fas fa-paper-plane"></i> إرسال التقييم';
     }
 };
+
 // تعديل دالة submitReview لطلب كتابة الرأي أولاً
 window.submitReview = function() {
     if (!window.currentProduct) {
