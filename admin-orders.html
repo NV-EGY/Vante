@@ -1256,12 +1256,6 @@ function render() {
     const dateHeader = formatOrderDate(createdAtDate);
     const groupId = `group-${groupIndex++}`;
     
-    // تحديد حالة الفتح: اليوم فقط يكون مفتوحاً، الباقي مغلق
-    // قبل إضافة البطاقة
-const isOpen = openStates[o.id] !== undefined ? openStates[o.id] : false;
-// في الـ div.order-body، نضع:
-<div id="order-${o.id}" class="order-body" style="display: ${isOpen ? 'flex' : 'none'};">
-    
     html += `
       <div class="day-group" data-group="${groupId}">
         <div class="day-header" onclick="toggleDayGroup('${groupId}')" style="display: flex; align-items: center; justify-content: space-between; margin: 10px 0 5px 0; padding: 5px 12px; background: #f5f7fa; border-radius: 30px; cursor: pointer;">
