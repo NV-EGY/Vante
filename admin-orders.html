@@ -2,7 +2,6 @@
 <html lang="ar">
 <head>
 <!-- PWA لكل تطبيق على حدة (طلبات) -->
-
 <link rel="manifest" href="manifest-orders.json">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -916,7 +915,22 @@ window.openMsg = async (id) => {
   await markRead(id);
   document.getElementById("messageView").innerHTML = `<div style="text-align:right"><div style="font-size:18px;font-weight:bold;">👤 ${m.name}</div><div style="color:#666;">📞 ${m.phone}</div><hr><div>💬 ${m.message}</div><a href="https://wa.me/2${m.phone}" target="_blank" style="display:block;margin-top:15px;background:#25D366;color:#fff;padding:10px;border-radius:10px;text-align:center;">💬 رد واتساب</a></div>`;
 };
+// حفظ حالة الفتح في localStorage
+function saveOpenStates() {
+    try {
+        localStorage.setItem('openStates', JSON.stringify(openStates));
+    } catch(e) {}
+}
 
+// استرجاع حالة الفتح من localStorage
+function loadOpenStates() {
+    try {
+        const saved = localStorage.getItem('openStates');
+        if (saved) {
+            openStates = JSON.parse(saved);
+        }
+    } catch(e) {}
+}
 // =================== دالة تحديث حالة فردية ===================
 window.update = async (id, status) => {
     try {
@@ -1368,6 +1382,7 @@ window.toggleOrder = (id) => {
         const isOpen = el.style.display === "flex";
         el.style.display = isOpen ? "none" : "flex";
         openStates[id] = !isOpen;
+        saveOpenStates(); // <--- أضف هذا السطر
     }
     let actions = el?.parentElement?.querySelector(".actions");
     if (actions) actions.style.display = actions.style.display === "flex" ? "none" : "flex";
@@ -1397,7 +1412,8 @@ window.showPopup = (o) => { let box = document.getElementById("msgPopup"); docum
 };
 
 function load() {
-  loadReviews();
+    loadOpenStates(); // <--- أضف هذا السطر
+    loadReviews();
   onSnapshot(query(collection(db, "messages"), orderBy("createdAt", "desc")), (snap) => {
     let unread = 0, html = "";
     messages = snap.docs.map(d => ({ id: d.id, ...d.data() }));
