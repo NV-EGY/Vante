@@ -2,7 +2,6 @@
 <html lang="ar">
 <head>
 <!-- PWA لكل تطبيق على حدة (طلبات) -->
-  
 <link rel="manifest" href="manifest-orders.json">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1226,7 +1225,6 @@ function render() {
   let date = document.getElementById("dateFilter").value;
   let search = document.getElementById("search").value.toLowerCase();
   
-  // تصفية الطلبات أولاً
   let filteredOrders = orders.filter(o => {
     if (currentFilter !== "all" && o.status !== currentFilter) return false;
     if (search && !o.customerName?.toLowerCase().includes(search) && !o.phone?.includes(search) && !o.orderID?.toLowerCase().includes(search) && !(o.orderDetails || []).some(detail => detail.sku?.toLowerCase().includes(search))) return false;
@@ -1235,14 +1233,12 @@ function render() {
     return true;
   });
   
-  // ترتيب تنازلي حسب createdAt (الأحدث أولاً)
   filteredOrders.sort((a, b) => {
     let dateA = a.createdAt?.toDate?.() || new Date(0);
     let dateB = b.createdAt?.toDate?.() || new Date(0);
     return dateB - dateA;
   });
   
-  // تجميع الطلبات حسب اليوم (بدون وقت)
   const groups = new Map();
   for (let order of filteredOrders) {
     const createdAt = order.createdAt?.toDate?.();
@@ -1252,7 +1248,6 @@ function render() {
     groups.get(key).push(order);
   }
   
-  // الحصول على تاريخ اليوم لاستخدامه في الفتح الافتراضي
   const todayDate = new Date();
   todayDate.setHours(0, 0, 0, 0);
   
@@ -1271,17 +1266,15 @@ function render() {
     
     const dateHeader = formatOrderDate(createdAtDate);
     const groupId = `group-${groupIndex++}`;
-    
-    // تحديد حالة الفتح: اليوم فقط يكون مفتوحاً، الباقي مغلق
-    const isOpen = isToday;
+    const isGroupOpen = isToday;
     
     html += `
       <div class="day-group" data-group="${groupId}">
         <div class="day-header" onclick="toggleDayGroup('${groupId}')" style="display: flex; align-items: center; justify-content: space-between; margin: 10px 0 5px 0; padding: 5px 12px; background: #f5f7fa; border-radius: 30px; cursor: pointer;">
           <span style="font-size: 14px; font-weight: 700; color: #0F7B65;">${dateHeader}</span>
-          <i id="icon-${groupId}" class="fas fa-chevron-down" style="transition: transform 0.3s; color: #0F7B65; transform: ${isOpen ? 'rotate(0deg)' : 'rotate(-90deg)'};"></i>
+          <i id="icon-${groupId}" class="fas fa-chevron-down" style="transition: transform 0.3s; color: #0F7B65; transform: ${isGroupOpen ? 'rotate(0deg)' : 'rotate(-90deg)'};"></i>
         </div>
-        <div id="group-content-${groupId}" class="group-content" style="display: ${isOpen ? 'block' : 'none'};">
+        <div id="group-content-${groupId}" class="group-content" style="display: ${isGroupOpen ? 'block' : 'none'};">
     `;
     
     for (let o of ordersInDay) {
@@ -1289,17 +1282,17 @@ function render() {
       const isOpen = openStates[o.id] !== undefined ? openStates[o.id] : false;
       let status = o.status || "new";
       let statusText = {
-    new: 'جديد',
-    confirmed: 'تم التأكيد',
-    processing: 'قيد التجهيز',
-    shipped: 'جاري الشحن',
-    delivered: 'تم التسليم',
-    returned: 'مرتجع',
-    cancelled: 'لاغـي',
-    hold: 'معلق',
-    undelivered: 'لم يصل',
-    rejected: 'رفض'
-}[status] || status;
+        new: 'جديد',
+        confirmed: 'تم التأكيد',
+        processing: 'قيد التجهيز',
+        shipped: 'جاري الشحن',
+        delivered: 'تم التسليم',
+        returned: 'مرتجع',
+        cancelled: 'لاغـي',
+        hold: 'معلق',
+        undelivered: 'لم يصل',
+        rejected: 'رفض'
+      }[status] || status;
       let msg = `VANTÉ\nكود: ${o.orderID}\n👤 ${o.customerName}\n📞 ${o.phone}\n📍 ${o.gov} - ${o.city}\n${o.address}\n💎 ${(o.orderDetails || []).map(i => `${i.name} (${i.size}) x${i.qty}`).join(', ')}\n💰 ${o.finalTotal} جنيه`;
       
       let couponHtml = '';
@@ -1312,16 +1305,6 @@ function render() {
       }
       
       const orderTime = o.createdAt?.toDate?.() ? formatOrderTime(o.createdAt.toDate()) : '';
-      // معلومات QP
-let qpInfoHtml = '';
-if (o.qpSerial) {
-    qpInfoHtml = `
-    <div class="qp-info" style="margin-top:8px; font-size:12px; color:#555; background:#f8f9fa; padding:6px 12px; border-radius:8px;">
-        <span style="font-weight:bold;">🚚 QP:</span> رقم الشحنة: ${o.qpSerial}
-        ${o.qpStatus ? ` | حالة QP: ${o.qpStatus}` : ''}
-        ${o.notes ? ` | ملاحظة: ${o.notes}` : ''}
-    </div>`;
-}
       
       html += `<div class="card ${status}" style="position:relative;">
         <div class="order-header">
@@ -1356,13 +1339,20 @@ ${(o.orderDetails || []).map(item => `<div style="display:flex; align-items:cent
     
     html += `</div></div>`;
   }
-    // آخر ثلاثة أسطر في الدالة:
-    document.getElementById("orders").innerHTML = html || "<div style='text-align:center; padding:40px;'>لا توجد طلبات</div>";
-    document.getElementById("count").innerHTML = `📊 ${totalOrders}`;
-    updateBulkBar();
+  
+  document.getElementById("orders").innerHTML = html || "<div style='text-align:center; padding:40px;'>لا توجد طلبات</div>";
+  document.getElementById("count").innerHTML = `📊 ${totalOrders}`;
+  updateBulkBar();
 
-    // ✅ إضافة تزيين البطاقات بعد التحديث (مرة واحدة فقط)
-    enhanceAllOrderCards(orders);
+  // ✅ إعادة تطبيق حالة الفتح لكل طلب بعد إعادة البناء
+  document.querySelectorAll('#orders .order-body').forEach(el => {
+      const id = el.id.replace('order-', '');
+      if (openStates[id] !== undefined) {
+          el.style.display = openStates[id] ? 'flex' : 'none';
+      }
+  });
+
+  enhanceAllOrderCards(orders);
 }
 
 window.toggleDayGroup = function(groupId) {
