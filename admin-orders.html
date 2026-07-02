@@ -1092,6 +1092,7 @@ window.calculateProfitFromEdit = () => {
     document.getElementById("editProfit").value = profit.toFixed(2);
 };
 
+
 window.saveEdit = async (id) => {
   let detailsCount = (orders.find(x => x.id === id)?.orderDetails || []).length;
   let orderDetails = [];
