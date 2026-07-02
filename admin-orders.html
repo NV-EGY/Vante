@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="ar">
 <head>
-
 <!-- PWA لكل تطبيق على حدة (طلبات) -->
 <link rel="manifest" href="manifest-orders.json">
 <meta name="mobile-web-app-capable" content="yes">
@@ -1048,16 +1047,25 @@ window.clearQPSerial = async (id) => {
         customAlert("❌ حدث خطأ أثناء مسح البيانات: " + e.message, 'error');
     }
 };
-window.sendWhatsAppLinks = function(orderId, orderID, phone, orderData) {
-    const secret = 'your-secret-key'; // ضع مفتاحاً سرياً
-    const hash = btoa(orderId + secret); // تشفير بسيط
+window.sendWhatsAppLinks = function(orderId) {
+    // جلب بيانات الطلب من مصفوفة orders (المتاحة عالمياً)
+    const orderData = orders.find(o => o.id === orderId);
+    if (!orderData) {
+        customAlert('❌ الطلب غير موجود', 'error');
+        return;
+    }
+
+    const orderID = orderData.orderID;
+    const phone = orderData.phone;
+    const secret = 'your-secret-key'; 
+    const hash = btoa(orderId + secret);
     const confirmLink = `https://vante.sbs/?confirm=${orderId}&hash=${hash}`;
     const rejectLink = `https://vante.sbs/?reject=${orderId}&hash=${hash}`;
-    // بناء تفاصيل الطلب
+
     let details = `🛍️ طلب جديد - VANTÉ\n\n`;
     details += `📦 رقم الطلب: ${orderID}\n`;
     details += `👤 الاسم: ${orderData.customerName || 'غير معروف'}\n`;
-    details += `📱 الهاتف: ${orderData.phone || phone}\n`;
+    details += `📱 الهاتف: ${phone}\n`;
     details += `📍 المحافظة: ${orderData.gov || ''}\n`;
     details += `🏙️ المدينة: ${orderData.city || ''}\n`;
     details += `🏠 العنوان: ${orderData.address || ''}\n\n`;
@@ -1067,8 +1075,8 @@ window.sendWhatsAppLinks = function(orderId, orderID, phone, orderData) {
     });
     details += `\n💰 الإجمالي: ${orderData.finalTotal || 0} جنيه\n`;
     details += `🚚 الشحن: ${orderData.shipping || 0} جنيه\n\n`;
-    details += `✅ لتأكيد الطلب، اضغط على الرابط:\nhttps://vante.sbs/?confirm=${orderId}\n\n`;
-    details += `❌ لرفض الطلب، اضغط على الرابط:\nhttps://vante.sbs/?reject=${orderId}\n\n`;
+    details += `✅ لتأكيد الطلب، اضغط على الرابط:\n${confirmLink}\n\n`;
+    details += `❌ لرفض الطلب، اضغط على الرابط:\n${rejectLink}\n\n`;
     details += `شكراً لتسوقك مع VANTÉ ✨`;
 
     const encoded = encodeURIComponent(details);
@@ -1386,10 +1394,10 @@ ${(o.orderDetails || []).map(item => `<div style="display:flex; align-items:cent
             <div class="actions" style="display: ${isOpen ? 'flex' : 'none'};">
   <a class="action-btn whatsapp" target="_blank" href="https://wa.me/2${o.phone}"><i class="fab fa-whatsapp"></i></a>
   <button class="action-btn copy" onclick='copyText(${JSON.stringify(msg)})'><i class="fas fa-copy"></i></button>
-  <button class="action-btn" onclick="sendWhatsAppLinks('${o.id}', '${o.orderID}', '${o.phone}', ${JSON.stringify(o)})" 
-          style="background:#25D366; color:#fff; border:none; padding:6px; border-radius:8px; cursor:pointer; flex:1;">
-    <i class="fab fa-whatsapp"></i> تأكيد الطلب
-  </button>
+  <button class="action-btn" onclick="sendWhatsAppLinks('${o.id}')" 
+        style="background:#25D366; color:#fff; border:none; padding:6px; border-radius:8px; cursor:pointer; flex:1;">
+  <i class="fab fa-whatsapp"></i> تأكيد الطلب
+</button>
 </div>
             ⏰ ${orderTime}
             <div style="display:flex; gap:6px; margin-top:10px; flex-wrap:wrap;">
