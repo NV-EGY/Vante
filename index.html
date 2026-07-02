@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-
     <meta charset="UTF-8">
     <meta name="description" content="تسوقي تشكيلة فانتي VANTÉ الفاخرة من الإكسسوارات الحريمي (دهب استانلس). خواتم، سلاسل، أساور، حلقان بجودة ممتازة وأسعار تنافسية.">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -4364,7 +4363,6 @@ const normalize = (str) => (str || "").toString().trim().toLowerCase();
     if (!orderId) return;
 
     try {
-        // تأكد من أن Firebase جاهز (المتغير db موجود)
         if (typeof db === 'undefined') {
             console.error('Firebase not initialized');
             return;
@@ -4378,21 +4376,20 @@ const normalize = (str) => (str || "").toString().trim().toLowerCase();
         }
 
         const orderData = orderSnap.data();
-        const newStatus = confirmOrderId ? 'delivered' : 'cancelled';
+        // نستخدم confirmed للتأكيد و cancelled للرفض
+        const newStatus = confirmOrderId ? 'confirmed' : 'cancelled';
 
-        // لا نسمح بتغيير الحالة إذا كانت نهائية (اختياري)
-        if (orderData.status === 'delivered' || orderData.status === 'cancelled') {
-            alert(`⚠️ هذا الطلب تم ${orderData.status === 'delivered' ? 'تأكيده' : 'رفضه'} مسبقاً`);
+        // منع تغيير الحالة إذا كانت نهائية
+        if (orderData.status === 'delivered' || orderData.status === 'cancelled' || orderData.status === 'confirmed') {
+            alert(`⚠️ هذا الطلب تم ${orderData.status === 'delivered' ? 'تسليمه' : orderData.status === 'confirmed' ? 'تأكيده' : 'رفضه'} مسبقاً`);
             return;
         }
 
-        // تحديث الحالة
         await updateDoc(orderRef, { status: newStatus });
 
-        const msg = confirmOrderId ? '✅ تم تأكيد استلام الطلب بنجاح! شكراً لك.' : '❌ تم رفض الطلب.';
+        const msg = confirmOrderId ? '✅ تم تأكيد الطلب بنجاح! شكراً لك.' : '❌ تم رفض الطلب.';
         alert(msg);
 
-        // حذف الـ params من الرابط لتجنب إعادة التفعيل
         window.history.replaceState({}, document.title, window.location.pathname);
     } catch (error) {
         console.error(error);
