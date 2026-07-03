@@ -744,6 +744,16 @@
     flex: 1 1 45%;
   }
 }
+/* في داخل <style> */
+.city-checkboxes label:hover {
+    background: #e9ecef;
+    border-color: #D4AF37;
+}
+.city-checkboxes input[type="checkbox"]:checked + label {
+    background: #D4AF37;
+    color: #000;
+    border-color: #B8860B;
+}
   </style>
 </head>
 <body>
@@ -813,10 +823,10 @@
                     </select>
                 </div>
                 <div class="form-group" style="flex: 1.5;">
-    <label><i class="fas fa-city"></i> المدينة</label>
-    <select id="citySelect" class="form-control" style="width: 100%;">
-        <option value="">-- اختر المدينة --</option>
-    </select>
+    <label><i class="fas fa-city"></i> المدن (اختر واحدة أو أكثر)</label>
+    <div id="cityCheckboxes" class="city-checkboxes" style="display: flex; flex-wrap: wrap; gap: 8px; padding: 10px; border: 1px solid #ddd; border-radius: 12px; min-height: 50px; max-height: 200px; overflow-y: auto; background: #fff;">
+        <span style="color: #999;">اختر المحافظة أولاً</span>
+    </div>
 </div>
                 <div class="form-group" style="flex: 1;">
                     <label><i class="fas fa-dollar-sign"></i> تكلفة المتجر (الدفع لشركة الشحن)</label>
@@ -2005,15 +2015,24 @@ function populateGovSelect() {
     // مستمع تغيير المحافظة لتحديث المدن
     select.addEventListener("change", function() {
         const gov = this.value;
-        const citySelect = document.getElementById("citySelect");
-        citySelect.innerHTML = '<option value="">-- اختر المدينة --</option>';
+        const container = document.getElementById("cityCheckboxes");
+        container.innerHTML = '';
         if (gov && govData[gov]) {
             govData[gov].forEach(city => {
-                citySelect.innerHTML += `<option value="${city}">${city}</option>`;
+                const label = document.createElement('label');
+                label.style.cssText = 'display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 4px 12px; background: #f8f9fa; border-radius: 20px; border: 1px solid #ddd; transition: 0.2s;';
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.value = city;
+                checkbox.style.width = '18px';
+                checkbox.style.height = '18px';
+                checkbox.style.accentColor = '#0F7B65';
+                label.appendChild(checkbox);
+                label.appendChild(document.createTextNode(city));
+                container.appendChild(label);
             });
-            citySelect.disabled = false;
         } else {
-            citySelect.disabled = true;
+            container.innerHTML = '<span style="color: #999;">اختر المحافظة أولاً</span>';
         }
     });
 }
@@ -2034,12 +2053,11 @@ document.getElementById("govSelect").addEventListener("change", function() {
 
 window.saveShippingRate = async () => {
     const gov = document.getElementById("govSelect").value;
-    const city = document.getElementById("citySelect").value;
     const costForStore = parseFloat(document.getElementById("shippingCostForStore").value);
     const customerFee = parseFloat(document.getElementById("customerShippingFee").value) || 70;
 
-    if (!gov || !city) {
-        customAlert("⚠️ يرجى اختيار المحافظة والمدينة", 'warning');
+    if (!gov) {
+        customAlert("⚠️ يرجى اختيار المحافظة أولاً", 'warning');
         return;
     }
     if (isNaN(costForStore) || costForStore < 0) {
@@ -2047,41 +2065,69 @@ window.saveShippingRate = async () => {
         return;
     }
 
-    // البحث عن سعر موجود لهذه المدينة
-    const existing = shippingRates.find(r => r.gov === gov && r.city === city);
-    try {
-        if (existing) {
-            await updateDoc(doc(db, "shippingRates", existing.id), { costForStore, customerFee });
-            customAlert(`✅ تم تحديث سعر الشحن لمدينة ${city} (${gov}) بنجاح`, 'success');
-        } else {
-            await addDoc(collection(db, "shippingRates"), { gov, city, costForStore, customerFee, createdAt: serverTimestamp() });
-            customAlert(`✅ تم إضافة سعر الشحن لمدينة ${city} (${gov}) بنجاح`, 'success');
-        }
-        // تفريغ الحقول
-        document.getElementById("shippingCostForStore").value = "35";
-        document.getElementById("customerShippingFee").value = "70";
-        document.getElementById("govSelect").value = "";
-        document.getElementById("citySelect").innerHTML = '<option value="">-- اختر المدينة --</option>';
-        document.getElementById("citySelect").disabled = true;
-    } catch (error) {
-        console.error(error);
-        customAlert("❌ حدث خطأ أثناء حفظ السعر", 'error');
+    const checkboxes = document.querySelectorAll('#cityCheckboxes input[type="checkbox"]:checked');
+    const selectedCities = Array.from(checkboxes).map(cb => cb.value);
+    if (selectedCities.length === 0) {
+        customAlert("⚠️ يرجى اختيار مدينة واحدة على الأقل", 'warning');
+        return;
     }
+
+    let successCount = 0;
+    let errorCount = 0;
+
+    for (const city of selectedCities) {
+        const existing = shippingRates.find(r => r.gov === gov && r.city === city);
+        try {
+            if (existing) {
+                await updateDoc(doc(db, "shippingRates", existing.id), { costForStore, customerFee });
+                successCount++;
+            } else {
+                await addDoc(collection(db, "shippingRates"), { gov, city, costForStore, customerFee, createdAt: serverTimestamp() });
+                successCount++;
+            }
+        } catch (error) {
+            console.error(error);
+            errorCount++;
+        }
+    }
+
+    if (successCount > 0) {
+        customAlert(`✅ تم حفظ ${successCount} سعر شحن بنجاح${errorCount > 0 ? `، فشل ${errorCount}` : ''}`, 'success');
+    } else {
+        customAlert("❌ حدث خطأ أثناء حفظ الأسعار", 'error');
+    }
+
+    // تفريغ الحقول
+    document.getElementById("shippingCostForStore").value = "35";
+    document.getElementById("customerShippingFee").value = "70";
+    document.getElementById("govSelect").value = "";
+    document.getElementById("cityCheckboxes").innerHTML = '<span style="color: #999;">اختر المحافظة أولاً</span>';
 };
 
 window.editShippingRate = (id) => {
     const rate = shippingRates.find(r => r.id === id);
     if (!rate) return;
     document.getElementById("govSelect").value = rate.gov;
-    // تفعيل المدن
     const gov = rate.gov;
-    const citySelect = document.getElementById("citySelect");
-    citySelect.innerHTML = '<option value="">-- اختر المدينة --</option>';
-    if (gov && window.govData && window.govData[gov]) {
-        window.govData[gov].forEach(city => {
-            citySelect.innerHTML += `<option value="${city}" ${city === rate.city ? 'selected' : ''}>${city}</option>`;
+    const container = document.getElementById("cityCheckboxes");
+    container.innerHTML = '';
+    if (gov && govData[gov]) {
+        govData[gov].forEach(city => {
+            const label = document.createElement('label');
+            label.style.cssText = 'display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 4px 12px; background: #f8f9fa; border-radius: 20px; border: 1px solid #ddd; transition: 0.2s;';
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.value = city;
+            checkbox.style.width = '18px';
+            checkbox.style.height = '18px';
+            checkbox.style.accentColor = '#0F7B65';
+            if (city === rate.city) checkbox.checked = true;
+            label.appendChild(checkbox);
+            label.appendChild(document.createTextNode(city));
+            container.appendChild(label);
         });
-        citySelect.disabled = false;
+    } else {
+        container.innerHTML = '<span style="color: #999;">اختر المحافظة أولاً</span>';
     }
     document.getElementById("shippingCostForStore").value = rate.costForStore;
     document.getElementById("customerShippingFee").value = rate.customerFee;
