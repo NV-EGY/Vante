@@ -2243,6 +2243,43 @@ window.saveShippingRate = async () => {
     document.getElementById("govSelect").value = "";
     document.getElementById("cityCheckboxes").innerHTML = '<span style="color: #999;">اختر المحافظة أولاً</span>';
 };
+window.editShippingRate = function(id) {
+    const rate = shippingRates.find(r => r.id === id);
+    if (!rate) {
+        customAlert('⚠️ لم يتم العثور على سعر الشحن', 'warning');
+        return;
+    }
+    // ملء الحقول في نموذج الإضافة بالقيم الحالية
+    document.getElementById("govSelect").value = rate.gov;
+    renderCities(rate.gov); // تحديث قائمة المدن
+    // تحديد المدينة المطلوبة في الـ checkboxes
+    const container = document.getElementById("cityCheckboxes");
+    const checkboxes = container.querySelectorAll('input[type="checkbox"]');
+    checkboxes.forEach(cb => {
+        cb.checked = (cb.value === rate.city);
+    });
+    document.getElementById("shippingCostForStore").value = rate.costForStore;
+    document.getElementById("customerShippingFee").value = rate.customerFee;
+    // التمرير إلى النموذج
+    document.getElementById("shippingTab").scrollIntoView({ behavior: 'smooth', block: 'start' });
+    customAlert(`✏️ جارٍ تعديل سعر الشحن لمدينة ${rate.city}`, 'info');
+};
+window.deleteShippingRate = async function(id) {
+    const confirmed = await window.customConfirm("⚠️ هل أنت متأكد من حذف سعر الشحن لهذه المدينة؟");
+    if (!confirmed) return;
+    try {
+        await deleteDoc(doc(db, "shippingRates", id));
+        customAlert('🗑️ تم حذف سعر الشحن بنجاح', 'success');
+        // تحديث البيانات المحلية
+        shippingRates = shippingRates.filter(r => r.id !== id);
+        renderShippingRates();
+        const govSelect = document.getElementById('govSelect');
+        if (govSelect && govSelect.value) renderCities(govSelect.value);
+    } catch (error) {
+        console.error(error);
+        customAlert('❌ حدث خطأ أثناء الحذف', 'error');
+    }
+};
 // تعديل دالة تعديل المجموعة
 window.editShippingGroup = async function(cost) {
     const costNum = Number(cost);
