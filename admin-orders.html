@@ -693,6 +693,57 @@
 .bulk-status-btn.returned { background: #9b59b6; color: #fff; }
 .bulk-status-btn.undelivered { background: #e67e22; color: #fff; }
 .bulk-status-btn.rejected { background: #c0392b; color: #fff; }
+/* إعادة تنسيق حاوية الأزرار */
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+  width: 100%;
+}
+
+/* توحيد شكل كل الأزرار */
+.action-btn {
+  flex: 1 1 auto;
+  min-width: 45px;
+  padding: 8px 6px;
+  border: none;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: 0.2s;
+  text-decoration: none;
+  color: #fff;
+  white-space: nowrap;
+}
+
+/* أزرار محددة */
+.action-btn.whatsapp { background: #25D366; }
+.action-btn.copy { background: #333; }
+.action-btn.copy:hover { background: #555; }
+.action-btn.whatsapp:hover { background: #1da851; }
+
+/* ضبط الأزرار الجديدة لتكون متسقة */
+.action-btn[onclick*="copyOrderConfirmation"] { background: #0F7B65; }
+.action-btn[onclick*="copyOrderConfirmation"]:hover { background: #0a5f4f; }
+.action-btn[onclick*="sendWhatsAppLinks"] { background: #25D366; }
+.action-btn[onclick*="sendWhatsAppLinks"]:hover { background: #1da851; }
+
+/* للشاشات الصغيرة */
+@media (max-width: 500px) {
+  .actions { gap: 4px; }
+  .action-btn {
+    font-size: 10px;
+    padding: 6px 4px;
+    min-width: 35px;
+    flex: 1 1 45%;
+  }
+}
   </style>
 </head>
 <body>
@@ -1416,16 +1467,12 @@ ${(o.orderDetails || []).map(item => `<div style="display:flex; align-items:cent
             <div class="actions" style="display: ${isOpen ? 'flex' : 'none'};">
   <a class="action-btn whatsapp" target="_blank" href="https://wa.me/2${o.phone}"><i class="fab fa-whatsapp"></i></a>
   <button class="action-btn copy" onclick='copyText(${JSON.stringify(msg)})'><i class="fas fa-copy"></i></button>
-  </div>
-  
-  <!-- ✅ الزر الجديد لنسخ رسالة التأكيد -->
   <button class="action-btn" onclick="copyOrderConfirmation('${o.id}')" 
-          style="background:#0F7B65; color:#fff; border:none; padding:6px; border-radius:8px; cursor:pointer; flex:1;">
+          style="background:#0F7B65; color:#fff; border:none; border-radius:8px; cursor:pointer; flex:1; padding:6px;">
     <i class="fas fa-file-alt"></i> نسخ التأكيد
   </button>
-
   <button class="action-btn" onclick="sendWhatsAppLinks('${o.id}')" 
-          style="background:#25D366; color:#fff; border:none; padding:6px; border-radius:8px; cursor:pointer; flex:1;">
+          style="background:#25D366; color:#fff; border:none; border-radius:8px; cursor:pointer; flex:1; padding:6px;">
     <i class="fab fa-whatsapp"></i> تأكيد الطلب
   </button>
 </div>
