@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="ar">
 <head>
-
 <!-- PWA لكل تطبيق على حدة (طلبات) -->
 <link rel="manifest" href="manifest-orders.json">
 <meta name="mobile-web-app-capable" content="yes">
@@ -2155,93 +2154,6 @@ window.toggleShippingGroup = function(groupId) {
         icon.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
     }
 };
-
-window.editShippingGroup = async function(cost) {
-    const rates = shippingRates.filter(r => r.costForStore === cost);
-    if (!rates.length) {
-        customAlert('⚠️ لا توجد مدن في هذه المجموعة', 'warning');
-        return;
-    }
-    // طلب القيم الجديدة
-    const newStoreCost = prompt(`أدخل سعر المتجر الجديد لجميع مدن مجموعة ${cost} جنيه:`, rates[0]?.costForStore || 35);
-    if (newStoreCost === null) return;
-    const storeCost = parseFloat(newStoreCost);
-    if (isNaN(storeCost) || storeCost < 0) {
-        customAlert('⚠️ يرجى إدخال قيمة صحيحة لسعر المتجر', 'warning');
-        return;
-    }
-
-    const newCustomerFee = prompt(`أدخل سعر العميل الجديد لجميع مدن مجموعة ${cost} جنيه:`, rates[0]?.customerFee || 70);
-    if (newCustomerFee === null) return;
-    const customerFee = parseFloat(newCustomerFee);
-    if (isNaN(customerFee) || customerFee < 0) {
-        customAlert('⚠️ يرجى إدخال قيمة صحيحة لسعر العميل', 'warning');
-        return;
-    }
-
-    const confirmed = await window.customConfirm(`تحديث ${rates.length} مدينة بقيم:\nسعر المتجر = ${storeCost} جنيه\nسعر العميل = ${customerFee} جنيه؟`);
-    if (!confirmed) return;
-
-    let success = 0;
-    for (const rate of rates) {
-        try {
-            await updateDoc(doc(db, "shippingRates", rate.id), { 
-                costForStore: storeCost,
-                customerFee: customerFee 
-            });
-            success++;
-        } catch(e) { console.error(e); }
-    }
-    customAlert(`✅ تم تحديث ${success} مدينة بنجاح`, 'success');
-    // تحديث البيانات المحلية
-    shippingRates.forEach(r => { 
-        if (r.costForStore === cost) {
-            r.costForStore = storeCost;
-            r.customerFee = customerFee;
-        }
-    });
-    renderShippingRates();
-    const govSelect = document.getElementById('govSelect');
-    if (govSelect && govSelect.value) renderCities(govSelect.value);
-};
-
-window.deleteShippingGroup = async function(cost) {
-    const rates = shippingRates.filter(r => r.costForStore === cost);
-    const confirmed = await window.customConfirm(`⚠️ هل أنت متأكد من حذف جميع مدن مجموعة ${cost} جنيه (${rates.length} مدينة)؟`);
-    if (!confirmed) return;
-    let success = 0;
-    for (const rate of rates) {
-        try {
-            await deleteDoc(doc(db, "shippingRates", rate.id));
-            success++;
-        } catch(e) { console.error(e); }
-    }
-    customAlert(`🗑️ تم حذف ${success} مدينة بنجاح`, 'success');
-    shippingRates = shippingRates.filter(r => r.costForStore !== cost);
-    renderShippingRates();
-    const govSelect = document.getElementById('govSelect');
-    if (govSelect && govSelect.value) renderCities(govSelect.value);
-};
-
-// دالة لحذف جميع مدن المجموعة
-async function deleteShippingGroup(cost) {
-    const rates = shippingRates.filter(r => r.costForStore === cost);
-    const confirmed = await window.customConfirm(`⚠️ هل أنت متأكد من حذف جميع مدن مجموعة ${cost} جنيه (${rates.length} مدينة)؟`);
-    if (!confirmed) return;
-    let success = 0;
-    for (const rate of rates) {
-        try {
-            await deleteDoc(doc(db, "shippingRates", rate.id));
-            success++;
-        } catch(e) { console.error(e); }
-    }
-    customAlert(`🗑️ تم حذف ${success} مدينة بنجاح`, 'success');
-    // تحديث البيانات المحلية
-    shippingRates = shippingRates.filter(r => r.costForStore !== cost);
-    renderShippingRates();
-    const govSelect = document.getElementById('govSelect');
-    if (govSelect && govSelect.value) renderCities(govSelect.value);
-}
 
 function populateGovSelect() {
     const select = document.getElementById("govSelect");
