@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="ar">
 <head>
-
 <!-- PWA لكل تطبيق على حدة (طلبات) -->
 <link rel="manifest" href="manifest-orders.json">
 <meta name="mobile-web-app-capable" content="yes">
@@ -2308,38 +2307,76 @@ window.saveShippingRate = async () => {
     document.getElementById("cityCheckboxes").innerHTML = '<span style="color: #999;">اختر المحافظة أولاً</span>';
 };
 
-window.editShippingRate = (id) => {
-    const rate = shippingRates.find(r => r.id === id);
-    if (!rate) return;
-    document.getElementById("govSelect").value = rate.gov;
-    renderCities(rate.gov);
-    const container = document.getElementById("cityCheckboxes");
-    const checkboxes = container.querySelectorAll('input[type="checkbox"]');
-    checkboxes.forEach(cb => {
-        if (cb.value === rate.city) {
-            cb.checked = true;
+// تعديل دالة تعديل المجموعة
+window.editShippingGroup = async function(cost) {
+    const costNum = Number(cost); // تحويل إلى رقم
+    const rates = shippingRates.filter(r => r.costForStore === costNum);
+    if (!rates.length) {
+        customAlert('⚠️ لا توجد مدن في هذه المجموعة', 'warning');
+        return;
+    }
+    // طلب القيم الجديدة
+    const newStoreCost = prompt(`أدخل سعر المتجر الجديد لجميع مدن مجموعة ${costNum} جنيه:`, rates[0]?.costForStore || 35);
+    if (newStoreCost === null) return;
+    const storeCost = parseFloat(newStoreCost);
+    if (isNaN(storeCost) || storeCost < 0) {
+        customAlert('⚠️ يرجى إدخال قيمة صحيحة لسعر المتجر', 'warning');
+        return;
+    }
+
+    const newCustomerFee = prompt(`أدخل سعر العميل الجديد لجميع مدن مجموعة ${costNum} جنيه:`, rates[0]?.customerFee || 70);
+    if (newCustomerFee === null) return;
+    const customerFee = parseFloat(newCustomerFee);
+    if (isNaN(customerFee) || customerFee < 0) {
+        customAlert('⚠️ يرجى إدخال قيمة صحيحة لسعر العميل', 'warning');
+        return;
+    }
+
+    const confirmed = await window.customConfirm(`تحديث ${rates.length} مدينة بقيم:\nسعر المتجر = ${storeCost} جنيه\nسعر العميل = ${customerFee} جنيه؟`);
+    if (!confirmed) return;
+
+    let success = 0;
+    for (const rate of rates) {
+        try {
+            await updateDoc(doc(db, "shippingRates", rate.id), { 
+                costForStore: storeCost,
+                customerFee: customerFee 
+            });
+            success++;
+        } catch(e) { console.error(e); }
+    }
+    customAlert(`✅ تم تحديث ${success} مدينة بنجاح`, 'success');
+    // تحديث البيانات المحلية - استخدم costNum للمقارنة
+    shippingRates.forEach(r => { 
+        if (r.costForStore === costNum) {
+            r.costForStore = storeCost;
+            r.customerFee = customerFee;
         }
     });
-    document.getElementById("shippingCostForStore").value = rate.costForStore;
-    document.getElementById("customerShippingFee").value = rate.customerFee;
-    document.getElementById("shippingTab").scrollIntoView({ behavior: 'smooth', block: 'start' });
+    renderShippingRates();
+    const govSelect = document.getElementById('govSelect');
+    if (govSelect && govSelect.value) renderCities(govSelect.value);
 };
 
-window.deleteShippingRate = async (id) => {
-    const confirmed = await window.customConfirm("⚠️ هل أنت متأكد من حذف سعر الشحن لهذه المدينة؟");
-    if (confirmed) {
+// تعديل دالة حذف المجموعة
+window.deleteShippingGroup = async function(cost) {
+    const costNum = Number(cost);
+    const rates = shippingRates.filter(r => r.costForStore === costNum);
+    const confirmed = await window.customConfirm(`⚠️ هل أنت متأكد من حذف جميع مدن مجموعة ${costNum} جنيه (${rates.length} مدينة)؟`);
+    if (!confirmed) return;
+    let success = 0;
+    for (const rate of rates) {
         try {
-            await deleteDoc(doc(db, "shippingRates", id));
-            customAlert("🗑️ تم حذف سعر الشحن بنجاح", 'success');
-            // تحديث البيانات المحلية
-            shippingRates = shippingRates.filter(r => r.id !== id);
-            renderShippingRates();
-            const govSelect = document.getElementById('govSelect');
-            if (govSelect && govSelect.value) renderCities(govSelect.value);
-        } catch (error) {
-            customAlert("❌ حدث خطأ أثناء الحذف", 'error');
-        }
+            await deleteDoc(doc(db, "shippingRates", rate.id));
+            success++;
+        } catch(e) { console.error(e); }
     }
+    customAlert(`🗑️ تم حذف ${success} مدينة بنجاح`, 'success');
+    // تحديث البيانات المحلية
+    shippingRates = shippingRates.filter(r => r.costForStore !== costNum);
+    renderShippingRates();
+    const govSelect = document.getElementById('govSelect');
+    if (govSelect && govSelect.value) renderCities(govSelect.value);
 };
 // تحديث عداد التقييمات قيد المراجعة
 function updatePendingReviewsBadge() {
