@@ -1588,6 +1588,7 @@ function load() {
     loadOpenStates();
     loadOpenDayGroups();
     loadReviews();
+    loadShippingRates();
   onSnapshot(query(collection(db, "messages"), orderBy("createdAt", "desc")), (snap) => {
     let unread = 0, html = "";
     messages = snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -2036,20 +2037,6 @@ function populateGovSelect() {
         }
     });
 }
-// داخل populateGovSelect، أضف مستمع التغيير
-document.getElementById("govSelect").addEventListener("change", function() {
-    const gov = this.value;
-    const citySelect = document.getElementById("citySelect");
-    citySelect.innerHTML = '<option value="">-- اختر المدينة --</option>';
-    if (gov && window.govData && window.govData[gov]) {
-        window.govData[gov].forEach(city => {
-            citySelect.innerHTML += `<option value="${city}">${city}</option>`;
-        });
-        citySelect.disabled = false;
-    } else {
-        citySelect.disabled = true;
-    }
-});
 
 window.saveShippingRate = async () => {
     const gov = document.getElementById("govSelect").value;
