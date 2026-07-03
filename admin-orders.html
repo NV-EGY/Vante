@@ -754,6 +754,145 @@
     color: #000;
     border-color: #B8860B;
 }
+/* Batch Manager Modal */
+.batch-modal-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(4px);
+    z-index: 999999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+.batch-modal-overlay.active {
+    display: flex;
+    opacity: 1;
+}
+.batch-modal-content {
+    background: #fff;
+    border-radius: 28px;
+    width: 95%;
+    max-width: 900px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 30px 50px rgba(0,0,0,0.3);
+    transform: scale(0.9);
+    transition: transform 0.3s cubic-bezier(0.34, 1.2, 0.64, 1);
+}
+.batch-modal-overlay.active .batch-modal-content {
+    transform: scale(1);
+}
+.batch-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px;
+    border-bottom: 1px solid #eee;
+    background: #fff;
+    flex-shrink: 0;
+}
+.batch-modal-header h3 {
+    margin: 0;
+    font-size: 20px;
+    color: #111;
+}
+.batch-modal-close {
+    background: none;
+    border: none;
+    font-size: 28px;
+    cursor: pointer;
+    color: #888;
+    transition: 0.3s;
+    line-height: 1;
+}
+.batch-modal-close:hover {
+    color: #e74c3c;
+    transform: rotate(90deg);
+}
+.batch-modal-body {
+    padding: 20px 24px;
+    overflow-y: auto;
+    flex: 1;
+}
+.batch-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #eee;
+}
+.batch-btn {
+    padding: 6px 14px;
+    border: none;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+.batch-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+.batch-btn:active {
+    transform: scale(0.96);
+}
+.batch-table tbody tr:hover {
+    background: #f8f9fa;
+}
+.batch-table td {
+    padding: 10px 8px;
+    border-bottom: 1px solid #f0f0f0;
+    text-align: center;
+    vertical-align: middle;
+}
+.batch-table td input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: #0F7B65;
+    cursor: pointer;
+}
+.batch-edit-input {
+    width: 80px;
+    padding: 4px 6px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    text-align: center;
+    font-size: 13px;
+}
+.batch-edit-input:focus {
+    border-color: #D4AF37;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(212,175,55,0.2);
+}
+.batch-action-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: 0.2s;
+}
+.batch-action-btn.edit-btn { color: #f39c12; }
+.batch-action-btn.edit-btn:hover { background: #f39c12; color: #fff; }
+.batch-action-btn.delete-btn { color: #e74c3c; }
+.batch-action-btn.delete-btn:hover { background: #e74c3c; color: #fff; }
+@media (max-width: 600px) {
+    .batch-modal-content { width: 98%; max-height: 95vh; }
+    .batch-modal-body { padding: 12px; }
+    .batch-toolbar { flex-direction: column; align-items: stretch; }
+    .batch-toolbar > div { flex-wrap: wrap; }
+    .batch-edit-input { width: 60px; font-size: 11px; }
+}
   </style>
 </head>
 <body>
@@ -806,6 +945,12 @@
     <input type="text" id="reviewSearch" placeholder="🔍 بحث باسم المنتج أو المراجع" style="width: 100%; max-width: 400px; margin: 0 auto 15px; display: block; padding: 10px; border-radius: 30px; border: 1px solid #ddd;">
     <div id="reviewsList" style="display: flex; flex-direction: column; gap: 12px;"></div>
 </div>
+</div>
+<div style="margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; background: #f8f9fa; padding: 12px 16px; border-radius: 16px;">
+    <button onclick="openBatchManager()" class="btn btn-primary" style="background: #0F7B65; color: white; border: none; padding: 10px 20px; border-radius: 30px; font-weight: 700; cursor: pointer;">
+        <i class="fas fa-layer-group"></i> إدارة مجمعة
+    </button>
+    <span style="color: #666; font-size: 13px;">تعديل أسعار عدة مدن دفعة واحدة</span>
 </div>
 <!-- تبويب أسعار الشحن (مخفي افتراضياً) -->
 <div id="shippingTab" class="tab-content">
@@ -1189,6 +1334,209 @@ window.copyOrderConfirmation = function(orderId) {
         customAlert('✅ تم نسخ رسالة التأكيد بنجاح!', 'success');
     });
 };
+// ==================== إدارة مجمعة لأسعار الشحن ====================
+let batchSelectedIds = new Set();
+
+function openBatchManager() {
+    renderBatchTable();
+    document.getElementById('batchManagerModal').classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeBatchManager() {
+    document.getElementById('batchManagerModal').classList.remove('active');
+    document.body.style.overflow = '';
+    batchSelectedIds.clear();
+}
+
+function renderBatchTable() {
+    const tbody = document.getElementById('batchTableBody');
+    if (!shippingRates.length) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:30px; color:#999;">📭 لا توجد أسعار شحن مسجلة حتى الآن</td></tr>';
+        updateBatchSelectedCount();
+        return;
+    }
+    let html = '';
+    shippingRates.forEach(rate => {
+        const checked = batchSelectedIds.has(rate.id) ? 'checked' : '';
+        html += `
+            <tr>
+                <td><input type="checkbox" class="batch-checkbox" data-id="${rate.id}" ${checked} onchange="batchToggleSingle('${rate.id}')"></td>
+                <td><strong>${escapeHtml(rate.gov)}</strong></td>
+                <td>${escapeHtml(rate.city)}</td>
+                <td>
+                    <input type="number" class="batch-edit-input batch-cost" data-id="${rate.id}" value="${rate.costForStore}" step="1">
+                </td>
+                <td>
+                    <input type="number" class="batch-edit-input batch-fee" data-id="${rate.id}" value="${rate.customerFee}" step="1">
+                </td>
+                <td>
+                    <button class="batch-action-btn edit-btn" onclick="batchUpdateSingle('${rate.id}')" title="تحديث هذا السعر"><i class="fas fa-save"></i></button>
+                    <button class="batch-action-btn delete-btn" onclick="batchDeleteSingle('${rate.id}')" title="حذف هذا السعر"><i class="fas fa-trash-alt"></i></button>
+                </td>
+            </tr>
+        `;
+    });
+    tbody.innerHTML = html;
+    updateBatchSelectedCount();
+}
+
+function batchToggleSingle(id) {
+    const checkbox = document.querySelector(`.batch-checkbox[data-id="${id}"]`);
+    if (checkbox.checked) {
+        batchSelectedIds.add(id);
+    } else {
+        batchSelectedIds.delete(id);
+    }
+    updateBatchSelectedCount();
+    document.getElementById('batchSelectAllCheckbox').checked = batchSelectedIds.size === shippingRates.length;
+}
+
+function batchToggleAllCheckboxes() {
+    const checked = document.getElementById('batchSelectAllCheckbox').checked;
+    document.querySelectorAll('.batch-checkbox').forEach(cb => {
+        cb.checked = checked;
+        const id = cb.dataset.id;
+        if (checked) batchSelectedIds.add(id);
+        else batchSelectedIds.delete(id);
+    });
+    updateBatchSelectedCount();
+}
+
+function batchSelectAll() {
+    document.getElementById('batchSelectAllCheckbox').checked = true;
+    batchToggleAllCheckboxes();
+}
+
+function batchDeselectAll() {
+    document.getElementById('batchSelectAllCheckbox').checked = false;
+    batchToggleAllCheckboxes();
+}
+
+function batchSelectByGov() {
+    const gov = prompt('أدخل اسم المحافظة (مثال: القاهرة):');
+    if (!gov) return;
+    document.querySelectorAll('.batch-checkbox').forEach(cb => {
+        const id = cb.dataset.id;
+        const rate = shippingRates.find(r => r.id === id);
+        if (rate && rate.gov === gov) {
+            cb.checked = true;
+            batchSelectedIds.add(id);
+        }
+    });
+    updateBatchSelectedCount();
+    document.getElementById('batchSelectAllCheckbox').checked = batchSelectedIds.size === shippingRates.length;
+}
+
+function updateBatchSelectedCount() {
+    document.getElementById('batchSelectedCount').textContent = batchSelectedIds.size;
+}
+
+async function batchUpdatePrices() {
+    const costForStore = parseFloat(document.getElementById('batchCostForStore').value);
+    const customerFee = parseFloat(document.getElementById('batchCustomerFee').value);
+    if (isNaN(costForStore) || isNaN(customerFee)) {
+        customAlert('⚠️ يرجى إدخال قيم صحيحة للتحديث', 'warning');
+        return;
+    }
+    if (batchSelectedIds.size === 0) {
+        customAlert('⚠️ يرجى اختيار مدينة واحدة على الأقل', 'warning');
+        return;
+    }
+    const confirmed = await window.customConfirm(`تحديث ${batchSelectedIds.size} مدينة بقيم: تكلفة المتجر = ${costForStore}، العميل يدفع = ${customerFee}؟`);
+    if (!confirmed) return;
+
+    let successCount = 0;
+    for (const id of batchSelectedIds) {
+        try {
+            await updateDoc(doc(db, "shippingRates", id), { costForStore, customerFee });
+            successCount++;
+        } catch(e) { console.error(e); }
+    }
+    customAlert(`✅ تم تحديث ${successCount} سعر شحن بنجاح`, 'success');
+    // تحديث البيانات المحلية
+    shippingRates.forEach(r => {
+        if (batchSelectedIds.has(r.id)) {
+            r.costForStore = costForStore;
+            r.customerFee = customerFee;
+        }
+    });
+    renderBatchTable();
+    renderShippingRates();
+    batchSelectedIds.clear();
+    document.getElementById('batchSelectAllCheckbox').checked = false;
+}
+
+async function batchDeleteSelected() {
+    if (batchSelectedIds.size === 0) {
+        customAlert('⚠️ يرجى اختيار مدينة واحدة على الأقل للحذف', 'warning');
+        return;
+    }
+    const confirmed = await window.customConfirm(`⚠️ هل أنت متأكد من حذف ${batchSelectedIds.size} سعر شحن نهائياً؟`);
+    if (!confirmed) return;
+
+    let successCount = 0;
+    for (const id of batchSelectedIds) {
+        try {
+            await deleteDoc(doc(db, "shippingRates", id));
+            successCount++;
+        } catch(e) { console.error(e); }
+    }
+    customAlert(`✅ تم حذف ${successCount} سعر شحن بنجاح`, 'success');
+    // تحديث البيانات المحلية
+    shippingRates = shippingRates.filter(r => !batchSelectedIds.has(r.id));
+    batchSelectedIds.clear();
+    document.getElementById('batchSelectAllCheckbox').checked = false;
+    renderBatchTable();
+    renderShippingRates();
+    const govSelect = document.getElementById('govSelect');
+    if (govSelect && govSelect.value) renderCities(govSelect.value);
+}
+
+async function batchUpdateSingle(id) {
+    const row = document.querySelector(`tr:has(.batch-cost[data-id="${id}"])`);
+    if (!row) return;
+    const costInput = row.querySelector('.batch-cost');
+    const feeInput = row.querySelector('.batch-fee');
+    const costForStore = parseFloat(costInput.value);
+    const customerFee = parseFloat(feeInput.value);
+    if (isNaN(costForStore) || isNaN(customerFee)) {
+        customAlert('⚠️ يرجى إدخال قيم صحيحة', 'warning');
+        return;
+    }
+    try {
+        await updateDoc(doc(db, "shippingRates", id), { costForStore, customerFee });
+        const rate = shippingRates.find(r => r.id === id);
+        if (rate) { rate.costForStore = costForStore; rate.customerFee = customerFee; }
+        customAlert('✅ تم تحديث السعر بنجاح', 'success');
+        renderBatchTable();
+        renderShippingRates();
+        const govSelect = document.getElementById('govSelect');
+        if (govSelect && govSelect.value) renderCities(govSelect.value);
+    } catch(e) {
+        customAlert('❌ حدث خطأ أثناء التحديث', 'error');
+    }
+}
+
+async function batchDeleteSingle(id) {
+    const confirmed = await window.customConfirm('⚠️ هل أنت متأكد من حذف هذا السعر؟');
+    if (!confirmed) return;
+    try {
+        await deleteDoc(doc(db, "shippingRates", id));
+        shippingRates = shippingRates.filter(r => r.id !== id);
+        customAlert('🗑️ تم حذف السعر بنجاح', 'success');
+        renderBatchTable();
+        renderShippingRates();
+        const govSelect = document.getElementById('govSelect');
+        if (govSelect && govSelect.value) renderCities(govSelect.value);
+    } catch(e) {
+        customAlert('❌ حدث خطأ أثناء الحذف', 'error');
+    }
+}
+// إضافة مستمع لإغلاق المودال عند الضغط على الخلفية
+document.getElementById('batchManagerModal').addEventListener('click', function(e) {
+    if (e.target === this) closeBatchManager();
+});
 window.deleteOrder = async (id) => {
   const confirmed = await window.customConfirm("⚠️ هل أنت متأكد من حذف هذا الطلب وإعادة الكميات إلى المخزون؟");
   if (!confirmed) return;
@@ -2328,5 +2676,52 @@ window.goToProducts = goToProducts;
 window.customConfirm = customConfirm;
 window.customAlert = customAlert;
 </script>
+<!-- ==================== مودال الإدارة المجمعة ==================== -->
+<div id="batchManagerModal" class="batch-modal-overlay">
+    <div class="batch-modal-content">
+        <div class="batch-modal-header">
+            <h3><i class="fas fa-layer-group"></i> إدارة أسعار الشحن - مجمعة</h3>
+            <button class="batch-modal-close" onclick="closeBatchManager()">&times;</button>
+        </div>
+        <div class="batch-modal-body">
+            <div class="batch-toolbar">
+                <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                    <button onclick="batchSelectAll()" class="batch-btn" style="background: #0F7B65; color: #fff;">✅ تحديد الكل</button>
+                    <button onclick="batchDeselectAll()" class="batch-btn" style="background: #888; color: #fff;">✖ إلغاء الكل</button>
+                    <button onclick="batchSelectByGov()" class="batch-btn" style="background: #D4AF37; color: #000;">🏛️ حسب المحافظة</button>
+                </div>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                    <input type="number" id="batchCostForStore" placeholder="تكلفة المتجر" style="width: 120px; padding: 6px 10px; border: 1px solid #ddd; border-radius: 8px;">
+                    <input type="number" id="batchCustomerFee" placeholder="العميل يدفع" style="width: 120px; padding: 6px 10px; border: 1px solid #ddd; border-radius: 8px;">
+                    <button onclick="batchUpdatePrices()" class="batch-btn" style="background: #2ecc71; color: #fff;">💾 تحديث المحدد</button>
+                    <button onclick="batchDeleteSelected()" class="batch-btn" style="background: #e74c3c; color: #fff;">🗑️ حذف المحدد</button>
+                </div>
+            </div>
+            <div style="overflow-x: auto; max-height: 55vh; overflow-y: auto; border: 1px solid #eee; border-radius: 12px;">
+                <table class="batch-table" style="width: 100%; border-collapse: collapse; background: white; font-size: 14px;">
+                    <thead style="background: #111; color: white; position: sticky; top: 0; z-index: 10;">
+                        <tr>
+                            <th style="padding: 10px 8px; text-align: center; width: 40px;">
+                                <input type="checkbox" id="batchSelectAllCheckbox" onchange="batchToggleAllCheckboxes()">
+                            </th>
+                            <th style="padding: 10px 8px; text-align: center;">المحافظة</th>
+                            <th style="padding: 10px 8px; text-align: center;">المدينة</th>
+                            <th style="padding: 10px 8px; text-align: center;">تكلفة المتجر</th>
+                            <th style="padding: 10px 8px; text-align: center;">العميل يدفع</th>
+                            <th style="padding: 10px 8px; text-align: center;">الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="batchTableBody">
+                        <tr><td colspan="6" style="text-align:center; padding:30px; color:#999;">⏳ جاري تحميل البيانات...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div style="margin-top: 15px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                <span style="font-size: 13px; color: #888;">تم اختيار: <span id="batchSelectedCount">0</span> مدينة</span>
+                <button onclick="closeBatchManager()" class="batch-btn" style="background: #333; color: #fff;">إغلاق</button>
+            </div>
+        </div>
+    </div>
+</div>
 </body>
 </html>
