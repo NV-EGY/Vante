@@ -2126,9 +2126,8 @@ function renderShippingRates() {
 
     container.innerHTML = html;
 }
-
-// دالة لفتح/إغلاق مجموعة
-function toggleShippingGroup(groupId) {
+// ========== دوال المجموعات (عامة) ==========
+window.toggleShippingGroup = function(groupId) {
     const content = document.getElementById(groupId);
     const icon = document.getElementById(`shipping-group-icon-${groupId}`);
     if (!content) return;
@@ -2137,10 +2136,9 @@ function toggleShippingGroup(groupId) {
     if (icon) {
         icon.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
     }
-}
+};
 
-// دالة لتعديل جميع مدن المجموعة (تغيير سعر العميل مثلاً)
-function editShippingGroup(cost) {
+window.editShippingGroup = async function(cost) {
     const rates = shippingRates.filter(r => r.costForStore === cost);
     const newCustomerFee = prompt(`أدخل سعر العميل الجديد لجميع مدن مجموعة ${cost} جنيه:`, rates[0]?.customerFee || 70);
     if (newCustomerFee === null) return;
@@ -2162,10 +2160,27 @@ function editShippingGroup(cost) {
     // تحديث البيانات المحلية
     shippingRates.forEach(r => { if (r.costForStore === cost) r.customerFee = fee; });
     renderShippingRates();
-    // تحديث المدن في القائمة المنسدلة
     const govSelect = document.getElementById('govSelect');
     if (govSelect && govSelect.value) renderCities(govSelect.value);
-}
+};
+
+window.deleteShippingGroup = async function(cost) {
+    const rates = shippingRates.filter(r => r.costForStore === cost);
+    const confirmed = await window.customConfirm(`⚠️ هل أنت متأكد من حذف جميع مدن مجموعة ${cost} جنيه (${rates.length} مدينة)؟`);
+    if (!confirmed) return;
+    let success = 0;
+    for (const rate of rates) {
+        try {
+            await deleteDoc(doc(db, "shippingRates", rate.id));
+            success++;
+        } catch(e) { console.error(e); }
+    }
+    customAlert(`🗑️ تم حذف ${success} مدينة بنجاح`, 'success');
+    shippingRates = shippingRates.filter(r => r.costForStore !== cost);
+    renderShippingRates();
+    const govSelect = document.getElementById('govSelect');
+    if (govSelect && govSelect.value) renderCities(govSelect.value);
+};
 
 // دالة لحذف جميع مدن المجموعة
 async function deleteShippingGroup(cost) {
