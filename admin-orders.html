@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="ar">
 <head>
-
 <!-- PWA لكل تطبيق على حدة (طلبات) -->
 <link rel="manifest" href="manifest-orders.json">
 <meta name="mobile-web-app-capable" content="yes">
@@ -1417,6 +1416,7 @@ ${(o.orderDetails || []).map(item => `<div style="display:flex; align-items:cent
             <div class="actions" style="display: ${isOpen ? 'flex' : 'none'};">
   <a class="action-btn whatsapp" target="_blank" href="https://wa.me/2${o.phone}"><i class="fab fa-whatsapp"></i></a>
   <button class="action-btn copy" onclick='copyText(${JSON.stringify(msg)})'><i class="fas fa-copy"></i></button>
+  </div>
   
   <!-- ✅ الزر الجديد لنسخ رسالة التأكيد -->
   <button class="action-btn" onclick="copyOrderConfirmation('${o.id}')" 
