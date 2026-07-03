@@ -1063,7 +1063,7 @@ window.sendWhatsAppLinks = function(orderId) {
     
     // ✅ الرسالة الجديدة المختصرة حسب طلبك
     let message = `🛒 مرحباً ${o.customerName || 'عميلنا'}\n`;
-    message += `طلبك رقم ${o.orderID}\n\n`;
+    message += `طلبك رقم: ${o.orderID}\n\n`;
     message += `✅ لتأكيد استلام الطلب، اضغط على الرابط:\n${confirmLink}\n\n`;
     message += `❌ لرفض الطلب، اضغط على الرابط:\n${rejectLink}\n\n`;
     message += `شكراً لتسوقك مع VANTÉ ✨`;
@@ -1085,13 +1085,11 @@ window.copyOrderConfirmation = function(orderId) {
     const rejectLink = `https://vante.sbs/?reject=${orderId}&hash=${hash}`;
 
     // نفس صيغة الرسالة المختصرة (الشكل رقم 2)
-    let message = `✨ مرحباً ${o.customerName || 'عميلنا'}،\n`;
-    message += `📦 طلبك #${o.orderID}\n\n`;
-    message += `🔹 لتأكيد الاستلام:\n`;
-    message += `${confirmLink}\n\n`;
-    message += `🔸 للرفض:\n`;
-    message += `${rejectLink}\n\n`;
-    message += `💛 شكراً لثقتك في VANTÉ`;
+    let message = `🛒 مرحباً ${o.customerName || 'عميلنا'}\n`;
+    message += `طلبك رقم: ${o.orderID}\n\n`;
+    message += `✅ لتأكيد استلام الطلب، اضغط على الرابط:\n${confirmLink}\n\n`;
+    message += `❌ لرفض الطلب، اضغط على الرابط:\n${rejectLink}\n\n`;
+    message += `شكراً لتسوقك مع VANTÉ ✨`;
 
     // نسخ إلى الحافظة
     navigator.clipboard.writeText(message).then(() => {
