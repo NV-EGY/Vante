@@ -966,6 +966,22 @@ window.openMsg = async (id) => {
   await markRead(id);
   document.getElementById("messageView").innerHTML = `<div style="text-align:right"><div style="font-size:18px;font-weight:bold;">👤 ${m.name}</div><div style="color:#666;">📞 ${m.phone}</div><hr><div>💬 ${m.message}</div><a href="https://wa.me/2${m.phone}" target="_blank" style="display:block;margin-top:15px;background:#25D366;color:#fff;padding:10px;border-radius:10px;text-align:center;">💬 رد واتساب</a></div>`;
 };
+let openDayGroups = {};
+
+function saveOpenDayGroups() {
+    try {
+        localStorage.setItem('openDayGroups', JSON.stringify(openDayGroups));
+    } catch(e) {}
+}
+
+function loadOpenDayGroups() {
+    try {
+        const saved = localStorage.getItem('openDayGroups');
+        if (saved) {
+            openDayGroups = JSON.parse(saved);
+        }
+    } catch(e) {}
+}
 // حفظ حالة الفتح في localStorage
 function saveOpenStates() {
     try {
@@ -1401,7 +1417,7 @@ function render() {
     
     const dateHeader = formatOrderDate(createdAtDate);
     const groupId = `group-${groupIndex++}`;
-    const isGroupOpen = isToday;
+    const isGroupOpen = openDayGroups[groupId] !== undefined ? openDayGroups[groupId] : isToday;
     
     html += `
       <div class="day-group" data-group="${groupId}">
@@ -1506,15 +1522,14 @@ ${(o.orderDetails || []).map(item => `<div style="display:flex; align-items:cent
 }
 
 window.toggleDayGroup = function(groupId) {
-  const content = document.getElementById(`group-content-${groupId}`);
-  const icon = document.getElementById(`icon-${groupId}`);
-  if (content.style.display === 'none') {
-    content.style.display = 'block';
-    icon.style.transform = 'rotate(0deg)';
-  } else {
-    content.style.display = 'none';
-    icon.style.transform = 'rotate(-90deg)';
-  }
+    const content = document.getElementById(`group-content-${groupId}`);
+    const icon = document.getElementById(`icon-${groupId}`);
+    if (!content) return;
+    const isOpen = content.style.display !== 'none';
+    content.style.display = isOpen ? 'none' : 'block';
+    icon.style.transform = isOpen ? 'rotate(-90deg)' : 'rotate(0deg)';
+    openDayGroups[groupId] = !isOpen;
+    saveOpenDayGroups();
 };
 
 window.toggleOrder = (id) => {
@@ -1553,7 +1568,8 @@ window.showPopup = (o) => { let box = document.getElementById("msgPopup"); docum
 };
 
 function load() {
-    loadOpenStates(); // <--- أضف هذا السطر
+    loadOpenStates();
+    loadOpenDayGroups();
     loadReviews();
   onSnapshot(query(collection(db, "messages"), orderBy("createdAt", "desc")), (snap) => {
     let unread = 0, html = "";
