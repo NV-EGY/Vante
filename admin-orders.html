@@ -1697,7 +1697,7 @@ function startOrdersListener() {
 // Custom Confirm - مودال احترافي بديل
 window.customConfirm = function(message) {
     return new Promise((resolve) => {
-        const overlay = document.getElementById('customConfirmOverlay');
+const overlay = document.getElementById('firmOverlay');
         const msgEl = document.getElementById('confirmMessage');
         const yesBtn = document.getElementById('confirmYesBtn');
         const noBtn = document.getElementById('confirmNoBtn');
@@ -2550,6 +2550,12 @@ window.toggleSelectAll = toggleSelectAll;
 window.goToProducts = goToProducts;
 window.customConfirm = customConfirm;
 window.customAlert = customAlert;
+window.editShippingRate = editShippingRate;
+window.deleteShippingRate = deleteShippingRate;
+window.editShippingGroup = editShippingGroup;
+window.deleteShippingGroup = deleteShippingGroup;
+window.saveShippingRate = saveShippingRate;
+window.toggleShippingGroup = toggleShippingGroup;
 </script>
 </body>
 </html>
