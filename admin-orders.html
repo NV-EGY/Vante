@@ -953,7 +953,7 @@
 </div>
 
 <!-- Custom Confirm Modal -->
-<div id="customConfirmOverlay" class="custom-confirm-overlay">
+<div id="firmOverlay" class="custom-confirm-overlay">
   <div class="custom-confirm-box">
     <div class="confirm-header">
       <i class="fas fa-question-circle"></i>
@@ -963,6 +963,30 @@
     <div class="confirm-buttons">
       <button id="confirmNoBtn">إلغاء</button>
       <button id="confirmYesBtn">تأكيد</button>
+    </div>
+  </div>
+</div>
+<!-- Custom Prompt Modal لتعديل المجموعة -->
+<div id="customPromptOverlay" class="custom-confirm-overlay">
+  <div class="custom-confirm-box">
+    <div class="confirm-header">
+      <i class="fas fa-edit"></i>
+      <h3>تعديل المجموعة</h3>
+    </div>
+    <div class="confirm-message" style="text-align: right; direction: rtl;">
+      <div style="margin-bottom: 15px;">
+        <label style="display: block; font-weight: bold; margin-bottom: 5px;">سعر المتجر (الذي تدفعه أنت)</label>
+        <input type="number" id="customStoreCost" class="form-control" value="35" step="1" style="width: 100%;">
+      </div>
+      <div style="margin-bottom: 15px;">
+        <label style="display: block; font-weight: bold; margin-bottom: 5px;">سعر العميل (الذي يدفعه العميل)</label>
+        <input type="number" id="customCustomerFee" class="form-control" value="70" step="1" style="width: 100%;">
+      </div>
+      <div style="font-size: 13px; color: #888;" id="customPromptInfo">عدد المدن: 0</div>
+    </div>
+    <div class="confirm-buttons">
+      <button id="customPromptCancelBtn">إلغاء</button>
+      <button id="customPromptConfirmBtn" style="color: #0F7B65;">تحديث</button>
     </div>
   </div>
 </div>
@@ -2221,53 +2245,103 @@ window.saveShippingRate = async () => {
 };
 // تعديل دالة تعديل المجموعة
 window.editShippingGroup = async function(cost) {
-    const costNum = Number(cost); // تحويل إلى رقم
+    const costNum = Number(cost);
     const rates = shippingRates.filter(r => r.costForStore === costNum);
     if (!rates.length) {
         customAlert('⚠️ لا توجد مدن في هذه المجموعة', 'warning');
         return;
     }
-    // طلب القيم الجديدة
-    const newStoreCost = prompt(`أدخل سعر المتجر الجديد لجميع مدن مجموعة ${costNum} جنيه:`, rates[0]?.costForStore || 35);
-    if (newStoreCost === null) return;
-    const storeCost = parseFloat(newStoreCost);
-    if (isNaN(storeCost) || storeCost < 0) {
-        customAlert('⚠️ يرجى إدخال قيمة صحيحة لسعر المتجر', 'warning');
-        return;
-    }
 
-    const newCustomerFee = prompt(`أدخل سعر العميل الجديد لجميع مدن مجموعة ${costNum} جنيه:`, rates[0]?.customerFee || 70);
-    if (newCustomerFee === null) return;
-    const customerFee = parseFloat(newCustomerFee);
-    if (isNaN(customerFee) || customerFee < 0) {
-        customAlert('⚠️ يرجى إدخال قيمة صحيحة لسعر العميل', 'warning');
-        return;
-    }
+    // إعداد النموذج
+    const overlay = document.getElementById('customPromptOverlay');
+    const storeInput = document.getElementById('customStoreCost');
+    const customerInput = document.getElementById('customCustomerFee');
+    const info = document.getElementById('customPromptInfo');
+    const confirmBtn = document.getElementById('customPromptConfirmBtn');
+    const cancelBtn = document.getElementById('customPromptCancelBtn');
 
-    const confirmed = await window.customConfirm(`تحديث ${rates.length} مدينة بقيم:\nسعر المتجر = ${storeCost} جنيه\nسعر العميل = ${customerFee} جنيه؟`);
-    if (!confirmed) return;
+    // تعيين القيم الحالية
+    storeInput.value = rates[0]?.costForStore || 35;
+    customerInput.value = rates[0]?.customerFee || 70;
+    info.textContent = `عدد المدن: ${rates.length}`;
 
-    let success = 0;
-    for (const rate of rates) {
-        try {
-            await updateDoc(doc(db, "shippingRates", rate.id), { 
-                costForStore: storeCost,
-                customerFee: customerFee 
-            });
-            success++;
-        } catch(e) { console.error(e); }
-    }
-    customAlert(`✅ تم تحديث ${success} مدينة بنجاح`, 'success');
-    // تحديث البيانات المحلية - استخدم costNum للمقارنة
-    shippingRates.forEach(r => { 
-        if (r.costForStore === costNum) {
-            r.costForStore = storeCost;
-            r.customerFee = customerFee;
+    // إظهار النموذج
+    overlay.classList.add('active');
+
+    // إرجاع Promise للانتظار حتى الضغط على تأكيد أو إلغاء
+    return new Promise((resolve) => {
+        const onConfirm = () => {
+            const storeCost = parseFloat(storeInput.value);
+            const customerFee = parseFloat(customerInput.value);
+
+            if (isNaN(storeCost) || storeCost < 0) {
+                customAlert('⚠️ يرجى إدخال قيمة صحيحة لسعر المتجر', 'warning');
+                return;
+            }
+            if (isNaN(customerFee) || customerFee < 0) {
+                customAlert('⚠️ يرجى إدخال قيمة صحيحة لسعر العميل', 'warning');
+                return;
+            }
+
+            overlay.classList.remove('active');
+            cleanup();
+            resolve({ storeCost, customerFee });
+        };
+
+        const onCancel = () => {
+            overlay.classList.remove('active');
+            cleanup();
+            resolve(null);
+        };
+
+        const cleanup = () => {
+            confirmBtn.removeEventListener('click', onConfirm);
+            cancelBtn.removeEventListener('click', onCancel);
+        };
+
+        confirmBtn.addEventListener('click', onConfirm);
+        cancelBtn.addEventListener('click', onCancel);
+
+        // إغلاق عند الضغط على الخلفية
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                overlay.classList.remove('active');
+                cleanup();
+                resolve(null);
+            }
+        });
+    }).then(async (result) => {
+        if (!result) return; // ألغى المستخدم
+
+        const { storeCost, customerFee } = result;
+
+        // تأكيد إضافي (اختياري)
+        const confirmed = await window.customConfirm(`تحديث ${rates.length} مدينة بقيم:\nسعر المتجر = ${storeCost} جنيه\nسعر العميل = ${customerFee} جنيه؟`);
+        if (!confirmed) return;
+
+        let success = 0;
+        for (const rate of rates) {
+            try {
+                await updateDoc(doc(db, "shippingRates", rate.id), {
+                    costForStore: storeCost,
+                    customerFee: customerFee
+                });
+                success++;
+            } catch(e) { console.error(e); }
         }
+        customAlert(`✅ تم تحديث ${success} مدينة بنجاح`, 'success');
+
+        // تحديث البيانات المحلية
+        shippingRates.forEach(r => {
+            if (r.costForStore === costNum) {
+                r.costForStore = storeCost;
+                r.customerFee = customerFee;
+            }
+        });
+        renderShippingRates();
+        const govSelect = document.getElementById('govSelect');
+        if (govSelect && govSelect.value) renderCities(govSelect.value);
     });
-    renderShippingRates();
-    const govSelect = document.getElementById('govSelect');
-    if (govSelect && govSelect.value) renderCities(govSelect.value);
 };
 
 // تعديل دالة حذف المجموعة
