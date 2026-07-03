@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="ar">
 <head>
-
 <!-- PWA لكل تطبيق على حدة (طلبات) -->
 <link rel="manifest" href="manifest-orders.json">
 <meta name="mobile-web-app-capable" content="yes">
@@ -2076,7 +2075,7 @@ function renderShippingRates() {
         if (!groups[key]) groups[key] = [];
         groups[key].push(rate);
     });
-    // ترتيب المجموعات تصاعدياً حسب السعر
+    
     const sortedKeys = Object.keys(groups).map(Number).sort((a, b) => a - b);
 
     if (sortedKeys.length === 0) {
@@ -2088,12 +2087,19 @@ function renderShippingRates() {
     sortedKeys.forEach((cost, groupIndex) => {
         const rates = groups[cost];
         const groupId = `shipping-group-${groupIndex}`;
-        const firstRate = rates[0];
-        // حساب متوسط سعر العميل لهذه المجموعة
+        
+        // حساب متوسط سعر العميل للمجموعة
         const avgCustomerFee = rates.reduce((sum, r) => sum + r.customerFee, 0) / rates.length;
         const customerFeeDisplay = avgCustomerFee % 1 === 0 ? avgCustomerFee : avgCustomerFee.toFixed(2);
-        // قبل إنشاء tbody للمجموعة، قم بترتيب المدن حسب المحافظة
-const sortedRates = [...rates].sort((a, b) => a.gov.localeCompare(b.gov, 'ar'));
+        
+        // تجميع المدن حسب المحافظة داخل هذه المجموعة
+        const citiesByGov = {};
+        rates.forEach(rate => {
+            if (!citiesByGov[rate.gov]) citiesByGov[rate.gov] = [];
+            citiesByGov[rate.gov].push(rate);
+        });
+        // ترتيب المحافظات أبجدياً
+        const sortedGovs = Object.keys(citiesByGov).sort((a, b) => a.localeCompare(b, 'ar'));
 
         html += `
             <tr class="shipping-group-header" onclick="toggleShippingGroup('${groupId}')" style="cursor:pointer; background: #f8f9fa; border-bottom: 2px solid #D4AF37;">
@@ -2128,37 +2134,40 @@ const sortedRates = [...rates].sort((a, b) => a.gov.localeCompare(b.gov, 'ar'));
                             </tr>
                         </thead>
                         <tbody>
-                      
-${sortedRates.map(rate => `
-    <tr style="border-bottom: 1px solid #f0f0f0;">
-        <td style="padding: 8px 12px; text-align: center;">${escapeHtml(rate.gov)}</td>
-        <td style="padding: 8px 12px; text-align: center; font-weight: 600;">${escapeHtml(rate.city)}</td>
-        <td style="padding: 8px 12px; text-align: center; color: #D4AF37; font-weight: 700;">${rate.customerFee} جنيه</td>
-        <td style="padding: 8px 12px; text-align: center;">
-            <button onclick="event.stopPropagation(); editShippingRate('${rate.id}')" style="background: #f39c12; color: #000; border: none; padding: 4px 10px; border-radius: 15px; font-size: 11px; cursor: pointer; margin: 0 2px;">
-                <i class="fas fa-edit"></i>
-            </button>
-            <button onclick="event.stopPropagation(); deleteShippingRate('${rate.id}')" style="background: #e74c3c; color: #fff; border: none; padding: 4px 10px; border-radius: 15px; font-size: 11px; cursor: pointer; margin: 0 2px;">
-                <i class="fas fa-trash-alt"></i>
-            </button>
-        </td>
-    </tr>
-`).join('')}
-                            ${rates.map(rate => `
-                                <tr style="border-bottom: 1px solid #f0f0f0;">
-                                    <td style="padding: 8px 12px; text-align: center;">${escapeHtml(rate.gov)}</td>
-                                    <td style="padding: 8px 12px; text-align: center; font-weight: 600;">${escapeHtml(rate.city)}</td>
-                                    <td style="padding: 8px 12px; text-align: center; color: #D4AF37; font-weight: 700;">${rate.customerFee} جنيه</td>
-                                    <td style="padding: 8px 12px; text-align: center;">
-                                        <button onclick="event.stopPropagation(); editShippingRate('${rate.id}')" style="background: #f39c12; color: #000; border: none; padding: 4px 10px; border-radius: 15px; font-size: 11px; cursor: pointer; margin: 0 2px;">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button onclick="event.stopPropagation(); deleteShippingRate('${rate.id}')" style="background: #e74c3c; color: #fff; border: none; padding: 4px 10px; border-radius: 15px; font-size: 11px; cursor: pointer; margin: 0 2px;">
-                                            <i class="fas fa-trash-alt"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                            `).join('')}
+        `;
+
+        // عرض المحافظات والمدن
+        sortedGovs.forEach(gov => {
+            const cityRates = citiesByGov[gov];
+            // عرض المحافظة كعنوان (صف ممتد)
+            html += `
+                <tr style="background: #f0f4f8; border-bottom: 1px solid #ddd;">
+                    <td colspan="4" style="padding: 6px 12px; font-weight: bold; color: #0F7B65; text-align: right;">
+                        <i class="fas fa-map-marker-alt" style="margin-left: 6px;"></i> ${escapeHtml(gov)}
+                    </td>
+                </tr>
+            `;
+            // عرض المدن التابعة لهذه المحافظة
+            cityRates.forEach(rate => {
+                html += `
+                    <tr style="border-bottom: 1px solid #f0f0f0;">
+                        <td style="padding: 8px 12px; text-align: center;"></td> <!-- فارغ تحت المحافظة -->
+                        <td style="padding: 8px 12px; text-align: center; font-weight: 600;">${escapeHtml(rate.city)}</td>
+                        <td style="padding: 8px 12px; text-align: center; color: #D4AF37; font-weight: 700;">${rate.customerFee} جنيه</td>
+                        <td style="padding: 8px 12px; text-align: center;">
+                            <button onclick="event.stopPropagation(); editShippingRate('${rate.id}')" style="background: #f39c12; color: #000; border: none; padding: 4px 10px; border-radius: 15px; font-size: 11px; cursor: pointer; margin: 0 2px;">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button onclick="event.stopPropagation(); deleteShippingRate('${rate.id}')" style="background: #e74c3c; color: #fff; border: none; padding: 4px 10px; border-radius: 15px; font-size: 11px; cursor: pointer; margin: 0 2px;">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+        });
+
+        html += `
                         </tbody>
                     </table>
                 </td>
