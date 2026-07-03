@@ -812,6 +812,12 @@
                         <option value="">-- اختر المحافظة --</option>
                     </select>
                 </div>
+                <div class="form-group" style="flex: 1.5;">
+    <label><i class="fas fa-city"></i> المدينة</label>
+    <select id="citySelect" class="form-control" style="width: 100%;">
+        <option value="">-- اختر المدينة --</option>
+    </select>
+</div>
                 <div class="form-group" style="flex: 1;">
                     <label><i class="fas fa-dollar-sign"></i> تكلفة المتجر (الدفع لشركة الشحن)</label>
                     <input type="number" id="shippingCostForStore" class="form-control" placeholder="مثال: 35" step="1" value="35">
@@ -860,13 +866,14 @@
         <div style="overflow-x: auto; border-radius: 16px; border: 1px solid #eef2f5;">
             <table class="shipping-rates-table" style="width: 100%; border-collapse: collapse; background: white;">
                 <thead style="background: #111; color: white;">
-                    <tr>
-                        <th style="padding: 12px; text-align: center;">المحافظة</th>
-                        <th style="padding: 12px; text-align: center;">تكلفة المتجر (جنيه)</th>
-                        <th style="padding: 12px; text-align: center;">العميل يدفع (جنيه)</th>
-                        <th style="padding: 12px; text-align: center;">الإجراءات</th>
-                    </tr>
-                </thead>
+    <tr>
+        <th style="padding: 12px; text-align: center;">المحافظة</th>
+        <th style="padding: 12px; text-align: center;">المدينة</th>  <!-- 👈 أضف هذا العمود -->
+        <th style="padding: 12px; text-align: center;">تكلفة المتجر (جنيه)</th>
+        <th style="padding: 12px; text-align: center;">العميل يدفع (جنيه)</th>
+        <th style="padding: 12px; text-align: center;">الإجراءات</th>
+    </tr>
+</thead>
                 <tbody id="shippingRatesList">
                     <tr><td colspan="4" style="text-align: center; padding: 30px;">⏳ جاري تحميل أسعار الشحن...</td></tr>
                 </tbody>
@@ -1922,7 +1929,37 @@ function loadReviews() {
         if (currentTab === 'reviews') renderReviews();
     });
 }
+const govData = {
+ "القاهرة": ["مدينة نصر","مصر الجديدة","التجمع الأول","التجمع الثالث","التجمع الخامس","الرحاب","مدينتي","الشروق","بدر","المعادي","زهراء المعادي","حلوان","15 مايو","عين شمس","المطرية","السلام","المرج","الزيتون","حدائق القبة","روض الفرج","شبرا","وسط البلد","القاهرة الجديدة","أحياء أخرى"],
+ "الجيزة": ["الجيزة","الدقي","العجوزة","إمبابة","بولاق الدكرور","الهرم","فيصل","الطالبية","العمرانية","6 أكتوبر","الشيخ زايد","حدائق أكتوبر","البدرشين","العياط","أوسيم","كرداسة","الصف","الواحات البحرية","أحياء أخرى"],
+ "القليوبية": ["بنها","شبرا الخيمة","قليوب","القناطر الخيرية","الخانكة","العبور","الخصوص","كفر شكر","طوخ","شبين القناطر","أحياء أخرى"],
+ "الإسكندرية": ["الإسكندرية","العجمي","الدخيلة","برج العرب","سيدي جابر","محرم بك","العصافرة","المنتزه","أحياء أخرى"],
+ "الدقهلية": ["المنصورة","طلخا","ميت غمر","دكرنس","أجا","السنبلاوين","بلقاس","نبروه","تمي الأمديد","الجمالية","المنزلة","شربين","ميت سلسيل","أحياء أخرى"],
+ "الشرقية": ["الزقازيق","بلبيس","العاشر من رمضان","منيا القمح","فاقوس","أبو حماد","الحسينية","أولاد صقر","كفر صقر","ديرب نجم","الإبراهيمية","ههيا","مشتول السوق","أحياء أخرى"],
+ "الغربية": ["طنطا","المحلة الكبرى","كفر الزيات","زفتى","سمنود","قطور","بسيون","أحياء أخرى"],
+ "المنوفية": ["شبين الكوم","السادات","منوف","أشمون","الباجور","قويسنا","تلا","بركة السبع","الشهداء","أحياء أخرى"],
+ "البحيرة": ["دمنهور","كفر الدوار","رشيد","إدكو","أبو حمص","الدلنجات","إيتاي البارود","حوش عيسى","شبراخيت","كوم حمادة","بدر","وادي النطرون","أحياء أخرى"],
+ "كفر الشيخ": ["كفر الشيخ","دسوق","فوه","مطوبس","بلطيم","الحامول","بيلا","قلين","سيدي سالم","أحياء أخرى"],
+ "دمياط": ["دمياط","رأس البر","فارسكور","الزرقا","كفر سعد","أحياء أخرى"],
+ "بورسعيد": ["بورسعيد","بورفؤاد","أحياء أخرى"],
+ "الإسماعيلية": ["الإسماعيلية","فايد","القنطرة شرق","القنطرة غرب","التل الكبير","أبو صوير","أحياء أخرى"],
+ "السويس": ["السويس","الأربعين","عتاقة","الجناين","العين السخنة","أحياء أخرى"],
+ "بني سويف": ["بني سويف","الواسطى","ناصر","إهناسيا","ببا","سمسطا","الفشن","أحياء أخرى"],
+ "الفيوم": ["الفيوم","سنورس","إطسا","إبشواي","يوسف الصديق","أحياء أخرى"],
+ "المنيا": ["المنيا","سمالوط","بني مزار","مطاي","مغاغة","ملوي","أبو قرقاص","دير مواس","العدوة","أحياء أخرى"],
+ "أسيوط": ["أسيوط","ديروط","القوصية","منفلوط","أبنوب","أبو تيج","الغنايم","ساحل سليم","البداري","صدفا","أحياء أخرى"],
+ "سوهاج": ["سوهاج","أخميم","طهطا","المراغة","البلينا","جرجا","جهينة","دار السلام","ساقلته","المنشأة","أحياء أخرى"],
+ "قنا": ["قنا","نجع حمادي","دشنا","قفط","قوص","نقادة","فرشوط","أبو تشت","أحياء أخرى"],
+ "الأقصر": ["الأقصر","إسنا","أرمنت","الطود","البياضية","القرنة","أحياء أخرى"],
+ "أسوان": ["أسوان","إدفو","كوم أمبو","دراو","نصر النوبة","أحياء أخرى"],
+ "البحر الأحمر": ["الغردقة","رأس غارب","سفاجا","القصير","مرسى علم","حلايب","شلاتين","أحياء أخرى"],
+ "الوادي الجديد": ["الخارجة","الداخلة","الفرافرة","باريس","موط","أحياء أخرى"],
+ "مطروح": ["مرسى مطروح","الحمام","العلمين","الضبعة","سيوة","النجيلة","براني","السلوم","أحياء أخرى"],
+ "شمال سيناء":["العريش","رفح","الشيخ زويد","بئر العبد","أحياء أخرى"],
+ "جنوب سيناء":["دهب","شرم الشيخ","نويبع","طابا","سانت كاترين","الطور","رأس سدر","أحياء أخرى"]
+};
 
+window.govData = govData;
 
 // ========== إدارة أسعار الشحن المتكاملة ==========
 let shippingRates = [];
@@ -1940,7 +1977,7 @@ function renderShippingRates() {
     const container = document.getElementById("shippingRatesList");
     if (!container) return;
     if (!shippingRates.length) {
-        container.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:30px;">📭 لا توجد أسعار شحن محددة بعد. قم بإضافة أول سعر.</td></tr>';
+        container.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:30px;">📭 لا توجد أسعار شحن محددة بعد. قم بإضافة أول سعر.</td></tr>';
         return;
     }
     let html = '';
@@ -1948,6 +1985,7 @@ function renderShippingRates() {
         html += `
             <tr>
                 <td><strong>${escapeHtml(rate.gov)}</strong></td>
+                <td><strong>${escapeHtml(rate.city)}</strong></td>
                 <td>${rate.costForStore} جنيه</td>
                 <td>${rate.customerFee} جنيه</td>
                 <td class="action-buttons">
@@ -1962,25 +2000,46 @@ function renderShippingRates() {
 
 function populateGovSelect() {
     const select = document.getElementById("govSelect");
-    if (!select) {
-        console.error("عنصر govSelect غير موجود!");
-        return;
-    }
-    const govs = [
-        "القاهرة", "الجيزة", "القليوبية", "الإسكندرية", "الدقهلية", "الشرقية", "الغربية",
-        "المنوفية", "البحيرة", "كفر الشيخ", "دمياط", "بورسعيد", "الإسماعيلية", "السويس",
-        "بني سويف", "الفيوم", "المنيا", "أسيوط", "سوهاج", "قنا", "الأقصر", "أسوان",
-        "البحر الأحمر", "الوادي الجديد", "مطروح", "شمال سيناء", "جنوب سيناء"];
-    select.innerHTML = '<option value="">-- اختر المحافظة --</option>' + govs.map(g => `<option value="${g}">${g}</option>`).join('');
+    if (!select) return;
+    select.innerHTML = '<option value="">-- اختر المحافظة --</option>' + Object.keys(govData).map(g => `<option value="${g}">${g}</option>`).join('');
+    // مستمع تغيير المحافظة لتحديث المدن
+    select.addEventListener("change", function() {
+        const gov = this.value;
+        const citySelect = document.getElementById("citySelect");
+        citySelect.innerHTML = '<option value="">-- اختر المدينة --</option>';
+        if (gov && govData[gov]) {
+            govData[gov].forEach(city => {
+                citySelect.innerHTML += `<option value="${city}">${city}</option>`;
+            });
+            citySelect.disabled = false;
+        } else {
+            citySelect.disabled = true;
+        }
+    });
 }
+// داخل populateGovSelect، أضف مستمع التغيير
+document.getElementById("govSelect").addEventListener("change", function() {
+    const gov = this.value;
+    const citySelect = document.getElementById("citySelect");
+    citySelect.innerHTML = '<option value="">-- اختر المدينة --</option>';
+    if (gov && window.govData && window.govData[gov]) {
+        window.govData[gov].forEach(city => {
+            citySelect.innerHTML += `<option value="${city}">${city}</option>`;
+        });
+        citySelect.disabled = false;
+    } else {
+        citySelect.disabled = true;
+    }
+});
 
 window.saveShippingRate = async () => {
     const gov = document.getElementById("govSelect").value;
+    const city = document.getElementById("citySelect").value;
     const costForStore = parseFloat(document.getElementById("shippingCostForStore").value);
     const customerFee = parseFloat(document.getElementById("customerShippingFee").value) || 70;
 
-    if (!gov) {
-        customAlert("⚠️ يرجى اختيار المحافظة أولاً", 'warning');
+    if (!gov || !city) {
+        customAlert("⚠️ يرجى اختيار المحافظة والمدينة", 'warning');
         return;
     }
     if (isNaN(costForStore) || costForStore < 0) {
@@ -1988,19 +2047,22 @@ window.saveShippingRate = async () => {
         return;
     }
 
-    const existing = shippingRates.find(r => r.gov === gov);
+    // البحث عن سعر موجود لهذه المدينة
+    const existing = shippingRates.find(r => r.gov === gov && r.city === city);
     try {
         if (existing) {
             await updateDoc(doc(db, "shippingRates", existing.id), { costForStore, customerFee });
-            customAlert(`✅ تم تحديث سعر الشحن لمحافظة ${gov} بنجاح`, 'success');
+            customAlert(`✅ تم تحديث سعر الشحن لمدينة ${city} (${gov}) بنجاح`, 'success');
         } else {
-            await addDoc(collection(db, "shippingRates"), { gov, costForStore, customerFee, createdAt: serverTimestamp() });
-            customAlert(`✅ تم إضافة سعر الشحن لمحافظة ${gov} بنجاح`, 'success');
+            await addDoc(collection(db, "shippingRates"), { gov, city, costForStore, customerFee, createdAt: serverTimestamp() });
+            customAlert(`✅ تم إضافة سعر الشحن لمدينة ${city} (${gov}) بنجاح`, 'success');
         }
-        // تفريغ الحقول بعد الحفظ
+        // تفريغ الحقول
         document.getElementById("shippingCostForStore").value = "35";
         document.getElementById("customerShippingFee").value = "70";
         document.getElementById("govSelect").value = "";
+        document.getElementById("citySelect").innerHTML = '<option value="">-- اختر المدينة --</option>';
+        document.getElementById("citySelect").disabled = true;
     } catch (error) {
         console.error(error);
         customAlert("❌ حدث خطأ أثناء حفظ السعر", 'error');
@@ -2011,9 +2073,18 @@ window.editShippingRate = (id) => {
     const rate = shippingRates.find(r => r.id === id);
     if (!rate) return;
     document.getElementById("govSelect").value = rate.gov;
+    // تفعيل المدن
+    const gov = rate.gov;
+    const citySelect = document.getElementById("citySelect");
+    citySelect.innerHTML = '<option value="">-- اختر المدينة --</option>';
+    if (gov && window.govData && window.govData[gov]) {
+        window.govData[gov].forEach(city => {
+            citySelect.innerHTML += `<option value="${city}" ${city === rate.city ? 'selected' : ''}>${city}</option>`;
+        });
+        citySelect.disabled = false;
+    }
     document.getElementById("shippingCostForStore").value = rate.costForStore;
     document.getElementById("customerShippingFee").value = rate.customerFee;
-    // التمرير إلى النموذج
     document.getElementById("shippingTab").scrollIntoView({ behavior: 'smooth', block: 'start' });
 };
 
