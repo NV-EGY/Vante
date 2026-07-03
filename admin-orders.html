@@ -885,8 +885,8 @@
     </tr>
 </thead>
                 <tbody id="shippingRatesList">
-                    <tr><td colspan="4" style="text-align: center; padding: 30px;">⏳ جاري تحميل أسعار الشحن...</td></tr>
-                </tbody>
+    <tr><td colspan="5" style="text-align: center; padding: 30px;">⏳ جاري تحميل أسعار الشحن...</td></tr>
+</tbody>
             </table>
         </div>
     </div>
@@ -1972,6 +1972,42 @@ const govData = {
 
 window.govData = govData;
 
+function renderCities(gov) {
+    const container = document.getElementById("cityCheckboxes");
+    if (!container) return;
+    if (!gov || !govData[gov]) {
+        container.innerHTML = '<span style="color: #999;">اختر المحافظة أولاً</span>';
+        return;
+    }
+    const govRates = shippingRates.filter(r => r.gov === gov);
+    container.innerHTML = '';
+    govData[gov].forEach(city => {
+        const hasRate = govRates.some(r => r.city === city);
+        const statusText = hasRate ? '✅ محدد' : '❌ غير محدد';
+        const statusColor = hasRate ? '#27ae60' : '#e74c3c';
+        const label = document.createElement('label');
+        label.style.cssText = 'display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 4px 12px; background: #f8f9fa; border-radius: 20px; border: 1px solid #ddd; transition: 0.2s;';
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.value = city;
+        checkbox.style.width = '18px';
+        checkbox.style.height = '18px';
+        checkbox.style.accentColor = '#0F7B65';
+        label.appendChild(checkbox);
+        const textSpan = document.createElement('span');
+        textSpan.textContent = city;
+        label.appendChild(textSpan);
+        const statusSpan = document.createElement('span');
+        statusSpan.textContent = statusText;
+        statusSpan.style.color = statusColor;
+        statusSpan.style.fontSize = '11px';
+        statusSpan.style.fontWeight = 'bold';
+        statusSpan.style.marginRight = '4px';
+        label.appendChild(statusSpan);
+        container.appendChild(label);
+    });
+}
+
 // ========== إدارة أسعار الشحن المتكاملة ==========
 let shippingRates = [];
 
@@ -1980,7 +2016,10 @@ async function loadShippingRates() {
     onSnapshot(q, (snap) => {
         shippingRates = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         renderShippingRates();
-        populateGovSelect();
+        const govSelect = document.getElementById("govSelect");
+        if (govSelect && govSelect.value) {
+            renderCities(govSelect.value);
+        }
     });
 }
 
@@ -2013,29 +2052,12 @@ function populateGovSelect() {
     const select = document.getElementById("govSelect");
     if (!select) return;
     select.innerHTML = '<option value="">-- اختر المحافظة --</option>' + Object.keys(govData).map(g => `<option value="${g}">${g}</option>`).join('');
-    // مستمع تغيير المحافظة لتحديث المدن
     select.addEventListener("change", function() {
-        const gov = this.value;
-        const container = document.getElementById("cityCheckboxes");
-        container.innerHTML = '';
-        if (gov && govData[gov]) {
-            govData[gov].forEach(city => {
-                const label = document.createElement('label');
-                label.style.cssText = 'display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 4px 12px; background: #f8f9fa; border-radius: 20px; border: 1px solid #ddd; transition: 0.2s;';
-                const checkbox = document.createElement('input');
-                checkbox.type = 'checkbox';
-                checkbox.value = city;
-                checkbox.style.width = '18px';
-                checkbox.style.height = '18px';
-                checkbox.style.accentColor = '#0F7B65';
-                label.appendChild(checkbox);
-                label.appendChild(document.createTextNode(city));
-                container.appendChild(label);
-            });
-        } else {
-            container.innerHTML = '<span style="color: #999;">اختر المحافظة أولاً</span>';
-        }
+        renderCities(this.value);
     });
+    if (select.value) {
+        renderCities(select.value);
+    }
 }
 
 window.saveShippingRate = async () => {
@@ -2095,27 +2117,14 @@ window.editShippingRate = (id) => {
     const rate = shippingRates.find(r => r.id === id);
     if (!rate) return;
     document.getElementById("govSelect").value = rate.gov;
-    const gov = rate.gov;
+    renderCities(rate.gov);
     const container = document.getElementById("cityCheckboxes");
-    container.innerHTML = '';
-    if (gov && govData[gov]) {
-        govData[gov].forEach(city => {
-            const label = document.createElement('label');
-            label.style.cssText = 'display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 4px 12px; background: #f8f9fa; border-radius: 20px; border: 1px solid #ddd; transition: 0.2s;';
-            const checkbox = document.createElement('input');
-            checkbox.type = 'checkbox';
-            checkbox.value = city;
-            checkbox.style.width = '18px';
-            checkbox.style.height = '18px';
-            checkbox.style.accentColor = '#0F7B65';
-            if (city === rate.city) checkbox.checked = true;
-            label.appendChild(checkbox);
-            label.appendChild(document.createTextNode(city));
-            container.appendChild(label);
-        });
-    } else {
-        container.innerHTML = '<span style="color: #999;">اختر المحافظة أولاً</span>';
-    }
+    const checkboxes = container.querySelectorAll('input[type="checkbox"]');
+    checkboxes.forEach(cb => {
+        if (cb.value === rate.city) {
+            cb.checked = true;
+        }
+    });
     document.getElementById("shippingCostForStore").value = rate.costForStore;
     document.getElementById("customerShippingFee").value = rate.customerFee;
     document.getElementById("shippingTab").scrollIntoView({ behavior: 'smooth', block: 'start' });
