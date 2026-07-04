@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="ar">
 <head>
-
 <!-- PWA لكل تطبيق على حدة (طلبات) -->
 <link rel="manifest" href="manifest-orders.json">
 <meta name="mobile-web-app-capable" content="yes">
@@ -1492,8 +1491,6 @@ function render() {
   let groupIndex = 0;
   
   for (let [dateKey, ordersInDay] of groups.entries()) {
-    const forbiddenControls = ["undelivered", "rejected", "returned", "hold"];
-const isForbidden = forbiddenControls.includes(o.status);
     const firstOrder = ordersInDay[0];
     const createdAtDate = firstOrder.createdAt?.toDate?.();
     if (!createdAtDate) continue;
