@@ -800,17 +800,17 @@
     <button onclick="switchTab('shipping')" id="tabShippingBtn" style="background: #ccc; color: #333; border: none; padding: 8px 20px; border-radius: 30px; cursor: pointer; font-weight: bold;">🚚 أسعار الشحن</button>
 </div>
   <div class="filters">
-  <button onclick="setFilter(event, 'all')" class="filter-btn active" data-filter="all"><i class="fas fa-list fa-fw"></i></button>
-  <button onclick="setFilter(event, 'new')" class="filter-btn" data-filter="new"><i class="fas fa-star fa-fw"></i></button>
-  <button onclick="setFilter(event, 'processing')" class="filter-btn" data-filter="processing"><i class="fas fa-boxes fa-fw"></i></button>
-  <button onclick="setFilter(event, 'shipped')" class="filter-btn" data-filter="shipped"><i class="fas fa-truck fa-fw"></i></button>
-  <button onclick="setFilter(event, 'delivered')" class="filter-btn" data-filter="delivered"><i class="fas fa-check-circle fa-fw"></i></button>
-  <button onclick="setFilter(event, 'cancelled')" class="filter-btn" data-filter="cancelled"><i class="fas fa-ban fa-fw"></i></button>
-  <button onclick="setFilter(event, 'confirmed')" class="filter-btn" data-filter="confirmed"><i class="fas fa-check-double fa-fw"></i></button>
-<button onclick="setFilter(event, 'hold')" class="filter-btn" data-filter="hold"><i class="fas fa-pause fa-fw"></i></button>
-<button onclick="setFilter(event, 'returned')" class="filter-btn" data-filter="returned"><i class="fas fa-undo-alt fa-fw"></i></button>
-<button onclick="setFilter(event, 'undelivered')" class="filter-btn" data-filter="undelivered"><i class="fas fa-times-circle fa-fw"></i></button>
-<button onclick="setFilter(event, 'rejected')" class="filter-btn" data-filter="rejected"><i class="fas fa-hand-paper fa-fw"></i></button>
+  <button onclick="setFilter(event, 'all')" class="filter-btn active" data-filter="all"><i class="fas fa-list"></i></button>
+  <button onclick="setFilter(event, 'new')" class="filter-btn" data-filter="new"><i class="fas fa-star"></i></button>
+  <button onclick="setFilter(event, 'confirmed')" class="filter-btn" data-filter="confirmed"><i class="fas fa-check-double"></i></button>
+  <button onclick="setFilter(event, 'processing')" class="filter-btn" data-filter="processing"><i class="fas fa-boxes"></i></button>
+  <button onclick="setFilter(event, 'shipped')" class="filter-btn" data-filter="shipped"><i class="fas fa-truck"></i></button>
+  <button onclick="setFilter(event, 'delivered')" class="filter-btn" data-filter="delivered"><i class="fas fa-check-circle"></i></button>
+  <button onclick="setFilter(event, 'cancelled')" class="filter-btn" data-filter="cancelled"><i class="fas fa-ban"></i></button>
+  <button onclick="setFilter(event, 'undelivered')" class="filter-btn" data-filter="undelivered"><i class="fas fa-times-circle"></i></button>
+  <button onclick="setFilter(event, 'rejected')" class="filter-btn" data-filter="rejected"><i class="fas fa-hand-paper"></i></button>
+  <button onclick="setFilter(event, 'returned')" class="filter-btn" data-filter="returned"><i class="fas fa-undo-alt"></i></button>
+  <button onclick="setFilter(event, 'hold')" class="filter-btn" data-filter="hold"><i class="fas fa-pause"></i></button>
 </div>
 <div id="reviewsPanel" style="display: none;">
     <div id="reviewFiltersContainer" style="display: flex; gap: 8px; margin-bottom: 15px; overflow-x: auto; justify-content: center; flex-wrap: nowrap;">
@@ -997,6 +997,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
 import { getFirestore, collection, query, orderBy, onSnapshot, updateDoc, deleteDoc, doc, serverTimestamp, getDoc, getDocs, where, addDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { createOrderInQP, listenForOrderStatusChanges, startPeriodicSync, manualSyncOrders, cancelOrderInQP } from './js/sync-orders.js';
+import { logAuditEvent, customAlert, customConfirm } from './js/utils.js';
 
 const firebaseConfig = {
   apiKey: "AIzaSyCotT8EP2uy_HsgHknxeGBorKoEUORPtmU",
@@ -1063,7 +1064,16 @@ window.update = async (id, status) => {
         const orderData = orderSnap.data();
 
         console.log(`🔄 تغيير حالة الطلب ${orderData.orderID} إلى ${status}`);
-
+        
+    if (status === "cancelled") {
+        await restoreStockForOrder(id);
+    }
+    await logAuditEvent('status_change', orderId, referenceID, {
+    oldStatus: currentData.status,
+    newStatus: newStatus,
+    notes: notesToAdd
+});
+    
         // 🔒 منع إعادة إنشاء الشحنة إذا كان الطلب لديه qpSerial بالفعل
         if (status === "shipped" && orderData.qpSerial) {
             customAlert(`⚠️ هذا الطلب لديه بالفعل رقم شحنة: ${orderData.qpSerial}، لا يمكن إعادة إنشاء شحنة جديدة.`, 'warning');
@@ -1091,52 +1101,72 @@ window.update = async (id, status) => {
 
 // =================== دالة تحديث مجموعة (Bulk) ===================
 window.applyBulkStatus = async (newStatus) => {
+    const forbidden = ["undelivered", "rejected", "returned", "hold"];
+    if (forbidden.includes(newStatus)) {
+        customAlert("لا يمكن تغيير حالة الطلب يدوياً إلى هذه الحالة", "warning");
+        return;
+    }
+
     let selected = document.querySelectorAll(".selectOrder:checked");
     if (selected.length === 0) {
         customAlert("⚠️ يرجى اختيار طلب واحد على الأقل", 'warning');
         return;
     }
-    
+await logAuditEvent('status_change', orderId, referenceID, {
+    oldStatus: currentData.status,
+    newStatus: newStatus,
+    notes: notesToAdd
+});
+    // تحقق من الحالة الحالية للطلبات المختارة
+    for (const cb of selected) {
+        const card = cb.closest(".card");
+        const orderId = card.querySelector(".order-id")?.getAttribute("data-id");
+        if (!orderId) continue;
+        const orderData = orders.find(o => o.id === orderId);
+        if (orderData && forbidden.includes(orderData.status)) {
+            customAlert(`الطلب ${orderData.orderID} في حالة ${orderData.status} ولا يمكن تغييره`, "warning");
+            return;
+        }
+    }
+
     const confirmed = await window.customConfirm(`تطبيق حالة "${newStatus}" على ${selected.length} طلب؟`);
     if (!confirmed) return;
-    
-    let successCount = 0;
-    let errorCount = 0;
-    let skippedCount = 0;
+
+    let successCount = 0, errorCount = 0, skippedCount = 0;
 
     for (const cb of selected) {
         const card = cb.closest(".card");
         const orderId = card.querySelector(".order-id")?.getAttribute("data-id");
         if (!orderId) continue;
-        
         try {
             const orderSnap = await getDoc(doc(db, "orders", orderId));
             if (!orderSnap.exists()) continue;
             const orderData = orderSnap.data();
-            
-            console.log(`🔄 تحديث جماعي: ${orderData.orderID} → ${newStatus}`);
-            
+
             // 🔒 منع إعادة الإنشاء إذا كان الطلب لديه qpSerial
             if (newStatus === "shipped" && orderData.qpSerial) {
                 customAlert(`⚠️ الطلب ${orderData.orderID} لديه بالفعل رقم شحنة: ${orderData.qpSerial}، لن يتم إنشاء شحنة جديدة.`, 'warning');
                 skippedCount++;
-                continue; // تخطي هذا الطلب
+                continue;
             }
-            
+
+            // إذا كانت الحالة الجديدة "لاغي"، نعيد المخزون
+            if (newStatus === "cancelled") {
+                await restoreStockForOrder(orderId);
+            }
+
             await updateDoc(doc(db, "orders", orderId), { status: newStatus });
-            
+
             if (newStatus === "shipped") {
                 await createOrderInQP({ id: orderId, ...orderData });
-            } else {
-                console.log(`ℹ️ تم تغيير الحالة إلى ${newStatus} دون التأثير على QP Express`);
             }
             successCount++;
-        } catch(e) {
+        } catch (e) {
             console.error(`❌ فشل تحديث الطلب ${orderId}:`, e);
             errorCount++;
         }
     }
-    
+
     let msg = `✅ تم تحديث ${successCount} طلب بنجاح`;
     if (skippedCount > 0) msg += `، تم تخطي ${skippedCount} طلب (لديه شحنة سابقة)`;
     if (errorCount > 0) msg += `، فشل ${errorCount} طلب`;
@@ -1241,7 +1271,11 @@ window.deleteOrder = async (id) => {
     // ✅ إعادة الكميات إلى المخزون (مع مراعاة غير المحدود)
     for (const item of (order.orderDetails || [])) {
       if (!item.name || !item.size) continue;
-      
+     await logAuditEvent('status_change', orderId, referenceID, {
+    oldStatus: currentData.status,
+    newStatus: newStatus,
+    notes: notesToAdd
+}); 
       // استخدم productId إذا كان موجوداً، وإلا ابحث بالاسم (للتوافق مع الطلبات القديمة)
       let productId = item.productId;
       let productDoc;
@@ -1273,6 +1307,11 @@ window.deleteOrder = async (id) => {
 };
 
 window.editOrder = (id) => {
+  await logAuditEvent('status_change', orderId, referenceID, {
+    oldStatus: currentData.status,
+    newStatus: newStatus,
+    notes: notesToAdd
+});
   let o = orders.find(x => x.id === id);
   if (!o) return;
   let box = document.getElementById("msgPopup");
@@ -1488,20 +1527,25 @@ function render() {
     
     for (let o of ordersInDay) {
       totalOrders++;
+      const forbiddenControls = ["undelivered", "rejected", "returned", "hold"];
+const isForbidden = forbiddenControls.includes(o.status);
+// عند إنشاء الـ html، يمكن إضافة class للبطاقة لإخفاء الأزرار
+// مثلاً نضيف: data-forbidden="${isForbidden}"
+// ثم في CSS نخفي بعض الأزرار
       const isOpen = openStates[o.id] !== undefined ? openStates[o.id] : false;
       let status = o.status || "new";
       let statusText = {
-        new: 'جديد',
-        confirmed: 'تم التأكيد',
-        processing: 'قيد التجهيز',
-        shipped: 'جاري الشحن',
-        delivered: 'تم التسليم',
-        returned: 'مرتجع',
-        cancelled: 'لاغـي',
-        hold: 'معلق',
-        undelivered: 'لم يصل',
-        rejected: 'رفض'
-      }[status] || status;
+    new: 'جديد',
+    confirmed: 'تم التأكيد',
+    processing: 'قيد التجهيز',
+    shipped: 'جاري الشحن',
+    delivered: 'تم التسليم',
+    cancelled: 'لاغـي',
+    undelivered: 'لم يصل',
+    rejected: 'رفض',
+    returned: 'مرتجع',
+    hold: 'معلق'
+}[status] || status;
       let msg = `VANTÉ\nكود: ${o.orderID}\n👤 ${o.customerName}\n📞 ${o.phone}\n📍 ${o.gov} - ${o.city}\n${o.address}\n💎 ${(o.orderDetails || []).map(i => `${i.name} (${i.size}) x${i.qty}`).join(', ')}\n💰 ${o.finalTotal} جنيه`;
       
       let couponHtml = '';
@@ -1512,9 +1556,15 @@ function render() {
             <br><small>الإجمالي بعد الخصم: ${o.finalTotal} جنيه</small>
         </div>`;
       }
-      
+      let notesHtml = '';
+if (o.notes) {
+    notesHtml = `<div style="margin-top:6px; font-size:12px; color:#e67e22; background:#fef9e6; padding:4px 8px; border-radius:8px;">📝 ملاحظة: ${o.notes}</div>`;
+}
+// ثم نضيفها داخل `order-info` أو `order-summary`.
       const orderTime = o.createdAt?.toDate?.() ? formatOrderTime(o.createdAt.toDate()) : '';
-      
+      const forbiddenControls = ["undelivered", "rejected", "returned", "hold"];
+const isForbidden = forbiddenControls.includes(o.status);
+
       html += `<div class="card ${status}" style="position:relative;">
         <div class="order-header">
           <input type="checkbox" class="selectOrder" onchange="this.closest('.card').style.background = this.checked ? '#e6fff2' : '#fff'; updateBulkBar();">
@@ -2520,6 +2570,35 @@ window.saveShippingDiscountSettings = async function() {
         customAlert("❌ حدث خطأ أثناء الحفظ", 'error');
     }
 };
+// دالة إعادة المخزون للطلب
+async function restoreStockForOrder(orderId) {
+    const orderSnap = await getDoc(doc(db, "orders", orderId));
+    if (!orderSnap.exists()) return;
+    const order = orderSnap.data();
+    if (order.stockRestored) return; // تجنب التكرار
+
+    for (const item of (order.orderDetails || [])) {
+        if (!item.name || !item.size) continue;
+        let productId = item.productId;
+        let productDoc;
+        if (productId) {
+            productDoc = await getDoc(doc(db, "products", productId));
+        } else {
+            const productSnap = await getDocs(query(collection(db, "products"), where("name", "==", item.name)));
+            if (!productSnap.empty) productDoc = productSnap.docs[0];
+        }
+        if (productDoc && productDoc.exists()) {
+            const productRef = doc(db, "products", productDoc.id);
+            const stockBySize = productDoc.data().stockBySize || {};
+            const currentStock = stockBySize[item.size];
+            if (currentStock !== null && currentStock !== undefined) {
+                stockBySize[item.size] = (currentStock || 0) + item.qty;
+                await updateDoc(productRef, { stockBySize });
+            }
+        }
+    }
+    await updateDoc(doc(db, "orders", orderId), { stockRestored: true });
+}
 
 // ========== تحسين التحديث الفوري للطلبات الجديدة ==========
 // التأكد من أن onSnapshot يقوم بتحديث الواجهة بدون تأخير
@@ -2575,6 +2654,24 @@ window.copyToClipboard = function(text) {
         customAlert("❌ فشل النسخ", 'error');
     });
 };
+// طلب إذن الإشعارات (موجود بالفعل)
+Notification.requestPermission();
+
+// مستمع التحديثات
+window.addEventListener('orderStatusUpdated', (e) => {
+    const { referenceID, newStatus } = e.detail;
+    // إشعار
+    if (Notification.permission === 'granted') {
+        new Notification(`📦 تحديث الطلب ${referenceID}`, {
+            body: `الحالة: ${newStatus}`,
+            icon: '/images/favicon.png'
+        });
+    }
+    // صوت
+    new Audio('https://assets.mixkit.co/sfx/preview/mixkit-bell-notification-933.mp3')
+        .play()
+        .catch(() => {});
+});
 // جعل الدوال المستخدمة في HTML عامة
 window.updateBulkBar = updateBulkBar;
 window.manualSyncOrders = manualSyncOrders;
