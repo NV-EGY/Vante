@@ -147,11 +147,19 @@
     </div>
 </div>
 </div>
+<div style="background:#fff; border-radius:20px; padding:20px; margin-top:30px; overflow-x:auto;">
+    <h3>📦 منتجات المرتجع (Returned)</h3>
+    <div id="returnedOrdersList" style="margin-top:15px;">
+        <p style="color:#888;">جاري التحميل...</p>
+    </div>
+</div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, collection, query, where, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { restoreStockForOrder } from './js/sync-orders.js';
+import { logAuditEvent, customAlert, customConfirm } from './js/utils.js';
 
 const firebaseConfig = {
     apiKey: "AIzaSyCotT8EP2uy_HsgHknxeGBorKoEUORPtmU",
@@ -184,6 +192,17 @@ function checkPassword() {
     }
 }
 
+// تعريف مودال التأكيد والتنبيه (بسيط)
+window.customConfirm = function(message) {
+    return new Promise((resolve) => {
+        if (confirm(message)) resolve(true);
+        else resolve(false);
+    });
+};
+window.customAlert = function(message, type) {
+    alert(message);
+};
+
 function logout() {
     document.getElementById("pageContent").style.display = "none";
     document.getElementById("passwordOverlay").classList.remove("hide");
@@ -196,6 +215,59 @@ document.addEventListener("DOMContentLoaded", function() {
     document.getElementById("pageContent").style.display = "none";
     document.getElementById("passwordOverlay").classList.remove("hide");
 });
+
+let returnedOrders = [];
+
+onSnapshot(query(collection(db, "orders"), where("status", "==", "returned")), (snap) => {
+    returnedOrders = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderReturnedOrders();
+});
+
+function renderReturnedOrders() {
+    const container = document.getElementById("returnedOrdersList");
+    if (!container) return;
+    if (returnedOrders.length === 0) {
+        container.innerHTML = "<p style='color:#888;'>لا توجد منتجات مرتجعة</p>";
+        return;
+    }
+    let html = `<table style="width:100%; border-collapse:collapse;">
+        <thead><tr><th>رقم الطلب</th><th>العميل</th><th>تاريخ المرتجع</th><th>المنتجات</th><th>إجمالي المرتجع</th><th>الإجراءات</th></tr></thead><tbody>`;
+    returnedOrders.forEach(o => {
+        const totalReturned = o.orderDetails?.reduce((sum, item) => sum + (item.qty * item.price), 0) || 0;
+        const products = o.orderDetails?.map(item => `${item.name} (x${item.qty})`).join(', ') || '-';
+        html += `<tr>
+            <td>${o.orderID}</td>
+            <td>${o.customerName}</td>
+            <td>${o.createdAt?.toDate ? o.createdAt.toDate().toLocaleDateString('ar-EG') : '-'}</td>
+            <td>${products}</td>
+            <td>${totalReturned} جنيه</td>
+            <td><button class="btn btn-primary" onclick="confirmReturnReceipt('${o.id}')" style="background:#D4AF37; color:#000; padding:5px 12px; border:none; border-radius:20px; cursor:pointer;">✅ تأكيد الاستلام</button></td>
+        </tr>`;
+    });
+    html += `</tbody></table>`;
+    container.innerHTML = html;
+}
+
+window.confirmReturnReceipt = async function(orderId) {
+    const confirmed = await window.customConfirm("هل أنت متأكد من استلام المنتجات المرتجعة؟");
+    if (!confirmed) return;
+    try {
+        const orderSnap = await getDoc(doc(db, "orders", orderId));
+        if (!orderSnap.exists()) return;
+        const order = orderSnap.data();
+        await restoreStockForOrder(orderId, order);   // استخدم الدالة المستوردة
+        await logAuditEvent('status_change', orderId, referenceID, {
+    oldStatus: currentData.status,
+    newStatus: newStatus,
+    notes: notesToAdd
+});
+        await updateDoc(doc(db, "orders", orderId), { status: "returned_confirmed" });
+        customAlert("✅ تم تأكيد استلام المرتجع وإعادة الكميات", "success");
+    } catch (e) {
+        console.error(e);
+        customAlert("❌ حدث خطأ", "error");
+    }
+};
 
 // بقية الكود الأصلي للـ Profits.html
 let allDeliveredOrders = [];
