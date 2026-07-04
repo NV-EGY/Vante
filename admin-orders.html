@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="ar">
 <head>
-
 <!-- PWA لكل تطبيق على حدة (طلبات) -->
 <link rel="manifest" href="manifest-orders.json">
 <meta name="mobile-web-app-capable" content="yes">
@@ -1117,23 +1116,18 @@ window.applyBulkStatus = async (newStatus) => {
         customAlert("⚠️ يرجى اختيار طلب واحد على الأقل", 'warning');
         return;
     }
-// ✅ الكود الصحيح
-await logAuditEvent('status_change', orderId, orderData.orderID, {
-    oldStatus: orderData.status,
-    newStatus: newStatus,
-    notes: ''
-});
-    // تحقق من الحالة الحالية للطلبات المختارة
-    for (const cb of selected) {
-        const card = cb.closest(".card");
-        const orderId = card.querySelector(".order-id")?.getAttribute("data-id");
-        if (!orderId) continue;
-        const orderData = orders.find(o => o.id === orderId);
-        if (orderData && forbidden.includes(orderData.status)) {
-            customAlert(`الطلب ${orderData.orderID} في حالة ${orderData.status} ولا يمكن تغييره`, "warning");
-            return;
-        }
+
+    // ✅ الكود الصحيح
+for (const cb of selected) {
+    const card = cb.closest(".card");
+    const orderId = card.querySelector(".order-id")?.getAttribute("data-id");
+    if (!orderId) continue;
+    const orderData = orders.find(o => o.id === orderId);
+    if (orderData && forbidden.includes(orderData.status)) {
+        customAlert(`الطلب ${orderData.orderID} في حالة ${orderData.status} ولا يمكن تغييره`, "warning");
+        return;
     }
+}
 
     const confirmed = await window.customConfirm(`تطبيق حالة "${newStatus}" على ${selected.length} طلب؟`);
     if (!confirmed) return;
@@ -1274,14 +1268,18 @@ window.deleteOrder = async (id) => {
     if (!orderSnap.exists()) throw new Error();
     const order = orderSnap.data();
     
-    // ✅ إعادة الكميات إلى المخزون (مع مراعاة غير المحدود)
-    for (const item of (order.orderDetails || [])) {
-      if (!item.name || !item.size) continue;
 // ✅ الكود الصحيح
+// سجل حدث الحذف أولاً (مرة واحدة)
 await logAuditEvent('order_deleted', id, order.orderID, {
     customerName: order.customerName,
     finalTotal: order.finalTotal
 });
+
+// ثم قم بإعادة المخزون
+for (const item of (order.orderDetails || [])) {
+  if (!item.name || !item.size) continue;
+  // ... إعادة المخزون
+}
       // استخدم productId إذا كان موجوداً، وإلا ابحث بالاسم (للتوافق مع الطلبات القديمة)
       let productId = item.productId;
       let productDoc;
