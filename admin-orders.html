@@ -996,7 +996,11 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, collection, query, orderBy, onSnapshot, updateDoc, deleteDoc, doc, serverTimestamp, getDoc, getDocs, where, addDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { createOrderInQP, listenForOrderStatusChanges, startPeriodicSync, manualSyncOrders, cancelOrderInQP } from './js/sync-orders.js';
+
+// ✅ الاستيراد الصحيح
+import { createOrderInQP, listenForOrderStatusChanges, startPeriodicSync, manualSyncOrders, cancelOrderInQP, restoreStockForOrder } from './js/sync-orders.js';
+// في admin-order.html، أضف هذا السطر مع الاستيرادات الأخرى
+import { logAuditEvent, customAlert, customConfirm } from './js/utils.js';
 
 const firebaseConfig = {
   apiKey: "AIzaSyCotT8EP2uy_HsgHknxeGBorKoEUORPtmU",
@@ -1067,10 +1071,11 @@ window.update = async (id, status) => {
     if (status === "cancelled") {
         await restoreStockForOrder(id);
     }
-    await logAuditEvent('status_change', orderId, referenceID, {
-    oldStatus: currentData.status,
-    newStatus: newStatus,
-    notes: notesToAdd
+// ✅ الكود الصحيح
+await logAuditEvent('status_change', id, orderData.orderID, {
+    oldStatus: orderData.status,
+    newStatus: status,
+    notes: ''
 });
     
         // 🔒 منع إعادة إنشاء الشحنة إذا كان الطلب لديه qpSerial بالفعل
@@ -1111,10 +1116,11 @@ window.applyBulkStatus = async (newStatus) => {
         customAlert("⚠️ يرجى اختيار طلب واحد على الأقل", 'warning');
         return;
     }
-await logAuditEvent('status_change', orderId, referenceID, {
-    oldStatus: currentData.status,
+// ✅ الكود الصحيح
+await logAuditEvent('status_change', orderId, orderData.orderID, {
+    oldStatus: orderData.status,
     newStatus: newStatus,
-    notes: notesToAdd
+    notes: ''
 });
     // تحقق من الحالة الحالية للطلبات المختارة
     for (const cb of selected) {
@@ -1270,11 +1276,11 @@ window.deleteOrder = async (id) => {
     // ✅ إعادة الكميات إلى المخزون (مع مراعاة غير المحدود)
     for (const item of (order.orderDetails || [])) {
       if (!item.name || !item.size) continue;
-     await logAuditEvent('status_change', orderId, referenceID, {
-    oldStatus: currentData.status,
-    newStatus: newStatus,
-    notes: notesToAdd
-}); 
+// ✅ الكود الصحيح
+await logAuditEvent('order_deleted', id, order.orderID, {
+    customerName: order.customerName,
+    finalTotal: order.finalTotal
+});
       // استخدم productId إذا كان موجوداً، وإلا ابحث بالاسم (للتوافق مع الطلبات القديمة)
       let productId = item.productId;
       let productDoc;
@@ -1304,15 +1310,15 @@ window.deleteOrder = async (id) => {
     customAlert("❌ حدث خطأ أثناء الحذف", 'error');
   }
 };
-
-window.editOrder = (id) => {
-  await logAuditEvent('status_change', orderId, referenceID, {
-    oldStatus: currentData.status,
-    newStatus: newStatus,
-    notes: notesToAdd
-});
+// ✅ الكود الصحيح
+window.editOrder = async (id) => {
   let o = orders.find(x => x.id === id);
   if (!o) return;
+  
+  await logAuditEvent('order_edited', id, o.orderID, {
+    changedFields: ['customerName', 'phone', 'address', 'orderDetails']
+  });
+  
   let box = document.getElementById("msgPopup");
   let detailsHtml = '';
   (o.orderDetails || []).forEach((item, idx) => {
