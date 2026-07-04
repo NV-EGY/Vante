@@ -176,7 +176,6 @@ export async function processUpdates(updates) {
         try {
             const { referenceID, field, new_value, notes } = update;
 
-            // 1. البحث عن الطلب (يتم هنا تعريف orderId)
             const q = query(collection(db, "orders"), where("orderID", "==", referenceID));
             const snap = await getDocs(q);
             if (snap.empty) {
@@ -185,45 +184,59 @@ export async function processUpdates(updates) {
             }
 
             const orderDoc = snap.docs[0];
-            const orderId = orderDoc.id;          // ✅ تم تعريف orderId هنا
+            const orderId = orderDoc.id;
             const currentData = orderDoc.data();
 
-            // 2. التعامل مع المرتجع (has_return) - تم نقل الشرط إلى الأسفل
+            // ----- حالة المرتجع -----
             if (update.has_return && update.has_return === true) {
                 await updateDoc(doc(db, "orders", orderId), {
                     status: "returned",
-                    notes: "مرتجع (تم إرجاع المنتج)"
+                    notes: "مرتجع (تم إرجاع المنتج)",
+                    // اختيارياً: يمكن تصفير تكلفة الشحن الفعلية
+                    shippingCostPaid: 0
                 });
                 console.log(`🔄 تم تحديث الطلب ${referenceID} إلى حالة مرتجع`);
                 continue;
             }
 
-            // 3. باقي الحالات (تحديث الحالة)
+            // ----- تحديث الحالة -----
             if (field !== "Order_Delivery_Status") continue;
 
             let newStatus = currentData.status;
             let notesToAdd = "";
+            let newShippingCostPaid = currentData.shippingCostPaid || 0; // الاحتفاظ بالقيمة الحالية افتراضياً
 
             switch (new_value) {
                 case "Pending":
                 case "Out For Deliver":
                     newStatus = "shipped";
                     break;
+
                 case "Delivered":
                     newStatus = "delivered";
+                    // ✅ التسليم: تبقى تكلفة الشحن كما هي (لا نغيرها)
                     break;
+
                 case "Hold":
                     newStatus = "hold";
                     notesToAdd = notes || "معلق من قبل شركة الشحن";
+                    // يمكنك اختيار تصفير التكلفة أو إبقائها حسب سياسة الشركة
+                    // newShippingCostPaid = 0; // اختر ما يناسبك
                     break;
+
                 case "Undelivered":
                     newStatus = "cancelled";
                     notesToAdd = notes || "موصلش للعميل (Undelivered) - لا مصاريف شحن";
+                    newShippingCostPaid = 0; // ✅ تصفير التكلفة الفعلية
                     break;
+
                 case "Rejected":
                     newStatus = "rejected";
                     notesToAdd = notes || "العميل رفض الطلب - يتحمل مصاريف الشحن";
+                    // ✅ في حالة الرفض، يمكنك اختيار إبقاء التكلفة أو تصفيرها حسب اتفاقك
+                    // newShippingCostPaid = 0; // أو اتركها كما هي
                     break;
+
                 default:
                     continue;
             }
@@ -231,14 +244,15 @@ export async function processUpdates(updates) {
             const updateData = {
                 status: newStatus,
                 qpStatus: new_value,
-                qpLastSync: serverTimestamp()
+                qpLastSync: serverTimestamp(),
+                shippingCostPaid: newShippingCostPaid   // ✅ تحديث التكلفة الفعلية
             };
 
             if (notesToAdd) updateData.notes = notesToAdd;
             if (new_value === "Undelivered") updateData.shippingExempted = true;
 
             await updateDoc(doc(db, "orders", orderId), updateData);
-            console.log(`🔄 تم تحديث الطلب ${referenceID} إلى حالة ${newStatus} (QP: ${new_value})`);
+            console.log(`🔄 تم تحديث الطلب ${referenceID} إلى حالة ${newStatus} (QP: ${new_value}) مع تكلفة شحن فعلية = ${newShippingCostPaid}`);
 
         } catch (error) {
             console.error("❌ خطأ في معالجة تحديث:", error);
