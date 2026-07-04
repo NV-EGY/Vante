@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
- <!-- PWA لكل تطبيق على حدة (الأرباح) -->
 <link rel="manifest" href="manifest-profits.json">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -35,8 +34,6 @@
         th,td{padding:12px;text-align:center;border-bottom:1px solid #eee;}
         th{background:#111;color:#fff;}
         @media(max-width:700px){th,td{font-size:12px;}}
-
-        /* نافذة إدخال كلمة السر */
         .password-overlay {
             position: fixed;
             top: 0;
@@ -142,24 +139,76 @@
         <h3>📋 تفاصيل الطلبات المسلمة</h3>
         <table id="ordersTable">
             <thead><tr><th>رقم الطلب</th><th>العميل</th><th>تاريخ التسليم</th><th>الإجمالي (العميل)</th><th>تكلفة المنتجات (جملة)</th><th>تكلفة الشحن (مدفوعة)</th><th>صافي الربح</th></tr></thead>
-            <tbody id="ordersList"></tbody>
+            <tbody id="ordersList"><tr><td colspan="7">جاري التحميل...</td></tr></tbody>
         </table>
     </div>
-</div>
-</div>
-<div style="background:#fff; border-radius:20px; padding:20px; margin-top:30px; overflow-x:auto;">
-    <h3>📦 منتجات المرتجع (Returned)</h3>
-    <div id="returnedOrdersList" style="margin-top:15px;">
-        <p style="color:#888;">جاري التحميل...</p>
+    <div style="background:#fff; border-radius:20px; padding:20px; margin-top:30px; overflow-x:auto;">
+        <h3>📦 منتجات المرتجع (Returned)</h3>
+        <div id="returnedOrdersList" style="margin-top:15px;">
+            <p style="color:#888;">جاري التحميل...</p>
+        </div>
     </div>
 </div>
+</div>
 
+<!-- سكربت كلمة السر (منفصل) -->
+<script>
+const SECRET_HASH = "VmFudGVQcm9maXRAMjAyNg==";
+
+window.customConfirm = function(message) {
+    return new Promise((resolve) => {
+        if (confirm(message)) resolve(true);
+        else resolve(false);
+    });
+};
+window.customAlert = function(message, type) {
+    alert(message);
+};
+
+function checkPassword() {
+    const input = document.getElementById("passwordInput").value;
+    const decodedSecret = atob(SECRET_HASH);
+    if (input === decodedSecret) {
+        document.getElementById("passwordOverlay").classList.add("hide");
+        document.getElementById("pageContent").style.display = "block";
+        // loadData سيتم استدعاؤها من الموديول تلقائياً، لكن نضمنها
+        if (typeof loadData === 'function') loadData();
+    } else {
+        document.getElementById("passwordError").innerText = "❌ كلمة السر غير صحيحة";
+        document.getElementById("passwordInput").value = "";
+        document.getElementById("passwordInput").focus();
+    }
+}
+
+function logout() {
+    document.getElementById("pageContent").style.display = "none";
+    document.getElementById("passwordOverlay").classList.remove("hide");
+    document.getElementById("passwordInput").value = "";
+    document.getElementById("passwordError").innerText = "";
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+    document.getElementById("passwordOverlay").classList.remove("hide");
+    document.getElementById("pageContent").style.display = "none";
+    document.getElementById("confirmPasswordBtn").addEventListener("click", checkPassword);
+    document.getElementById("passwordInput").addEventListener("keypress", function(e) {
+        if (e.key === "Enter") checkPassword();
+    });
+});
+
+window.logout = logout;
+</script>
+
+<!-- الموديول الرئيسي (بدون استيراد خارجي) -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, query, where, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { 
+    getFirestore, 
+    collection, query, where, onSnapshot, getDocs,
+    doc, getDoc, updateDoc
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { logAuditEvent } from './js/logger.js';
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { restoreStockForOrder } from './js/sync-orders.js';
-import { logAuditEvent, customAlert, customConfirm } from './js/utils.js';
 
 const firebaseConfig = {
     apiKey: "AIzaSyCotT8EP2uy_HsgHknxeGBorKoEUORPtmU",
@@ -171,51 +220,170 @@ const firebaseConfig = {
 };
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const auth = getAuth(app);
+const auth = getAuth(); // تعريف auth
 
-// ========== نظام حماية كلمة السر (بدون تخزين - تطلب في كل دخول) ==========
-const SECRET_HASH = "VmFudGVQcm9maXRAMjAyNg==";
+console.log("✅ Firebase initialized");
 
-function checkPassword() {
-    const input = document.getElementById("passwordInput").value;
-    const decodedSecret = atob(SECRET_HASH);
-    if (input === decodedSecret) {
-        // إخفاء الـ overlay وإظهار المحتوى
-        document.getElementById("passwordOverlay").classList.add("hide");
-        document.getElementById("pageContent").style.display = "block";
-        // تحميل البيانات
-        if (typeof loadData === 'function') loadData();
-    } else {
-        document.getElementById("passwordError").innerText = "❌ كلمة السر غير صحيحة";
-        document.getElementById("passwordInput").value = "";
-        document.getElementById("passwordInput").focus();
+// ========== دالة إعادة المخزون (مضمنة) ==========
+async function restoreStockForOrder(orderId, orderData) {
+    if (orderData.stockRestored) {
+        console.log(`⚠️ المخزون للطلب ${orderId} تم استرجاعه مسبقاً، تخطي.`);
+        return;
     }
+    for (const item of (orderData.orderDetails || [])) {
+        if (!item.name || !item.size) continue;
+        let productId = item.productId;
+        let productDoc;
+        if (productId) {
+            productDoc = await getDoc(doc(db, "products", productId));
+        } else {
+            const productSnap = await getDocs(query(collection(db, "products"), where("name", "==", item.name)));
+            if (!productSnap.empty) productDoc = productSnap.docs[0];
+        }
+        if (productDoc && productDoc.exists()) {
+            const productRef = doc(db, "products", productDoc.id);
+            const stockBySize = productDoc.data().stockBySize || {};
+            const currentStock = stockBySize[item.size];
+            if (currentStock !== null && currentStock !== undefined) {
+                stockBySize[item.size] = (currentStock || 0) + item.qty;
+                await updateDoc(productRef, { stockBySize });
+            }
+        }
+    }
+    await updateDoc(doc(db, "orders", orderId), { stockRestored: true });
 }
 
-// تعريف مودال التأكيد والتنبيه (بسيط)
-window.customConfirm = function(message) {
-    return new Promise((resolve) => {
-        if (confirm(message)) resolve(true);
-        else resolve(false);
+// ========== متغيرات عامة ==========
+let allDeliveredOrders = [];
+window.totalExpenses = 0;
+
+// ========== تحميل الطلبات المسلمة ==========
+async function loadData() {
+    console.log("🔄 loadData called");
+    const q = query(collection(db, "orders"), where("status", "==", "delivered"));
+    onSnapshot(q, (snap) => {
+        console.log(`📦 عدد الطلبات المسلمة: ${snap.size}`);
+        allDeliveredOrders = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        console.log("🛒 أول طلب:", allDeliveredOrders[0] || "لا يوجد");
+        populateMonthFilter();
+        applyFilter();
+    }, (error) => {
+        console.error("❌ خطأ في onSnapshot:", error);
+        document.getElementById("ordersList").innerHTML = `<tr><td colspan="7">⚠️ خطأ في تحميل البيانات: ${error.message}</td></tr>`;
     });
-};
-window.customAlert = function(message, type) {
-    alert(message);
-};
-
-function logout() {
-    document.getElementById("pageContent").style.display = "none";
-    document.getElementById("passwordOverlay").classList.remove("hide");
-    document.getElementById("passwordInput").value = "";
-    document.getElementById("passwordError").innerText = "";
 }
 
-// التأكد من أن الصفحة تطلب كلمة السر عند كل تحميل (حتى بعد تحديث الصفحة)
-document.addEventListener("DOMContentLoaded", function() {
-    document.getElementById("pageContent").style.display = "none";
-    document.getElementById("passwordOverlay").classList.remove("hide");
+// ========== مراقبة المصروفات ==========
+onSnapshot(collection(db, "expenses"), (snap) => {
+    const expenses = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    window.totalExpenses = expenses.reduce((s,e)=> s + (e.amount || 0), 0);
+    if (typeof applyFilter === 'function') applyFilter();
+}, (error) => {
+    console.error("❌ خطأ في مصروفات:", error);
 });
 
+// ========== ملء قائمة الشهور ==========
+function populateMonthFilter() {
+    const monthsSet = new Set();
+    allDeliveredOrders.forEach(o => {
+        if (o.createdAt?.toDate) {
+            const d = o.createdAt.toDate();
+            monthsSet.add(`${d.getFullYear()}-${d.getMonth()+1}`);
+        }
+    });
+    const select = document.getElementById("monthFilter");
+    select.innerHTML = '<option value="all">كل الشهور</option>';
+    [...monthsSet].sort().reverse().forEach(m => {
+        const [year, month] = m.split('-');
+        const name = new Date(year, month-1).toLocaleDateString('ar-EG', { year:'numeric', month:'long' });
+        select.innerHTML += `<option value="${m}">${name}</option>`;
+    });
+}
+
+// ========== تطبيق التصفية ==========
+function applyFilter() {
+    const filterVal = document.getElementById("monthFilter").value;
+    let filtered = allDeliveredOrders;
+    if (filterVal !== "all") {
+        const [year, month] = filterVal.split('-');
+        filtered = allDeliveredOrders.filter(o => {
+            const d = o.createdAt?.toDate();
+            return d && d.getFullYear() == year && (d.getMonth()+1) == month;
+        });
+    }
+    console.log(`📊 عدد الطلبات بعد التصفية: ${filtered.length}`);
+    renderStats(filtered);
+    renderOrdersTable(filtered);
+}
+
+// ========== عرض الإحصائيات ==========
+function renderStats(orders) {
+    let totalRevenue = orders.reduce((s,o)=> s + (o.finalTotal || 0), 0);
+    let totalCostProducts = orders.reduce((s,o)=> s + (o.totalCost || 0), 0);
+    let totalShippingCost = orders.reduce((s,o)=> s + (o.shippingCostPaid || 0), 0);
+    let totalExpenses = window.totalExpenses || 0;
+    let netProfit = totalRevenue - totalCostProducts - totalShippingCost - totalExpenses;
+    document.getElementById("statsGrid").innerHTML = `
+        <div class="stat-card"><h3>💰 إجمالي الإيرادات</h3><div class="value">${totalRevenue.toFixed(2)} جنيه</div></div>
+        <div class="stat-card"><h3>📦 تكلفة المنتجات (جملة)</h3><div class="value">${totalCostProducts.toFixed(2)} جنيه</div></div>
+        <div class="stat-card"><h3>🚚 تكلفة الشحن الفعلية</h3><div class="value">${totalShippingCost.toFixed(2)} جنيه</div></div>
+        <div class="stat-card"><h3>✅ صافي الربح</h3><div class="value" style="color:#27ae60;">${netProfit.toFixed(2)} جنيه</div></div>
+    `;
+}
+
+// ========== عرض جدول الطلبات ==========
+function renderOrdersTable(orders) {
+    const tbody = document.getElementById("ordersList");
+    if (orders.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7">📭 لا توجد طلبات مسلمة في هذه الفترة</td></tr>`;
+        return;
+    }
+    let html = '';
+    orders.forEach(o => {
+        const profit = (o.profit || (o.finalTotal - (o.totalCost||0) - (o.shippingCostPaid||0))).toFixed(2);
+        html += `<tr>
+            <td>${o.orderID}</td>
+            <td>${o.customerName}</td>
+            <td>${o.createdAt?.toDate ? o.createdAt.toDate().toLocaleDateString('ar-EG') : '-'}</td>
+            <td>${o.finalTotal || 0}</td>
+            <td>${o.totalCost || 0}</td>
+            <td>${o.shippingCostPaid || 0}</td>
+            <td style="color:${profit>=0?'#27ae60':'#e74c3c'}">${profit}</td>
+        </tr>`;
+    });
+    tbody.innerHTML = html;
+}
+
+// ========== تصدير Excel ==========
+window.exportToExcel = () => {
+    const rows = [];
+    rows.push(['رقم الطلب', 'العميل', 'التاريخ', 'الإجمالي (العميل)', 'تكلفة المنتجات (جملة)', 'تكلفة الشحن (مدفوعة)', 'صافي الربح']);
+    allDeliveredOrders.forEach(o => {
+        rows.push([
+            o.orderID, o.customerName,
+            o.createdAt?.toDate ? o.createdAt.toDate().toLocaleDateString('ar-EG') : '-',
+            o.finalTotal || 0, o.totalCost || 0, o.shippingCostPaid || 0,
+            (o.profit || (o.finalTotal - (o.totalCost||0) - (o.shippingCostPaid||0))).toFixed(2)
+        ]);
+    });
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "الأرباح");
+    XLSX.writeFile(wb, `profits_${new Date().toISOString().slice(0,10)}.xlsx`);
+};
+
+// ========== ربط الفلتر ==========
+document.getElementById("monthFilter").addEventListener("change", applyFilter);
+
+// ========== تعريف loadData على النافذة ==========
+window.loadData = loadData;
+
+// ========== تحميل البيانات فوراً ==========
+loadData();
+
+console.log("✅ الموديول جاهز");
+
+// ========== قسم المرتجعات ==========
 let returnedOrders = [];
 
 onSnapshot(query(collection(db, "orders"), where("status", "==", "returned")), (snap) => {
@@ -248,140 +416,53 @@ function renderReturnedOrders() {
     container.innerHTML = html;
 }
 
+// دالة تأكيد استلام المرتجع
 window.confirmReturnReceipt = async function(orderId) {
-    const confirmed = await window.customConfirm("هل أنت متأكد من استلام المنتجات المرتجعة؟");
+    const confirmed = await window.customConfirm("هل أنت متأكد من استلام المنتجات المرتجعة؟ سيتم إعادة الكميات للمخزون.");
     if (!confirmed) return;
     try {
         const orderSnap = await getDoc(doc(db, "orders", orderId));
-        if (!orderSnap.exists()) return;
+        if (!orderSnap.exists()) {
+            window.customAlert("❌ الطلب غير موجود", "error");
+            return;
+        }
         const order = orderSnap.data();
-        await restoreStockForOrder(orderId, order);   // استخدم الدالة المستوردة
-        await logAuditEvent('status_change', orderId, referenceID, {
-    oldStatus: currentData.status,
-    newStatus: newStatus,
-    notes: notesToAdd
+        await restoreStockForOrder(orderId, order);
+        await updateDoc(doc(db, "orders", orderId), { 
+            status: "returned_confirmed", 
+            stockRestored: true 
+        });
+        window.customAlert("✅ تم تأكيد استلام المرتجع وإعادة الكميات", "success");
+        await logAuditEvent({
+    action: 'return_confirmed',
+    orderId: orderId,
+    orderNumber: order.orderID,
+    details: {
+        customerName: order.customerName,
+        orderDetails: order.orderDetails,
+        totalReturned: order.orderDetails?.reduce((sum, item) => sum + (item.qty * item.price), 0) || 0
+    },
+    performedBy: window.currentUserEmail || 'system',
+    severity: 'info'
 });
-        await updateDoc(doc(db, "orders", orderId), { status: "returned_confirmed" });
-        customAlert("✅ تم تأكيد استلام المرتجع وإعادة الكميات", "success");
     } catch (e) {
         console.error(e);
-        customAlert("❌ حدث خطأ", "error");
+        window.customAlert("❌ حدث خطأ", "error");
     }
 };
 
-// بقية الكود الأصلي للـ Profits.html
-let allDeliveredOrders = [];
-window.totalExpenses = 0;
-
-async function loadData() {
-    const q = query(collection(db, "orders"), where("status", "==", "delivered"));
-    onSnapshot(q, (snap) => {
-        allDeliveredOrders = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        populateMonthFilter();
-        applyFilter();
-    });
-}
-onSnapshot(collection(db, "expenses"), (snap) => {
-    const expenses = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    window.totalExpenses = expenses.reduce((s,e)=> s + (e.amount || 0), 0);
-    if (typeof applyFilter === 'function') applyFilter();
-});
-
-function populateMonthFilter() {
-    const monthsSet = new Set();
-    allDeliveredOrders.forEach(o => {
-        if (o.createdAt?.toDate) {
-            const d = o.createdAt.toDate();
-            monthsSet.add(`${d.getFullYear()}-${d.getMonth()+1}`);
-        }
-    });
-    const select = document.getElementById("monthFilter");
-    select.innerHTML = '<option value="all">كل الشهور</option>';
-    [...monthsSet].sort().reverse().forEach(m => {
-        const [year, month] = m.split('-');
-        const name = new Date(year, month-1).toLocaleDateString('ar-EG', { year:'numeric', month:'long' });
-        select.innerHTML += `<option value="${m}">${name}</option>`;
-    });
-}
-
-function applyFilter() {
-    const filterVal = document.getElementById("monthFilter").value;
-    let filtered = allDeliveredOrders;
-    if (filterVal !== "all") {
-        const [year, month] = filterVal.split('-');
-        filtered = allDeliveredOrders.filter(o => {
-            const d = o.createdAt?.toDate();
-            return d && d.getFullYear() == year && (d.getMonth()+1) == month;
-        });
-    }
-    renderStats(filtered);
-    renderOrdersTable(filtered);
-}
-
-function renderStats(orders) {
-    let totalRevenue = orders.reduce((s,o)=> s + (o.finalTotal || 0), 0);
-    let totalCostProducts = orders.reduce((s,o)=> s + (o.totalCost || 0), 0);
-    let totalShippingCost = orders.reduce((s,o)=> s + (o.shippingCostPaid || 0), 0);
-    let totalExpenses = window.totalExpenses || 0;
-    let netProfit = totalRevenue - totalCostProducts - totalShippingCost - totalExpenses;
-    document.getElementById("statsGrid").innerHTML = `
-        <div class="stat-card"><h3>💰 إجمالي الإيرادات</h3><div class="value">${totalRevenue.toFixed(2)} جنيه</div></div>
-        <div class="stat-card"><h3>📦 تكلفة المنتجات (جملة)</h3><div class="value">${totalCostProducts.toFixed(2)} جنيه</div></div>
-        <div class="stat-card"><h3>🚚 تكلفة الشحن الفعلية</h3><div class="value">${totalShippingCost.toFixed(2)} جنيه</div></div>
-        <div class="stat-card"><h3>✅ صافي الربح</h3><div class="value" style="color:#27ae60;">${netProfit.toFixed(2)} جنيه</div></div>
-    `;
-}
-
-function renderOrdersTable(orders) {
-    let html = '';
-    orders.forEach(o => {
-        const profit = (o.profit || (o.finalTotal - (o.totalCost||0) - (o.shippingCostPaid||0))).toFixed(2);
-        html += `<tr>
-            <td>${o.orderID}</td>
-            <td>${o.customerName}</td>
-            <td>${o.createdAt?.toDate ? o.createdAt.toDate().toLocaleDateString('ar-EG') : '-'}</td>
-            <td>${o.finalTotal || 0}</td>
-            <td>${o.totalCost || 0}</td>
-            <td>${o.shippingCostPaid || 0}</td>
-            <td style="color:${profit>=0?'#27ae60':'#e74c3c'}">${profit}</td>
-        </tr>`;
-    });
-    document.getElementById("ordersList").innerHTML = html || '<tr><td colspan="7">لا توجد طلبات مسلمة</td></tr>';
-}
-
-window.exportToExcel = () => {
-    const rows = [];
-    rows.push(['رقم الطلب', 'العميل', 'التاريخ', 'الإجمالي (العميل)', 'تكلفة المنتجات (جملة)', 'تكلفة الشحن (مدفوعة)', 'صافي الربح']);
-    allDeliveredOrders.forEach(o => {
-        rows.push([
-            o.orderID, o.customerName,
-            o.createdAt?.toDate ? o.createdAt.toDate().toLocaleDateString('ar-EG') : '-',
-            o.finalTotal || 0, o.totalCost || 0, o.shippingCostPaid || 0,
-            (o.profit || (o.finalTotal - (o.totalCost||0) - (o.shippingCostPaid||0))).toFixed(2)
-        ]);
-    });
-    const ws = XLSX.utils.aoa_to_sheet(rows);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "الأرباح");
-    XLSX.writeFile(wb, `profits_${new Date().toISOString().slice(0,10)}.xlsx`);
-};
-
-document.getElementById("monthFilter").addEventListener("change", applyFilter);
-window.loadData = loadData;
-
-// ربط حدث زر تأكيد كلمة السر
-document.getElementById("confirmPasswordBtn").addEventListener("click", checkPassword);
-
-// السماح بالضغط على Enter في حقل كلمة السر
-document.getElementById("passwordInput").addEventListener("keypress", function(e) {
-    if (e.key === "Enter") {
-        checkPassword();
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        window.currentUserEmail = user.email;
+        console.log("✅ تم تعيين البريد الإلكتروني:", user.email);
     }
 });
 </script>
+
 <script>
+  
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW error:', err));
+    navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW error:', err));
 }
 </script>
 </body>
