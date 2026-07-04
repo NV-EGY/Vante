@@ -20,26 +20,9 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 export { db }; // تصدير db لاستخدامه في ملفات أخرى إذا احتجت
-export { restoreStockForOrder };
+
 // =================== إعدادات QP ===================
 let QP_CONFIG = null;
-
-// تسجيل أحداث التدقيق
-async function logAuditEvent(action, orderId, orderNumber, details = {}) {
-    try {
-        const { addDoc } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
-        await addDoc(collection(db, "auditLog"), {
-            action,
-            orderId,
-            orderNumber,
-            timestamp: serverTimestamp(),
-            performedBy: 'system (QP)',
-            ...details
-        });
-    } catch (e) {
-        console.warn('فشل تسجيل التدقيق:', e);
-    }
-}
 
 async function loadQPConfig() {
     if (QP_CONFIG) return QP_CONFIG;
@@ -50,35 +33,7 @@ async function loadQPConfig() {
     }
     throw new Error("لم يتم العثور على بيانات تسجيل الدخول لـ QP Express في Firestore");
 }
-// دالة إعادة المخزون للمنتجات (مستنسخة من admin-order مع تحسينات)
-async function restoreStockForOrder(orderId, orderData) {
-    if (orderData.stockRestored) {
-        console.log(`⚠️ المخزون للطلب ${orderId} تم استرجاعه مسبقاً، تخطي.`);
-        return;
-    }
-    for (const item of (orderData.orderDetails || [])) {
-        if (!item.name || !item.size) continue;
-        let productId = item.productId;
-        let productDoc;
-        if (productId) {
-            productDoc = await getDoc(doc(db, "products", productId));
-        } else {
-            const productSnap = await getDocs(query(collection(db, "products"), where("name", "==", item.name)));
-            if (!productSnap.empty) productDoc = productSnap.docs[0];
-        }
-        if (productDoc && productDoc.exists()) {
-            const productRef = doc(db, "products", productDoc.id);
-            const stockBySize = productDoc.data().stockBySize || {};
-            const currentStock = stockBySize[item.size];
-            if (currentStock !== null && currentStock !== undefined) {
-                stockBySize[item.size] = (currentStock || 0) + item.qty;
-                await updateDoc(productRef, { stockBySize });
-            }
-        }
-    }
-    // وضع علامة بأن المخزون استعيد
-    await updateDoc(doc(db, "orders", orderId), { stockRestored: true });
-}
+
 // =================== الحصول على توكن ===================
 async function getQPToken() {
     const config = await loadQPConfig();
@@ -232,17 +187,15 @@ export async function processUpdates(updates) {
             const orderId = orderDoc.id;
             const currentData = orderDoc.data();
 
-            // ----- حالة المرتجع (من QP) -----
+            // ----- حالة المرتجع -----
             if (update.has_return && update.has_return === true) {
-                // إعادة المخزون أولاً
-                await restoreStockForOrder(orderId, currentData);
                 await updateDoc(doc(db, "orders", orderId), {
                     status: "returned",
                     notes: "مرتجع (تم إرجاع المنتج)",
-                    shippingCostPaid: 0,
-                    stockRestored: true
+                    // اختيارياً: يمكن تصفير تكلفة الشحن الفعلية
+                    shippingCostPaid: 0
                 });
-                console.log(`🔄 تم تحديث الطلب ${referenceID} إلى حالة مرتجع وإعادة المخزون`);
+                console.log(`🔄 تم تحديث الطلب ${referenceID} إلى حالة مرتجع`);
                 continue;
             }
 
@@ -251,7 +204,7 @@ export async function processUpdates(updates) {
 
             let newStatus = currentData.status;
             let notesToAdd = "";
-            let newShippingCostPaid = currentData.shippingCostPaid || 0;
+            let newShippingCostPaid = currentData.shippingCostPaid || 0; // الاحتفاظ بالقيمة الحالية افتراضياً
 
             switch (new_value) {
                 case "Pending":
@@ -261,23 +214,27 @@ export async function processUpdates(updates) {
 
                 case "Delivered":
                     newStatus = "delivered";
+                    // ✅ التسليم: تبقى تكلفة الشحن كما هي (لا نغيرها)
                     break;
 
                 case "Hold":
                     newStatus = "hold";
                     notesToAdd = notes || "معلق من قبل شركة الشحن";
+                    // يمكنك اختيار تصفير التكلفة أو إبقائها حسب سياسة الشركة
+                    // newShippingCostPaid = 0; // اختر ما يناسبك
                     break;
 
                 case "Undelivered":
                     newStatus = "cancelled";
                     notesToAdd = notes || "موصلش للعميل (Undelivered) - لا مصاريف شحن";
-                    newShippingCostPaid = 0;  // لا نتحمل تكلفة الشحن
+                    newShippingCostPaid = 0; // ✅ تصفير التكلفة الفعلية
                     break;
 
                 case "Rejected":
                     newStatus = "rejected";
                     notesToAdd = notes || "العميل رفض الطلب - يتحمل مصاريف الشحن";
-                    // نترك shippingCostPaid كما هي (نحن نتحمل التكلفة)
+                    // ✅ في حالة الرفض، يمكنك اختيار إبقاء التكلفة أو تصفيرها حسب اتفاقك
+                    // newShippingCostPaid = 0; // أو اتركها كما هي
                     break;
 
                 default:
@@ -288,7 +245,7 @@ export async function processUpdates(updates) {
                 status: newStatus,
                 qpStatus: new_value,
                 qpLastSync: serverTimestamp(),
-                shippingCostPaid: newShippingCostPaid
+                shippingCostPaid: newShippingCostPaid   // ✅ تحديث التكلفة الفعلية
             };
 
             if (notesToAdd) updateData.notes = notesToAdd;
@@ -296,19 +253,6 @@ export async function processUpdates(updates) {
 
             await updateDoc(doc(db, "orders", orderId), updateData);
             console.log(`🔄 تم تحديث الطلب ${referenceID} إلى حالة ${newStatus} (QP: ${new_value}) مع تكلفة شحن فعلية = ${newShippingCostPaid}`);
-
-await logAuditEvent('status_change', orderId, referenceID, {
-    oldStatus: currentData.status,
-    newStatus: newStatus,
-    notes: notesToAdd
-});
-
-// داخل processUpdates بعد await updateDoc
-if (typeof window !== 'undefined') {
-    window.dispatchEvent(new CustomEvent('orderStatusUpdated', {
-        detail: { referenceID, newStatus, notes: notesToAdd }
-    }));
-}
 
         } catch (error) {
             console.error("❌ خطأ في معالجة تحديث:", error);
