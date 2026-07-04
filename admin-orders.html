@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="ar">
 <head>
-
 <!-- PWA لكل تطبيق على حدة (طلبات) -->
 <link rel="manifest" href="manifest-orders.json">
 <meta name="mobile-web-app-capable" content="yes">
@@ -2555,7 +2554,8 @@ window.saveShippingDiscountSettings = async function() {
         customAlert("❌ حدث خطأ أثناء الحفظ", 'error');
     }
 };
-// دالة إعادة المخزون للطلبasync function restoreStockForOrder(orderId) {
+// دالة إعادة المخزون للطلب
+async function restoreStockForOrder(orderId) {
     const orderSnap = await getDoc(doc(db, "orders", orderId));
     if (!orderSnap.exists()) return;
     const order = orderSnap.data();
