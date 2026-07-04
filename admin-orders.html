@@ -992,11 +992,18 @@
 </div>
 
 <script type="module">
-  import { enhanceAllOrderCards, refreshSingleOrderCard } from './js/ui-integration.js';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, collection, query, orderBy, onSnapshot, updateDoc, deleteDoc, doc, serverTimestamp, getDoc, getDocs, where, addDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { createOrderInQP, listenForOrderStatusChanges, startPeriodicSync, manualSyncOrders, cancelOrderInQP } from './js/sync-orders.js';
+// استيراد الدوال المساعدة (إذا كان الملف موجوداً)
+let enhanceAllOrderCards = (orders) => { console.log('enhanceAllOrderCards called'); };
+let refreshSingleOrderCard = (orderId) => { console.log('refreshSingleOrderCard called'); };
+try {
+    const ui = await import('./js/ui-integration.js');
+    if (ui.enhanceAllOrderCards) enhanceAllOrderCards = ui.enhanceAllOrderCards;
+    if (ui.refreshSingleOrderCard) refreshSingleOrderCard = ui.refreshSingleOrderCard;
+} catch(e) { console.warn('⚠️ ui-integration.js غير موجود، تم استخدام دوال وهمية'); }
 
 const firebaseConfig = {
   apiKey: "AIzaSyCotT8EP2uy_HsgHknxeGBorKoEUORPtmU",
@@ -2547,12 +2554,11 @@ window.saveShippingDiscountSettings = async function() {
         customAlert("❌ حدث خطأ أثناء الحفظ", 'error');
     }
 };
-// دالة إعادة المخزون للطلب
-async function restoreStockForOrder(orderId) {
+// دالة إعادة المخزون للطلبasync function restoreStockForOrder(orderId) {
     const orderSnap = await getDoc(doc(db, "orders", orderId));
     if (!orderSnap.exists()) return;
     const order = orderSnap.data();
-    if (order.stockRestored) return; // تجنب التكرار
+    if (order.stockRestored) return;
 
     for (const item of (order.orderDetails || [])) {
         if (!item.name || !item.size) continue;
@@ -2584,6 +2590,18 @@ const originalOnSnapshot = onSnapshot;
 window.forceRender = () => {
     render();
     console.log("🔄 تم تحديث الطلبات تلقائياً");
+};
+
+window.copyToClipboard = function(text) {
+    if (!text || text === 'غير متوفر') {
+        customAlert("لا يوجد SKU قابل للنسخ", 'warning');
+        return;
+    }
+    navigator.clipboard.writeText(text).then(() => {
+        customAlert(`✅ تم نسخ SKU: ${text}`, 'success');
+    }).catch(() => {
+        customAlert("❌ فشل النسخ", 'error');
+    });
 };
 
 // إذا أردت سماع صوت مع كل طلب جديد (موجود بالفعل لكن نؤكد)
