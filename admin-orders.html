@@ -996,6 +996,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
 import { getFirestore, collection, query, orderBy, onSnapshot, updateDoc, deleteDoc, doc, serverTimestamp, getDoc, getDocs, where, addDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { createOrderInQP, listenForOrderStatusChanges, startPeriodicSync, manualSyncOrders, cancelOrderInQP } from './js/sync-orders.js';
+import { logAuditEvent } from './js/logger.js';
 // استيراد الدوال المساعدة (إذا كان الملف موجوداً)
 let enhanceAllOrderCards = (orders) => { console.log('enhanceAllOrderCards called'); };
 let refreshSingleOrderCard = (orderId) => { console.log('refreshSingleOrderCard called'); };
@@ -1068,33 +1069,43 @@ window.update = async (id, status) => {
         const orderSnap = await getDoc(doc(db, "orders", id));
         if (!orderSnap.exists()) throw new Error("الطلب غير موجود");
         const orderData = orderSnap.data();
+        const oldStatus = orderData.status;
 
-        console.log(`🔄 تغيير حالة الطلب ${orderData.orderID} إلى ${status}`);
-
-        // 🔒 منع إعادة إنشاء الشحنة إذا كان الطلب لديه qpSerial بالفعل
+        // منع إعادة إنشاء الشحنة إذا كان لديه qpSerial
         if (status === "shipped" && orderData.qpSerial) {
             customAlert(`⚠️ هذا الطلب لديه بالفعل رقم شحنة: ${orderData.qpSerial}، لا يمكن إعادة إنشاء شحنة جديدة.`, 'warning');
-            return; // لا نقوم بأي تحديث
+            return;
         }
-        if (status === "cancelled") {
-        await restoreStockForOrder(id);
-    }
 
-        // تحديث الحالة في Firestore
+        if (status === "cancelled") {
+            await restoreStockForOrder(id);
+        }
+
+        // تحديث الحالة
         await updateDoc(doc(db, "orders", id), { status });
 
-        // إنشاء شحنة في QP فقط إذا كانت الحالة الجديدة هي "شحن" ولا يوجد qpSerial
+        // إنشاء شحنة في QP إذا كانت الحالة شحن ولا يوجد qpSerial
         if (status === "shipped") {
-            console.log(`🚀 إنشاء شحنة جديدة للطلب ${orderData.orderID}`);
             await createOrderInQP({ id, ...orderData });
-        } else {
-            console.log(`ℹ️ تم تغيير الحالة إلى ${status} دون التأثير على QP Express`);
         }
+
+        // ✅ تسجيل الحدث
+        await logAuditEvent({
+            action: 'status_change',
+            orderId: id,
+            orderNumber: orderData.orderID,
+            details: {
+                oldStatus,
+                newStatus: status,
+                notes: `تم تغيير الحالة من ${oldStatus} إلى ${status}`
+            },
+            performedBy: window.currentUserEmail || 'system'
+        });
 
         customAlert("✅ تم تحديث الحالة بنجاح", 'success');
         render();
-    } catch(e) {
-        console.error("❌ خطأ في تحديث الحالة:", e);
+    } catch (e) {
+        console.error(e);
         customAlert("❌ حدث خطأ أثناء الحفظ: " + e.message, 'error');
     }
 };
@@ -1113,7 +1124,7 @@ window.applyBulkStatus = async (newStatus) => {
         return;
     }
 
-    // تحقق من الحالة الحالية للطلبات المختارة
+    // التحقق من الحالة الحالية
     for (const cb of selected) {
         const card = cb.closest(".card");
         const orderId = card.querySelector(".order-id")?.getAttribute("data-id");
@@ -1129,6 +1140,7 @@ window.applyBulkStatus = async (newStatus) => {
     if (!confirmed) return;
 
     let successCount = 0, errorCount = 0, skippedCount = 0;
+    const updatedOrderIds = [];
 
     for (const cb of selected) {
         const card = cb.closest(".card");
@@ -1138,15 +1150,13 @@ window.applyBulkStatus = async (newStatus) => {
             const orderSnap = await getDoc(doc(db, "orders", orderId));
             if (!orderSnap.exists()) continue;
             const orderData = orderSnap.data();
+            const oldStatus = orderData.status;
 
-            // 🔒 منع إعادة الإنشاء إذا كان الطلب لديه qpSerial
             if (newStatus === "shipped" && orderData.qpSerial) {
-                customAlert(`⚠️ الطلب ${orderData.orderID} لديه بالفعل رقم شحنة: ${orderData.qpSerial}، لن يتم إنشاء شحنة جديدة.`, 'warning');
                 skippedCount++;
                 continue;
             }
 
-            // إذا كانت الحالة الجديدة "لاغي"، نعيد المخزون
             if (newStatus === "cancelled") {
                 await restoreStockForOrder(orderId);
             }
@@ -1156,11 +1166,28 @@ window.applyBulkStatus = async (newStatus) => {
             if (newStatus === "shipped") {
                 await createOrderInQP({ id: orderId, ...orderData });
             }
+
+            updatedOrderIds.push({ id: orderId, orderNumber: orderData.orderID, oldStatus });
             successCount++;
         } catch (e) {
-            console.error(`❌ فشل تحديث الطلب ${orderId}:`, e);
+            console.error(e);
             errorCount++;
         }
+    }
+
+    // ✅ تسجيل الأحداث (لكل طلب على حدة)
+    for (const item of updatedOrderIds) {
+        await logAuditEvent({
+            action: 'status_change',
+            orderId: item.id,
+            orderNumber: item.orderNumber,
+            details: {
+                oldStatus: item.oldStatus,
+                newStatus: newStatus,
+                notes: `تغيير جماعي من ${item.oldStatus} إلى ${newStatus}`
+            },
+            performedBy: window.currentUserEmail || 'system'
+        });
     }
 
     let msg = `✅ تم تحديث ${successCount} طلب بنجاح`;
@@ -1257,13 +1284,14 @@ window.copyOrderConfirmation = function(orderId) {
 };
 
 window.deleteOrder = async (id) => {
-  const confirmed = await window.customConfirm("⚠️ هل أنت متأكد من حذف هذا الطلب وإعادة الكميات إلى المخزون؟");
-  if (!confirmed) return;
-  try {
-    const orderSnap = await getDoc(doc(db, "orders", id));
-    if (!orderSnap.exists()) throw new Error();
-    const order = orderSnap.data();
-    
+    const confirmed = await window.customConfirm("⚠️ هل أنت متأكد من حذف هذا الطلب وإعادة الكميات إلى المخزون؟");
+    if (!confirmed) return;
+
+    try {
+        const orderSnap = await getDoc(doc(db, "orders", id));
+        if (!orderSnap.exists()) throw new Error();
+        const order = orderSnap.data();
+
     // ✅ إعادة الكميات إلى المخزون (مع مراعاة غير المحدود)
     for (const item of (order.orderDetails || [])) {
       if (!item.name || !item.size) continue;
@@ -1290,12 +1318,27 @@ window.deleteOrder = async (id) => {
         }
       }
     }
-    await deleteDoc(doc(db, "orders", id));
-    customAlert("تم حذف الطلب وإعادة المخزون بنجاح", 'success');
-  } catch(e) {
-    console.error(e);
-    customAlert("❌ حدث خطأ أثناء الحذف", 'error');
-  }
+
+        // ✅ تسجيل الحدث
+        await logAuditEvent({
+            action: 'order_deleted',
+            orderId: id,
+            orderNumber: order.orderID,
+            details: {
+                customerName: order.customerName,
+                phone: order.phone,
+                finalTotal: order.finalTotal,
+                orderDetails: order.orderDetails
+            },
+            performedBy: window.currentUserEmail || 'system',
+            severity: 'warning'
+        });
+
+        customAlert("تم حذف الطلب وإعادة المخزون بنجاح", 'success');
+    } catch (e) {
+        console.error(e);
+        customAlert("❌ حدث خطأ أثناء الحذف", 'error');
+    }
 };
 
 window.editOrder = (id) => {
@@ -1343,6 +1386,8 @@ window.calculateProfitFromEdit = () => {
 };
 
 window.saveEdit = async (id) => {
+  const oldOrder = orders.find(o => o.id === id);
+  if (!oldOrder) { customAlert("الطلب غير موجود", 'error'); return; }
   let detailsCount = (orders.find(x => x.id === id)?.orderDetails || []).length;
   let orderDetails = [];
   for (let i = 0; i < detailsCount; i++) {
@@ -1353,32 +1398,67 @@ window.saveEdit = async (id) => {
     let costPrice = parseFloat(document.getElementById(`editDetailCost_${i}`)?.value) || 0;
     if (name || qty > 0) orderDetails.push({ name, size, qty, price, costPrice });
   }
-  
-  const finalTotal = parseFloat(document.getElementById("editTotal").value) || 0;
-  const totalCost = parseFloat(document.getElementById("editTotalCost").value) || 0;
-  const shippingCostPaid = parseFloat(document.getElementById("editShippingPaid").value) || 0;
-  const profit = finalTotal - totalCost - shippingCostPaid;
-  
-  try {
-    await updateDoc(doc(db, "orders", id), {
-      customerName: document.getElementById("editName").value,
-      phone: document.getElementById("editPhone").value,
-      gov: document.getElementById("editGov").value,
-      city: document.getElementById("editCity").value,
-      address: document.getElementById("editAddress").value,
-      orderDetails,
-      finalTotal: finalTotal,
-      totalCost: totalCost,
-      shippingCostPaid: shippingCostPaid,
-      profit: profit,
-      // يمكنك إضافة quantity, price, shipping إذا أردت
-    });
-    closeMsg();
-    customAlert("تم حفظ التعديلات", 'success');
-  } catch(e) { 
-    console.error(e);
-    customAlert("خطأ في الحفظ", 'error');
-  }
+
+    const finalTotal = parseFloat(document.getElementById("editTotal").value) || 0;
+    const totalCost = parseFloat(document.getElementById("editTotalCost").value) || 0;
+    const shippingCostPaid = parseFloat(document.getElementById("editShippingPaid").value) || 0;
+    const profit = finalTotal - totalCost - shippingCostPaid;
+
+    const newData = {
+        customerName: document.getElementById("editName").value,
+        phone: document.getElementById("editPhone").value,
+        gov: document.getElementById("editGov").value,
+        city: document.getElementById("editCity").value,
+        address: document.getElementById("editAddress").value,
+        orderDetails,
+        finalTotal,
+        totalCost,
+        shippingCostPaid,
+        profit
+    };
+
+    try {
+        await updateDoc(doc(db, "orders", id), newData);
+
+        // ✅ تسجيل التعديلات
+        const changedFields = [];
+        const fieldsToCheck = ['customerName', 'phone', 'gov', 'city', 'address', 'finalTotal', 'totalCost', 'shippingCostPaid'];
+        fieldsToCheck.forEach(field => {
+            if (JSON.stringify(oldOrder[field]) !== JSON.stringify(newData[field])) {
+                changedFields.push(field);
+            }
+        });
+
+        await logAuditEvent({
+            action: 'order_edited',
+            orderId: id,
+            orderNumber: oldOrder.orderID,
+            details: {
+                changedFields,
+                oldData: {
+                    customerName: oldOrder.customerName,
+                    phone: oldOrder.phone,
+                    finalTotal: oldOrder.finalTotal,
+                    totalCost: oldOrder.totalCost,
+                    shippingCostPaid: oldOrder.shippingCostPaid
+                },
+                newData: {
+                    customerName: newData.customerName,
+                    phone: newData.phone,
+                    finalTotal: newData.finalTotal,
+                    totalCost: newData.totalCost,
+                    shippingCostPaid: newData.shippingCostPaid
+                }
+            },
+            performedBy: window.currentUserEmail || 'system'
+        });
+
+        closeMsg();
+        customAlert("تم حفظ التعديلات", 'success');
+    } catch (e) {
+        console.error(e);
+        customAlert("خطأ في الحفظ", 'error');
+    }
 };
 
 function updateBulkBar() {
@@ -1693,6 +1773,7 @@ document.addEventListener("change", (e) => { if (e.target.classList.contains("se
 Notification.requestPermission();
 onAuthStateChanged(auth, (user) => {
     if (user) {
+      window.currentUserEmail = user.email;
         load();
         listenForOrderStatusChanges();
         startPeriodicSync(3);
