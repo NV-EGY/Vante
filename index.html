@@ -4332,7 +4332,6 @@ let pinnedProductId = null;  // معرف المنتج الذي سيظهر أول
 let currentSearchFilter = "";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, collection, addDoc, serverTimestamp, onSnapshot, query, orderBy, where, getDocs, updateDoc, doc, increment, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { logAuditEvent, customAlert, customConfirm } from './js/utils.js';
 
 const firebaseConfig = {
     apiKey: "AIzaSyCotT8EP2uy_HsgHknxeGBorKoEUORPtmU",
@@ -5876,16 +5875,12 @@ async function executeCheckout() {
         
         try {
             // جلب سعر الشحن حسب المحافظة
-            const shippingRateSnap = await getDocs(query(
-    collection(db, "shippingRates"),
-    where("gov", "==", gov),
-    where("city", "==", city)  // أضف هذا الشرط
-));
-if (!shippingRateSnap.empty) {
-    const rate = shippingRateSnap.docs[0].data();
-    customerShippingFee = rate.customerFee || 70;
-    storeShippingCost = rate.costForStore || 70;
-}
+            const shippingRateSnap = await getDocs(query(collection(db, "shippingRates"), where("gov", "==", gov)));
+            if (!shippingRateSnap.empty) {
+                const rate = shippingRateSnap.docs[0].data();
+                customerShippingFee = rate.customerFee || 70;
+                storeShippingCost = rate.costForStore || 70;
+            }
             
             // جلب إعدادات خصم الشحن
             const discountSettingsSnap = await getDoc(doc(db, "settings", "shipping_discount"));
