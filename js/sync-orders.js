@@ -20,7 +20,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 export { db }; // تصدير db لاستخدامه في ملفات أخرى إذا احتجت
-
+export { restoreStockForOrder };
 // =================== إعدادات QP ===================
 let QP_CONFIG = null;
 
@@ -32,6 +32,36 @@ async function loadQPConfig() {
         return QP_CONFIG;
     }
     throw new Error("لم يتم العثور على بيانات تسجيل الدخول لـ QP Express في Firestore");
+}
+
+// دالة إعادة المخزون للمنتجات (مستنسخة من admin-order مع تحسينات)
+async function restoreStockForOrder(orderId, orderData) {
+    if (orderData.stockRestored) {
+        console.log(`⚠️ المخزون للطلب ${orderId} تم استرجاعه مسبقاً، تخطي.`);
+        return;
+    }
+    for (const item of (orderData.orderDetails || [])) {
+        if (!item.name || !item.size) continue;
+        let productId = item.productId;
+        let productDoc;
+        if (productId) {
+            productDoc = await getDoc(doc(db, "products", productId));
+        } else {
+            const productSnap = await getDocs(query(collection(db, "products"), where("name", "==", item.name)));
+            if (!productSnap.empty) productDoc = productSnap.docs[0];
+        }
+        if (productDoc && productDoc.exists()) {
+            const productRef = doc(db, "products", productDoc.id);
+            const stockBySize = productDoc.data().stockBySize || {};
+            const currentStock = stockBySize[item.size];
+            if (currentStock !== null && currentStock !== undefined) {
+                stockBySize[item.size] = (currentStock || 0) + item.qty;
+                await updateDoc(productRef, { stockBySize });
+            }
+        }
+    }
+    // وضع علامة بأن المخزون استعيد
+    await updateDoc(doc(db, "orders", orderId), { stockRestored: true });
 }
 
 // =================== الحصول على توكن ===================
@@ -187,15 +217,17 @@ export async function processUpdates(updates) {
             const orderId = orderDoc.id;
             const currentData = orderDoc.data();
 
-            // ----- حالة المرتجع -----
+            // ----- حالة المرتجع (من QP) -----
             if (update.has_return && update.has_return === true) {
+                // إعادة المخزون أولاً
+                await restoreStockForOrder(orderId, currentData);
                 await updateDoc(doc(db, "orders", orderId), {
                     status: "returned",
                     notes: "مرتجع (تم إرجاع المنتج)",
-                    // اختيارياً: يمكن تصفير تكلفة الشحن الفعلية
-                    shippingCostPaid: 0
+                    shippingCostPaid: 0,
+                    stockRestored: true
                 });
-                console.log(`🔄 تم تحديث الطلب ${referenceID} إلى حالة مرتجع`);
+                console.log(`🔄 تم تحديث الطلب ${referenceID} إلى حالة مرتجع وإعادة المخزون`);
                 continue;
             }
 
@@ -204,7 +236,7 @@ export async function processUpdates(updates) {
 
             let newStatus = currentData.status;
             let notesToAdd = "";
-            let newShippingCostPaid = currentData.shippingCostPaid || 0; // الاحتفاظ بالقيمة الحالية افتراضياً
+            let newShippingCostPaid = currentData.shippingCostPaid || 0;
 
             switch (new_value) {
                 case "Pending":
@@ -214,27 +246,23 @@ export async function processUpdates(updates) {
 
                 case "Delivered":
                     newStatus = "delivered";
-                    // ✅ التسليم: تبقى تكلفة الشحن كما هي (لا نغيرها)
                     break;
 
                 case "Hold":
                     newStatus = "hold";
                     notesToAdd = notes || "معلق من قبل شركة الشحن";
-                    // يمكنك اختيار تصفير التكلفة أو إبقائها حسب سياسة الشركة
-                    // newShippingCostPaid = 0; // اختر ما يناسبك
                     break;
 
                 case "Undelivered":
                     newStatus = "cancelled";
                     notesToAdd = notes || "موصلش للعميل (Undelivered) - لا مصاريف شحن";
-                    newShippingCostPaid = 0; // ✅ تصفير التكلفة الفعلية
+                    newShippingCostPaid = 0;  // لا نتحمل تكلفة الشحن
                     break;
 
                 case "Rejected":
                     newStatus = "rejected";
                     notesToAdd = notes || "العميل رفض الطلب - يتحمل مصاريف الشحن";
-                    // ✅ في حالة الرفض، يمكنك اختيار إبقاء التكلفة أو تصفيرها حسب اتفاقك
-                    // newShippingCostPaid = 0; // أو اتركها كما هي
+                    // نترك shippingCostPaid كما هي (نحن نتحمل التكلفة)
                     break;
 
                 default:
@@ -245,7 +273,7 @@ export async function processUpdates(updates) {
                 status: newStatus,
                 qpStatus: new_value,
                 qpLastSync: serverTimestamp(),
-                shippingCostPaid: newShippingCostPaid   // ✅ تحديث التكلفة الفعلية
+                shippingCostPaid: newShippingCostPaid
             };
 
             if (notesToAdd) updateData.notes = notesToAdd;
