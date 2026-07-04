@@ -1068,10 +1068,10 @@ window.update = async (id, status) => {
 
         console.log(`🔄 تغيير حالة الطلب ${orderData.orderID} إلى ${status}`);
         
-    if (status === "cancelled") {
-        await restoreStockForOrder(id);
-    }
 // ✅ الكود الصحيح
+if (status === "cancelled") {
+    await restoreStockForOrder(id);
+}
 await logAuditEvent('status_change', id, orderData.orderID, {
     oldStatus: orderData.status,
     newStatus: status,
@@ -1117,7 +1117,7 @@ window.applyBulkStatus = async (newStatus) => {
         return;
     }
 
-    // ✅ التحقق من الحالة الحالية للطلبات المختارة (بدون logAuditEvent هنا)
+    // ✅ التحقق من الحالة الحالية للطلبات المختارة
     for (const cb of selected) {
         const card = cb.closest(".card");
         const orderId = card.querySelector(".order-id")?.getAttribute("data-id");
@@ -1138,12 +1138,13 @@ window.applyBulkStatus = async (newStatus) => {
         const card = cb.closest(".card");
         const orderId = card.querySelector(".order-id")?.getAttribute("data-id");
         if (!orderId) continue;
+
         try {
             const orderSnap = await getDoc(doc(db, "orders", orderId));
             if (!orderSnap.exists()) continue;
             const orderData = orderSnap.data();
 
-            // ✅ تسجيل حدث التدقيق داخل الحلقة بعد تعريف orderData
+            // ✅ تسجيل حدث التدقيق داخل الحلقة
             await logAuditEvent('status_change', orderId, orderData.orderID, {
                 oldStatus: orderData.status,
                 newStatus: newStatus,
@@ -1273,13 +1274,13 @@ window.deleteOrder = async (id) => {
         const orderSnap = await getDoc(doc(db, "orders", id));
         if (!orderSnap.exists()) throw new Error();
         const order = orderSnap.data();
-        
+
         // ✅ تسجيل حدث الحذف مرة واحدة خارج الحلقة
         await logAuditEvent('order_deleted', id, order.orderID, {
             customerName: order.customerName,
             finalTotal: order.finalTotal
         });
-        
+
         // ✅ إعادة الكميات إلى المخزون
         for (const item of (order.orderDetails || [])) {
             if (!item.name || !item.size) continue;
@@ -1291,7 +1292,7 @@ window.deleteOrder = async (id) => {
                 const productSnap = await getDocs(query(collection(db, "products"), where("name", "==", item.name)));
                 if (!productSnap.empty) productDoc = productSnap.docs[0];
             }
-            
+
             if (productDoc && productDoc.exists()) {
                 const productRef = doc(db, "products", productDoc.id);
                 const stockBySize = productDoc.data().stockBySize || {};
@@ -1311,44 +1312,44 @@ window.deleteOrder = async (id) => {
 };
 // ✅ الكود الصحيح
 window.editOrder = async (id) => {
-  let o = orders.find(x => x.id === id);
-  if (!o) return;
-  
-  await logAuditEvent('order_edited', id, o.orderID, {
-    changedFields: ['customerName', 'phone', 'address', 'orderDetails']
-  });
-  
-  let box = document.getElementById("msgPopup");
-  let detailsHtml = '';
-  (o.orderDetails || []).forEach((item, idx) => {
-    detailsHtml += `<div style="background:#f8f8f8; padding:12px; border-radius:12px; margin-bottom:10px;">
-      <b>المنتج ${idx+1}</b>
-      <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:8px;">
-        <input id="editDetailName_${idx}" value="${item.name || ''}" placeholder="المنتج" style="flex:2;">
-        <input id="editDetailSize_${idx}" value="${item.size || ''}" placeholder="المقاس" style="flex:1;">
-        <input id="editDetailQty_${idx}" type="number" value="${item.qty || 1}" style="flex:1;">
-        <input id="editDetailPrice_${idx}" type="number" value="${item.price || 0}" style="flex:1;">
-        <input id="editDetailCost_${idx}" type="number" value="${item.costPrice || 0}" placeholder="سعر الجملة" style="flex:1;">
-      </div>
-    </div>`;
-  });
-  box.innerHTML = `<div class="popup-box"><div class="popup-header"><span>✏️ تعديل ID: ${o.orderID}</span><span onclick="closeMsg()" style="cursor:pointer;">✖</span></div>
-    <div class="popup-body">
-      <input id="editName" value="${o.customerName || ''}" placeholder="الاسم"><br><br>
-      <input id="editPhone" value="${o.phone || ''}" placeholder="الهاتف"><br><br>
-      <input id="editGov" value="${o.gov || ''}" placeholder="المحافظة"><br><br>
-      <input id="editCity" value="${o.city || ''}" placeholder="المدينة"><br><br>
-      <input id="editAddress" value="${o.address || ''}" placeholder="العنوان"><br><br><hr>
-      <div id="editDetailsContainer">${detailsHtml}</div><hr>
-      <input id="editShippingPaid" type="number" value="${o.shippingCostPaid || 0}" placeholder="تكلفة الشحن الفعلية (التي دفعتها للتاجر/شركة الشحن)"><br><br>
-      <input id="editTotalCost" type="number" value="${o.totalCost || 0}" placeholder="التكلفة الإجمالية للمنتجات (جملة)"><br><br>
-      <input id="editProfit" type="number" value="${o.profit || 0}" placeholder="صافي الربح" readonly style="background:#f0f0f0;"><br><br>
-<input id="editTotal" type="number" value="${o.finalTotal || 0}" placeholder="الإجمالي النهائي (العميل)"><br><br>
-      <button onclick="calculateProfitFromEdit()" style="background:#f39c12; border:none; padding:6px; border-radius:8px;">حساب الربح تلقائياً</button>
-    </div>
-    <div class="popup-footer"><button onclick="saveEdit('${id}')" style="width:100%;padding:10px;background:#0F7B65;color:#fff;border:none;border-radius:10px;">حفظ</button>
-    <button onclick="closeMsg()" style="width:100%;margin-top:8px;padding:10px;background:#333;color:#fff;border:none;border-radius:10px;">إغلاق</button></div></div>`;
-  box.style.display = "flex";
+    let o = orders.find(x => x.id === id);
+    if (!o) return;
+
+    await logAuditEvent('order_edited', id, o.orderID, {
+        changedFields: ['customerName', 'phone', 'address', 'orderDetails']
+    });
+
+    let box = document.getElementById("msgPopup");
+    let detailsHtml = '';
+    (o.orderDetails || []).forEach((item, idx) => {
+        detailsHtml += `<div style="background:#f8f8f8; padding:12px; border-radius:12px; margin-bottom:10px;">
+            <b>المنتج ${idx+1}</b>
+            <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:8px;">
+                <input id="editDetailName_${idx}" value="${item.name || ''}" placeholder="المنتج" style="flex:2;">
+                <input id="editDetailSize_${idx}" value="${item.size || ''}" placeholder="المقاس" style="flex:1;">
+                <input id="editDetailQty_${idx}" type="number" value="${item.qty || 1}" style="flex:1;">
+                <input id="editDetailPrice_${idx}" type="number" value="${item.price || 0}" style="flex:1;">
+                <input id="editDetailCost_${idx}" type="number" value="${item.costPrice || 0}" placeholder="سعر الجملة" style="flex:1;">
+            </div>
+        </div>`;
+    });
+    box.innerHTML = `<div class="popup-box"><div class="popup-header"><span>✏️ تعديل ID: ${o.orderID}</span><span onclick="closeMsg()" style="cursor:pointer;">✖</span></div>
+        <div class="popup-body">
+            <input id="editName" value="${o.customerName || ''}" placeholder="الاسم"><br><br>
+            <input id="editPhone" value="${o.phone || ''}" placeholder="الهاتف"><br><br>
+            <input id="editGov" value="${o.gov || ''}" placeholder="المحافظة"><br><br>
+            <input id="editCity" value="${o.city || ''}" placeholder="المدينة"><br><br>
+            <input id="editAddress" value="${o.address || ''}" placeholder="العنوان"><br><br><hr>
+            <div id="editDetailsContainer">${detailsHtml}</div><hr>
+            <input id="editShippingPaid" type="number" value="${o.shippingCostPaid || 0}" placeholder="تكلفة الشحن الفعلية (التي دفعتها للتاجر/شركة الشحن)"><br><br>
+            <input id="editTotalCost" type="number" value="${o.totalCost || 0}" placeholder="التكلفة الإجمالية للمنتجات (جملة)"><br><br>
+            <input id="editProfit" type="number" value="${o.profit || 0}" placeholder="صافي الربح" readonly style="background:#f0f0f0;"><br><br>
+            <input id="editTotal" type="number" value="${o.finalTotal || 0}" placeholder="الإجمالي النهائي (العميل)"><br><br>
+            <button onclick="calculateProfitFromEdit()" style="background:#f39c12; border:none; padding:6px; border-radius:8px;">حساب الربح تلقائياً</button>
+        </div>
+        <div class="popup-footer"><button onclick="saveEdit('${id}')" style="width:100%;padding:10px;background:#0F7B65;color:#fff;border:none;border-radius:10px;">حفظ</button>
+        <button onclick="closeMsg()" style="width:100%;margin-top:8px;padding:10px;background:#333;color:#fff;border:none;border-radius:10px;">إغلاق</button></div></div>`;
+    box.style.display = "flex";
 };
 
 window.calculateProfitFromEdit = () => {
