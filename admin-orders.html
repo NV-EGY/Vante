@@ -1000,7 +1000,7 @@ import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/
 // ✅ الاستيراد الصحيح
 import { createOrderInQP, listenForOrderStatusChanges, startPeriodicSync, manualSyncOrders, cancelOrderInQP, restoreStockForOrder } from './js/sync-orders.js';
 // في admin-order.html، أضف هذا السطر مع الاستيرادات الأخرى
-import { logAuditEvent, customAlert, customConfirm } from './js/utils.js';
+import { logAuditEvent, customAlert, customConfirm } from './js/ulits.js';
 
 const firebaseConfig = {
   apiKey: "AIzaSyCotT8EP2uy_HsgHknxeGBorKoEUORPtmU",
@@ -1117,17 +1117,17 @@ window.applyBulkStatus = async (newStatus) => {
         return;
     }
 
-    // ✅ الكود الصحيح
-for (const cb of selected) {
-    const card = cb.closest(".card");
-    const orderId = card.querySelector(".order-id")?.getAttribute("data-id");
-    if (!orderId) continue;
-    const orderData = orders.find(o => o.id === orderId);
-    if (orderData && forbidden.includes(orderData.status)) {
-        customAlert(`الطلب ${orderData.orderID} في حالة ${orderData.status} ولا يمكن تغييره`, "warning");
-        return;
+    // ✅ التحقق من الحالة الحالية للطلبات المختارة (بدون logAuditEvent هنا)
+    for (const cb of selected) {
+        const card = cb.closest(".card");
+        const orderId = card.querySelector(".order-id")?.getAttribute("data-id");
+        if (!orderId) continue;
+        const orderData = orders.find(o => o.id === orderId);
+        if (orderData && forbidden.includes(orderData.status)) {
+            customAlert(`الطلب ${orderData.orderID} في حالة ${orderData.status} ولا يمكن تغييره`, "warning");
+            return;
+        }
     }
-}
 
     const confirmed = await window.customConfirm(`تطبيق حالة "${newStatus}" على ${selected.length} طلب؟`);
     if (!confirmed) return;
@@ -1143,6 +1143,13 @@ for (const cb of selected) {
             if (!orderSnap.exists()) continue;
             const orderData = orderSnap.data();
 
+            // ✅ تسجيل حدث التدقيق داخل الحلقة بعد تعريف orderData
+            await logAuditEvent('status_change', orderId, orderData.orderID, {
+                oldStatus: orderData.status,
+                newStatus: newStatus,
+                notes: ''
+            });
+
             // 🔒 منع إعادة الإنشاء إذا كان الطلب لديه qpSerial
             if (newStatus === "shipped" && orderData.qpSerial) {
                 customAlert(`⚠️ الطلب ${orderData.orderID} لديه بالفعل رقم شحنة: ${orderData.qpSerial}، لن يتم إنشاء شحنة جديدة.`, 'warning');
@@ -1150,7 +1157,6 @@ for (const cb of selected) {
                 continue;
             }
 
-            // إذا كانت الحالة الجديدة "لاغي"، نعيد المخزون
             if (newStatus === "cancelled") {
                 await restoreStockForOrder(orderId);
             }
@@ -1261,53 +1267,47 @@ window.copyOrderConfirmation = function(orderId) {
 };
 
 window.deleteOrder = async (id) => {
-  const confirmed = await window.customConfirm("⚠️ هل أنت متأكد من حذف هذا الطلب وإعادة الكميات إلى المخزون؟");
-  if (!confirmed) return;
-  try {
-    const orderSnap = await getDoc(doc(db, "orders", id));
-    if (!orderSnap.exists()) throw new Error();
-    const order = orderSnap.data();
-    
-// ✅ الكود الصحيح
-// سجل حدث الحذف أولاً (مرة واحدة)
-await logAuditEvent('order_deleted', id, order.orderID, {
-    customerName: order.customerName,
-    finalTotal: order.finalTotal
-});
-
-// ثم قم بإعادة المخزون
-for (const item of (order.orderDetails || [])) {
-  if (!item.name || !item.size) continue;
-  // ... إعادة المخزون
-}
-      // استخدم productId إذا كان موجوداً، وإلا ابحث بالاسم (للتوافق مع الطلبات القديمة)
-      let productId = item.productId;
-      let productDoc;
-      if (productId) {
-        productDoc = await getDoc(doc(db, "products", productId));
-      } else {
-        const productSnap = await getDocs(query(collection(db, "products"), where("name", "==", item.name)));
-        if (!productSnap.empty) productDoc = productSnap.docs[0];
-      }
-      
-      if (productDoc && productDoc.exists()) {
-        const productRef = doc(db, "products", productDoc.id);
-        const stockBySize = productDoc.data().stockBySize || {};
-        const currentStock = stockBySize[item.size];
+    const confirmed = await window.customConfirm("⚠️ هل أنت متأكد من حذف هذا الطلب وإعادة الكميات إلى المخزون؟");
+    if (!confirmed) return;
+    try {
+        const orderSnap = await getDoc(doc(db, "orders", id));
+        if (!orderSnap.exists()) throw new Error();
+        const order = orderSnap.data();
         
-        // ✅ إذا كان currentStock === null → غير محدود، لا نعدل
-        if (currentStock !== null && currentStock !== undefined) {
-          stockBySize[item.size] = (currentStock || 0) + item.qty;
-          await updateDoc(productRef, { stockBySize });
+        // ✅ تسجيل حدث الحذف مرة واحدة خارج الحلقة
+        await logAuditEvent('order_deleted', id, order.orderID, {
+            customerName: order.customerName,
+            finalTotal: order.finalTotal
+        });
+        
+        // ✅ إعادة الكميات إلى المخزون
+        for (const item of (order.orderDetails || [])) {
+            if (!item.name || !item.size) continue;
+            let productId = item.productId;
+            let productDoc;
+            if (productId) {
+                productDoc = await getDoc(doc(db, "products", productId));
+            } else {
+                const productSnap = await getDocs(query(collection(db, "products"), where("name", "==", item.name)));
+                if (!productSnap.empty) productDoc = productSnap.docs[0];
+            }
+            
+            if (productDoc && productDoc.exists()) {
+                const productRef = doc(db, "products", productDoc.id);
+                const stockBySize = productDoc.data().stockBySize || {};
+                const currentStock = stockBySize[item.size];
+                if (currentStock !== null && currentStock !== undefined) {
+                    stockBySize[item.size] = (currentStock || 0) + item.qty;
+                    await updateDoc(productRef, { stockBySize });
+                }
+            }
         }
-      }
+        await deleteDoc(doc(db, "orders", id));
+        customAlert("تم حذف الطلب وإعادة المخزون بنجاح", 'success');
+    } catch(e) {
+        console.error(e);
+        customAlert("❌ حدث خطأ أثناء الحذف", 'error');
     }
-    await deleteDoc(doc(db, "orders", id));
-    customAlert("تم حذف الطلب وإعادة المخزون بنجاح", 'success');
-  } catch(e) {
-    console.error(e);
-    customAlert("❌ حدث خطأ أثناء الحذف", 'error');
-  }
 };
 // ✅ الكود الصحيح
 window.editOrder = async (id) => {
