@@ -3,8 +3,8 @@
 // 🔥 تهيئة Firebase مباشرة داخل الملف (لتجنب مشكلة الاستيراد)
 // ============================================================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { 
-    getFirestore, doc, getDoc, updateDoc, collection, 
+import { logAuditEvent } from './logger.js';
+import { getFirestore, doc, getDoc, updateDoc, collection, 
     query, where, getDocs, serverTimestamp 
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
@@ -280,6 +280,20 @@ export async function processUpdates(updates) {
             if (new_value === "Undelivered") updateData.shippingExempted = true;
 
             await updateDoc(doc(db, "orders", orderId), updateData);
+            // داخل processUpdates، بعد await updateDoc(...)
+await logAuditEvent({
+    action: 'status_change',
+    orderId: orderId,
+    orderNumber: referenceID,
+    details: {
+        oldStatus: currentData.status,
+        newStatus: newStatus,
+        notes: notesToAdd || `تحديث تلقائي من QP: ${new_value}`,
+        source: 'QP Express'
+    },
+    performedBy: 'system (QP)',
+    severity: 'info'
+});
             console.log(`🔄 تم تحديث الطلب ${referenceID} إلى حالة ${newStatus} (QP: ${new_value}) مع تكلفة شحن فعلية = ${newShippingCostPaid}`);
 
         } catch (error) {
