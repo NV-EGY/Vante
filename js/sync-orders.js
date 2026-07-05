@@ -172,7 +172,27 @@ export async function createOrderInQP(orderData) {
 
         console.log(`✅ تم إنشاء الطلب في QP برقم: ${result.serial}`);
         return result;
+        // داخل createOrderInQP (بعد النجاح)
+await logAuditEvent({
+  action: 'shipment_created',
+  orderId: orderData.id,
+  orderNumber: orderData.orderID,
+  details: { qpSerial: result.serial },
+  performedBy: 'system (QP)',
+  severity: 'info'
+});
+
+
     } catch (error) {
+      // داخل catch (في createOrderInQP)
+await logAuditEvent({
+  action: 'shipment_failed',
+  orderId: orderData.id,
+  orderNumber: orderData.orderID,
+  details: { error: error.message },
+  performedBy: 'system (QP)',
+  severity: 'error'
+});
         console.error("❌ خطأ في إنشاء الطلب:", error);
         throw error;
     }
