@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- PWA لكل تطبيق على حدة (سجل التدقيق) -->
@@ -585,19 +584,21 @@
             `;
             return;
         }
-        const severityIcons = {
-    info: 'ℹ️',
-    warning: '⚠️',
-    error: '❌'
+        // داخل renderLogs
+const severityIcons = {
+  info: 'ℹ️',
+  warning: '⚠️',
+  error: '❌'
 };
 const severityColor = {
-    info: '#3498db',
-    warning: '#f39c12',
-    error: '#e74c3c'
+  info: '#3498db',
+  warning: '#f39c12',
+  error: '#e74c3c'
 };
-// ثم في عرض الصف:
 const sevIcon = severityIcons[log.severity] || 'ℹ️';
 const sevColor = severityColor[log.severity] || '#3498db';
+// إضافة عمود:
+`<td><span style="color:${sevColor}">${sevIcon}</span></td>`
 
         let html = '';
         logs.forEach((log, index) => {
@@ -648,7 +649,8 @@ const sevColor = severityColor[log.severity] || '#3498db';
     // الفلاتر
     // ============================================================
     function applyFilters() {
-      const severity = document.getElementById('filterSeverity').value;
+      // داخل applyFilters
+const severity = document.getElementById('filterSeverity').value;
 // ...
 if (severity !== 'all' && log.severity !== severity) return false;
         const dateFrom = document.getElementById('filterDateFrom').value;
@@ -727,7 +729,7 @@ if (severity !== 'all' && log.severity !== severity) return false;
     if (!log) return;
     const details = JSON.stringify(log, null, 2);
     // استخدم مودال بدل alert ليكون احترافياً
-    customAlert(`📋 تفاصيل السجل:\n\n${details}`, 'info', 'تفاصيل السجل');
+    alert(`📋 تفاصيل السجل:\n\n${details}`);
 };
 
     window.deleteLog = async function(id) {
