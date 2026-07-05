@@ -1094,7 +1094,6 @@ h2 {
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, serverTimestamp, query, orderBy, updateDoc, Timestamp, getDocs, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { logAuditEvent, customAlert, customConfirm } from './js/utils.js';
 
 const firebaseConfig = {
     apiKey: "AIzaSyCotT8EP2uy_HsgHknxeGBorKoEUORPtmU",
@@ -1192,6 +1191,23 @@ function renderCouponsList() {
     });
 }
 window.saveCoupon = async function() {
+  // داخل saveCoupon (إضافة/تعديل)
+const action = editingCouponId ? 'coupon_edited' : 'coupon_created';
+await logAuditEvent({
+  action,
+  orderId: null,
+  orderNumber: null,
+  details: {
+    code,
+    discountType,
+    discountValue,
+    appliesTo,
+    ...(editingCouponId && { oldData: oldCoupon })
+  },
+  performedBy: window.currentUserEmail || 'system',
+  severity: 'info'
+});
+
     try {
         const code = document.getElementById("couponCode").value.trim().toUpperCase();
         const discountType = document.getElementById("couponDiscountType").value;
@@ -1256,7 +1272,15 @@ window.editCoupon = function(id) {
 };
 window.cancelCouponEdit = function() { editingCouponId = null; clearCouponForm(); document.getElementById("saveCouponBtn").innerHTML = '<i class="fas fa-save"></i> حفظ الكوبون'; document.getElementById("cancelCouponBtn").style.display = "none"; };
 function clearCouponForm() { document.getElementById("couponCode").value = ""; document.getElementById("couponDiscountValue").value = ""; document.getElementById("couponExpiryDate").value = ""; document.getElementById("couponMaxUses").value = ""; document.getElementById("couponIsActive").value = "true"; document.getElementById("couponAppliesTo").value = "all"; document.getElementById("productSelectGroup").style.display = "none"; document.getElementById("couponProductId").value = ""; }
-window.deleteCoupon = async function(id) { if(await window.customConfirm("⚠️ هل أنت متأكد من حذف هذا الكوبون؟")) { await deleteDoc(doc(db, "coupons", id)); customAlert("تم الحذف", "success"); } };
+window.deleteCoupon = async function(id) {
+  // داخل deleteCoupon
+await logAuditEvent({
+  action: 'coupon_deleted',
+  details: { code: coupon.code },
+  performedBy: window.currentUserEmail || 'system',
+  severity: 'warning'
+});
+if(await window.customConfirm("⚠️ هل أنت متأكد من حذف هذا الكوبون؟")) { await deleteDoc(doc(db, "coupons", id)); customAlert("تم الحذف", "success"); } };
 
 // ========== Products management ==========
 let currentStockFilter = "all";
@@ -1503,6 +1527,23 @@ window.generateSizeStockInputs = function() {
 };
 function collectSizeStock() { const inputs = document.querySelectorAll(".size-stock-input"); const stockBySize={}; inputs.forEach(inp=>{ const size=inp.dataset.size; const val=inp.value.trim(); stockBySize[size]= val===""?null:(parseInt(val)||0); }); return stockBySize; }
 window.addProduct = async function() {
+  // داخل دالة addProduct
+await logAuditEvent({
+  action: 'product_created',
+  orderId: null,
+  orderNumber: null,
+  details: {
+    name,
+    price,
+    category,
+    sku: finalSKU,
+    sizes,
+    stockBySize,
+    description: description.substring(0, 100) // اختصار
+  },
+  performedBy: window.currentUserEmail || 'system',
+  severity: 'info'
+});
     const name = document.getElementById("name").value.trim();
     const price = Number(document.getElementById("price").value);
     const image = document.getElementById("image").value.trim();
@@ -1581,6 +1622,21 @@ function scrollToElement(elementId, delay = 300) {
     }
 }
 window.editProduct = async function(id, data) {
+  // داخل دالة editProduct (بعد الحفظ)
+const changedFields = getChangedFields(oldProduct, newProduct, ['name', 'price', 'stockBySize', 'description']);
+await logAuditEvent({
+  action: 'product_edited',
+  orderId: null,
+  orderNumber: null,
+  details: {
+    productId: id,
+    changedFields,
+    oldData: { name: oldProduct.name, price: oldProduct.price },
+    newData: { name: newProduct.name, price: newProduct.price }
+  },
+  performedBy: window.currentUserEmail || 'system',
+  severity: 'info'
+});
     editingProductId = id; 
     window._editingStockBySize = data.stockBySize || {};
     openSection('productFormContent');
@@ -1622,7 +1678,21 @@ window.editProduct = async function(id, data) {
     }
     skuField.value = sku;
 };
-window.deleteProduct = async function(id) { if(await window.customConfirm("⚠️ هل أنت متأكد من حذف هذا المنتج نهائياً؟")) { try { await deleteDoc(doc(db, "products", id)); customAlert("🗑️ تم حذف المنتج بنجاح", 'success'); } catch(e) { customAlert("❌ حدث خطأ أثناء الحذف", 'error'); } } };
+window.deleteProduct = async function(id) {
+  // داخل دالة deleteProduct
+await logAuditEvent({
+  action: 'product_deleted',
+  orderId: null,
+  orderNumber: null,
+  details: {
+    productId: id,
+    name: product.name,
+    sku: product.sku
+  },
+  performedBy: window.currentUserEmail || 'system',
+  severity: 'warning'
+});
+if(await window.customConfirm("⚠️ هل أنت متأكد من حذف هذا المنتج نهائياً؟")) { try { await deleteDoc(doc(db, "products", id)); customAlert("🗑️ تم حذف المنتج بنجاح", 'success'); } catch(e) { customAlert("❌ حدث خطأ أثناء الحذف", 'error'); } } };
 window.goToOrders = () => { window.location.href = "admin-orders.html"; };
 window.allProducts = []; window.allProductsLoaded = false;
 const productsQuery = query(collection(db, "products"), orderBy("createdAt", "desc"));
