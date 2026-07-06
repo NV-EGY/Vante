@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="ar">
 <head>
-
 <!-- PWA لكل تطبيق على حدة (طلبات) -->
 <link rel="manifest" href="manifest-orders.json">
 <meta name="mobile-web-app-capable" content="yes">
@@ -1141,6 +1140,7 @@ window.applyBulkStatus = async (newStatus) => {
     if (!confirmed) return;
 
     let successCount = 0, errorCount = 0, skippedCount = 0;
+    const updatedOrderIds = [];
 
     for (const cb of selected) {
         const card = cb.closest(".card");
@@ -1167,26 +1167,29 @@ window.applyBulkStatus = async (newStatus) => {
                 await createOrderInQP({ id: orderId, ...orderData });
             }
 
-            // ✅ تسجيل الحدث (نقلته جوة الحلقة)
-            await logAuditEvent({
-                action: 'status_change',
-                orderId: orderId,
-                orderNumber: orderData.orderID,
-                details: {
-                    oldStatus: oldStatus,
-                    newStatus: newStatus,
-                    notes: `تغيير جماعي من ${oldStatus} إلى ${newStatus}`
-                },
-                performedBy: window.currentUserEmail || 'system',
-                severity: 'info'
-            });
-
+            updatedOrderIds.push({ id: orderId, orderNumber: orderData.orderID, oldStatus });
             successCount++;
         } catch (e) {
             console.error(e);
             errorCount++;
         }
     }
+
+    // ✅ تسجيل الأحداث (لكل طلب على حدة)
+    await logAuditEvent({
+        action: 'status_change',
+        orderId: orderId,
+        orderNumber: oldData.orderID,
+        details: {
+          oldStatus,
+          newStatus,
+          notes: `تغيير جماعي من ${oldStatus} إلى ${newStatus}`
+        },
+        performedBy: window.currentUserEmail || 'system',
+        severity: 'info'
+      });
+    }
+    
 
     let msg = `✅ تم تحديث ${successCount} طلب بنجاح`;
     if (skippedCount > 0) msg += `، تم تخطي ${skippedCount} طلب (لديه شحنة سابقة)`;
