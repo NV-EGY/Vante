@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="ar">
 <head>
-
 <!-- PWA لكل تطبيق على حدة (طلبات) -->
 <link rel="manifest" href="manifest-orders.json">
 <meta name="mobile-web-app-capable" content="yes">
@@ -1189,8 +1188,6 @@ window.applyBulkStatus = async (newStatus) => {
         performedBy: window.currentUserEmail || 'system',
         severity: 'info'
       });
-    }
-    
 
     let msg = `✅ تم تحديث ${successCount} طلب بنجاح`;
     if (skippedCount > 0) msg += `، تم تخطي ${skippedCount} طلب (لديه شحنة سابقة)`;
