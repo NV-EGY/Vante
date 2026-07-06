@@ -1,5 +1,4 @@
 // js/logger.js
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
     getFirestore, collection, addDoc, Timestamp, getDoc, doc
@@ -17,18 +16,20 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-/**
- * تسجيل حدث في سجل التدقيق (مع تعطيل مؤقت في صفحات المتجر)
- */
 export async function logAuditEvent(data) {
-    // ====== منع التسجيل في الصفحات غير الإدارية ======
+    // ============================================================
+    // 🔥 منع التسجيل في صفحات المتجر (الزبائن) نهائياً
+    // ============================================================
     const currentPath = window.location.pathname;
+    // الصفحات المسموح لها فقط بالتسجيل (لوحات التحكم)
     const allowedPages = ['admin-order', 'admin-product', 'Profits', 'Audit-log'];
     const isAdminPage = allowedPages.some(page => currentPath.includes(page));
+    
     if (!isAdminPage) {
-        return; // تجاهل التسجيل في صفحات المتجر وغيرها
+        // إذا كنت في index.html أو أي صفحة متجر، اخرج فوراً بدون تسجيل
+        return;
     }
-    // ==============================================
+    // ============================================================
 
     try {
         const {
@@ -76,7 +77,6 @@ export async function logAuditEvent(data) {
     }
 }
 
-// دالة مساعدة لتسجيل تغييرات الحقول عند التعديل
 export function getChangedFields(oldData, newData, fields) {
     const changes = {};
     fields.forEach(field => {
