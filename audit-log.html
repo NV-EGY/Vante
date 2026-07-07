@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- PWA لكل تطبيق على حدة (سجل التدقيق) -->
     <link rel="manifest" href="manifest-audit.json">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -21,320 +20,64 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
     <style>
-        /* ========== الأنماط العامة ========== */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: 'Cairo', sans-serif;
-            background: #f4f6f9;
-            padding: 20px;
-            color: #111;
-        }
-        .container {
-            max-width: 1400px;
-            margin: auto;
-            background: #fff;
-            border-radius: 32px;
-            padding: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-        }
-        h1 {
-            font-size: 28px;
-            font-weight: 900;
-            color: #111;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        h1 i {
-            color: #D4AF37;
-        }
-        .header-actions {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 15px;
-            margin-bottom: 25px;
-        }
-        .btn {
-            padding: 10px 22px;
-            border-radius: 30px;
-            border: none;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            font-family: 'Cairo', sans-serif;
-            font-size: 14px;
-        }
-        .btn-primary {
-            background: #111;
-            color: #fff;
-        }
-        .btn-primary:hover {
-            background: #D4AF37;
-            color: #000;
-            transform: translateY(-2px);
-        }
-        .btn-gold {
-            background: #D4AF37;
-            color: #000;
-        }
-        .btn-gold:hover {
-            background: #B8860B;
-            color: #fff;
-            transform: translateY(-2px);
-        }
-        .btn-danger {
-            background: #e74c3c;
-            color: #fff;
-        }
-        .btn-danger:hover {
-            background: #c0392b;
-        }
-        .btn-outline {
-            background: transparent;
-            border: 1.5px solid #ddd;
-            color: #555;
-        }
-        .btn-outline:hover {
-            border-color: #D4AF37;
-            color: #D4AF37;
-        }
-
-        /* ========== الإحصائيات ========== */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 15px;
-            margin-bottom: 30px;
-        }
-        .stat-card {
-            background: #f8f9fa;
-            border-radius: 20px;
-            padding: 18px 20px;
-            border-right: 4px solid #D4AF37;
-            transition: 0.3s;
-        }
-        .stat-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.06);
-        }
-        .stat-card .number {
-            font-size: 28px;
-            font-weight: 900;
-            color: #111;
-        }
-        .stat-card .label {
-            font-size: 13px;
-            color: #777;
-            font-weight: 600;
-        }
-        .stat-card .icon {
-            float: left;
-            font-size: 28px;
-            color: #D4AF37;
-            opacity: 0.5;
-        }
-
-        /* ========== الفلاتر ========== */
-        .filter-bar {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            margin-bottom: 25px;
-            padding: 15px 20px;
-            background: #f8f9fa;
-            border-radius: 20px;
-            align-items: center;
-        }
-        .filter-bar label {
-            font-weight: 700;
-            font-size: 13px;
-            color: #555;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .filter-bar input,
-        .filter-bar select {
-            padding: 8px 14px;
-            border-radius: 30px;
-            border: 1px solid #ddd;
-            font-family: 'Cairo', sans-serif;
-            background: #fff;
-            font-size: 13px;
-            min-width: 120px;
-        }
-        .filter-bar input:focus,
-        .filter-bar select:focus {
-            border-color: #D4AF37;
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(212,175,55,0.15);
-        }
-        .filter-bar .btn {
-            padding: 8px 18px;
-            font-size: 13px;
-        }
-
-        /* ========== الجدول ========== */
-        .table-wrapper {
-            overflow-x: auto;
-            border-radius: 20px;
-            border: 1px solid #eee;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 14px;
-        }
-        thead {
-            background: #111;
-            color: #fff;
-        }
-        thead th {
-            padding: 14px 16px;
-            text-align: center;
-            white-space: nowrap;
-            font-weight: 700;
-        }
-        tbody tr {
-            border-bottom: 1px solid #f0f0f0;
-            transition: 0.2s;
-        }
-        tbody tr:hover {
-            background: #fafafa;
-        }
-        tbody td {
-            padding: 12px 16px;
-            text-align: center;
-            vertical-align: middle;
-        }
-        .badge {
-            display: inline-block;
-            padding: 4px 14px;
-            border-radius: 30px;
-            font-size: 12px;
-            font-weight: 700;
-        }
-        .badge-status-change {
-            background: #f39c12;
-            color: #fff;
-        }
-        .badge-order-created {
-            background: #2ecc71;
-            color: #fff;
-        }
-        .badge-order-edited {
-            background: #3498db;
-            color: #fff;
-        }
-        .badge-order-deleted {
-            background: #e74c3c;
-            color: #fff;
-        }
-        .badge-return-confirmed {
-            background: #9b59b6;
-            color: #fff;
-        }
-        .text-muted {
-            color: #999;
-            font-size: 12px;
-        }
-        .action-icon {
-            font-size: 14px;
-            margin-left: 6px;
-        }
-
-        /* ========== لا توجد بيانات ========== */
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #999;
-        }
-        .empty-state i {
-            font-size: 64px;
-            color: #ddd;
-            margin-bottom: 15px;
-        }
-
-        /* ========== التجاوب ========== */
-        @media (max-width: 768px) {
-            .container { padding: 16px; }
-            h1 { font-size: 22px; }
-            .stat-card .number { font-size: 22px; }
-            .filter-bar { flex-direction: column; align-items: stretch; }
-            .filter-bar input, .filter-bar select { min-width: unset; }
-            .header-actions { flex-direction: column; align-items: stretch; }
-        }
-
-        /* ========== شريط التمرير الجميل ========== */
+        /* نفس الأنماط الموجودة، لن أكررها للاختصار */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Cairo', sans-serif; background: #f4f6f9; padding: 20px; color: #111; }
+        .container { max-width: 1400px; margin: auto; background: #fff; border-radius: 32px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        h1 { font-size: 28px; font-weight: 900; color: #111; display: flex; align-items: center; gap: 12px; }
+        h1 i { color: #D4AF37; }
+        .header-actions { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 25px; }
+        .btn { padding: 10px 22px; border-radius: 30px; border: none; font-weight: 700; cursor: pointer; transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 8px; font-family: 'Cairo', sans-serif; font-size: 14px; }
+        .btn-primary { background: #111; color: #fff; }
+        .btn-primary:hover { background: #D4AF37; color: #000; transform: translateY(-2px); }
+        .btn-gold { background: #D4AF37; color: #000; }
+        .btn-gold:hover { background: #B8860B; color: #fff; transform: translateY(-2px); }
+        .btn-danger { background: #e74c3c; color: #fff; }
+        .btn-danger:hover { background: #c0392b; }
+        .btn-outline { background: transparent; border: 1.5px solid #ddd; color: #555; }
+        .btn-outline:hover { border-color: #D4AF37; color: #D4AF37; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 30px; }
+        .stat-card { background: #f8f9fa; border-radius: 20px; padding: 18px 20px; border-right: 4px solid #D4AF37; transition: 0.3s; }
+        .stat-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.06); }
+        .stat-card .number { font-size: 28px; font-weight: 900; color: #111; }
+        .stat-card .label { font-size: 13px; color: #777; font-weight: 600; }
+        .stat-card .icon { float: left; font-size: 28px; color: #D4AF37; opacity: 0.5; }
+        .filter-bar { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 25px; padding: 15px 20px; background: #f8f9fa; border-radius: 20px; align-items: center; }
+        .filter-bar label { font-weight: 700; font-size: 13px; color: #555; display: flex; align-items: center; gap: 6px; }
+        .filter-bar input, .filter-bar select { padding: 8px 14px; border-radius: 30px; border: 1px solid #ddd; font-family: 'Cairo', sans-serif; background: #fff; font-size: 13px; min-width: 120px; }
+        .filter-bar input:focus, .filter-bar select:focus { border-color: #D4AF37; outline: none; box-shadow: 0 0 0 3px rgba(212,175,55,0.15); }
+        .filter-bar .btn { padding: 8px 18px; font-size: 13px; }
+        .table-wrapper { overflow-x: auto; border-radius: 20px; border: 1px solid #eee; }
+        table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        thead { background: #111; color: #fff; }
+        thead th { padding: 14px 16px; text-align: center; white-space: nowrap; font-weight: 700; }
+        tbody tr { border-bottom: 1px solid #f0f0f0; transition: 0.2s; }
+        tbody tr:hover { background: #fafafa; }
+        tbody td { padding: 12px 16px; text-align: center; vertical-align: middle; }
+        .badge { display: inline-block; padding: 4px 14px; border-radius: 30px; font-size: 12px; font-weight: 700; }
+        .badge-status-change { background: #f39c12; color: #fff; }
+        .badge-order-created { background: #2ecc71; color: #fff; }
+        .badge-order-edited { background: #3498db; color: #fff; }
+        .badge-order-deleted { background: #e74c3c; color: #fff; }
+        .badge-return-confirmed { background: #9b59b6; color: #fff; }
+        .text-muted { color: #999; font-size: 12px; }
+        .action-icon { font-size: 14px; margin-left: 6px; }
+        .empty-state { text-align: center; padding: 60px 20px; color: #999; }
+        .empty-state i { font-size: 64px; color: #ddd; margin-bottom: 15px; }
+        @media (max-width: 768px) { .container { padding: 16px; } h1 { font-size: 22px; } .stat-card .number { font-size: 22px; } .filter-bar { flex-direction: column; align-items: stretch; } .filter-bar input, .filter-bar select { min-width: unset; } .header-actions { flex-direction: column; align-items: stretch; } }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #f0f0f0; border-radius: 10px; }
         ::-webkit-scrollbar-thumb { background: #D4AF37; border-radius: 10px; }
-
-        /* ========== مودال تأكيد ========== */
-        .confirm-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(4px);
-            z-index: 99999;
-            display: none;
-            align-items: center;
-            justify-content: center;
-        }
-        .confirm-overlay.active {
-            display: flex;
-        }
-        .confirm-box {
-            background: #fff;
-            border-radius: 28px;
-            width: 90%;
-            max-width: 400px;
-            padding: 30px;
-            text-align: center;
-            box-shadow: 0 30px 50px rgba(0,0,0,0.3);
-            direction: rtl;
-        }
-        .confirm-box h3 {
-            margin-bottom: 15px;
-            color: #D4AF37;
-        }
-        .confirm-box .buttons {
-            display: flex;
-            gap: 12px;
-            margin-top: 20px;
-        }
-        .confirm-box .buttons button {
-            flex: 1;
-            padding: 12px;
-            border: none;
-            border-radius: 40px;
-            font-weight: 700;
-            cursor: pointer;
-        }
-        .confirm-box .btn-yes {
-            background: #111;
-            color: #fff;
-        }
-        .confirm-box .btn-yes:hover {
-            background: #D4AF37;
-            color: #000;
-        }
-        .confirm-box .btn-no {
-            background: #f0f0f0;
-            color: #333;
-        }
-        .confirm-box .btn-no:hover {
-            background: #ddd;
-        }
+        .confirm-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 99999; display: none; align-items: center; justify-content: center; }
+        .confirm-overlay.active { display: flex; }
+        .confirm-box { background: #fff; border-radius: 28px; width: 90%; max-width: 400px; padding: 30px; text-align: center; box-shadow: 0 30px 50px rgba(0,0,0,0.3); direction: rtl; }
+        .confirm-box h3 { margin-bottom: 15px; color: #D4AF37; }
+        .confirm-box .buttons { display: flex; gap: 12px; margin-top: 20px; }
+        .confirm-box .buttons button { flex: 1; padding: 12px; border: none; border-radius: 40px; font-weight: 700; cursor: pointer; }
+        .confirm-box .btn-yes { background: #111; color: #fff; }
+        .confirm-box .btn-yes:hover { background: #D4AF37; color: #000; }
+        .confirm-box .btn-no { background: #f0f0f0; color: #333; }
+        .confirm-box .btn-no:hover { background: #ddd; }
     </style>
 </head>
 <body>
@@ -351,12 +94,12 @@
             <button class="btn btn-danger" onclick="clearAllLogs()"><i class="fas fa-trash-alt"></i> مسح الكل</button>
         </div>
         <label><i class="fas fa-exclamation-triangle"></i> الخطورة</label>
-<select id="filterSeverity">
-    <option value="all">الكل</option>
-    <option value="info">ℹ️ عادي</option>
-    <option value="warning">⚠️ تنبيه</option>
-    <option value="error">❌ خطأ</option>
-</select>
+        <select id="filterSeverity">
+            <option value="all">الكل</option>
+            <option value="info">ℹ️ عادي</option>
+            <option value="warning">⚠️ تنبيه</option>
+            <option value="error">❌ خطأ</option>
+        </select>
     </div>
 
     <!-- الإحصائيات -->
@@ -424,16 +167,13 @@
 </div>
 
 <script type="module">
-    // ============================================================
-    // 🔥 تهيئة Firebase
-    // ============================================================
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import {
         getFirestore, collection, query, orderBy, onSnapshot,
-        deleteDoc, doc, getDocs, limit, startAfter, where,
-        getCountFromServer, Timestamp
+        deleteDoc, doc, getDocs, Timestamp
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
     const firebaseConfig = {
         apiKey: "AIzaSyCotT8EP2uy_HsgHknxeGBorKoEUORPtmU",
         authDomain: "vante-orders.firebaseapp.com",
@@ -447,20 +187,11 @@
     const db = getFirestore(app);
     const auth = getAuth(app);
 
-    // ============================================================
-    // المتغيرات العامة
-    // ============================================================
     let allLogs = [];
     let filteredLogs = [];
     let currentUser = null;
-    let lastVisible = null;
-    const PAGE_SIZE = 100;
-    let isLoading = false;
-    let allLoaded = false;
 
-    // ============================================================
-    // أدوات مساعدة
-    // ============================================================
+    // ========== دوال مساعدة ==========
     function formatDate(timestamp) {
         if (!timestamp) return '-';
         const d = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
@@ -514,9 +245,7 @@
         return div.innerHTML;
     }
 
-    // ============================================================
-    // تحميل البيانات (مباشر)
-    // ============================================================
+    // ========== تحميل البيانات ==========
     function loadLogs() {
         const q = query(
             collection(db, "auditLog"),
@@ -524,6 +253,7 @@
         );
 
         onSnapshot(q, (snapshot) => {
+            console.log("📊 [Audit Log] تم استلام بيانات جديدة، عدد السجلات:", snapshot.size);
             allLogs = snapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data()
@@ -531,21 +261,20 @@
             updateStats();
             applyFilters();
         }, (error) => {
-            console.error("خطأ في تحميل سجل التدقيق:", error);
+            console.error("❌ [Audit Log] خطأ في التحميل:", error);
             document.getElementById("logTableBody").innerHTML = `
                 <tr><td colspan="7">
                     <div class="empty-state">
                         <i class="fas fa-exclamation-circle" style="color:#e74c3c;"></i>
                         <p>❌ حدث خطأ في تحميل البيانات: ${error.message}</p>
+                        <p style="font-size:13px; margin-top:10px;">تأكد من أن قواعد Firebase تسمح بقراءة مجموعة 'auditLog'</p>
                     </div>
                 </td></tr>
             `;
         });
     }
 
-    // ============================================================
-    // الإحصائيات
-    // ============================================================
+    // ========== الإحصائيات ==========
     function updateStats() {
         const total = allLogs.length;
         const today = new Date();
@@ -567,9 +296,7 @@
         document.getElementById('statDeleted').textContent = ordersDeleted;
     }
 
-    // ============================================================
-    // عرض البيانات
-    // ============================================================
+    // ========== عرض البيانات ==========
     function renderLogs(logs) {
         const tbody = document.getElementById('logTableBody');
 
@@ -584,21 +311,6 @@
             `;
             return;
         }
-        // داخل renderLogs
-const severityIcons = {
-  info: 'ℹ️',
-  warning: '⚠️',
-  error: '❌'
-};
-const severityColor = {
-  info: '#3498db',
-  warning: '#f39c12',
-  error: '#e74c3c'
-};
-const sevIcon = severityIcons[log.severity] || 'ℹ️';
-const sevColor = severityColor[log.severity] || '#3498db';
-// إضافة عمود:
-`<td><span style="color:${sevColor}">${sevIcon}</span></td>`
 
         let html = '';
         logs.forEach((log, index) => {
@@ -606,7 +318,6 @@ const sevColor = severityColor[log.severity] || '#3498db';
             const badgeClass = getBadgeClass(log.action);
             const icon = getActionIcon(log.action);
 
-            // بناء تفاصيل العملية
             let details = '';
             if (log.action === 'status_change') {
                 details = `من <strong>${escapeHtml(log.oldStatus || '؟')}</strong> → <strong>${escapeHtml(log.newStatus || '؟')}</strong>`;
@@ -622,6 +333,18 @@ const sevColor = severityColor[log.severity] || '#3498db';
                 details = `تم تأكيد استلام المرتجع`;
             }
 
+            const severityIcon = {
+                info: 'ℹ️',
+                warning: '⚠️',
+                error: '❌'
+            }[log.severity] || 'ℹ️';
+
+            const severityColor = {
+                info: '#3498db',
+                warning: '#f39c12',
+                error: '#e74c3c'
+            }[log.severity] || '#3498db';
+
             html += `
                 <tr>
                     <td>${index + 1}</td>
@@ -629,7 +352,7 @@ const sevColor = severityColor[log.severity] || '#3498db';
                     <td><strong>${escapeHtml(log.orderNumber || log.orderId || '-')}</strong></td>
                     <td><span class="badge ${badgeClass}"><i class="fas ${icon} action-icon"></i> ${actionLabel}</span></td>
                     <td style="text-align:right; font-size:13px;">${details}</td>
-                    <td>${escapeHtml(log.performedBy || 'نظام')}</td>
+                    <td>${escapeHtml(log.performedBy || 'نظام')} <span style="color:${severityColor}; margin-right:5px;">${severityIcon}</span></td>
                     <td>
                         <button class="btn btn-outline" style="padding:4px 12px; font-size:12px;" onclick="viewLog('${log.id}')">
                             <i class="fas fa-eye"></i>
@@ -645,14 +368,9 @@ const sevColor = severityColor[log.severity] || '#3498db';
         tbody.innerHTML = html;
     }
 
-    // ============================================================
-    // الفلاتر
-    // ============================================================
-    function applyFilters() {
-      // داخل applyFilters
-const severity = document.getElementById('filterSeverity').value;
-// ...
-if (severity !== 'all' && log.severity !== severity) return false;
+    // ========== الفلاتر ==========
+    window.applyFilters = function() {
+        const severity = document.getElementById('filterSeverity').value;
         const dateFrom = document.getElementById('filterDateFrom').value;
         const dateTo = document.getElementById('filterDateTo').value;
         const action = document.getElementById('filterAction').value;
@@ -660,7 +378,6 @@ if (severity !== 'all' && log.severity !== severity) return false;
         const user = document.getElementById('filterUser').value.trim().toLowerCase();
 
         filteredLogs = allLogs.filter(log => {
-            // فلتر التاريخ
             if (dateFrom) {
                 const d = log.timestamp?.toDate ? log.timestamp.toDate() : new Date(log.timestamp);
                 if (d < new Date(dateFrom)) return false;
@@ -671,32 +388,21 @@ if (severity !== 'all' && log.severity !== severity) return false;
                 end.setHours(23, 59, 59);
                 if (d > end) return false;
             }
-
-            // فلتر نوع العملية
             if (action !== 'all' && log.action !== action) return false;
-
-            // فلتر رقم الطلب
             if (orderNumber) {
                 const logOrder = (log.orderNumber || log.orderId || '').toLowerCase();
                 if (!logOrder.includes(orderNumber)) return false;
             }
-
-            // فلتر المستخدم
             if (user) {
                 const logUser = (log.performedBy || '').toLowerCase();
                 if (!logUser.includes(user)) return false;
             }
-
+            if (severity !== 'all' && log.severity !== severity) return false;
             return true;
         });
 
         renderLogs(filteredLogs);
-    }
-
-    // ============================================================
-    // دوال عمومية (للـ HTML)
-    // ============================================================
-    window.applyFilters = applyFilters;
+    };
 
     window.clearFilters = function() {
         document.getElementById('filterDateFrom').value = '';
@@ -704,13 +410,12 @@ if (severity !== 'all' && log.severity !== severity) return false;
         document.getElementById('filterAction').value = 'all';
         document.getElementById('filterOrderNumber').value = '';
         document.getElementById('filterUser').value = '';
+        document.getElementById('filterSeverity').value = 'all';
         applyFilters();
     };
 
     window.refreshLog = function() {
-        // onSnapshot يعمل تلقائياً، لكن نعيد التحميل لتحديث الواجهة
         applyFilters();
-        // إظهار رسالة نجاح سريعة
         const toast = document.createElement('div');
         toast.style.cssText = `
             position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
@@ -725,18 +430,16 @@ if (severity !== 'all' && log.severity !== severity) return false;
     };
 
     window.viewLog = function(id) {
-    const log = allLogs.find(l => l.id === id);
-    if (!log) return;
-    const details = JSON.stringify(log, null, 2);
-    // استخدم مودال بدل alert ليكون احترافياً
-    alert(`📋 تفاصيل السجل:\n\n${details}`);
-};
+        const log = allLogs.find(l => l.id === id);
+        if (!log) return;
+        const details = JSON.stringify(log, null, 2);
+        alert(`📋 تفاصيل السجل:\n\n${details}`);
+    };
 
     window.deleteLog = async function(id) {
         if (!confirm('⚠️ هل أنت متأكد من حذف هذا السجل؟')) return;
         try {
             await deleteDoc(doc(db, "auditLog", id));
-            // سيتم التحديث تلقائياً عبر onSnapshot
         } catch (e) {
             alert('❌ حدث خطأ أثناء الحذف: ' + e.message);
         }
@@ -810,24 +513,23 @@ if (severity !== 'all' && log.severity !== severity) return false;
         XLSX.utils.book_append_sheet(wb, ws, "سجل التدقيق");
         XLSX.writeFile(wb, `audit_log_${new Date().toISOString().slice(0,10)}.xlsx`);
     };
-    window.exportToCSV = function() {
-    const data = filteredLogs.length > 0 ? filteredLogs : allLogs;
-    if (!data.length) return alert('لا توجد بيانات');
-    let csv = '#,التاريخ,رقم الطلب,نوع العملية,التفاصيل,المستخدم,المعرف\n';
-    data.forEach((log, i) => {
-        // بناء الصفوف بنفس طريقة Excel
-        // ...
-    });
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `audit_log_${new Date().toISOString().slice(0,10)}.csv`;
-    link.click();
-};
 
-    // ============================================================
-    // دالة تسجيل الأحداث (تستخدم من بقية النظام)
-    // ============================================================
+    window.exportToCSV = function() {
+        const data = filteredLogs.length > 0 ? filteredLogs : allLogs;
+        if (!data.length) return alert('لا توجد بيانات');
+        let csv = '#,التاريخ,رقم الطلب,نوع العملية,التفاصيل,المستخدم,المعرف\n';
+        data.forEach((log, i) => {
+            // بناء الصفوف بنفس طريقة Excel
+            // ...
+        });
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `audit_log_${new Date().toISOString().slice(0,10)}.csv`;
+        link.click();
+    };
+
+    // ========== دالة تسجيل الأحداث (تستخدم من بقية النظام) ==========
     window.logAuditEvent = async function(data) {
         try {
             const { action, orderId, orderNumber, details } = data;
@@ -839,7 +541,6 @@ if (severity !== 'all' && log.severity !== severity) return false;
                 performedBy: currentUser?.email || 'system',
                 ...details
             };
-            // في حال عدم وجود مجموعة، ستُنشأ تلقائياً
             const { addDoc } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
             await addDoc(collection(db, "auditLog"), logData);
         } catch (e) {
@@ -847,24 +548,17 @@ if (severity !== 'all' && log.severity !== severity) return false;
         }
     };
 
-    // ============================================================
-    // بدء التشغيل
-    // ============================================================
+    // ========== بدء التشغيل ==========
     onAuthStateChanged(auth, (user) => {
         if (user) {
             currentUser = user;
             loadLogs();
         } else {
-            // إعادة توجيه لتسجيل الدخول
             window.location.href = 'login.html';
         }
     });
 
-    // تحميل إضافي عند التمرير (للكميات الكبيرة)
-    // لكننا نعتمد على onSnapshot الذي يجلب كل البيانات، مناسب حتى 10,000 سجل.
-
-    console.log('✅ صفحة سجل التدقيق جاهزة بخبرة 70 سنة برمجة!');
+    console.log('✅ صفحة سجل التدقيق جاهزة (نسخة محسّنة)');
 </script>
-
 </body>
 </html>
