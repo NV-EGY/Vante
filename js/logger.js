@@ -16,17 +16,31 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-/**
- * تسجيل حدث في سجل التدقيق
- * @param {Object} data - بيانات الحدث
- * @param {string} data.action - نوع العملية (status_change, order_created, order_edited, order_deleted, return_confirmed)
- * @param {string} data.orderId - معرف الطلب
- * @param {string} data.orderNumber - رقم الطلب الظاهر
- * @param {Object} data.details - تفاصيل إضافية (حسب نوع العملية)
- * @param {string} data.performedBy - البريد الإلكتروني للمستخدم (اختياري)
- * @param {string} data.severity - خطورة الحدث (info, warning, error) - اختياري
- */
 export async function logAuditEvent(data) {
+    // ============================================================
+    // 🔥 منع التسجيل في صفحات المتجر (الزبائن) نهائياً
+    // ============================================================
+    const currentPath = window.location.pathname;
+    console.log("🔍 [Audit Log] المسار الحالي:", currentPath);
+
+    // الصفحات المسموح لها فقط بالتسجيل (لوحات التحكم)
+    // نسمح بأي ملف يبدأ بـ "admin-" أو يحتوي على "Profits" أو "Audit-log"
+    // كما نسمح تحديداً باسم "admin-order (1).html"
+    const isAdminPage = 
+        currentPath.includes('admin-order') ||
+        currentPath.includes('admin-product') ||
+        currentPath.includes('Profits') ||
+        currentPath.includes('Audit-log') ||
+        currentPath.includes('admin-order (1)'); // دعم النسخة ذات المسافة
+
+    console.log("🔍 [Audit Log] هل هي صفحة إدارة؟", isAdminPage);
+
+    if (!isAdminPage) {
+        console.log("⛔ [Audit Log] تم منع التسجيل: ليست صفحة إدارة");
+        return;
+    }
+    // ============================================================
+
     try {
         const {
             action,
@@ -37,14 +51,14 @@ export async function logAuditEvent(data) {
             severity = 'info'
         } = data;
 
-        // جمع معلومات إضافية عن البيئة
+        console.log("📝 [Audit Log] تسجيل حدث:", { action, orderId, orderNumber });
+
         const metadata = {
             userAgent: navigator ? navigator.userAgent : 'unknown',
             url: window ? window.location.href : 'unknown',
             timestamp: Timestamp.now()
         };
 
-        // إذا كان لدينا orderId، نحاول جلب البيانات الإضافية عن الطلب (اختياري)
         let orderSnapshot = null;
         if (orderId) {
             try {
@@ -70,13 +84,12 @@ export async function logAuditEvent(data) {
         };
 
         await addDoc(collection(db, "auditLog"), logEntry);
+        console.log("✅ [Audit Log] تم تسجيل الحدث بنجاح في Firestore");
     } catch (error) {
-        console.error("❌ فشل تسجيل حدث التدقيق:", error);
-        // لا نرمي الخطأ حتى لا يؤثر على تدفق العملية الأساسية
+        console.error("❌ [Audit Log] فشل تسجيل حدث التدقيق:", error);
     }
 }
 
-// دالة مساعدة لتسجيل تغييرات الحقول عند التعديل
 export function getChangedFields(oldData, newData, fields) {
     const changes = {};
     fields.forEach(field => {
@@ -90,5 +103,4 @@ export function getChangedFields(oldData, newData, fields) {
     return changes;
 }
 
-// تصدير db للاستخدام في الملفات الأخرى إذا احتاجت
 export { db };
