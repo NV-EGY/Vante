@@ -1140,7 +1140,6 @@ window.applyBulkStatus = async (newStatus) => {
     if (!confirmed) return;
 
     let successCount = 0, errorCount = 0, skippedCount = 0;
-    const updatedOrderIds = [];
 
     for (const cb of selected) {
         const card = cb.closest(".card");
@@ -1167,27 +1166,26 @@ window.applyBulkStatus = async (newStatus) => {
                 await createOrderInQP({ id: orderId, ...orderData });
             }
 
-            updatedOrderIds.push({ id: orderId, orderNumber: orderData.orderID, oldStatus });
+            // ✅ تسجيل الحدث داخل الحلقة (لكل طلب على حدة)
+            await logAuditEvent({
+                action: 'status_change',
+                orderId: orderId,
+                orderNumber: orderData.orderID,
+                details: {
+                    oldStatus: oldStatus,
+                    newStatus: newStatus,
+                    notes: `تغيير جماعي من ${oldStatus} إلى ${newStatus}`
+                },
+                performedBy: window.currentUserEmail || 'system',
+                severity: 'info'
+            });
+
             successCount++;
         } catch (e) {
             console.error(e);
             errorCount++;
         }
     }
-
-    // ✅ تسجيل الأحداث (لكل طلب على حدة)
-    await logAuditEvent({
-        action: 'status_change',
-        orderId: orderId,
-        orderNumber: oldData.orderID,
-        details: {
-          oldStatus,
-          newStatus,
-          notes: `تغيير جماعي من ${oldStatus} إلى ${newStatus}`
-        },
-        performedBy: window.currentUserEmail || 'system',
-        severity: 'info'
-      });
 
     let msg = `✅ تم تحديث ${successCount} طلب بنجاح`;
     if (skippedCount > 0) msg += `، تم تخطي ${skippedCount} طلب (لديه شحنة سابقة)`;
