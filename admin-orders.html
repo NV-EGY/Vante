@@ -1088,7 +1088,7 @@ window.update = async (id, status) => {
         if (status === "shipped") {
             await createOrderInQP({ id, ...orderData });
         }
-
+console.log("🔍 [Audit Log] قبل التسجيل - orderId:", id, "orderNumber:", orderData.orderID);
         // ✅ تسجيل الحدث
         await logAuditEvent({
             action: 'status_change',
