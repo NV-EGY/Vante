@@ -82,7 +82,7 @@ export async function logAuditEvent(data) {
                 }
             } : {})
         };
-
+console.log("💾 [Audit Log] البيانات المرسلة إلى Firestore:", logEntry);
         await addDoc(collection(db, "auditLog"), logEntry);
         console.log("✅ [Audit Log] تم تسجيل الحدث بنجاح في Firestore");
     } catch (error) {
