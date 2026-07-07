@@ -1397,67 +1397,66 @@ window.saveEdit = async (id) => {
     if (name || qty > 0) orderDetails.push({ name, size, qty, price, costPrice });
   }
 
-    const finalTotal = parseFloat(document.getElementById("editTotal").value) || 0;
-    const totalCost = parseFloat(document.getElementById("editTotalCost").value) || 0;
-    const shippingCostPaid = parseFloat(document.getElementById("editShippingPaid").value) || 0;
-    const profit = finalTotal - totalCost - shippingCostPaid;
+  const finalTotal = parseFloat(document.getElementById("editTotal").value) || 0;
+  const totalCost = parseFloat(document.getElementById("editTotalCost").value) || 0;
+  const shippingCostPaid = parseFloat(document.getElementById("editShippingPaid").value) || 0;
+  const profit = finalTotal - totalCost - shippingCostPaid;
 
-    const newData = {
-        customerName: document.getElementById("editName").value,
-        phone: document.getElementById("editPhone").value,
-        gov: document.getElementById("editGov").value,
-        city: document.getElementById("editCity").value,
-        address: document.getElementById("editAddress").value,
-        orderDetails,
-        finalTotal,
-        totalCost,
-        shippingCostPaid,
-        profit
-    };
+  const newData = {
+    customerName: document.getElementById("editName").value,
+    phone: document.getElementById("editPhone").value,
+    gov: document.getElementById("editGov").value,
+    city: document.getElementById("editCity").value,
+    address: document.getElementById("editAddress").value,
+    orderDetails,
+    finalTotal,
+    totalCost,
+    shippingCostPaid,
+    profit
+  };
 
-    try {
-        await updateDoc(doc(db, "orders", id), newData);
+  try {
+    await updateDoc(doc(db, "orders", id), newData);
 
-        // ✅ تسجيل التعديلات
-        const changedFields = [];
-        const fieldsToCheck = ['customerName', 'phone', 'gov', 'city', 'address', 'finalTotal', 'totalCost', 'shippingCostPaid'];
-        fieldsToCheck.forEach(field => {
-            if (JSON.stringify(oldOrder[field]) !== JSON.stringify(newData[field])) {
-                changedFields.push(field);
-            }
-        });
+    const changedFields = [];
+    const fieldsToCheck = ['customerName', 'phone', 'gov', 'city', 'address', 'finalTotal', 'totalCost', 'shippingCostPaid'];
+    fieldsToCheck.forEach(field => {
+      if (JSON.stringify(oldOrder[field]) !== JSON.stringify(newData[field])) {
+        changedFields.push(field);
+      }
+    });
 
-        await logAuditEvent({
-            action: 'order_edited',
-            orderId: id,
-            orderNumber: oldOrder.orderID,
-            details: {
-                changedFields,
-                oldData: {
-                    customerName: oldOrder.customerName,
-                    phone: oldOrder.phone,
-                    finalTotal: oldOrder.finalTotal,
-                    totalCost: oldOrder.totalCost,
-                    shippingCostPaid: oldOrder.shippingCostPaid
-                },
-                newData: {
-                    customerName: newData.customerName,
-                    phone: newData.phone,
-                    finalTotal: newData.finalTotal,
-                    totalCost: newData.totalCost,
-                    shippingCostPaid: newData.shippingCostPaid
-                }
-            },
-            performedBy: window.currentUserEmail || 'system'
-            severity: 'info'
-        });
+    await logAuditEvent({
+      action: 'order_edited',
+      orderId: id,
+      orderNumber: oldOrder.orderID,
+      details: {
+        changedFields,
+        oldData: {
+          customerName: oldOrder.customerName,
+          phone: oldOrder.phone,
+          finalTotal: oldOrder.finalTotal,
+          totalCost: oldOrder.totalCost,
+          shippingCostPaid: oldOrder.shippingCostPaid
+        },
+        newData: {
+          customerName: newData.customerName,
+          phone: newData.phone,
+          finalTotal: newData.finalTotal,
+          totalCost: newData.totalCost,
+          shippingCostPaid: newData.shippingCostPaid
+        }
+      },
+      performedBy: window.currentUserEmail || 'system',  // <-- الفاصلة هنا
+      severity: 'info'                                   // <-- تم إصلاحها
+    });
 
-        closeMsg();
-        customAlert("تم حفظ التعديلات", 'success');
-    } catch (e) {
-        console.error(e);
-        customAlert("خطأ في الحفظ", 'error');
-    }
+    closeMsg();
+    customAlert("تم حفظ التعديلات", 'success');
+  } catch (e) {
+    console.error(e);
+    customAlert("خطأ في الحفظ", 'error');
+  }
 };
 
 function updateBulkBar() {
