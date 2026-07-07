@@ -247,33 +247,29 @@
 
     // ========== تحميل البيانات ==========
     function loadLogs() {
-        const q = query(
-            collection(db, "auditLog"),
-            orderBy("timestamp", "desc")
-        );
-
-        onSnapshot(q, (snapshot) => {
-            console.log("📊 [Audit Log] تم استلام بيانات جديدة، عدد السجلات:", snapshot.size);
-            allLogs = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
-            console.log("🔄 [Audit Log] جاري تحميل البيانات...");
-            updateStats();
-            applyFilters();
-        }, (error) => {
-            console.error("❌ [Audit Log] خطأ في التحميل:", error);
-            document.getElementById("logTableBody").innerHTML = `
-                <tr><td colspan="7">
-                    <div class="empty-state">
-                        <i class="fas fa-exclamation-circle" style="color:#e74c3c;"></i>
-                        <p>❌ حدث خطأ في تحميل البيانات: ${error.message}</p>
-                        <p style="font-size:13px; margin-top:10px;">تأكد من أن قواعد Firebase تسمح بقراءة مجموعة 'auditLog'</p>
-                    </div>
-                </td></tr>
-            `;
-        });
-    }
+    console.log("🔄 [Audit Log] جاري تحميل البيانات باستخدام getDocs...");
+    const q = query(collection(db, "auditLog"), orderBy("timestamp", "desc"));
+    
+    getDocs(q).then((snapshot) => {
+        console.log("📊 [Audit Log] تم استلام بيانات جديدة، عدد السجلات:", snapshot.size);
+        allLogs = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+        updateStats();
+        applyFilters();
+    }).catch((error) => {
+        console.error("❌ [Audit Log] خطأ في التحميل:", error);
+        document.getElementById("logTableBody").innerHTML = `
+            <tr><td colspan="7">
+                <div class="empty-state">
+                    <i class="fas fa-exclamation-circle" style="color:#e74c3c;"></i>
+                    <p>❌ حدث خطأ في تحميل البيانات: ${error.message}</p>
+                </div>
+            </td></tr>
+        `;
+    });
+}
 
     // ========== الإحصائيات ==========
     function updateStats() {
