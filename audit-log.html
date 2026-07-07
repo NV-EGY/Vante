@@ -258,6 +258,7 @@
                 id: doc.id,
                 ...doc.data()
             }));
+            console.log("🔄 [Audit Log] جاري تحميل البيانات...");
             updateStats();
             applyFilters();
         }, (error) => {
@@ -298,6 +299,7 @@
 
     // ========== عرض البيانات ==========
     function renderLogs(logs) {
+    console.log("🎨 [Audit Log] renderLogs تم استدعاؤها بـ", logs.length, "سجل");
         const tbody = document.getElementById('logTableBody');
 
         if (!logs || logs.length === 0) {
@@ -369,15 +371,18 @@
     }
 
     // ========== الفلاتر ==========
-    window.applyFilters = function() {
-        const severity = document.getElementById('filterSeverity').value;
-        const dateFrom = document.getElementById('filterDateFrom').value;
-        const dateTo = document.getElementById('filterDateTo').value;
-        const action = document.getElementById('filterAction').value;
-        const orderNumber = document.getElementById('filterOrderNumber').value.trim().toLowerCase();
-        const user = document.getElementById('filterUser').value.trim().toLowerCase();
+    function applyFilters() {
+    const severity = document.getElementById('filterSeverity').value;
+    const dateFrom = document.getElementById('filterDateFrom').value;
+    const dateTo = document.getElementById('filterDateTo').value;
+    const action = document.getElementById('filterAction').value;
+    const orderNumber = document.getElementById('filterOrderNumber').value.trim().toLowerCase();
+    const user = document.getElementById('filterUser').value.trim().toLowerCase();
 
-        filteredLogs = allLogs.filter(log => {
+    console.log("🔍 [Audit Log] تطبيق الفلاتر، عدد السجلات الكلي:", allLogs.length);
+
+    filteredLogs = allLogs.filter(log => {
+  
             if (dateFrom) {
                 const d = log.timestamp?.toDate ? log.timestamp.toDate() : new Date(log.timestamp);
                 if (d < new Date(dateFrom)) return false;
@@ -398,11 +403,15 @@
                 if (!logUser.includes(user)) return false;
             }
             if (severity !== 'all' && log.severity !== severity) return false;
-            return true;
-        });
+                   return true;
+    });
 
-        renderLogs(filteredLogs);
-    };
+    console.log("📊 [Audit Log] بعد التصفية، عدد السجلات:", filteredLogs.length);
+    renderLogs(filteredLogs);
+}
+
+// اجعل الدالة متاحة عالمياً إذا لزم الأمر
+window.applyFilters = applyFilters;
 
     window.clearFilters = function() {
         document.getElementById('filterDateFrom').value = '';
@@ -529,34 +538,15 @@
         link.click();
     };
 
-    // ========== دالة تسجيل الأحداث (تستخدم من بقية النظام) ==========
-    window.logAuditEvent = async function(data) {
-        try {
-            const { action, orderId, orderNumber, details } = data;
-            const logData = {
-                action,
-                orderId: orderId || null,
-                orderNumber: orderNumber || null,
-                timestamp: Timestamp.now(),
-                performedBy: currentUser?.email || 'system',
-                ...details
-            };
-            const { addDoc } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
-            await addDoc(collection(db, "auditLog"), logData);
-        } catch (e) {
-            console.error('فشل تسجيل حدث التدقيق:', e);
-        }
-    };
-
     // ========== بدء التشغيل ==========
     onAuthStateChanged(auth, (user) => {
-        if (user) {
-            currentUser = user;
-            loadLogs();
-        } else {
-            window.location.href = 'login.html';
-        }
-    });
+    if (user) {
+        currentUser = user;
+        loadLogs();  // يجب أن يكون هنا
+    } else {
+        window.location.href = 'login.html';
+    }
+});
 
     console.log('✅ صفحة سجل التدقيق جاهزة (نسخة محسّنة)');
 </script>
