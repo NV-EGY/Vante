@@ -300,75 +300,49 @@
     // ========== عرض البيانات ==========
     function renderLogs(logs) {
     console.log("🎨 [Audit Log] renderLogs تم استدعاؤها بـ", logs.length, "سجل");
-        const tbody = document.getElementById('logTableBody');
+    const tbody = document.getElementById('logTableBody');
 
-        if (!logs || logs.length === 0) {
-            tbody.innerHTML = `
-                <tr><td colspan="7">
-                    <div class="empty-state">
-                        <i class="fas fa-inbox"></i>
-                        <p>لا توجد سجلات مطابقة للبحث</p>
-                    </div>
-                </td></tr>
-            `;
-            return;
-        }
-
-        let html = '';
-        logs.forEach((log, index) => {
-            const actionLabel = getActionLabel(log.action);
-            const badgeClass = getBadgeClass(log.action);
-            const icon = getActionIcon(log.action);
-
-            let details = '';
-            if (log.action === 'status_change') {
-                details = `من <strong>${escapeHtml(log.oldStatus || '؟')}</strong> → <strong>${escapeHtml(log.newStatus || '؟')}</strong>`;
-                if (log.notes) details += ` | 📝 ${escapeHtml(log.notes)}`;
-            } else if (log.action === 'order_created') {
-                details = `العميل: ${escapeHtml(log.customerName || 'غير معروف')} | 💰 ${log.finalTotal || 0} جنيه`;
-            } else if (log.action === 'order_edited') {
-                const fields = log.changedFields?.join(', ') || 'بيانات الطلب';
-                details = `تم تعديل: ${escapeHtml(fields)}`;
-            } else if (log.action === 'order_deleted') {
-                details = `العميل: ${escapeHtml(log.customerName || 'غير معروف')}`;
-            } else if (log.action === 'return_confirmed') {
-                details = `تم تأكيد استلام المرتجع`;
-            }
-
-            const severityIcon = {
-                info: 'ℹ️',
-                warning: '⚠️',
-                error: '❌'
-            }[log.severity] || 'ℹ️';
-
-            const severityColor = {
-                info: '#3498db',
-                warning: '#f39c12',
-                error: '#e74c3c'
-            }[log.severity] || '#3498db';
-
-            html += `
-                <tr>
-                    <td>${index + 1}</td>
-                    <td>${formatDate(log.timestamp)}</td>
-                    <td><strong>${escapeHtml(log.orderNumber || log.orderId || '-')}</strong></td>
-                    <td><span class="badge ${badgeClass}"><i class="fas ${icon} action-icon"></i> ${actionLabel}</span></td>
-                    <td style="text-align:right; font-size:13px;">${details}</td>
-                    <td>${escapeHtml(log.performedBy || 'نظام')} <span style="color:${severityColor}; margin-right:5px;">${severityIcon}</span></td>
-                    <td>
-                        <button class="btn btn-outline" style="padding:4px 12px; font-size:12px;" onclick="viewLog('${log.id}')">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        <button class="btn btn-danger" style="padding:4px 12px; font-size:12px;" onclick="deleteLog('${log.id}')">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </td>
-                </tr>
-            `;
-        });
-
-        tbody.innerHTML = html;
+    if (!logs || logs.length === 0) {
+        tbody.innerHTML = `
+            <tr><td colspan="7">
+                <div class="empty-state">
+                    <i class="fas fa-inbox"></i>
+                    <p>لا توجد سجلات مطابقة للبحث</p>
+                </div>
+            </td></tr>
+        `;
+        return;
     }
+
+    // ✅ بناء HTML مبسط لاختبار ظهور البيانات
+    let html = '';
+    logs.forEach((log, index) => {
+        // عرض البيانات كـ JSON مبسط للتأكد من ظهورها
+        html += `
+            <tr>
+                <td>${index + 1}</td>
+                <td>${formatDate(log.timestamp)}</td>
+                <td><strong>${log.orderNumber || log.orderId || '-'}</strong></td>
+                <td>${log.action || '-'}</td>
+                <td style="text-align:right; font-size:12px; max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                    ${JSON.stringify(log.details || {}).substring(0, 100)}
+                </td>
+                <td>${log.performedBy || 'نظام'}</td>
+                <td>
+                    <button class="btn btn-outline" style="padding:4px 12px; font-size:12px;" onclick="viewLog('${log.id}')">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="btn btn-danger" style="padding:4px 12px; font-size:12px;" onclick="deleteLog('${log.id}')">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+
+    tbody.innerHTML = html;
+    console.log("✅ [Audit Log] تم عرض", logs.length, "سجل في الجدول");
+}
 
     // ========== الفلاتر ==========
     function applyFilters() {
