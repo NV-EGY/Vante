@@ -411,21 +411,6 @@ async function loadLogs(reset = true) {
             loadMoreContainer.style.display = 'none';
         }
         
-        // ✅ إذا كانت القائمة فارغة، أضف مستند اختبار
-        if (allLogs.length === 0 && !window._initAdded) {
-            window._initAdded = true;
-            console.log("📝 [Audit Log] إضافة مستند تهيئة عبر REST...");
-            await addLogViaREST({
-                action: 'system_init',
-                orderId: 'init-' + Date.now(),
-                orderNumber: 'VNT-INIT',
-                details: { message: 'تم تهيئة سجل التدقيق' },
-                performedBy: 'system',
-                severity: 'info'
-            });
-            setTimeout(() => loadLogs(true), 1000);
-        }
-        
     } catch (error) {
         console.error("❌ [Audit Log] خطأ في REST API:", error.message);
         document.getElementById("logTableBody").innerHTML = `
