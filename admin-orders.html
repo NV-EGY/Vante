@@ -2724,6 +2724,18 @@ window.copyToClipboard = function(text) {
         customAlert("❌ فشل النسخ", 'error');
     });
 };
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        window.currentUserEmail = user.email;
+        load();  // ✅ استدعاء load() هنا
+        loadShippingDiscountSettings();  // ✅ تحميل إعدادات الخصم
+        listenForOrderStatusChanges();
+        startPeriodicSync(3);
+        console.log('✅ تم تفعيل المزامنة التلقائية مع QP Express');
+    } else {
+        window.location.href = "login.html";
+    }
+});
 // جعل الدوال المستخدمة في HTML عامة
 window.updateBulkBar = updateBulkBar;
 window.manualSyncOrders = manualSyncOrders;
