@@ -1758,6 +1758,7 @@ function load() {
 
     // ===== مستمع الطلبات - مع تسجيل الطلبات الجديدة =====
     onSnapshot(query(collection(db, "orders"), orderBy("createdAt", "desc")), (snap) => {
+        // ✅ معالجة الطلبات الجديدة
         snap.docChanges().forEach(async (change) => {
             if (change.type === "added") {
                 const orderId = change.doc.id;
@@ -1797,6 +1798,7 @@ function load() {
             }
         });
 
+        // ✅ تحديث البيانات بشكل صحيح
         lastCount = snap.size;
         orders = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         render();
