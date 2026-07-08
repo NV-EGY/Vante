@@ -1,7 +1,7 @@
 // js/logger.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
-    getFirestore, collection, addDoc, Timestamp, getDoc, doc
+    getFirestore, collection, addDoc, Timestamp, getDoc, doc, query, where, getDocs
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -18,25 +18,24 @@ const db = getFirestore(app);
 
 export async function logAuditEvent(data) {
     // ============================================================
-    // 🔥 منع التسجيل في صفحات المتجر (الزبائن) نهائياً
+    // ✅ السماح بالتسجيل فقط من صفحات الإدارة المحددة
     // ============================================================
     const currentPath = window.location.pathname;
-    console.log("🔍 [Audit Log] المسار الحالي:", currentPath);
-
-    // الصفحات المسموح لها فقط بالتسجيل (لوحات التحكم)
-    // نسمح بأي ملف يبدأ بـ "admin-" أو يحتوي على "Profits" أو "Audit-log"
-    // كما نسمح تحديداً باسم "admin-order (1).html"
-    const isAdminPage = 
-        currentPath.includes('admin-order') ||
-        currentPath.includes('admin-product') ||
-        currentPath.includes('Profits') ||
-        currentPath.includes('Audit-log') ||
-        currentPath.includes('admin-order (1)'); // دعم النسخة ذات المسافة
-
-    console.log("🔍 [Audit Log] هل هي صفحة إدارة؟", isAdminPage);
-
+    
+    // ✅ قائمة الصفحات المسموح لها بالتسجيل
+    const allowedPages = [
+        'admin-order',
+        'admin-products',
+        'admin-product',
+        'Profits',
+        'Audit-log',
+        'admin-order (1)'
+    ];
+    
+    const isAdminPage = allowedPages.some(page => currentPath.includes(page));
+    
     if (!isAdminPage) {
-        console.log("⛔ [Audit Log] تم منع التسجيل: ليست صفحة إدارة");
+        // ✅ سكوت تام بدلاً من console.log لتجنب الضوضاء
         return;
     }
     // ============================================================
@@ -47,15 +46,13 @@ export async function logAuditEvent(data) {
             orderId = null,
             orderNumber = null,
             details = {},
-            performedBy = 'system',
+            performedBy = window.currentUserEmail || 'system',
             severity = 'info'
         } = data;
 
-        console.log("📝 [Audit Log] تسجيل حدث:", { action, orderId, orderNumber });
-
         const metadata = {
-            userAgent: navigator ? navigator.userAgent : 'unknown',
-            url: window ? window.location.href : 'unknown',
+            userAgent: navigator.userAgent || 'unknown',
+            url: window.location.href || 'unknown',
             timestamp: Timestamp.now()
         };
 
@@ -82,11 +79,11 @@ export async function logAuditEvent(data) {
                 }
             } : {})
         };
-console.log("💾 [Audit Log] البيانات المرسلة إلى Firestore:", logEntry);
+
         await addDoc(collection(db, "auditLog"), logEntry);
-        console.log("✅ [Audit Log] تم تسجيل الحدث بنجاح في Firestore");
+        console.log("✅ [Audit Log] تم تسجيل الحدث:", action, orderNumber);
     } catch (error) {
-        console.error("❌ [Audit Log] فشل تسجيل حدث التدقيق:", error);
+        console.error("❌ [Audit Log] فشل التسجيل:", error);
     }
 }
 
