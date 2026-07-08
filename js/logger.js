@@ -1,7 +1,7 @@
 // js/logger.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
-    getFirestore, collection, addDoc, Timestamp, getDoc, doc, query, where, getDocs
+    getFirestore, collection, addDoc, Timestamp, getDoc, doc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -22,7 +22,6 @@ export async function logAuditEvent(data) {
     // ============================================================
     const currentPath = window.location.pathname;
     
-    // ✅ قائمة الصفحات المسموح لها بالتسجيل
     const allowedPages = [
         'admin-order',
         'admin-products',
@@ -33,11 +32,7 @@ export async function logAuditEvent(data) {
     ];
     
     const isAdminPage = allowedPages.some(page => currentPath.includes(page));
-    
-    if (!isAdminPage) {
-        // ✅ سكوت تام بدلاً من console.log لتجنب الضوضاء
-        return;
-    }
+    if (!isAdminPage) return;
     // ============================================================
 
     try {
@@ -50,41 +45,129 @@ export async function logAuditEvent(data) {
             severity = 'info'
         } = data;
 
-        const metadata = {
-            userAgent: navigator.userAgent || 'unknown',
-            url: window.location.href || 'unknown',
-            timestamp: Timestamp.now()
-        };
-
-        let orderSnapshot = null;
-        if (orderId) {
-            try {
-                orderSnapshot = await getDoc(doc(db, "orders", orderId));
-            } catch (e) { /* تجاهل */ }
+        // ✅ تحويل details إلى صيغة قابلة للقراءة
+        const cleanDetails = {};
+        for (const [key, value] of Object.entries(details)) {
+            if (typeof value === 'string') {
+                cleanDetails[key] = { stringValue: value };
+            } else if (typeof value === 'number') {
+                cleanDetails[key] = { doubleValue: value };
+            } else if (typeof value === 'boolean') {
+                cleanDetails[key] = { booleanValue: value };
+            } else if (Array.isArray(value)) {
+                cleanDetails[key] = { 
+                    arrayValue: { 
+                        values: value.map(v => ({ stringValue: String(v) })) 
+                    } 
+                };
+            } else if (value && typeof value === 'object') {
+                // ✅ دعم الكائنات المتداخلة (مثل oldStatus, newStatus)
+                const nestedFields = {};
+                for (const [k, v] of Object.entries(value)) {
+                    if (typeof v === 'string') {
+                        nestedFields[k] = { stringValue: v };
+                    } else if (typeof v === 'number') {
+                        nestedFields[k] = { doubleValue: v };
+                    } else {
+                        nestedFields[k] = { stringValue: String(v) };
+                    }
+                }
+                cleanDetails[key] = { mapValue: { fields: nestedFields } };
+            } else {
+                cleanDetails[key] = { stringValue: String(value) };
+            }
         }
 
-        const logEntry = {
-            action,
-            orderId,
-            orderNumber,
-            severity,
-            details,
-            performedBy,
-            metadata,
-            ...(orderSnapshot?.exists() ? {
-                orderDataSnapshot: {
-                    status: orderSnapshot.data().status,
-                    customerName: orderSnapshot.data().customerName,
-                    finalTotal: orderSnapshot.data().finalTotal
-                }
-            } : {})
+        // ✅ إضافة الحقول الرئيسية كقيم مباشرة للعرض
+        const docData = {
+            action: { stringValue: action },
+            orderId: { stringValue: orderId || '' },
+            orderNumber: { stringValue: orderNumber || '' },
+            severity: { stringValue: severity || 'info' },
+            details: { mapValue: { fields: cleanDetails } },
+            performedBy: { stringValue: performedBy || 'system' },
+            timestamp: { timestampValue: new Date().toISOString() },
+            createdAt: { timestampValue: new Date().toISOString() }
         };
 
-        await addDoc(collection(db, "auditLog"), logEntry);
+        // ✅ إضافة القيم المباشرة للعرض السريع
+        if (details.oldStatus) {
+            docData.oldStatus = { stringValue: String(details.oldStatus) };
+        }
+        if (details.newStatus) {
+            docData.newStatus = { stringValue: String(details.newStatus) };
+        }
+        if (details.notes) {
+            docData.notes = { stringValue: String(details.notes) };
+        }
+        if (details.customerName) {
+            docData.customerName = { stringValue: String(details.customerName) };
+        }
+        if (details.finalTotal !== undefined) {
+            docData.finalTotal = { doubleValue: Number(details.finalTotal) };
+        }
+
+        // ✅ حفظ باستخدام REST API مباشرة (لضمان التوافق)
+        const token = await getAuthToken();
+        const projectId = "vante-orders";
+        const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/auditLog`;
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ fields: docData })
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+
         console.log("✅ [Audit Log] تم تسجيل الحدث:", action, orderNumber);
+        return await response.json();
+
     } catch (error) {
         console.error("❌ [Audit Log] فشل التسجيل:", error);
+        // ✅ محاولة بديلة عبر SDK إذا فشل REST
+        try {
+            const logEntry = {
+                action,
+                orderId,
+                orderNumber,
+                severity,
+                details,
+                performedBy,
+                createdAt: Timestamp.now()
+            };
+            await addDoc(collection(db, "auditLog"), logEntry);
+            console.log("✅ [Audit Log] تم التسجيل عبر SDK كحل بديل");
+        } catch (e) {
+            console.error("❌ [Audit Log] فشل التسجيل عبر SDK أيضاً:", e);
+        }
     }
+}
+
+// ✅ دالة مساعدة للحصول على توكن المصادقة
+async function getAuthToken() {
+    const { getAuth } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js');
+    const auth = getAuth();
+    
+    return new Promise((resolve, reject) => {
+        if (auth.currentUser) {
+            auth.currentUser.getIdToken().then(resolve).catch(reject);
+        } else {
+            const unsubscribe = auth.onAuthStateChanged((user) => {
+                unsubscribe();
+                if (user) {
+                    user.getIdToken().then(resolve).catch(reject);
+                } else {
+                    reject(new Error('غير مسجل الدخول'));
+                }
+            });
+        }
+    });
 }
 
 export function getChangedFields(oldData, newData, fields) {
