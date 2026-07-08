@@ -88,6 +88,9 @@
         <h1><i class="fas fa-clipboard-list"></i> سجل التدقيق</h1>
         <div style="display: flex; gap: 10px; flex-wrap: wrap;">
             <button class="btn btn-gold" onclick="exportToExcel()"><i class="fas fa-file-excel"></i> تصدير Excel</button>
+            <button class="btn btn-primary" onclick="testAuditLog()" style="background:#D4AF37;color:#000;">
+    <i class="fas fa-vial"></i> اختبار التسجيل
+</button>
             <button class="btn btn-outline" onclick="exportToCSV()"><i class="fas fa-file-csv"></i> CSV</button>
             <button class="btn btn-primary" onclick="refreshLog()"><i class="fas fa-sync"></i> تحديث</button>
             <button class="btn btn-outline" onclick="clearFilters()"><i class="fas fa-undo"></i> مسح الفلاتر</button>
@@ -246,20 +249,30 @@
     }
 
     // ========== تحميل البيانات ==========
-    function loadLogs() {
-    console.log("🔄 [Audit Log] جاري تحميل البيانات باستخدام getDocs...");
+    // ========== تحميل البيانات مع onSnapshot (تحديث فوري) ==========
+let unsubscribeLogs = null;
+
+function loadLogs() {
+    console.log("🔄 [Audit Log] جاري تحميل البيانات باستخدام onSnapshot...");
+    
+    // إلغاء الاشتراك السابق إن وجد
+    if (unsubscribeLogs) {
+        unsubscribeLogs();
+        unsubscribeLogs = null;
+    }
+    
     const q = query(collection(db, "auditLog"), orderBy("timestamp", "desc"));
     
-    getDocs(q).then((snapshot) => {
-        console.log("📊 [Audit Log] تم استلام بيانات جديدة، عدد السجلات:", snapshot.size);
+    unsubscribeLogs = onSnapshot(q, (snapshot) => {
+        console.log("📊 [Audit Log] تم استلام تحديث فوري، عدد السجلات:", snapshot.size);
         allLogs = snapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data()
         }));
         updateStats();
         applyFilters();
-    }).catch((error) => {
-        console.error("❌ [Audit Log] خطأ في التحميل:", error);
+    }, (error) => {
+        console.error("❌ [Audit Log] خطأ في الاستماع:", error);
         document.getElementById("logTableBody").innerHTML = `
             <tr><td colspan="7">
                 <div class="empty-state">
@@ -294,7 +307,8 @@
     }
 
     // ========== عرض البيانات ==========
-    function renderLogs(logs) {
+    // ========== عرض البيانات ==========
+function renderLogs(logs) {
     console.log("🎨 [Audit Log] renderLogs تم استدعاؤها بـ", logs.length, "سجل");
     const tbody = document.getElementById('logTableBody');
 
@@ -310,25 +324,51 @@
         return;
     }
 
-    // ✅ بناء HTML مبسط لاختبار ظهور البيانات
     let html = '';
     logs.forEach((log, index) => {
-        // عرض البيانات كـ JSON مبسط للتأكد من ظهورها
+        // ✅ بناء تفاصيل العملية بشكل احترافي
+        let detailsText = '';
+        if (log.action === 'status_change') {
+            const oldStatus = log.details?.oldStatus || log.oldStatus || '?';
+            const newStatus = log.details?.newStatus || log.newStatus || '?';
+            detailsText = `من ${oldStatus} → ${newStatus}`;
+            if (log.details?.notes) detailsText += ` | 📝 ${log.details.notes}`;
+        } else if (log.action === 'order_created') {
+            detailsText = `👤 ${log.details?.customerName || log.customerName || '-'} | 💰 ${log.details?.finalTotal || log.finalTotal || 0}`;
+        } else if (log.action === 'order_edited') {
+            const fields = log.details?.changedFields || [];
+            detailsText = `✏️ تعديل: ${fields.join(', ') || 'حقول متعددة'}`;
+        } else if (log.action === 'order_deleted') {
+            detailsText = `🗑️ ${log.details?.customerName || log.customerName || '-'}`;
+        } else if (log.action === 'return_confirmed') {
+            detailsText = '📦 تأكيد استلام مرتجع';
+        } else {
+            detailsText = JSON.stringify(log.details || {}).substring(0, 100);
+        }
+
+        // ✅ تنسيق نوع العملية بأيقونة
+        const actionLabels = {
+            'status_change': '🔄 تغيير حالة',
+            'order_created': '✅ طلب جديد',
+            'order_edited': '✏️ تعديل طلب',
+            'order_deleted': '🗑️ حذف طلب',
+            'return_confirmed': '📦 تأكيد مرتجع'
+        };
+        const actionLabel = actionLabels[log.action] || log.action;
+
         html += `
             <tr>
                 <td>${index + 1}</td>
-                <td>${formatDate(log.timestamp)}</td>
-                <td><strong>${log.orderNumber || log.orderId || '-'}</strong></td>
-                <td>${log.action || '-'}</td>
-                <td style="text-align:right; font-size:12px; max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
-                    ${JSON.stringify(log.details || {}).substring(0, 100)}
-                </td>
-                <td>${log.performedBy || 'نظام'}</td>
+                <td style="font-size:12px;">${formatDate(log.timestamp)}</td>
+                <td><strong style="color:#0F7B65;font-family:monospace;">${log.orderNumber || log.orderId || '-'}</strong></td>
+                <td><span class="badge ${getBadgeClass(log.action)}">${actionLabel}</span></td>
+                <td style="text-align:right; font-size:13px; max-width:250px;">${detailsText}</td>
+                <td style="font-size:12px; color:#666;">${log.performedBy || 'نظام'}</td>
                 <td>
-                    <button class="btn btn-outline" style="padding:4px 12px; font-size:12px;" onclick="viewLog('${log.id}')">
+                    <button class="btn btn-outline" style="padding:4px 10px; font-size:11px; border-radius:20px;" onclick="viewLog('${log.id}')">
                         <i class="fas fa-eye"></i>
                     </button>
-                    <button class="btn btn-danger" style="padding:4px 12px; font-size:12px;" onclick="deleteLog('${log.id}')">
+                    <button class="btn btn-danger" style="padding:4px 10px; font-size:11px; border-radius:20px;" onclick="deleteLog('${log.id}')">
                         <i class="fas fa-trash"></i>
                     </button>
                 </td>
@@ -492,6 +532,23 @@ window.applyFilters = applyFilters;
         XLSX.utils.book_append_sheet(wb, ws, "سجل التدقيق");
         XLSX.writeFile(wb, `audit_log_${new Date().toISOString().slice(0,10)}.xlsx`);
     };
+    
+    window.testAuditLog = async function() {
+    const { logAuditEvent } = await import('./js/logger.js');
+    await logAuditEvent({
+        action: 'status_change',
+        orderId: 'test-' + Date.now(),
+        orderNumber: 'VNT-TEST-' + Date.now(),
+        details: {
+            oldStatus: 'test',
+            newStatus: 'working',
+            notes: '✅ اختبار تسجيل ناجح!'
+        },
+        performedBy: window.currentUserEmail || 'test@vante.sbs',
+        severity: 'info'
+    });
+    alert('✅ تم إرسال حدث اختبار! انتظر التحديث التلقائي.');
+};
 
     window.exportToCSV = function() {
         const data = filteredLogs.length > 0 ? filteredLogs : allLogs;
