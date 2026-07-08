@@ -1329,7 +1329,7 @@ window.deleteOrder = async (id) => {
       performedBy: window.currentUserEmail || 'system',
       severity: 'warning'
     });
-
+await deleteDoc(doc(db, "orders", id));
         customAlert("تم حذف الطلب وإعادة المخزون بنجاح", 'success');
     } catch (e) {
         console.error(e);
