@@ -6014,28 +6014,6 @@ const orderData = {
     totalCost: totalCost,
     profit: finalTotalAfter - totalCost - storeShippingCost
 };
-// داخل executeCheckout (بعد حفظ الطلب)
-await logAuditEvent({
-  action: 'order_created',
-  orderId: newOrderId, // المعرف الذي تم إرجاعه من addDoc
-  orderNumber: orderID,
-  details: {
-    customerName: name,
-    phone,
-    gov,
-    city,
-    finalTotal: finalTotalAfter,
-    orderDetails: cart.map(item => ({
-      name: item.name,
-      size: item.size,
-      qty: item.qty,
-      price: item.price
-    })),
-    coupon: savedCoupon ? savedCoupon.code : null
-  },
-  performedBy: 'customer',
-  severity: 'info'
-});
 
         if (savedCoupon) {
             orderData.coupon = {
