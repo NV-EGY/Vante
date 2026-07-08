@@ -1738,68 +1738,71 @@ function load() {
     loadOpenDayGroups();
     loadReviews();
     loadShippingRates();
-  onSnapshot(query(collection(db, "messages"), orderBy("createdAt", "desc")), (snap) => {
-    let unread = 0, html = "";
-    messages = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    messages.forEach(m => { if ((m.status || "new") === "new") unread++; html += `<div class="msg-item ${m.status === 'new' ? 'unread' : ''}" onclick="openMsg('${m.id}')"><div>👤 ${m.name}</div><div style="font-size:12px;">${m.phone}</div></div>`; });
-    document.getElementById("messagesList").innerHTML = html;
-    let badge = document.getElementById("msgBadge");
-    badge.style.display = unread > 0 ? "inline-block" : "none";
-    badge.innerText = unread;
-  });
-  onSnapshot(query(collection(db, "orders"), orderBy("createdAt", "desc")), (snap) => {
-    snap.docChanges().forEach(change => {
-        if (change.type === "added" && lastCount !== 0) {
-            let o = change.doc.data();
-            new Audio("https://assets.mixkit.co/sfx/preview/mixkit-bell-notification-933.mp3").play().catch(()=>{});
-            if (Notification.permission === "granted") {
-                new Notification("طلب جديد", { body: `${o.customerName} - ${o.phone}` });
-            }
-            showPopup(o);
-        }
-    });
-    lastCount = snap.size;
-    orders = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    render();
-});
-}
-document.getElementById("dateFilter").addEventListener("change", render);
-document.getElementById("search").addEventListener("input", render);
-document.addEventListener("change", (e) => { if (e.target.classList.contains("selectOrder")) updateBulkBar(); });
-Notification.requestPermission();
-onAuthStateChanged(auth, (user) => {
-    if (user) {
-      window.currentUserEmail = user.email;
-        load();
-        listenForOrderStatusChanges();
-        startPeriodicSync(3);
-        console.log('✅ تم تفعيل المزامنة التلقائية مع QP Express');
-    } else {
-        window.location.href = "login.html";
-    }
-});
-// ========== مستمع مباشر للطلبات للتحديث الفوري ==========
-let ordersListener = null;
 
-function startOrdersListener() {
-    if (ordersListener) return; // لمنع التكرار
-    ordersListener = onSnapshot(query(collection(db, "orders"), orderBy("createdAt", "desc")), (snap) => {
-        // تحديث المصفوفة
-        orders = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        // إعادة الرسم
-        render();
-        // إشعار الصوت والمنبثق
-        snap.docChanges().forEach(change => {
-            if (change.type === "added" && lastCount !== 0) {
-                let o = change.doc.data();
+    // ===== مستمع الرسائل =====
+    onSnapshot(query(collection(db, "messages"), orderBy("createdAt", "desc")), (snap) => {
+        let unread = 0, html = "";
+        messages = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        messages.forEach(m => {
+            if ((m.status || "new") === "new") unread++;
+            html += `<div class="msg-item ${m.status === 'new' ? 'unread' : ''}" onclick="openMsg('${m.id}')">
+                <div>👤 ${m.name}</div>
+                <div style="font-size:12px;">${m.phone}</div>
+            </div>`;
+        });
+        document.getElementById("messagesList").innerHTML = html;
+        let badge = document.getElementById("msgBadge");
+        badge.style.display = unread > 0 ? "inline-block" : "none";
+        badge.innerText = unread;
+    });
+
+    // ===== مستمع الطلبات - مع تسجيل الطلبات الجديدة =====
+    onSnapshot(query(collection(db, "orders"), orderBy("createdAt", "desc")), (snap) => {
+        // ✅ معالجة الطلبات الجديدة
+        snap.docChanges().forEach(async (change) => {
+            if (change.type === "added") {
+                const orderId = change.doc.id;
+                const orderData = change.doc.data();
+                
+                // 🔔 إشعار الصوت
                 new Audio("https://assets.mixkit.co/sfx/preview/mixkit-bell-notification-933.mp3").play().catch(()=>{});
                 if (Notification.permission === "granted") {
-                    new Notification("طلب جديد", { body: `${o.customerName} - ${o.phone}` });
+                    new Notification("طلب جديد", { 
+                        body: `${orderData.customerName || 'عميل'} - ${orderData.phone || ''}` 
+                    });
                 }
-                showPopup(o);
+                showPopup(orderData);
+                
+                // ✅ ✅ ✅ تسجيل الطلب الجديد في Audit Log
+                try {
+                    // استيراد logAuditEvent (موجود بالفعل في الأعلى)
+                    await logAuditEvent({
+                        action: 'order_created',
+                        orderId: orderId,
+                        orderNumber: orderData.orderID || 'N/A',
+                        details: {
+                            customerName: orderData.customerName || 'غير معروف',
+                            phone: orderData.phone || '',
+                            gov: orderData.gov || '',
+                            city: orderData.city || '',
+                            finalTotal: orderData.finalTotal || 0,
+                            quantity: orderData.quantity || 0,
+                            orderDetails: orderData.orderDetails || []
+                        },
+                        performedBy: 'system',
+                        severity: 'info'
+                    });
+                    console.log("✅ [Audit Log] تم تسجيل طلب جديد:", orderData.orderID);
+                } catch (e) {
+                    console.error("❌ [Audit Log] فشل تسجيل طلب جديد:", e.message);
+                }
             }
         });
+
+        // تحديث البيانات
         lastCount = snap.size;
+        orders = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        render();
     });
 }
 
