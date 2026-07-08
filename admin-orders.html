@@ -2714,9 +2714,6 @@ window.render = function() {
 };
 render = window.render;
 
-// تأكد من استدعاء loadShippingDiscountSettings() عند تحميل الصفحة (داخل onAuthStateChanged)
-// أضف هذا السطر بعد load() أو loadShippingRates()
-loadShippingDiscountSettings();
 window.copyToClipboard = function(text) {
     if (!text || text === 'غير متوفر') {
         customAlert("لا يوجد SKU قابل للنسخ", 'warning');
