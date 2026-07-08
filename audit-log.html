@@ -710,13 +710,14 @@ window.applyFilters = applyFilters;
 // ========== بدء التشغيل ==========
 onAuthStateChanged(auth, (user) => {
     if (user) {
-        currentUser = user;
         window.currentUserEmail = user.email;
-        loadLogs();
-        startAutoRefresh(); // ✅ بدء التحديث التلقائي
-        console.log('✅ تم تفعيل التحديث التلقائي كل 5 ثوانٍ');
+        load();
+        loadShippingDiscountSettings();  // ✅ أضف هذا السطر هنا
+        listenForOrderStatusChanges();
+        startPeriodicSync(3);
+        console.log('✅ تم تفعيل المزامنة التلقائية مع QP Express');
     } else {
-        window.location.href = 'login.html';
+        window.location.href = "login.html";
     }
 });
 
