@@ -1756,15 +1756,18 @@ function load() {
         badge.innerText = unread;
     });
 
-    // ===== مستمع الطلبات - مع تسجيل الطلبات الجديدة =====
+    // ===== مستمع الطلبات - مع تسجيل الطلبات الجديدة (فقط عند الإضافة الفعلية) =====
+    let initialLoad = true;  // ✅ متغير لمنع الإشعارات عند التحميل الأولي
+    
     onSnapshot(query(collection(db, "orders"), orderBy("createdAt", "desc")), (snap) => {
-        // ✅ معالجة الطلبات الجديدة
+        // ✅ معالجة الطلبات الجديدة فقط (تجاهل التحميل الأولي)
         snap.docChanges().forEach(async (change) => {
-            if (change.type === "added") {
+            // ✅ فقط الطلبات المضافة حديثاً (وليس التحميل الأولي)
+            if (change.type === "added" && !initialLoad) {
                 const orderId = change.doc.id;
                 const orderData = change.doc.data();
                 
-                // 🔔 إشعار الصوت
+                // 🔔 إشعار الصوت - فقط للطلبات الجديدة الفعلية
                 new Audio("https://assets.mixkit.co/sfx/preview/mixkit-bell-notification-933.mp3").play().catch(()=>{});
                 if (Notification.permission === "granted") {
                     new Notification("طلب جديد", { 
@@ -1798,10 +1801,16 @@ function load() {
             }
         });
 
-        // ✅ تحديث البيانات بشكل صحيح
+        // ✅ تحديث البيانات
         lastCount = snap.size;
         orders = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         render();
+        
+        // ✅ بعد أول تحميل، نسمح بالإشعارات
+        if (initialLoad) {
+            initialLoad = false;
+            console.log("✅ [Admin] تم تحميل الطلبات الأولي، جاهز للإشعارات");
+        }
     });
 }
 
