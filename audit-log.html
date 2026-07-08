@@ -711,11 +711,10 @@ window.applyFilters = applyFilters;
 onAuthStateChanged(auth, (user) => {
     if (user) {
         window.currentUserEmail = user.email;
-        load();
-        loadShippingDiscountSettings();  // ✅ أضف هذا السطر هنا
-        listenForOrderStatusChanges();
-        startPeriodicSync(3);
-        console.log('✅ تم تفعيل المزامنة التلقائية مع QP Express');
+        currentUser = user;
+        loadLogs();  // ✅ تحميل سجل التدقيق
+        startAutoRefresh();  // ✅ تحديث تلقائي كل 15 ثانية
+        console.log('✅ [Audit Log] تم تفعيل سجل التدقيق');
     } else {
         window.location.href = "login.html";
     }
