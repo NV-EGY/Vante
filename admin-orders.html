@@ -1758,7 +1758,6 @@ function load() {
 
     // ===== مستمع الطلبات - مع تسجيل الطلبات الجديدة =====
     onSnapshot(query(collection(db, "orders"), orderBy("createdAt", "desc")), (snap) => {
-        // ✅ معالجة الطلبات الجديدة
         snap.docChanges().forEach(async (change) => {
             if (change.type === "added") {
                 const orderId = change.doc.id;
@@ -1773,9 +1772,8 @@ function load() {
                 }
                 showPopup(orderData);
                 
-                // ✅ ✅ ✅ تسجيل الطلب الجديد في Audit Log
+                // ✅ تسجيل الطلب الجديد في Audit Log
                 try {
-                    // استيراد logAuditEvent (موجود بالفعل في الأعلى)
                     await logAuditEvent({
                         action: 'order_created',
                         orderId: orderId,
@@ -1799,7 +1797,6 @@ function load() {
             }
         });
 
-        // تحديث البيانات
         lastCount = snap.size;
         orders = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         render();
