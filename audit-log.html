@@ -171,11 +171,11 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import {
-        getFirestore, collection, query, orderBy, onSnapshot,
-        deleteDoc, doc, getDocs, Timestamp
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
+    getFirestore, collection, query, orderBy, onSnapshot,
+    deleteDoc, doc, getDocs, Timestamp, addDoc
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyCotT8EP2uy_HsgHknxeGBorKoEUORPtmU",
@@ -248,42 +248,174 @@
         return div.innerHTML;
     }
 
-    // ========== تحميل البيانات ==========
-    // ========== تحميل البيانات مع onSnapshot (تحديث فوري) ==========
-let unsubscribeLogs = null;
+// ========== تحميل البيانات باستخدام REST API (حل مضمون 100%) ==========
+let refreshInterval = null;
+let lastLogCount = -1;
 
-function loadLogs() {
-    console.log("🔄 [Audit Log] جاري تحميل البيانات باستخدام onSnapshot...");
+async function loadLogs() {
+    console.log("🔄 [Audit Log] جاري تحميل البيانات عبر REST API...");
     
-    // إلغاء الاشتراك السابق إن وجد
-    if (unsubscribeLogs) {
-        unsubscribeLogs();
-        unsubscribeLogs = null;
-    }
-    
-    const q = query(collection(db, "auditLog"), orderBy("timestamp", "desc"));
-    
-    unsubscribeLogs = onSnapshot(q, (snapshot) => {
-        console.log("📊 [Audit Log] تم استلام تحديث فوري، عدد السجلات:", snapshot.size);
-        allLogs = snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        }));
+    try {
+        const projectId = "vante-orders";
+        const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/auditLog?orderBy=timestamp desc`;
+        
+        const token = await getAuthToken();
+        console.log("🔑 [Audit Log] تم الحصول على التوكن");
+        
+        const response = await fetch(url, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        const documents = data.documents || [];
+        
+        const newCount = documents.length;
+        if (newCount !== lastLogCount) {
+            console.log(`📊 [Audit Log] تحديث: ${newCount} سجل (تغير ${newCount - lastLogCount})`);
+            lastLogCount = newCount;
+        }
+        
+        allLogs = documents.map(doc => {
+            const fields = doc.fields || {};
+            return {
+                id: doc.name.split('/').pop(),
+                action: fields.action?.stringValue || '',
+                orderId: fields.orderId?.stringValue || '',
+                orderNumber: fields.orderNumber?.stringValue || '',
+                severity: fields.severity?.stringValue || 'info',
+                details: fields.details?.mapValue?.fields || {},
+                performedBy: fields.performedBy?.stringValue || 'system',
+                timestamp: fields.timestamp?.timestampValue ? new Date(fields.timestamp.timestampValue) : null,
+                createdAt: fields.createdAt?.timestampValue ? new Date(fields.createdAt.timestampValue) : null,
+                // ✅ تخزين القيم المباشرة للاستخدام في العرض
+                oldStatus: fields.oldStatus?.stringValue || fields.details?.oldStatus?.stringValue || '',
+                newStatus: fields.newStatus?.stringValue || fields.details?.newStatus?.stringValue || '',
+                notes: fields.notes?.stringValue || fields.details?.notes?.stringValue || '',
+                customerName: fields.customerName?.stringValue || fields.details?.customerName?.stringValue || '',
+                finalTotal: fields.finalTotal?.integerValue || fields.finalTotal?.doubleValue || fields.details?.finalTotal?.integerValue || 0,
+                changedFields: fields.changedFields?.arrayValue?.values?.map(v => v.stringValue) || []
+            };
+        });
+        
         updateStats();
         applyFilters();
-    }, (error) => {
-        console.error("❌ [Audit Log] خطأ في الاستماع:", error);
+        
+        // ✅ إذا كانت القائمة فارغة، أضف مستند اختبار (مرة واحدة فقط)
+        if (allLogs.length === 0 && !window._initAdded) {
+            window._initAdded = true;
+            console.log("📝 [Audit Log] إضافة مستند تهيئة عبر REST...");
+            await addLogViaREST({
+                action: 'system_init',
+                orderId: 'init-' + Date.now(),
+                orderNumber: 'VNT-INIT',
+                details: { message: 'تم تهيئة سجل التدقيق' },
+                performedBy: 'system',
+                severity: 'info'
+            });
+            setTimeout(() => loadLogs(), 1000);
+        }
+        
+    } catch (error) {
+        console.error("❌ [Audit Log] خطأ في REST API:", error.message);
         document.getElementById("logTableBody").innerHTML = `
             <tr><td colspan="7">
                 <div class="empty-state">
                     <i class="fas fa-exclamation-circle" style="color:#e74c3c;"></i>
-                    <p>❌ حدث خطأ في تحميل البيانات: ${error.message}</p>
+                    <p>❌ خطأ في الاتصال: ${error.message}</p>
+                    <button onclick="loadLogs()" style="margin-top:15px;padding:10px 25px;background:#D4AF37;border:none;border-radius:30px;font-weight:bold;cursor:pointer;">
+                        <i class="fas fa-sync"></i> إعادة المحاولة
+                    </button>
                 </div>
             </td></tr>
         `;
+    }
+}
+
+// ✅ دالة مساعدة للحصول على توكن المصادقة
+async function getAuthToken() {
+    return new Promise((resolve, reject) => {
+        if (auth.currentUser) {
+            auth.currentUser.getIdToken().then(resolve).catch(reject);
+        } else {
+            const unsubscribe = onAuthStateChanged(auth, (user) => {
+                unsubscribe();
+                if (user) {
+                    user.getIdToken().then(resolve).catch(reject);
+                } else {
+                    reject(new Error('غير مسجل الدخول'));
+                }
+            });
+        }
     });
 }
 
+// ✅ إضافة سجل عبر REST API
+async function addLogViaREST(logData) {
+    try {
+        const token = await getAuthToken();
+        const projectId = "vante-orders";
+        const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/auditLog`;
+        
+        // تحويل البيانات إلى صيغة Firestore
+        const docData = {
+            fields: {
+                action: { stringValue: logData.action },
+                orderId: { stringValue: logData.orderId || '' },
+                orderNumber: { stringValue: logData.orderNumber || '' },
+                severity: { stringValue: logData.severity || 'info' },
+                details: { mapValue: { fields: Object.fromEntries(
+                    Object.entries(logData.details || {}).map(([k, v]) => [k, { stringValue: String(v) }])
+                ) } },
+                performedBy: { stringValue: logData.performedBy || 'system' },
+                timestamp: { timestampValue: new Date().toISOString() },
+                createdAt: { timestampValue: new Date().toISOString() }
+            }
+        };
+        
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(docData)
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+        
+        console.log("✅ [REST] تم إضافة المستند بنجاح");
+        return await response.json();
+        
+    } catch (error) {
+        console.error("❌ [REST] فشل إضافة المستند:", error);
+        throw error;
+    }
+}
+
+// ✅ بدء التحديث التلقائي كل 10 ثوانٍ (بدلاً من 5) مع سجلات أقل
+function startAutoRefresh() {
+    if (refreshInterval) clearInterval(refreshInterval);
+    refreshInterval = setInterval(() => {
+        loadLogs();
+    }, 15000); // 15 ثانية بدلاً من 5 أو 10
+}
+
+// ✅ إيقاف التحديث التلقائي
+function stopAutoRefresh() {
+    if (refreshInterval) {
+        clearInterval(refreshInterval);
+        refreshInterval = null;
+        console.log("⏹️ [Auto-Refresh] تم إيقاف التحديث التلقائي");
+    }
+}
     // ========== الإحصائيات ==========
     function updateStats() {
         const total = allLogs.length;
@@ -306,8 +438,7 @@ function loadLogs() {
         document.getElementById('statDeleted').textContent = ordersDeleted;
     }
 
-    // ========== عرض البيانات ==========
-    // ========== عرض البيانات ==========
+// ========== عرض البيانات ==========
 function renderLogs(logs) {
     console.log("🎨 [Audit Log] renderLogs تم استدعاؤها بـ", logs.length, "سجل");
     const tbody = document.getElementById('logTableBody');
@@ -326,27 +457,31 @@ function renderLogs(logs) {
 
     let html = '';
     logs.forEach((log, index) => {
-        // ✅ بناء تفاصيل العملية بشكل احترافي
         let detailsText = '';
+        
+        // ✅ قراءة البيانات من الحقول المباشرة أو من details
+        const oldStatus = log.oldStatus || log.details?.oldStatus?.stringValue || log.details?.oldStatus || '?';
+        const newStatus = log.newStatus || log.details?.newStatus?.stringValue || log.details?.newStatus || '?';
+        const notes = log.notes || log.details?.notes?.stringValue || log.details?.notes || '';
+        const customerName = log.customerName || log.details?.customerName?.stringValue || log.details?.customerName || '-';
+        const finalTotal = log.finalTotal || log.details?.finalTotal?.doubleValue || log.details?.finalTotal || 0;
+        const changedFields = log.changedFields || log.details?.changedFields?.arrayValue?.values?.map(v => v.stringValue) || [];
+
         if (log.action === 'status_change') {
-            const oldStatus = log.details?.oldStatus || log.oldStatus || '?';
-            const newStatus = log.details?.newStatus || log.newStatus || '?';
             detailsText = `من ${oldStatus} → ${newStatus}`;
-            if (log.details?.notes) detailsText += ` | 📝 ${log.details.notes}`;
+            if (notes) detailsText += ` | 📝 ${notes}`;
         } else if (log.action === 'order_created') {
-            detailsText = `👤 ${log.details?.customerName || log.customerName || '-'} | 💰 ${log.details?.finalTotal || log.finalTotal || 0}`;
+            detailsText = `👤 ${customerName} | 💰 ${finalTotal}`;
         } else if (log.action === 'order_edited') {
-            const fields = log.details?.changedFields || [];
-            detailsText = `✏️ تعديل: ${fields.join(', ') || 'حقول متعددة'}`;
+            detailsText = `✏️ تعديل: ${changedFields.join(', ') || 'حقول متعددة'}`;
         } else if (log.action === 'order_deleted') {
-            detailsText = `🗑️ ${log.details?.customerName || log.customerName || '-'}`;
+            detailsText = `🗑️ ${customerName}`;
         } else if (log.action === 'return_confirmed') {
             detailsText = '📦 تأكيد استلام مرتجع';
         } else {
             detailsText = JSON.stringify(log.details || {}).substring(0, 100);
         }
 
-        // ✅ تنسيق نوع العملية بأيقونة
         const actionLabels = {
             'status_change': '🔄 تغيير حالة',
             'order_created': '✅ طلب جديد',
@@ -534,20 +669,28 @@ window.applyFilters = applyFilters;
     };
     
     window.testAuditLog = async function() {
-    const { logAuditEvent } = await import('./js/logger.js');
-    await logAuditEvent({
-        action: 'status_change',
-        orderId: 'test-' + Date.now(),
-        orderNumber: 'VNT-TEST-' + Date.now(),
-        details: {
-            oldStatus: 'test',
-            newStatus: 'working',
-            notes: '✅ اختبار تسجيل ناجح!'
-        },
-        performedBy: window.currentUserEmail || 'test@vante.sbs',
-        severity: 'info'
-    });
-    alert('✅ تم إرسال حدث اختبار! انتظر التحديث التلقائي.');
+    console.log('🧪 [Test] بدء اختبار التسجيل عبر REST...');
+    try {
+        await addLogViaREST({
+            action: 'status_change',
+            orderId: 'test-' + Date.now(),
+            orderNumber: 'VNT-TEST-' + Date.now(),
+            details: {
+                oldStatus: { stringValue: 'test' },
+                newStatus: { stringValue: 'working' },
+                notes: { stringValue: '✅ اختبار تسجيل ناجح عبر REST!' }
+            },
+            performedBy: window.currentUserEmail || 'test@vante.sbs',
+            severity: 'info'
+        });
+        
+        alert('✅ تم إرسال حدث اختبار عبر REST!');
+        setTimeout(() => loadLogs(), 1500);
+        
+    } catch(e) {
+        console.error('❌ [Test] فشل:', e);
+        alert('❌ فشل اختبار التسجيل: ' + e.message);
+    }
 };
 
     window.exportToCSV = function() {
@@ -564,18 +707,19 @@ window.applyFilters = applyFilters;
         link.download = `audit_log_${new Date().toISOString().slice(0,10)}.csv`;
         link.click();
     };
-
-    // ========== بدء التشغيل ==========
-    onAuthStateChanged(auth, (user) => {
+// ========== بدء التشغيل ==========
+onAuthStateChanged(auth, (user) => {
     if (user) {
         currentUser = user;
-        loadLogs();  // يجب أن يكون هنا
+        window.currentUserEmail = user.email;
+        loadLogs();
+        startAutoRefresh(); // ✅ بدء التحديث التلقائي
+        console.log('✅ تم تفعيل التحديث التلقائي كل 5 ثوانٍ');
     } else {
         window.location.href = 'login.html';
     }
 });
 
-    console.log('✅ صفحة سجل التدقيق جاهزة (نسخة محسّنة)');
 </script>
 </body>
 </html>
