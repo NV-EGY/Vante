@@ -929,6 +929,27 @@ window.restoreOrderFromLog = async function(logId) {
         console.error('❌ فشل استرداد الطلب:', error);
         customAlert('❌ حدث خطأ أثناء استرداد الطلب: ' + error.message, 'error');
     }
+    // ✅ إضافة قبل الاسترداد
+// التحقق من توفر المخزون
+for (const item of (orderData.orderDetails || [])) {
+    if (!item.name || !item.size) continue;
+    let productId = item.productId;
+    let productDoc;
+    if (productId) {
+        productDoc = await getDoc(doc(db, "products", productId));
+    } else {
+        const productSnap = await getDocs(query(collection(db, "products"), where("name", "==", item.name)));
+        if (!productSnap.empty) productDoc = productSnap.docs[0];
+    }
+    if (productDoc && productDoc.exists()) {
+        const stockBySize = productDoc.data().stockBySize || {};
+        const currentStock = stockBySize[item.size];
+        if (currentStock !== null && currentStock !== undefined && currentStock < item.qty) {
+            customAlert(`❌ المخزون غير كافٍ للمنتج "${item.name}" مقاس ${item.size} (المتوفر: ${currentStock}، المطلوب: ${item.qty})`, 'error');
+            return;
+        }
+    }
+}
 };
 
     window.closeConfirm = function() {
