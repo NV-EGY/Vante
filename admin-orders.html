@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="ar">
 <head>
-
 <!-- PWA لكل تطبيق على حدة (طلبات) -->
 <link rel="manifest" href="manifest-orders.json">
 <meta name="mobile-web-app-capable" content="yes">
@@ -1287,142 +1286,72 @@ window.deleteOrder = async (id) => {
 
     try {
         const orderSnap = await getDoc(doc(db, "orders", id));
-        if (!orderSnap.exists()) throw new Error();
+        if (!orderSnap.exists()) throw new Error("الطلب غير موجود");
         const order = orderSnap.data();
 
-    // ✅ إعادة الكميات إلى المخزون (مع مراعاة غير المحدود)
-    for (const item of (order.orderDetails || [])) {
-      if (!item.name || !item.size) continue;
-      
-      // استخدم productId إذا كان موجوداً، وإلا ابحث بالاسم (للتوافق مع الطلبات القديمة)
-      let productId = item.productId;
-      let productDoc;
-      if (productId) {
-        productDoc = await getDoc(doc(db, "products", productId));
-      } else {
-        const productSnap = await getDocs(query(collection(db, "products"), where("name", "==", item.name)));
-        if (!productSnap.empty) productDoc = productSnap.docs[0];
-      }
-      
-      if (productDoc && productDoc.exists()) {
-        const productRef = doc(db, "products", productDoc.id);
-        const stockBySize = productDoc.data().stockBySize || {};
-        const currentStock = stockBySize[item.size];
-        // ✅ الكود الصحيح في restoreOrderFromLog
-const orderData = logData.details?.orderDataSnapshot || logData.details || {};
-
-const restoredOrder = {
-    orderID: logData.orderNumber || `VNT-RESTORED-${Date.now()}`,
-    customerName: orderData.customerName || 'مسترد',
-    phone: orderData.phone || '',
-    gov: orderData.gov || '',
-    city: orderData.city || '',
-    address: orderData.address || '',
-    orderDetails: orderData.orderDetails || [],  // ✅ الآن ستظهر التفاصيل
-    finalTotal: orderData.finalTotal || 0,
-    quantity: orderData.quantity || 0,
-    price: orderData.price || 0,
-    shipping: orderData.shipping || 0,
-    shippingCostPaid: orderData.shippingCostPaid || 0,
-    totalCost: orderData.totalCost || 0,
-    profit: orderData.profit || 0,
-    coupon: orderData.coupon || null,
-    notes: orderData.notes || '',
-    status: 'new',
-    createdAt: orderSnap.exists() ? orderSnap.data().createdAt : serverTimestamp(),
-    restoredAt: serverTimestamp(),
-    restoredFrom: logId,
-    originalOrderId: orderId
-};
-        // ✅ الكود الصحيح في restoreOrderFromLog
-const orderData = logData.details?.orderDataSnapshot || logData.details || {};
-
-const restoredOrder = {
-    orderID: logData.orderNumber || `VNT-RESTORED-${Date.now()}`,
-    customerName: orderData.customerName || 'مسترد',
-    phone: orderData.phone || '',
-    gov: orderData.gov || '',
-    city: orderData.city || '',
-    address: orderData.address || '',
-    orderDetails: orderData.orderDetails || [],  // ✅ الآن ستظهر التفاصيل
-    finalTotal: orderData.finalTotal || 0,
-    quantity: orderData.quantity || 0,
-    price: orderData.price || 0,
-    shipping: orderData.shipping || 0,
-    shippingCostPaid: orderData.shippingCostPaid || 0,
-    totalCost: orderData.totalCost || 0,
-    profit: orderData.profit || 0,
-    coupon: orderData.coupon || null,
-    notes: orderData.notes || '',
-    status: 'new',
-    createdAt: orderSnap.exists() ? orderSnap.data().createdAt : serverTimestamp(),
-    restoredAt: serverTimestamp(),
-    restoredFrom: logId,
-    originalOrderId: orderId
-};
-        // ✅ إذا كان currentStock === null → غير محدود، لا نعدل
-        if (currentStock !== null && currentStock !== undefined) {
-          stockBySize[item.size] = (currentStock || 0) + item.qty;
-          await updateDoc(productRef, { stockBySize });
+        // ✅ إعادة الكميات إلى المخزون
+        for (const item of (order.orderDetails || [])) {
+            if (!item.name || !item.size) continue;
+            let productId = item.productId;
+            let productDoc;
+            if (productId) {
+                productDoc = await getDoc(doc(db, "products", productId));
+            } else {
+                const productSnap = await getDocs(query(collection(db, "products"), where("name", "==", item.name)));
+                if (!productSnap.empty) productDoc = productSnap.docs[0];
+            }
+            if (productDoc && productDoc.exists()) {
+                const productRef = doc(db, "products", productDoc.id);
+                const stockBySize = productDoc.data().stockBySize || {};
+                const currentStock = stockBySize[item.size];
+                if (currentStock !== null && currentStock !== undefined) {
+                    stockBySize[item.size] = (currentStock || 0) + item.qty;
+                    await updateDoc(productRef, { stockBySize });
+                }
+            }
         }
-      }
-    }
 
-    // ✅ تسجيل الحدث مع نسخة كاملة من الطلب
-    await logAuditEvent({
-        action: 'order_deleted',
-        orderId: id,
-        orderNumber: order.orderID,
-        details: {
-            customerName: order.customerName,
-            phone: order.phone,
-            finalTotal: order.finalTotal,
-            // ✅✅✅ إضافة: نسخة كاملة من الطلب للاسترداد
-            orderDataSnapshot: {
+        // ✅ تسجيل الحدث مع نسخة كاملة من الطلب
+        await logAuditEvent({
+            action: 'order_deleted',
+            orderId: id,
+            orderNumber: order.orderID,
+            details: {
                 customerName: order.customerName,
                 phone: order.phone,
-                gov: order.gov || '',
-                city: order.city || '',
-                address: order.address || '',
-                orderDetails: order.orderDetails || [],
-                finalTotal: order.finalTotal || 0,
-                quantity: order.quantity || 0,
-                price: order.price || 0,
-                shipping: order.shipping || 0,
-                shippingCostPaid: order.shippingCostPaid || 0,
-                totalCost: order.totalCost || 0,
-                profit: order.profit || 0,
-                coupon: order.coupon || null,
-                notes: order.notes || ''
-            }
-        },
-        performedBy: window.currentUserEmail || 'system',
-        severity: 'warning'
-    });
-    
-    // ✅ حذف الطلب
-    await deleteDoc(doc(db, "orders", id));
+                finalTotal: order.finalTotal,
+                orderDataSnapshot: {
+                    customerName: order.customerName,
+                    phone: order.phone,
+                    gov: order.gov || '',
+                    city: order.city || '',
+                    address: order.address || '',
+                    orderDetails: order.orderDetails || [],
+                    finalTotal: order.finalTotal || 0,
+                    quantity: order.quantity || 0,
+                    price: order.price || 0,
+                    shipping: order.shipping || 0,
+                    shippingCostPaid: order.shippingCostPaid || 0,
+                    totalCost: order.totalCost || 0,
+                    profit: order.profit || 0,
+                    coupon: order.coupon || null,
+                    notes: order.notes || ''
+                }
+            },
+            performedBy: window.currentUserEmail || 'system',
+            severity: 'warning'
+        });
+
+        // ✅ حذف الطلب
+        await deleteDoc(doc(db, "orders", id));
         customAlert("تم حذف الطلب وإعادة المخزون بنجاح", 'success');
+        render();
+
     } catch (e) {
         console.error(e);
         customAlert("❌ حدث خطأ أثناء الحذف", 'error');
     }
 };
-// ✅ إضافة بعد الاسترداد
-customAlert(`✅ تم استرداد الطلب ${restoredOrder.orderID} بنجاح!`, 'success');
-
-// ✅ تحديث واجهة الطلبات
-if (window.orders && typeof window.render === 'function') {
-    // إعادة تحميل الطلبات من Firestore
-    const ordersRef = collection(db, "orders");
-    const q = query(ordersRef, orderBy("createdAt", "desc"));
-    const snapshot = await getDocs(q);
-    window.orders = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-    window.render();
-}
-
-// ✅ تحديث العرض
-setTimeout(() => loadLogs(true), 1000);
 
 window.editOrder = (id) => {
   let o = orders.find(x => x.id === id);
