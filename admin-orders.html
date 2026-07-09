@@ -1422,27 +1422,6 @@ if (window.orders && typeof window.render === 'function') {
 
 // ✅ تحديث العرض
 setTimeout(() => loadLogs(true), 1000);
-// ✅ إضافة قبل الاسترداد
-// التحقق من توفر المخزون
-for (const item of (orderData.orderDetails || [])) {
-    if (!item.name || !item.size) continue;
-    let productId = item.productId;
-    let productDoc;
-    if (productId) {
-        productDoc = await getDoc(doc(db, "products", productId));
-    } else {
-        const productSnap = await getDocs(query(collection(db, "products"), where("name", "==", item.name)));
-        if (!productSnap.empty) productDoc = productSnap.docs[0];
-    }
-    if (productDoc && productDoc.exists()) {
-        const stockBySize = productDoc.data().stockBySize || {};
-        const currentStock = stockBySize[item.size];
-        if (currentStock !== null && currentStock !== undefined && currentStock < item.qty) {
-            customAlert(`❌ المخزون غير كافٍ للمنتج "${item.name}" مقاس ${item.size} (المتوفر: ${currentStock}، المطلوب: ${item.qty})`, 'error');
-            return;
-        }
-    }
-}
 
 window.editOrder = (id) => {
   let o = orders.find(x => x.id === id);
