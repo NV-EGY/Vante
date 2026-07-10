@@ -1345,11 +1345,17 @@ window.deleteOrder = async (id) => {
         // ✅ حذف الطلب
         await deleteDoc(doc(db, "orders", id));
         customAlert("تم حذف الطلب وإعادة المخزون بنجاح", 'success');
-        render();
+        
+        // ✅ تحديث الواجهة
+        if (typeof window.forceRender === 'function') {
+            await window.forceRender();
+        } else {
+            window.render();
+        }
 
     } catch (e) {
         console.error(e);
-        customAlert("❌ حدث خطأ أثناء الحذف", 'error');
+        customAlert("❌ حدث خطأ أثناء الحذف: " + e.message, 'error');
     }
 };
 
@@ -1549,6 +1555,7 @@ function formatOrderTime(dateObj) {
 }
 
 function render() {
+    const ordersData = window.orders || [];
   let date = document.getElementById("dateFilter").value;
   let search = document.getElementById("search").value.toLowerCase();
   
@@ -2761,6 +2768,19 @@ onAuthStateChanged(auth, (user) => {
         window.location.href = "login.html";
     }
 });
+// ✅ دالة قوية لتحديث الطلبات من Firestore مباشرة
+window.forceRender = async function() {
+    try {
+        console.log("🔄 [forceRender] جاري تحديث الطلبات من Firestore...");
+        const q = query(collection(db, "orders"), orderBy("createdAt", "desc"));
+        const snapshot = await getDocs(q);
+        window.orders = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        window.render();
+        console.log("✅ [forceRender] تم تحديث الطلبات بنجاح، عدد:", window.orders.length);
+    } catch (e) {
+        console.error("❌ [forceRender] فشل التحديث:", e);
+    }
+};
 // جعل الدوال المستخدمة في HTML عامة
 window.updateBulkBar = updateBulkBar;
 window.manualSyncOrders = manualSyncOrders;
