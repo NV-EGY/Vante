@@ -837,12 +837,12 @@ window.applyFilters = applyFilters;
             }
         };
     };
-    
 // ===== استرداد طلب محذوف من سجل التدقيق =====
 window.restoreOrderFromLog = async function(logId) {
     try {
         console.log("🔄 [استرداد] بدء استرداد الطلب من السجل:", logId);
         
+        // 1️⃣ جلب سجل التدقيق
         const logSnap = await getDoc(doc(db, "auditLog", logId));
         if (!logSnap.exists()) {
             customAlert('❌ سجل التدقيق غير موجود', 'error');
@@ -852,23 +852,27 @@ window.restoreOrderFromLog = async function(logId) {
         const logData = logSnap.data();
         console.log("📄 [استرداد] بيانات السجل:", logData);
         
+        // 2️⃣ التحقق من أن هذا سجل حذف
         if (logData.action !== 'order_deleted') {
-            customAlert('⚠️ هذا السجل ليس لعملية حذف طلب', 'warning');
+            customAlert('⚠️ هذا السجل ليس لعملية حذف طلب (العملية: ' + logData.action + ')', 'warning');
             return;
         }
         
+        // 3️⃣ التأكد من وجود orderId
         const orderId = logData.orderId;
         if (!orderId) {
             customAlert('❌ لا يوجد معرف طلب في هذا السجل', 'error');
             return;
         }
         
+        // 4️⃣ التحقق من أن الطلب محذوف بالفعل
         const orderSnap = await getDoc(doc(db, "orders", orderId));
         if (orderSnap.exists()) {
-            const confirmed = await customConfirm(`⚠️ الطلب ${logData.orderNumber || orderId} لا يزال موجوداً. هل تريد استبداله؟`);
+            const confirmed = await customConfirm(`⚠️ الطلب ${logData.orderNumber || orderId} لا يزال موجوداً في قاعدة البيانات. هل تريد استبداله بالبيانات المحفوظة في سجل التدقيق؟`);
             if (!confirmed) return;
         }
         
+        // 5️⃣ استخراج بيانات الطلب من سجل التدقيق
         const orderData = logData.details?.orderDataSnapshot || logData.details || {};
         
         // ✅ التحقق من توفر المخزون قبل الاسترداد
@@ -892,7 +896,7 @@ window.restoreOrderFromLog = async function(logId) {
             }
         }
         
-        // ✅ إعادة إنشاء الطلب
+        // 6️⃣ إعادة إنشاء الطلب
         const restoredOrder = {
             orderID: logData.orderNumber || `VNT-RESTORED-${Date.now()}`,
             customerName: orderData.customerName || 'مسترد',
@@ -917,10 +921,12 @@ window.restoreOrderFromLog = async function(logId) {
             originalOrderId: orderId
         };
         
-        // ✅ حفظ الطلب المسترد
+        console.log("📝 [استرداد] بيانات الطلب المسترد:", restoredOrder);
+        
+        // 7️⃣ حفظ الطلب المسترد
         await setDoc(doc(db, "orders", orderId), restoredOrder);
         
-        // ✅ خصم المخزون بعد الاسترداد
+        // ✅ 8️⃣ خصم المخزون بعد الاسترداد
         for (const item of (restoredOrder.orderDetails || [])) {
             if (!item.name || !item.size) continue;
             let productId = item.productId;
@@ -942,7 +948,7 @@ window.restoreOrderFromLog = async function(logId) {
             }
         }
         
-        // ✅ تسجيل حدث الاسترداد
+        // 9️⃣ تسجيل حدث الاسترداد في Audit Log
         try {
             const { logAuditEvent } = await import('./js/logger.js');
             await logAuditEvent({
@@ -965,16 +971,29 @@ window.restoreOrderFromLog = async function(logId) {
         
         customAlert(`✅ تم استرداد الطلب ${restoredOrder.orderID} بنجاح!`, 'success');
         
-        // ✅ تحديث واجهة الطلبات
-        if (window.orders && typeof window.render === 'function') {
-            const ordersRef = collection(db, "orders");
-            const q = query(ordersRef, orderBy("createdAt", "desc"));
-            const snapshot = await getDocs(q);
-            window.orders = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-            window.render();
+        // ✅ 10️⃣ تحديث واجهة الطلبات (مضمون 100%)
+        try {
+            // استخدام onSnapshot الخاص بـ admin-order.html إذا كان موجوداً
+            if (typeof window.forceRender === 'function') {
+                window.forceRender();
+            } else if (typeof window.render === 'function') {
+                // محاولة تحديث البيانات عبر إعادة التحميل
+                const ordersRef = collection(db, "orders");
+                const q = query(ordersRef, orderBy("createdAt", "desc"));
+                const snapshot = await getDocs(q);
+                if (window.orders !== undefined) {
+                    window.orders = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+                }
+                window.render();
+            }
+            
+            // ✅ إعادة تحميل سجل التدقيق
+            await loadLogs(true);
+        } catch (e) {
+            console.warn("⚠️ [استرداد] فشل تحديث الواجهة:", e);
+            // إعادة تحميل الصفحة كحل أخير
+            setTimeout(() => window.location.reload(), 2000);
         }
-        
-        setTimeout(() => loadLogs(true), 1000);
         
     } catch (error) {
         console.error('❌ فشل استرداد الطلب:', error);
