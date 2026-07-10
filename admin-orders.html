@@ -1555,17 +1555,23 @@ function formatOrderTime(dateObj) {
 }
 
 function render() {
+    // ✅ استخدام window.orders بدلاً من orders
     const ordersData = window.orders || [];
-  let date = document.getElementById("dateFilter").value;
-  let search = document.getElementById("search").value.toLowerCase();
-  
-  let filteredOrders = orders.filter(o => {
-    if (currentFilter !== "all" && o.status !== currentFilter) return false;
-    if (search && !o.customerName?.toLowerCase().includes(search) && !o.phone?.includes(search) && !o.orderID?.toLowerCase().includes(search) && !(o.orderDetails || []).some(detail => detail.sku?.toLowerCase().includes(search))) return false;
-    let d = o.createdAt?.toDate?.();
-    if (date && d && d.toDateString() !== new Date(date).toDateString()) return false;
-    return true;
-  });
+    let date = document.getElementById("dateFilter").value;
+    let search = document.getElementById("search").value.toLowerCase();
+
+    let filteredOrders = ordersData.filter(o => {
+        // ✅ التأكد من أن orderDetails مصفوفة
+        const details = Array.isArray(o.orderDetails) ? o.orderDetails : [];
+        if (currentFilter !== "all" && o.status !== currentFilter) return false;
+        if (search && !o.customerName?.toLowerCase().includes(search) && 
+            !o.phone?.includes(search) && 
+            !o.orderID?.toLowerCase().includes(search) && 
+            !details.some(detail => detail.sku?.toLowerCase().includes(search))) return false;
+        let d = o.createdAt?.toDate?.();
+        if (date && d && d.toDateString() !== new Date(date).toDateString()) return false;
+        return true;
+    });
   
   filteredOrders.sort((a, b) => {
     let dateA = a.createdAt?.toDate?.() || new Date(0);
@@ -1659,11 +1665,15 @@ if (o.notes) {
             📍 ${o.gov} - ${o.city}<br>
             ${o.address}<br><br>
 💎 تفاصيل الطلب:
-<div style="display:flex; flex-direction:column; gap:8px; margin-top:6px;">
-${(o.orderDetails || []).map(item => `<div style="display:flex; align-items:center; gap:8px; background:#f9f9f9; padding:8px; border-radius:10px;">
-    ${item.image ? `<img src="${item.image}" style="width:40px; height:40px; object-fit:cover; border-radius:8px; cursor:pointer;" onclick="event.stopPropagation(); window.openAdminLightbox('${item.image}')">` : '<div style="width:40px; height:40px; background:#eee; border-radius:8px; display:flex; align-items:center; justify-content:center;">📷</div>'}
-    <div><b>${item.name || 'بدون اسم'}</b><br>🔖 SKU: ${item.sku || 'غير متوفر'} <button class="copy-sku-btn" onclick="event.stopPropagation(); copyToClipboard('${item.sku || ''}')" style="background:transparent; border:none; cursor:pointer; color:#0F7B65;"><i class="fas fa-copy"></i> نسخ</button><br>المقاس: ${item.size || '--'} | العدد: ${item.qty || 1} | السعر: ${item.price} EGP</div>
-</div>`).join("")}
+    // ✅ داخل الحلقة التي تعرض تفاصيل الطلب
+    const details = Array.isArray(o.orderDetails) ? o.orderDetails : [];
+    let detailsHtml = details.map(item => `
+        <div style="display:flex; align-items:center; gap:8px; background:#f9f9f9; padding:8px; border-radius:10px;">
+            ${item.image ? `<img src="${item.image}" style="width:40px; height:40px; object-fit:cover; border-radius:8px; cursor:pointer;" onclick="event.stopPropagation(); window.openAdminLightbox('${item.image}')">` : '<div style="width:40px; height:40px; background:#eee; border-radius:8px; display:flex; align-items:center; justify-content:center;">📷</div>'}
+            <div><b>${item.name || 'بدون اسم'}</b><br>🔖 SKU: ${item.sku || 'غير متوفر'} <button class="copy-sku-btn" onclick="event.stopPropagation(); copyToClipboard('${item.sku || ''}')" style="background:transparent; border:none; cursor:pointer; color:#0F7B65;"><i class="fas fa-copy"></i> نسخ</button><br>المقاس: ${item.size || '--'} | العدد: ${item.qty || 1} | السعر: ${item.price} EGP</div>
+        </div>
+    `).join("");
+}
             </div>
           </div>
           ${couponHtml}
@@ -2768,6 +2778,7 @@ onAuthStateChanged(auth, (user) => {
         window.location.href = "login.html";
     }
 });
+// ✅ دالة قوية لتحديث الطلبات من Firestore مباشرة
 // ✅ دالة قوية لتحديث الطلبات من Firestore مباشرة
 window.forceRender = async function() {
     try {
