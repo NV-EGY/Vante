@@ -1663,48 +1663,49 @@ function render() {
                 </div>
             `).join("");
 
-            html += `
-                <div class="card ${status}" style="position:relative;">
-                    <div class="order-header">
-                        <input type="checkbox" class="selectOrder" onchange="this.closest('.card').style.background = this.checked ? '#e6fff2' : '#fff'; updateBulkBar();">
-                        <span class="order-id" data-id="${o.id}" onclick="toggleOrder('${o.id}')">${o.orderID}</span>
-                        <span class="status ${status}" onclick="toggleOrder('${o.id}')">${statusText}</span>
-                    </div>
-                    <div id="order-${o.id}" class="order-body" style="display: ${isOpen ? 'flex' : 'none'};">
-                        <div class="order-info">
-                            👤 ${o.customerName}<br>
-                            📞 ${o.phone}<br>
-                            📍 ${o.gov} - ${o.city}<br>
-                            ${o.address}<br><br>
-                            💎 تفاصيل الطلب:
-                            <div style="display:flex; flex-direction:column; gap:8px; margin-top:6px;">
-                                ${detailsHtml}
-                            </div>
-                            ${notesHtml}
-                        </div>
-                        ${couponHtml}
-                        <div class="order-summary">
-                            📦 ${o.quantity}<br>💰 ${o.price}<br>🚚 ${o.shipping}<br>💵 <b>${o.finalTotal}</b>
-                            <div class="actions" style="display: ${isOpen ? 'flex' : 'none'};">
-                                <a class="action-btn whatsapp" target="_blank" href="https://wa.me/2${o.phone}"><i class="fab fa-whatsapp"></i></a>
-                                <button class="action-btn copy" onclick='copyText(${JSON.stringify(msg)})'><i class="fas fa-copy"></i></button>
-                                <button class="action-btn" onclick="copyOrderConfirmation('${o.id}')" style="background:#0F7B65; color:#fff; border:none; border-radius:8px; cursor:pointer; flex:1; padding:6px;">
-                                    <i class="fas fa-file-alt"></i> نسخ التأكيد
-                                </button>
-                                <button class="action-btn" onclick="sendWhatsAppLinks('${o.id}')" style="background:#25D366; color:#fff; border:none; border-radius:8px; cursor:pointer; flex:1; padding:6px;">
-                                    <i class="fab fa-whatsapp"></i> تأكيد الطلب
-                                </button>
-                            </div>
-                            ⏰ ${orderTime}
-                            <div style="display:flex; gap:6px; margin-top:10px; flex-wrap:wrap;">
-                                <button onclick="editOrder('${o.id}')" style="flex:1;min-width:45px;background:#ffc107;border:none;padding:6px;border-radius:8px;cursor:pointer;">✏️</button>
-                                ${o.qpSerial ? `<button onclick="clearQPSerial('${o.id}')" style="flex:1;min-width:45px;background:#f39c12;color:#000;border:none;padding:6px;border-radius:8px;cursor:pointer;font-weight:bold;">🔄 مسح QP</button>` : ''}
-                                <button onclick="deleteOrder('${o.id}')" style="flex:1;min-width:45px;background:#dc3545;color:#fff;border:none;padding:6px;border-radius:8px;cursor:pointer;">🗑️</button>
-                            </div>
-                        </div>
-                    </div>
+            // ✅ داخل حلقة for (let o of ordersInDay)
+html += `
+    <div class="card ${status}" style="position:relative;">
+        <div class="order-header">
+            <input type="checkbox" class="selectOrder" onchange="this.closest('.card').style.background = this.checked ? '#e6fff2' : '#fff'; updateBulkBar();">
+            <span class="order-id" data-id="${o.id}" onclick="toggleOrder('${o.id}')">${o.orderID}</span>
+            <span class="status ${status}" onclick="toggleOrder('${o.id}')">${statusText}</span>
+        </div>
+        <div id="order-${o.id}" class="order-body" style="display: ${isOpen ? 'flex' : 'none'};">
+            <div class="order-info">
+                👤 ${o.customerName}<br>
+                📞 ${o.phone}<br>
+                📍 ${o.gov} - ${o.city}<br>
+                ${o.address}<br><br>
+                💎 تفاصيل الطلب:
+                <div style="display:flex; flex-direction:column; gap:8px; margin-top:6px;">
+                    ${detailsHtml}
                 </div>
-            `;
+                ${notesHtml}
+            </div>
+            ${couponHtml}
+            <div class="order-summary">
+                📦 ${o.quantity}<br>💰 ${o.price}<br>🚚 ${o.shipping}<br>💵 <b>${o.finalTotal}</b>
+                <div class="actions" style="display: ${isOpen ? 'flex' : 'none'};">
+                    <a class="action-btn whatsapp" target="_blank" href="https://wa.me/2${o.phone}"><i class="fab fa-whatsapp"></i></a>
+                    <button class="action-btn copy" onclick='copyText(${JSON.stringify(msg)})'><i class="fas fa-copy"></i></button>
+                    <button class="action-btn" onclick="copyOrderConfirmation('${o.id}')" style="background:#0F7B65; color:#fff; border:none; border-radius:8px; cursor:pointer; flex:1; padding:6px;">
+                        <i class="fas fa-file-alt"></i> نسخ التأكيد
+                    </button>
+                    <button class="action-btn" onclick="sendWhatsAppLinks('${o.id}')" style="background:#25D366; color:#fff; border:none; border-radius:8px; cursor:pointer; flex:1; padding:6px;">
+                        <i class="fab fa-whatsapp"></i> تأكيد الطلب
+                    </button>
+                </div>
+                ⏰ ${orderTime}
+                <div style="display:flex; gap:6px; margin-top:10px; flex-wrap:wrap;">
+                    <button onclick="editOrder('${o.id}')" style="flex:1;min-width:45px;background:#ffc107;border:none;padding:6px;border-radius:8px;cursor:pointer;">✏️</button>
+                    ${o.qpSerial ? `<button onclick="clearQPSerial('${o.id}')" style="flex:1;min-width:45px;background:#f39c12;color:#000;border:none;padding:6px;border-radius:8px;cursor:pointer;font-weight:bold;">🔄 مسح QP</button>` : ''}
+                    <button onclick="deleteOrder('${o.id}')" style="flex:1;min-width:45px;background:#dc3545;color:#fff;border:none;padding:6px;border-radius:8px;cursor:pointer;">🗑️</button>
+                </div>
+            </div>
+        </div>
+    </div>
+`;
         }
 
         html += `</div></div>`;
@@ -1794,66 +1795,61 @@ function load() {
         badge.innerText = unread;
     });
 
-    // ===== مستمع الطلبات - مع تسجيل الطلبات الجديدة (فقط عند الإضافة الفعلية) =====
     // ===== مستمع الطلبات =====
-let initialLoad = true;
+    let initialLoad = true;
 
-onSnapshot(query(collection(db, "orders"), orderBy("createdAt", "desc")), (snap) => {
-    // ✅ معالجة الطلبات الجديدة
-    snap.docChanges().forEach(async (change) => {
-        if (change.type === "added" && !initialLoad) {
-            const orderId = change.doc.id;
-            const orderData = change.doc.data();
-            
-            // 🔔 إشعار الصوت
-            new Audio("https://assets.mixkit.co/sfx/preview/mixkit-bell-notification-933.mp3").play().catch(()=>{});
-            if (Notification.permission === "granted") {
-                new Notification("طلب جديد", { 
-                    body: `${orderData.customerName || 'عميل'} - ${orderData.phone || ''}` 
-                });
+    onSnapshot(query(collection(db, "orders"), orderBy("createdAt", "desc")), (snap) => {
+        // ✅ معالجة الطلبات الجديدة
+        snap.docChanges().forEach(async (change) => {
+            if (change.type === "added" && !initialLoad) {
+                const orderId = change.doc.id;
+                const orderData = change.doc.data();
+                
+                new Audio("https://assets.mixkit.co/sfx/preview/mixkit-bell-notification-933.mp3").play().catch(()=>{});
+                if (Notification.permission === "granted") {
+                    new Notification("طلب جديد", { 
+                        body: `${orderData.customerName || 'عميل'} - ${orderData.phone || ''}` 
+                    });
+                }
+                showPopup(orderData);
+                
+                try {
+                    await logAuditEvent({
+                        action: 'order_created',
+                        orderId: orderId,
+                        orderNumber: orderData.orderID || 'N/A',
+                        details: {
+                            customerName: orderData.customerName || 'غير معروف',
+                            phone: orderData.phone || '',
+                            gov: orderData.gov || '',
+                            city: orderData.city || '',
+                            finalTotal: orderData.finalTotal || 0,
+                            quantity: orderData.quantity || 0,
+                            orderDetails: orderData.orderDetails || []
+                        },
+                        performedBy: 'system',
+                        severity: 'info'
+                    });
+                    console.log("✅ [Audit Log] تم تسجيل طلب جديد:", orderData.orderID);
+                } catch (e) {
+                    console.error("❌ [Audit Log] فشل تسجيل طلب جديد:", e.message);
+                }
             }
-            showPopup(orderData);
-            
-            // ✅ تسجيل الطلب الجديد في Audit Log
-            try {
-                await logAuditEvent({
-                    action: 'order_created',
-                    orderId: orderId,
-                    orderNumber: orderData.orderID || 'N/A',
-                    details: {
-                        customerName: orderData.customerName || 'غير معروف',
-                        phone: orderData.phone || '',
-                        gov: orderData.gov || '',
-                        city: orderData.city || '',
-                        finalTotal: orderData.finalTotal || 0,
-                        quantity: orderData.quantity || 0,
-                        orderDetails: orderData.orderDetails || []
-                    },
-                    performedBy: 'system',
-                    severity: 'info'
-                });
-                console.log("✅ [Audit Log] تم تسجيل طلب جديد:", orderData.orderID);
-            } catch (e) {
-                console.error("❌ [Audit Log] فشل تسجيل طلب جديد:", e.message);
-            }
+        });
+
+        // ✅ تحديث البيانات
+        lastCount = snap.size;
+        const newOrders = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        orders = newOrders;
+        window.orders = newOrders;
+        
+        render();
+        
+        if (initialLoad) {
+            initialLoad = false;
+            console.log("✅ [Admin] تم تحميل الطلبات الأولي، جاهز للإشعارات");
         }
     });
-
-    // ✅ تحديث البيانات - الأهم هنا
-    lastCount = snap.size;
-    const newOrders = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    
-    // ✅✅✅ تحديث كلا المتغيرين
-    orders = newOrders;
-    window.orders = newOrders;
-    
-    render();
-    
-    if (initialLoad) {
-        initialLoad = false;
-        console.log("✅ [Admin] تم تحميل الطلبات الأولي، جاهز للإشعارات");
-    }
-});
 
 // Custom Confirm - مودال احترافي بديل
 window.customConfirm = function(message) {
