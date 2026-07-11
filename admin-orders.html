@@ -1366,7 +1366,8 @@ window.editOrder = (id) => {
   if (!o) return;
   let box = document.getElementById("msgPopup");
   let detailsHtml = '';
-  (o.orderDetails || []).forEach((item, idx) => {
+const details = Array.isArray(o.orderDetails) ? o.orderDetails : [];
+details.forEach((item, idx) => {
     detailsHtml += `<div style="background:#f8f8f8; padding:12px; border-radius:12px; margin-bottom:10px;">
       <b>المنتج ${idx+1}</b>
       <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:8px;">
@@ -1408,7 +1409,8 @@ window.calculateProfitFromEdit = () => {
 window.saveEdit = async (id) => {
   const oldOrder = orders.find(o => o.id === id);
   if (!oldOrder) { customAlert("الطلب غير موجود", 'error'); return; }
-  let detailsCount = (orders.find(x => x.id === id)?.orderDetails || []).length;
+  const order = orders.find(x => x.id === id);
+const detailsCount = Array.isArray(order?.orderDetails) ? order.orderDetails.length : 0;
   let orderDetails = [];
   for (let i = 0; i < detailsCount; i++) {
     let name = document.getElementById(`editDetailName_${i}`)?.value || '';
@@ -1636,7 +1638,8 @@ function render() {
                 hold: 'معلق'
             }[status] || status;
 
-            let msg = `VANTÉ\nكود: ${o.orderID}\n👤 ${o.customerName}\n📞 ${o.phone}\n📍 ${o.gov} - ${o.city}\n${o.address}\n💎 ${(o.orderDetails || []).map(i => `${i.name} (${i.size}) x${i.qty}`).join(', ')}\n💰 ${o.finalTotal} جنيه`;
+            const detailsArray = Array.isArray(o.orderDetails) ? o.orderDetails : [];
+let msg = `VANTÉ\nكود: ${o.orderID}\n👤 ${o.customerName}\n📞 ${o.phone}\n📍 ${o.gov} - ${o.city}\n${o.address}\n💎 ${detailsArray.map(i => `${i.name} (${i.size}) x${i.qty}`).join(', ')}\n💰 ${o.finalTotal} جنيه`;
 
             let couponHtml = '';
             if (o.coupon) {
@@ -2685,7 +2688,8 @@ async function restoreStockForOrder(orderId) {
     const order = orderSnap.data();
     if (order.stockRestored) return;
 
-    for (const item of (order.orderDetails || [])) {
+    const details = Array.isArray(order.orderDetails) ? order.orderDetails : [];
+for (const item of details) {
         if (!item.name || !item.size) continue;
         let productId = item.productId;
         let productDoc;
