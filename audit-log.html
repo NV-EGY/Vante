@@ -226,7 +226,8 @@
 import {
     getFirestore, collection, query, orderBy, onSnapshot,
     deleteDoc, doc, getDocs, Timestamp, addDoc,
-    writeBatch, where, limit, getDoc, setDoc, serverTimestamp
+    writeBatch, where, limit, getDoc, setDoc, serverTimestamp,
+    updateDoc   // ✅ تمت إضافتها
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 // ===== متغيرات تحميل المزيد =====
@@ -890,9 +891,7 @@ window.restoreOrderFromLog = async function(logId) {
         if (Array.isArray(rawDetails)) {
             orderDetails = rawDetails;
         } else if (typeof rawDetails === 'object' && rawDetails !== null) {
-            // تحويل الكائن إلى مصفوفة (إذا كان يحتوي على مفاتيح رقمية أو mapValue)
             if (rawDetails.mapValue?.fields) {
-                // صيغة Firestore
                 const fields = rawDetails.mapValue.fields;
                 orderDetails = Object.values(fields).map(f => {
                     const value = f.mapValue?.fields || {};
@@ -908,16 +907,13 @@ window.restoreOrderFromLog = async function(logId) {
                     };
                 });
             } else {
-                // كائن عادي
                 orderDetails = Object.values(rawDetails);
             }
         } else if (typeof rawDetails === 'string') {
-            // محاولة تحليل JSON
             try {
                 const parsed = JSON.parse(rawDetails);
                 orderDetails = Array.isArray(parsed) ? parsed : Object.values(parsed);
             } catch {
-                // استخراج أسماء المنتجات من النص
                 const matches = rawDetails.match(/[^\s,]+/g);
                 if (matches && matches.length) {
                     orderDetails = matches.map(name => ({
@@ -953,30 +949,34 @@ window.restoreOrderFromLog = async function(logId) {
             return;
         }
         
-        // ✅ التحقق من المخزون
-        for (const item of orderDetails) {
-            if (!item.name || !item.size) continue;
-            let productDoc = null;
-            if (item.productId) {
-                productDoc = await getDoc(doc(db, "products", item.productId));
-            } else {
-                const productSnap = await getDocs(query(collection(db, "products"), where("name", "==", item.name)));
-                if (!productSnap.empty) productDoc = productSnap.docs[0];
-            }
-            if (productDoc && productDoc.exists()) {
-                const stockBySize = productDoc.data().stockBySize || {};
-                const currentStock = stockBySize[item.size];
-                if (currentStock !== null && currentStock !== undefined && currentStock < item.qty) {
-                    customAlert(`❌ المخزون غير كافٍ للمنتج "${item.name}" مقاس ${item.size} (المتوفر: ${currentStock}، المطلوب: ${item.qty})`, 'error');
-                    return;
+        // ✅ التحقق من المخزون (فقط إذا كان الطلب غير موجود)
+        const orderSnap = await getDoc(doc(db, "orders", orderId));
+        const orderExists = orderSnap.exists();
+        
+        if (!orderExists) {
+            for (const item of orderDetails) {
+                if (!item.name || !item.size) continue;
+                let productDoc = null;
+                if (item.productId) {
+                    productDoc = await getDoc(doc(db, "products", item.productId));
+                } else {
+                    const productSnap = await getDocs(query(collection(db, "products"), where("name", "==", item.name)));
+                    if (!productSnap.empty) productDoc = productSnap.docs[0];
+                }
+                if (productDoc && productDoc.exists()) {
+                    const stockBySize = productDoc.data().stockBySize || {};
+                    const currentStock = stockBySize[item.size];
+                    if (currentStock !== null && currentStock !== undefined && currentStock < item.qty) {
+                        customAlert(`❌ المخزون غير كافٍ للمنتج "${item.name}" مقاس ${item.size} (المتوفر: ${currentStock}، المطلوب: ${item.qty})`, 'error');
+                        return;
+                    }
                 }
             }
         }
         
-        // ✅ التأكد من أن الطلب غير موجود
-        const orderSnap = await getDoc(doc(db, "orders", orderId));
-        if (orderSnap.exists()) {
-            const confirmed = await customConfirm(`⚠️ الطلب ${logData.orderNumber || orderId} لا يزال موجوداً. هل تريد استبداله؟`);
+        // ✅ إذا كان الطلب موجوداً، نسأل المستخدم
+        if (orderExists) {
+            const confirmed = await customConfirm(`⚠️ الطلب ${logData.orderNumber || orderId} لا يزال موجوداً. هل تريد استبداله بالبيانات المحفوظة؟\n\nملاحظة: لن يتم خصم المخزون مرة أخرى.`);
             if (!confirmed) return;
         }
         
@@ -1014,28 +1014,33 @@ window.restoreOrderFromLog = async function(logId) {
         
         console.log("📝 [استرداد] الطلب المسترد النهائي:", restoredOrder);
         
-        // ✅ حفظ الطلب
+        // ✅ حفظ الطلب (استبدال أو إنشاء)
         await setDoc(doc(db, "orders", orderId), restoredOrder);
         
-        // ✅ خصم المخزون
-        for (const item of orderDetails) {
-            if (!item.name || !item.size) continue;
-            let productDoc = null;
-            if (item.productId) {
-                productDoc = await getDoc(doc(db, "products", item.productId));
-            } else {
-                const productSnap = await getDocs(query(collection(db, "products"), where("name", "==", item.name)));
-                if (!productSnap.empty) productDoc = productSnap.docs[0];
-            }
-            if (productDoc && productDoc.exists()) {
-                const productRef = doc(db, "products", productDoc.id);
-                const stockBySize = productDoc.data().stockBySize || {};
-                const currentStock = stockBySize[item.size];
-                if (currentStock !== null && currentStock !== undefined) {
-                    stockBySize[item.size] = Math.max(0, (currentStock || 0) - item.qty);
-                    await updateDoc(productRef, { stockBySize });
+        // ✅ خصم المخزون فقط إذا كان الطلب غير موجود سابقاً
+        if (!orderExists) {
+            for (const item of orderDetails) {
+                if (!item.name || !item.size) continue;
+                let productDoc = null;
+                if (item.productId) {
+                    productDoc = await getDoc(doc(db, "products", item.productId));
+                } else {
+                    const productSnap = await getDocs(query(collection(db, "products"), where("name", "==", item.name)));
+                    if (!productSnap.empty) productDoc = productSnap.docs[0];
+                }
+                if (productDoc && productDoc.exists()) {
+                    const productRef = doc(db, "products", productDoc.id);
+                    const stockBySize = productDoc.data().stockBySize || {};
+                    const currentStock = stockBySize[item.size];
+                    if (currentStock !== null && currentStock !== undefined) {
+                        stockBySize[item.size] = Math.max(0, (currentStock || 0) - item.qty);
+                        await updateDoc(productRef, { stockBySize });
+                    }
                 }
             }
+            console.log("✅ [استرداد] تم خصم المخزون (طلب جديد)");
+        } else {
+            console.log("ℹ️ [استرداد] الطلب موجود بالفعل، تم تخطي خصم المخزون");
         }
         
         // ✅ تسجيل حدث الاسترداد
@@ -1051,7 +1056,8 @@ window.restoreOrderFromLog = async function(logId) {
                     phone: restoredOrder.phone,
                     finalTotal: restoredOrder.finalTotal,
                     orderDetailsCount: orderDetails.length,
-                    notes: `تم استرداد الطلب من سجل التدقيق (${logId})`
+                    wasExisting: orderExists,
+                    notes: `تم استرداد الطلب من سجل التدقيق (${logId})${orderExists ? ' - كان موجوداً' : ''}`
                 },
                 performedBy: window.currentUserEmail || 'system',
                 severity: 'info'
