@@ -4370,7 +4370,7 @@ const normalize = (str) => (str || "").toString().trim().toLowerCase();
 
         // التحقق من الهاش (الأمان)
         const hash = params.get('hash');
-        const secret = 'your-secret-key'; // يجب أن يتطابق مع المفتاح في admin-order.html
+        const secret = 'your-secret-key';
         const expectedHash = btoa(orderId + secret);
         if (hash !== expectedHash) {
             customAlert('⚠️ رابط غير صالح', 'error');
@@ -4392,7 +4392,43 @@ const normalize = (str) => (str || "").toString().trim().toLowerCase();
             return;
         }
 
+        // ✅ حفظ الحالة القديمة قبل التحديث
+        const oldStatus = orderData.status;
+
+        // ✅ تحديث الطلب
         await updateDoc(orderRef, { status: newStatus });
+
+        // ✅ ========== تسجيل الحدث في Audit Log ==========
+        try {
+            const { logAuditEvent } = await import('./js/logger.js');
+            
+            // بناء التفاصيل حسب نوع العملية
+            let action = confirmOrderId ? 'order_confirmed' : 'order_cancelled';
+            let notes = confirmOrderId 
+                ? '✅ تم تأكيد الطلب بواسطة العميل عبر الرابط' 
+                : '❌ تم إلغاء الطلب بواسطة العميل عبر الرابط';
+            
+            await logAuditEvent({
+                action: action,
+                orderId: orderId,
+                orderNumber: orderData.orderID || orderId,
+                details: {
+                    oldStatus: oldStatus,
+                    newStatus: newStatus,
+                    notes: notes,
+                    customerName: orderData.customerName || 'غير معروف',
+                    phone: orderData.phone || '',
+                    confirmedAt: new Date().toISOString()
+                },
+                performedBy: `customer (${orderData.phone || 'unknown'})`,
+                severity: confirmOrderId ? 'info' : 'warning'
+            });
+            
+            console.log(`✅ [Audit Log] تم تسجيل ${action} للطلب ${orderData.orderID}`);
+            
+        } catch (logError) {
+            console.error('❌ [Audit Log] فشل تسجيل الحدث:', logError);
+        }
 
         const msg = confirmOrderId ? '✅ تم تأكيد الطلب بنجاح! شكراً لك.' : '❌ تم رفض الطلب.';
         customAlert(msg, 'success');
@@ -4402,6 +4438,7 @@ const normalize = (str) => (str || "").toString().trim().toLowerCase();
         setTimeout(() => {
             window.location.href = '/';
         }, 3000);
+
     } catch (error) {
         console.error(error);
         customAlert('❌ حدث خطأ أثناء معالجة الطلب، حاول مرة أخرى.', 'error');
