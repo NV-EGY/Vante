@@ -1,5 +1,5 @@
 // js/logger.js
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { initializeApp, getApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
     getFirestore, collection, addDoc, Timestamp, getDoc, doc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -13,15 +13,53 @@ const firebaseConfig = {
     appId: "1:842319700646:web:f6afd78ef7038c3be4ca67"
 };
 
-const app = initializeApp(firebaseConfig);
+// ✅ منع تكرار تهيئة Firebase
+let app;
+try {
+    app = getApp();
+} catch {
+    app = initializeApp(firebaseConfig);
+}
+
 const db = getFirestore(app);
 
-export async function logAuditEvent(data) {
-    // ============================================================
-    // ✅ السماح بالتسجيل فقط من صفحات الإدارة المحددة
-    // ============================================================
-    const currentPath = window.location.pathname;
+/**
+ * تحويل أي قيمة إلى صيغة Firestore REST API
+ */
+function convertToFirestoreValue(value) {
+    if (value === null || value === undefined) {
+        return { nullValue: null };
+    }
     
+    if (typeof value === 'string') {
+        return { stringValue: value };
+    }
+    if (typeof value === 'number') {
+        return Number.isInteger(value) ? { integerValue: value } : { doubleValue: value };
+    }
+    if (typeof value === 'boolean') {
+        return { booleanValue: value };
+    }
+    if (Array.isArray(value)) {
+        return {
+            arrayValue: {
+                values: value.map(item => convertToFirestoreValue(item))
+            }
+        };
+    }
+    if (typeof value === 'object') {
+        const fields = {};
+        for (const [k, v] of Object.entries(value)) {
+            fields[k] = convertToFirestoreValue(v);
+        }
+        return { mapValue: { fields } };
+    }
+    return { stringValue: String(value) };
+}
+
+export async function logAuditEvent(data) {
+    // ✅ السماح بالتسجيل فقط من صفحات الإدارة
+    const currentPath = window.location.pathname;
     const allowedPages = [
         'admin-order',
         'admin-products',
@@ -30,10 +68,8 @@ export async function logAuditEvent(data) {
         'Audit-log',
         'admin-order (1)'
     ];
-    
     const isAdminPage = allowedPages.some(page => currentPath.includes(page));
     if (!isAdminPage) return;
-    // ============================================================
 
     try {
         const {
@@ -45,52 +81,22 @@ export async function logAuditEvent(data) {
             severity = 'info'
         } = data;
 
-        // ✅ تحويل details إلى صيغة قابلة للقراءة
-        const cleanDetails = {};
-        for (const [key, value] of Object.entries(details)) {
-            if (typeof value === 'string') {
-                cleanDetails[key] = { stringValue: value };
-            } else if (typeof value === 'number') {
-                cleanDetails[key] = { doubleValue: value };
-            } else if (typeof value === 'boolean') {
-                cleanDetails[key] = { booleanValue: value };
-            } else if (Array.isArray(value)) {
-                cleanDetails[key] = { 
-                    arrayValue: { 
-                        values: value.map(v => ({ stringValue: String(v) })) 
-                    } 
-                };
-            } else if (value && typeof value === 'object') {
-                // ✅ دعم الكائنات المتداخلة (مثل oldStatus, newStatus)
-                const nestedFields = {};
-                for (const [k, v] of Object.entries(value)) {
-                    if (typeof v === 'string') {
-                        nestedFields[k] = { stringValue: v };
-                    } else if (typeof v === 'number') {
-                        nestedFields[k] = { doubleValue: v };
-                    } else {
-                        nestedFields[k] = { stringValue: String(v) };
-                    }
-                }
-                cleanDetails[key] = { mapValue: { fields: nestedFields } };
-            } else {
-                cleanDetails[key] = { stringValue: String(value) };
-            }
-        }
+        // ✅ تحويل details بالكامل باستخدام الدالة الجديدة
+        const cleanDetails = convertToFirestoreValue(details);
 
-        // ✅ إضافة الحقول الرئيسية كقيم مباشرة للعرض
+        // ✅ بناء المستند النهائي
         const docData = {
             action: { stringValue: action },
             orderId: { stringValue: orderId || '' },
             orderNumber: { stringValue: orderNumber || '' },
             severity: { stringValue: severity || 'info' },
-            details: { mapValue: { fields: cleanDetails } },
+            details: cleanDetails,
             performedBy: { stringValue: performedBy || 'system' },
             timestamp: { timestampValue: new Date().toISOString() },
             createdAt: { timestampValue: new Date().toISOString() }
         };
 
-        // ✅ إضافة القيم المباشرة للعرض السريع
+        // ✅ إضافة حقول مساعدة للعرض السريع
         if (details.oldStatus) {
             docData.oldStatus = { stringValue: String(details.oldStatus) };
         }
@@ -107,7 +113,7 @@ export async function logAuditEvent(data) {
             docData.finalTotal = { doubleValue: Number(details.finalTotal) };
         }
 
-        // ✅ حفظ باستخدام REST API مباشرة (لضمان التوافق)
+        // ✅ حفظ باستخدام REST API
         const token = await getAuthToken();
         const projectId = "vante-orders";
         const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/auditLog`;
@@ -129,8 +135,8 @@ export async function logAuditEvent(data) {
         return await response.json();
 
     } catch (error) {
-        console.error("❌ [Audit Log] فشل التسجيل:", error);
-        // ✅ محاولة بديلة عبر SDK إذا فشل REST
+        console.error("❌ [Audit Log] فشل التسجيل عبر REST:", error);
+        // ✅ محاولة بديلة عبر SDK
         try {
             const logEntry = {
                 action,
@@ -149,7 +155,7 @@ export async function logAuditEvent(data) {
     }
 }
 
-// ✅ دالة مساعدة للحصول على توكن المصادقة
+// ✅ دالة الحصول على توكن المصادقة
 async function getAuthToken() {
     const { getAuth } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js');
     const auth = getAuth();
