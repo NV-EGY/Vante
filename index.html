@@ -7492,7 +7492,7 @@ function escapeHtml(text) {
 }
 // مراقبة تحميل المنتجات وتفعيل البحث عند اكتمالها
 let productsLoaded = false;
-const originalOnSnapshot = onSnapshot;
+
 // لا نحتاج لتغيير onSnapshot، فقط نضيف علامة عند أول تحميل
 // ✅ إصلاح onSnapshot - استخدمنا الدالة المستوردة من Firebase
 // نضبط productsLoaded بعد تحميل المنتجات
