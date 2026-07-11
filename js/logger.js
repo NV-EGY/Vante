@@ -62,13 +62,16 @@ export async function logAuditEvent(data) {
     // ✅ السماح بالتسجيل فقط من صفحات الإدارة
     const currentPath = window.location.pathname;
     const allowedPages = [
-        'admin-order',
-        'admin-products',
-        'admin-product',
-        'Profits',
-        'Audit-log',
-        'admin-order (1)'
-    ];
+    'admin-order',
+    'admin-products',
+    'admin-product',
+    'Profits',
+    'Audit-log',
+    'admin-order (1)',
+    '/',            // ← الصفحة الرئيسية
+    '/index.html',  // ← الصفحة الرئيسية
+    ''              // ← في بعض الحالات يكون المسار فارغاً
+];
     const isAdminPage = allowedPages.some(page => currentPath.includes(page));
     if (!isAdminPage) return;
 
