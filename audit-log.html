@@ -285,37 +285,46 @@ window.customConfirm = function(message) {
     }
 
     function getBadgeClass(action) {
-        const map = {
-            'status_change': 'badge-status-change',
-            'order_created': 'badge-order-created',
-            'order_edited': 'badge-order-edited',
-            'order_deleted': 'badge-order-deleted',
-            'return_confirmed': 'badge-return-confirmed'
-        };
-        return map[action] || 'badge-status-change';
-    }
+    const map = {
+        'status_change': 'badge-status-change',
+        'order_created': 'badge-order-created',
+        'order_edited': 'badge-order-edited',
+        'order_deleted': 'badge-order-deleted',
+        'return_confirmed': 'badge-return-confirmed',
+        'order_confirmed': 'badge-order-created',      // ✅ جديد
+        'order_cancelled': 'badge-order-deleted',      // ✅ جديد
+        'order_restored': 'badge-return-confirmed'     // ✅ جديد (للاسترداد)
+    };
+    return map[action] || 'badge-status-change';
+}
 
     function getActionLabel(action) {
-        const map = {
-            'status_change': '🔄 تغيير حالة',
-            'order_created': '✅ طلب جديد',
-            'order_edited': '✏️ تعديل طلب',
-            'order_deleted': '🗑️ حذف طلب',
-            'return_confirmed': '📦 تأكيد مرتجع'
-        };
-        return map[action] || action;
-    }
+    const map = {
+        'status_change': '🔄 تغيير حالة',
+        'order_created': '✅ طلب جديد',
+        'order_edited': '✏️ تعديل طلب',
+        'order_deleted': '🗑️ حذف طلب',
+        'return_confirmed': '📦 تأكيد مرتجع',
+        'order_confirmed': '✅ تأكيد الطلب',        // ✅ جديد
+        'order_cancelled': '❌ إلغاء الطلب',        // ✅ جديد
+        'order_restored': '🔄 استرداد طلب'          // ✅ جديد
+    };
+    return map[action] || action;
+}
 
     function getActionIcon(action) {
-        const map = {
-            'status_change': 'fa-exchange-alt',
-            'order_created': 'fa-plus-circle',
-            'order_edited': 'fa-edit',
-            'order_deleted': 'fa-trash',
-            'return_confirmed': 'fa-check-double'
-        };
-        return map[action] || 'fa-circle';
-    }
+    const map = {
+        'status_change': 'fa-exchange-alt',
+        'order_created': 'fa-plus-circle',
+        'order_edited': 'fa-edit',
+        'order_deleted': 'fa-trash',
+        'return_confirmed': 'fa-check-double',
+        'order_confirmed': 'fa-check-circle',        // ✅ جديد
+        'order_cancelled': 'fa-times-circle',        // ✅ جديد
+        'order_restored': 'fa-undo-alt'              // ✅ جديد
+    };
+    return map[action] || 'fa-circle';
+}
 
     function escapeHtml(text) {
         if (!text) return '';
@@ -665,11 +674,22 @@ function renderLogs(logs) {
         return;
     }
 
+    // ✅ الترجمة الكاملة لجميع أنواع الأحداث
+    const actionLabels = {
+        'status_change': '🔄 تغيير حالة',
+        'order_created': '✅ طلب جديد',
+        'order_edited': '✏️ تعديل طلب',
+        'order_deleted': '🗑️ حذف طلب',
+        'return_confirmed': '📦 تأكيد مرتجع',
+        'order_confirmed': '✅ تأكيد الطلب',        // ✅ جديد
+        'order_cancelled': '❌ إلغاء الطلب',        // ✅ جديد
+        'order_restored': '🔄 استرداد طلب'          // ✅ جديد
+    };
+
     let html = '';
     logs.forEach((log, index) => {
         let detailsText = '';
         
-        // ✅ قراءة البيانات من الحقول المباشرة أو من details
         const oldStatus = log.oldStatus || log.details?.oldStatus?.stringValue || log.details?.oldStatus || '?';
         const newStatus = log.newStatus || log.details?.newStatus?.stringValue || log.details?.newStatus || '?';
         const notes = log.notes || log.details?.notes?.stringValue || log.details?.notes || '';
@@ -677,11 +697,20 @@ function renderLogs(logs) {
         const finalTotal = log.finalTotal || log.details?.finalTotal?.doubleValue || log.details?.finalTotal || 0;
         const changedFields = log.changedFields || log.details?.changedFields?.arrayValue?.values?.map(v => v.stringValue) || [];
 
+        // ✅ معالجة التفاصيل حسب نوع الحدث
         if (log.action === 'status_change') {
             detailsText = `من ${oldStatus} → ${newStatus}`;
             if (notes) detailsText += ` | 📝 ${notes}`;
         } else if (log.action === 'order_created') {
             detailsText = `👤 ${customerName} | 💰 ${finalTotal}`;
+        } else if (log.action === 'order_confirmed') {
+            detailsText = `✅ ${customerName} | 📞 ${log.details?.phone || log.phone || ''}`;
+            if (notes) detailsText += ` | ${notes}`;
+        } else if (log.action === 'order_cancelled') {
+            detailsText = `❌ ${customerName} | 📞 ${log.details?.phone || log.phone || ''}`;
+            if (notes) detailsText += ` | ${notes}`;
+        } else if (log.action === 'order_restored') {
+            detailsText = `🔄 ${customerName} | 💰 ${finalTotal}`;
         } else if (log.action === 'order_edited') {
             detailsText = `✏️ تعديل: ${changedFields.join(', ') || 'حقول متعددة'}`;
         } else if (log.action === 'order_deleted') {
@@ -692,39 +721,31 @@ function renderLogs(logs) {
             detailsText = JSON.stringify(log.details || {}).substring(0, 100);
         }
 
-        const actionLabels = {
-            'status_change': '🔄 تغيير حالة',
-            'order_created': '✅ طلب جديد',
-            'order_edited': '✏️ تعديل طلب',
-            'order_deleted': '🗑️ حذف طلب',
-            'return_confirmed': '📦 تأكيد مرتجع'
-        };
         const actionLabel = actionLabels[log.action] || log.action;
 
-        // داخل renderLogs، في قسم الأزرار (بعد deleteLog)
-html += `
-    <tr>
-        <td>${index + 1}</td>
-        <td style="font-size:12px;">${formatDate(log.timestamp)}</td>
-        <td><strong style="color:#0F7B65;font-family:monospace;">${log.orderNumber || log.orderId || '-'}</strong></td>
-        <td><span class="badge ${getBadgeClass(log.action)}">${actionLabel}</span></td>
-        <td style="text-align:right; font-size:13px; max-width:250px;">${detailsText}</td>
-        <td style="font-size:12px; color:#666;">${log.performedBy || 'نظام'}</td>
-        <td>
-            <button class="btn btn-outline" style="padding:4px 10px; font-size:11px; border-radius:20px;" onclick="viewLog('${log.id}')">
-                <i class="fas fa-eye"></i>
-            </button>
-            ${log.action === 'order_deleted' ? `
-                <button class="btn btn-primary" style="padding:4px 10px; font-size:11px; border-radius:20px; background:#2ecc71; color:#fff; border:none; cursor:pointer;" onclick="restoreOrderFromLog('${log.id}')">
-                    <i class="fas fa-undo-alt"></i> استرداد
-                </button>
-            ` : ''}
-            <button class="btn btn-danger" style="padding:4px 10px; font-size:11px; border-radius:20px;" onclick="deleteLog('${log.id}')">
-                <i class="fas fa-trash"></i>
-            </button>
-        </td>
-    </tr>
-`;
+        html += `
+            <tr>
+                <td>${index + 1}</td>
+                <td style="font-size:12px;">${formatDate(log.timestamp)}</td>
+                <td><strong style="color:#0F7B65;font-family:monospace;">${log.orderNumber || log.orderId || '-'}</strong></td>
+                <td><span class="badge ${getBadgeClass(log.action)}">${actionLabel}</span></td>
+                <td style="text-align:right; font-size:13px; max-width:250px;">${detailsText}</td>
+                <td style="font-size:12px; color:#666;">${log.performedBy || 'نظام'}</td>
+                <td>
+                    <button class="btn btn-outline" style="padding:4px 10px; font-size:11px; border-radius:20px;" onclick="viewLog('${log.id}')">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    ${log.action === 'order_deleted' ? `
+                        <button class="btn btn-primary" style="padding:4px 10px; font-size:11px; border-radius:20px; background:#2ecc71; color:#fff; border:none; cursor:pointer;" onclick="restoreOrderFromLog('${log.id}')">
+                            <i class="fas fa-undo-alt"></i> استرداد
+                        </button>
+                    ` : ''}
+                    <button class="btn btn-danger" style="padding:4px 10px; font-size:11px; border-radius:20px;" onclick="deleteLog('${log.id}')">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
     });
 
     tbody.innerHTML = html;
