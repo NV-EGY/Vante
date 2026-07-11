@@ -1,12 +1,6 @@
-// js/sync-orders.js
-// ============================================================
-// 🔥 تهيئة Firebase مباشرة داخل الملف (لتجنب مشكلة الاستيراد)
-// ============================================================
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { logAuditEvent } from './logger.js';
-import { getFirestore, doc, getDoc, updateDoc, collection, 
-    query, where, getDocs, serverTimestamp 
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+import { initializeApp, getApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, doc, onSnapshot, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyCotT8EP2uy_HsgHknxeGBorKoEUORPtmU",
@@ -17,9 +11,16 @@ const firebaseConfig = {
     appId: "1:842319700646:web:f6afd78ef7038c3be4ca67"
 };
 
-const app = initializeApp(firebaseConfig);
+// ✅ منع تكرار تهيئة Firebase
+let app;
+try {
+    app = getApp();
+} catch {
+    app = initializeApp(firebaseConfig);
+}
+
 const db = getFirestore(app);
-export { db }; // تصدير db لاستخدامه في ملفات أخرى إذا احتجت
+export { db };
 export { restoreStockForOrder };
 // =================== إعدادات QP ===================
 let QP_CONFIG = null;
