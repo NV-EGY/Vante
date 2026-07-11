@@ -841,62 +841,45 @@ window.applyFilters = applyFilters;
 window.restoreOrderFromLog = async function(logId) {
     try {
         console.log("🔄 [استرداد] بدء استرداد الطلب من السجل:", logId);
-        
-        // 1️⃣ جلب سجل التدقيق
+
         const logSnap = await getDoc(doc(db, "auditLog", logId));
         if (!logSnap.exists()) {
             customAlert('❌ سجل التدقيق غير موجود', 'error');
             return;
         }
-        
+
         const logData = logSnap.data();
         console.log("📄 [استرداد] بيانات السجل:", logData);
-        
-        // 2️⃣ التحقق من أن هذا سجل حذف
+
         if (logData.action !== 'order_deleted') {
-            customAlert('⚠️ هذا السجل ليس لعملية حذف طلب (العملية: ' + logData.action + ')', 'warning');
+            customAlert('⚠️ هذا السجل ليس لعملية حذف طلب', 'warning');
             return;
         }
-        
-        // 3️⃣ التأكد من وجود orderId
+
         const orderId = logData.orderId;
         if (!orderId) {
             customAlert('❌ لا يوجد معرف طلب في هذا السجل', 'error');
             return;
         }
-        
-        // 4️⃣ التحقق من أن الطلب محذوف بالفعل
+
+        // التحقق من وجود الطلب حالياً
         const orderSnap = await getDoc(doc(db, "orders", orderId));
         if (orderSnap.exists()) {
-            const confirmed = await customConfirm(`⚠️ الطلب ${logData.orderNumber || orderId} لا يزال موجوداً في قاعدة البيانات. هل تريد استبداله بالبيانات المحفوظة في سجل التدقيق؟`);
+            const confirmed = await customConfirm(`⚠️ الطلب ${logData.orderNumber || orderId} لا يزال موجوداً. هل تريد استبداله بالبيانات المحفوظة؟`);
             if (!confirmed) return;
         }
-        
-        // 5️⃣ استخراج بيانات الطلب من سجل التدقيق
+
+        // استخراج بيانات الطلب من السجل
         const orderData = logData.details?.orderDataSnapshot || logData.details || {};
-        
-        // ✅ التحقق من توفر المخزون قبل الاسترداد
-        for (const item of (orderData.orderDetails || [])) {
-            if (!item.name || !item.size) continue;
-            let productId = item.productId;
-            let productDoc;
-            if (productId) {
-                productDoc = await getDoc(doc(db, "products", productId));
-            } else {
-                const productSnap = await getDocs(query(collection(db, "products"), where("name", "==", item.name)));
-                if (!productSnap.empty) productDoc = productSnap.docs[0];
-            }
-            if (productDoc && productDoc.exists()) {
-                const stockBySize = productDoc.data().stockBySize || {};
-                const currentStock = stockBySize[item.size];
-                if (currentStock !== null && currentStock !== undefined && currentStock < item.qty) {
-                    customAlert(`❌ المخزون غير كافٍ للمنتج "${item.name}" مقاس ${item.size} (المتوفر: ${currentStock}، المطلوب: ${item.qty})`, 'error');
-                    return;
-                }
-            }
+        console.log("📦 [استرداد] بيانات الطلب المستخرجة:", orderData);
+
+        // التحقق من وجود تفاصيل الطلب
+        if (!orderData.orderDetails || !Array.isArray(orderData.orderDetails) || orderData.orderDetails.length === 0) {
+            customAlert('⚠️ لا توجد تفاصيل طلب لاستردادها', 'warning');
+            return;
         }
-        
-        // 6️⃣ إعادة إنشاء الطلب
+
+        // بناء كائن الطلب المسترد
         const restoredOrder = {
             orderID: logData.orderNumber || `VNT-RESTORED-${Date.now()}`,
             customerName: orderData.customerName || 'مسترد',
@@ -904,7 +887,11 @@ window.restoreOrderFromLog = async function(logId) {
             gov: orderData.gov || '',
             city: orderData.city || '',
             address: orderData.address || '',
-            orderDetails: orderData.orderDetails || [],
+            orderDetails: orderData.orderDetails.map(item => ({
+                ...item,
+                // نضمن وجود SKU إن لم يكن موجوداً
+                sku: item.sku || null
+            })),
             finalTotal: orderData.finalTotal || 0,
             quantity: orderData.quantity || 0,
             price: orderData.price || 0,
@@ -920,35 +907,87 @@ window.restoreOrderFromLog = async function(logId) {
             restoredFrom: logId,
             originalOrderId: orderId
         };
-        
-        console.log("📝 [استرداد] بيانات الطلب المسترد:", restoredOrder);
-        
-        // 7️⃣ حفظ الطلب المسترد
-        await setDoc(doc(db, "orders", orderId), restoredOrder);
-        
-        // ✅ 8️⃣ خصم المخزون بعد الاسترداد
-        for (const item of (restoredOrder.orderDetails || [])) {
-            if (!item.name || !item.size) continue;
-            let productId = item.productId;
-            let productDoc;
-            if (productId) {
-                productDoc = await getDoc(doc(db, "products", productId));
-            } else {
-                const productSnap = await getDocs(query(collection(db, "products"), where("name", "==", item.name)));
-                if (!productSnap.empty) productDoc = productSnap.docs[0];
+
+        console.log("📝 [استرداد] الطلب المسترد:", restoredOrder);
+
+        // ====== 1. خصم المخزون (بمنطق محسّن) ======
+        let stockUpdated = false;
+        for (const item of restoredOrder.orderDetails) {
+            if (!item.name || !item.size) {
+                console.warn("⚠️ [استرداد] عنصر بدون اسم أو مقاس، تم تخطيه:", item);
+                continue;
             }
-            if (productDoc && productDoc.exists()) {
-                const productRef = doc(db, "products", productDoc.id);
-                const stockBySize = productDoc.data().stockBySize || {};
-                const currentStock = stockBySize[item.size];
-                if (currentStock !== null && currentStock !== undefined) {
-                    stockBySize[item.size] = Math.max(0, (currentStock || 0) - item.qty);
-                    await updateDoc(productRef, { stockBySize });
+
+            let productDoc = null;
+            let productId = item.productId;
+
+            // المحاولة الأولى: البحث بـ productId
+            if (productId) {
+                try {
+                    productDoc = await getDoc(doc(db, "products", productId));
+                    if (productDoc.exists()) {
+                        console.log(`✅ [استرداد] تم العثور على المنتج بواسطة ID: ${productId}`);
+                    } else {
+                        productDoc = null;
+                    }
+                } catch (e) {
+                    productDoc = null;
                 }
             }
+
+            // المحاولة الثانية: البحث بـ SKU (إن وجد)
+            if (!productDoc && item.sku) {
+                const skuSnap = await getDocs(query(collection(db, "products"), where("sku", "==", item.sku)));
+                if (!skuSnap.empty) {
+                    productDoc = skuSnap.docs[0];
+                    console.log(`✅ [استرداد] تم العثور على المنتج بواسطة SKU: ${item.sku}`);
+                }
+            }
+
+            // المحاولة الثالثة: البحث بالاسم (مع تجاهل الحالة والمسافات)
+            if (!productDoc) {
+                const nameQuery = item.name.trim();
+                const productSnap = await getDocs(query(collection(db, "products"), where("name", "==", nameQuery)));
+                if (!productSnap.empty) {
+                    productDoc = productSnap.docs[0];
+                    console.log(`✅ [استرداد] تم العثور على المنتج بواسطة الاسم: ${nameQuery}`);
+                } else {
+                    // محاولة بحث أكثر مرونة (تجاهل الحالة) – يمكن إضافتها لكنها مكلفة
+                    // نفضل استخدام index، لكننا نكتفي بالبحث الدقيق هنا.
+                }
+            }
+
+            if (!productDoc) {
+                console.warn(`❌ [استرداد] لم يتم العثور على المنتج: ${item.name} (SKU: ${item.sku || 'لا يوجد'})`);
+                customAlert(`⚠️ لم يتم العثور على المنتج "${item.name}"، لن يتم خصم مخزونه.`, 'warning');
+                continue;
+            }
+
+            // الآن لدينا المنتج، نقوم بخصم الكمية
+            const productRef = doc(db, "products", productDoc.id);
+            const productData = productDoc.data();
+            const stockBySize = productData.stockBySize || {};
+            const currentStock = stockBySize[item.size];
+
+            if (currentStock === null || currentStock === undefined) {
+                // المقاس غير موجود في المخزون، لا يمكن خصم شيء
+                console.warn(`⚠️ [استرداد] المقاس ${item.size} غير موجود في مخزون المنتج ${item.name}`);
+                continue;
+            }
+
+            // خصم الكمية (مع منع الوصول للرقم السالب)
+            const newQty = Math.max(0, (currentStock || 0) - item.qty);
+            stockBySize[item.size] = newQty;
+            await updateDoc(productRef, { stockBySize });
+            stockUpdated = true;
+            console.log(`✅ [استرداد] تم خصم ${item.qty} قطعة من مقاس ${item.size} للمنتج ${item.name} (المتبقي: ${newQty})`);
         }
-        
-        // 9️⃣ تسجيل حدث الاسترداد في Audit Log
+
+        // ====== 2. حفظ الطلب المسترد ======
+        await setDoc(doc(db, "orders", orderId), restoredOrder);
+        console.log("✅ [استرداد] تم حفظ الطلب في قاعدة البيانات");
+
+        // ====== 3. تسجيل حدث الاسترداد في Audit Log ======
         try {
             const { logAuditEvent } = await import('./js/logger.js');
             await logAuditEvent({
@@ -960,6 +999,7 @@ window.restoreOrderFromLog = async function(logId) {
                     customerName: restoredOrder.customerName,
                     phone: restoredOrder.phone,
                     finalTotal: restoredOrder.finalTotal,
+                    stockUpdated: stockUpdated,
                     notes: `تم استرداد الطلب من سجل التدقيق (${logId})`
                 },
                 performedBy: window.currentUserEmail || 'system',
@@ -968,16 +1008,14 @@ window.restoreOrderFromLog = async function(logId) {
         } catch(e) {
             console.warn("⚠️ [استرداد] فشل تسجيل حدث الاسترداد:", e);
         }
-        
+
         customAlert(`✅ تم استرداد الطلب ${restoredOrder.orderID} بنجاح!`, 'success');
-        
-        // ✅ 10️⃣ تحديث واجهة الطلبات (مضمون 100%)
+
+        // ====== 4. تحديث واجهة الطلبات ======
         try {
-            // استخدام onSnapshot الخاص بـ admin-order.html إذا كان موجوداً
             if (typeof window.forceRender === 'function') {
-                window.forceRender();
+                await window.forceRender();
             } else if (typeof window.render === 'function') {
-                // محاولة تحديث البيانات عبر إعادة التحميل
                 const ordersRef = collection(db, "orders");
                 const q = query(ordersRef, orderBy("createdAt", "desc"));
                 const snapshot = await getDocs(q);
@@ -986,15 +1024,12 @@ window.restoreOrderFromLog = async function(logId) {
                 }
                 window.render();
             }
-            
-            // ✅ إعادة تحميل سجل التدقيق
             await loadLogs(true);
         } catch (e) {
             console.warn("⚠️ [استرداد] فشل تحديث الواجهة:", e);
-            // إعادة تحميل الصفحة كحل أخير
             setTimeout(() => window.location.reload(), 2000);
         }
-        
+
     } catch (error) {
         console.error('❌ فشل استرداد الطلب:', error);
         customAlert('❌ حدث خطأ أثناء استرداد الطلب: ' + error.message, 'error');
