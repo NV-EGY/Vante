@@ -1019,7 +1019,9 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-let orders = [], lastCount = 0, currentFilter = "all", messages = [];
+let orders = [];
+window.orders = orders;  // ✅ ربط window.orders
+let lastCount = 0, currentFilter = "all", messages = [];
 let openStates = {};
 let allReviews = [], currentReviewFilter = "all", reviewSearchTerm = "";
 let currentTab = "orders";
@@ -1555,8 +1557,9 @@ function formatOrderTime(dateObj) {
 }
 
 function render() {
-    // ✅ استخدام window.orders بدلاً من orders
-    const ordersData = window.orders || [];
+    // ✅ التأكد من أن ordersData مصفوفة دائماً
+    const ordersData = Array.isArray(window.orders) ? window.orders : [];
+    
     let date = document.getElementById("dateFilter").value;
     let search = document.getElementById("search").value.toLowerCase();
 
