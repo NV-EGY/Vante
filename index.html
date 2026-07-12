@@ -8052,13 +8052,11 @@ console.log('✅ تم تفعيل تحديث الحالات التلقائي في
             console.warn('⚠️ window.openProduct غير معرفة بعد، ننتظر قليلاً...');
             return;
         }
-
-        // 2. البحث عن المنتج (id أو sku)
-        let product = window.allProducts.find(p => p.id === productId);
-        if (!product) {
-            // محاولة البحث بالـ sku (إن وجد)
-            product = window.allProducts.find(p => p.sku && p.sku === productId);
-        }
+// دعم البحث بالـ sku إذا لم يتم العثور بالـ id
+let product = window.allProducts.find(p => p.id === productId);
+if (!product) {
+    product = window.allProducts.find(p => p.sku && p.sku === productId);
+}
 
         if (!product) {
             console.warn('⚠️ المنتج غير موجود في القائمة:', productId);
