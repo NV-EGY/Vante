@@ -3816,7 +3816,7 @@ body.modal-open{
     </div>
 
     <a href="#" onclick="openContactModal(event)">تواصل مع المسئول</a>
-        <a href="#" onclick="openInfoModal(); closeMobileMenu()">دليل المتسوق</a>
+        <a href="#" onclick="openInfoModal(); closeMobileMenu(); return false;">دليل المتسوق</a>
         <div style="background: #faf7f0; border-radius: 16px; padding: 12px; margin: 15px 0 5px; border-right: 3px solid #D4AF37;">
     <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
         <div style="background: linear-gradient(135deg, #D4AF37, #B8860B); width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
@@ -4327,6 +4327,7 @@ function getCategoryFromSearch(searchTerm) {
     }
     return null;
 }
+let currentTab = 'shipping';
 let displayedProductsCount = 8;
 let pinnedProductId = null;  // معرف المنتج الذي سيظهر أولاً
 let currentSearchFilter = "";
@@ -4550,7 +4551,7 @@ const infoContent = {
     shipping: `
         <h4>📦 سياسة الشحن</h4>
         <p>نشحن إلى جميع محافظات مصر عبر شركات شحن موثوقة. مدة التوصيل من 3 إلى 7 أيام عمل حسب المحافظة.</p>
-        <p>تكلفة الشحن: 70 جنيه لجميع المحافظات (مجاني للطلبات فوق 1000 جنيه).</p>
+        <p>تكلفة الشحن: (مجاني للطلبات فوق 1000 جنيه).</p>
         <h4>🔄 سياسة الإرجاع والاستبدال</h4>
         <p>يحق لك استبدال أو إرجاع المنتج خلال 14 يومًا من تاريخ الاستلام بشرط أن يكون بحالته الأصلية والتغليف سليم.</p>
         <p>لبدء عملية الإرجاع، يرجى التواصل مع خدمة العملاء عبر رقم الواتساب او  "تواصل مع المسئول".</p>
@@ -4714,10 +4715,17 @@ const infoContent = {
 };
 let bestSellersConfig = { mode: "sales", limit: 10, manualIds: [], fillMode: "random" };
 let randomRefreshInterval = null;
-let currentTab = 'shipping';
 
 function renderInfoTab(tabId) {
+    // تعيين المحتوى
     document.getElementById('infoBody').innerHTML = infoContent[tabId];
+    
+    // ✅ إعادة التمرير إلى الأعلى عند تغيير التبويب
+    const infoBody = document.getElementById('infoBody');
+    if (infoBody) {
+        infoBody.scrollTop = 0;
+    }
+    
     if (tabId === 'size') {
         // إضافة أحداث التبويبات الفرعية
         document.querySelectorAll('.size-subtab').forEach(btn => {
@@ -4726,6 +4734,10 @@ function renderInfoTab(tabId) {
                 this.classList.add('active');
                 document.querySelectorAll('.size-subcontent').forEach(c => c.classList.remove('active'));
                 document.getElementById(this.dataset.subtab + 'Tab').classList.add('active');
+                
+                // ✅ إعادة التمرير عند تغيير التبويب الفرعي أيضاً
+                const infoBody2 = document.getElementById('infoBody');
+                if (infoBody2) infoBody2.scrollTop = 0;
             });
         });
         // التأكد من ظهور التبويب الأول
@@ -4753,7 +4765,11 @@ function closeInfoModal() {
     document.getElementById('overlay').classList.remove('active');
     document.body.style.overflow = '';
 }
-
+// داخل script type="module"، بعد تعريف الدوال
+window.openInfoModal = openInfoModal;
+window.closeInfoModal = closeInfoModal;
+window.renderInfoTab = renderInfoTab;
+window.currentTab = currentTab;
 // التبديل بين التبويبات
 document.querySelectorAll('.info-tab').forEach(tab => {
     tab.addEventListener('click', function() {
@@ -4763,10 +4779,6 @@ document.querySelectorAll('.info-tab').forEach(tab => {
         renderInfoTab(currentTab);
     });
 });
-
-// ربط الفتح بالقائمة
-window.openInfoModal = openInfoModal;
-window.closeInfoModal = closeInfoModal;
 
 function renderProducts() {
     if (!productsContainer) return;
@@ -7512,79 +7524,90 @@ let pinnedProductId = null;
 (function() {
     // دالة إغلاق جميع العناصر المنبثقة
     function closeAllModals() {
-        let closed = false;
-        
-        // مودال المنتج
-        const productModal = document.getElementById("productModal");
-        if (productModal && productModal.classList.contains("active")) {
-            productModal.classList.remove("active");
-            const overlay = document.getElementById("overlay");
-            if (overlay) overlay.classList.remove("active");
-            document.body.classList.remove("modal-open");
-            closed = true;
-        }
-        
-        // سلة التسوق
-        const cartDrawer = document.getElementById("cartDrawer");
-        if (cartDrawer && cartDrawer.classList.contains("active")) {
-            cartDrawer.classList.remove("active");
-            const overlay = document.getElementById("overlay");
-            if (overlay) overlay.classList.remove("active");
-            document.body.style.overflow = "";
-            closed = true;
-        }
-        
-        // مودال التقييم
-        const ratingModal = document.getElementById("ratingModal");
-        if (ratingModal && ratingModal.classList.contains("active")) {
-            ratingModal.classList.remove("active");
-            const overlay = document.getElementById("overlay");
-            if (overlay) overlay.classList.remove("active");
-            closed = true;
-        }
-        
-        // مودال التواصل
-        const contactModal = document.getElementById("contactModal");
-        if (contactModal && contactModal.classList.contains("active")) {
-            contactModal.classList.remove("active");
-            const overlay = document.getElementById("overlay");
-            if (overlay) overlay.classList.remove("active");
-            closed = true;
-        }
-        
-        // مودال دليل المتسوق
-        const infoModal = document.getElementById("infoModal");
-        if (infoModal && infoModal.classList.contains("active")) {
-            infoModal.classList.remove("active");
-            const overlay = document.getElementById("overlay");
-            if (overlay) overlay.classList.remove("active");
-            closed = true;
-        }
-        
-        // شريط البحث
-        const stickySearch = document.getElementById("stickySearch");
-        if (stickySearch && stickySearch.classList.contains("active")) {
-            stickySearch.classList.remove("active");
-            const activeBar = document.getElementById("activeSearchBar");
-            if (activeBar) activeBar.classList.remove("show");
-            const searchOverlay = document.getElementById("searchOverlay");
-            if (searchOverlay) searchOverlay.classList.remove("active");
-            document.getElementById("searchInput").value = "";
-            closed = true;
-        }
-        
-        // القائمة الجانبية
-        const mobileMenu = document.getElementById("mobileMenu");
-        const menuOverlay = document.getElementById("menuOverlay");
-        if (mobileMenu && mobileMenu.classList.contains("active")) {
-            mobileMenu.classList.remove("active");
-            if (menuOverlay) menuOverlay.classList.remove("active");
-            document.body.style.overflow = "";
-            closed = true;
-        }
-        
-        return closed;
+    let closed = false;
+    
+    // مودال المنتج
+    const productModal = document.getElementById("productModal");
+    if (productModal && productModal.classList.contains("active")) {
+        productModal.classList.remove("active");
+        const overlay = document.getElementById("overlay");
+        if (overlay) overlay.classList.remove("active");
+        document.body.classList.remove("modal-open");
+        closed = true;
     }
+    
+    // سلة التسوق
+    const cartDrawer = document.getElementById("cartDrawer");
+    if (cartDrawer && cartDrawer.classList.contains("active")) {
+        cartDrawer.classList.remove("active");
+        const overlay = document.getElementById("overlay");
+        if (overlay) overlay.classList.remove("active");
+        document.body.style.overflow = "";
+        closed = true;
+    }
+    
+    // مودال التقييم
+    const ratingModal = document.getElementById("ratingModal");
+    if (ratingModal && ratingModal.classList.contains("active")) {
+        ratingModal.classList.remove("active");
+        const overlay = document.getElementById("overlay");
+        if (overlay) overlay.classList.remove("active");
+        closed = true;
+    }
+    
+    // مودال التواصل
+    const contactModal = document.getElementById("contactModal");
+    if (contactModal && contactModal.classList.contains("active")) {
+        contactModal.classList.remove("active");
+        const overlay = document.getElementById("overlay");
+        if (overlay) overlay.classList.remove("active");
+        closed = true;
+    }
+    
+    // مودال دليل المتسوق
+    const infoModal = document.getElementById("infoModal");
+    if (infoModal && infoModal.classList.contains("active")) {
+        infoModal.classList.remove("active");
+        const overlay = document.getElementById("overlay");
+        if (overlay) overlay.classList.remove("active");
+        document.body.style.overflow = "";
+        closed = true;
+    }
+    
+    // ✅ مودال إتمام الطلب (المضافة حديثاً)
+    const checkoutModal = document.getElementById("checkoutModal");
+    if (checkoutModal && checkoutModal.classList.contains("active")) {
+        checkoutModal.classList.remove("active");
+        const overlay = document.getElementById("overlay");
+        if (overlay) overlay.classList.remove("active");
+        document.body.style.overflow = "";
+        closed = true;
+    }
+    
+    // شريط البحث
+    const stickySearch = document.getElementById("stickySearch");
+    if (stickySearch && stickySearch.classList.contains("active")) {
+        stickySearch.classList.remove("active");
+        const activeBar = document.getElementById("activeSearchBar");
+        if (activeBar) activeBar.classList.remove("show");
+        const searchOverlay = document.getElementById("searchOverlay");
+        if (searchOverlay) searchOverlay.classList.remove("active");
+        document.getElementById("searchInput").value = "";
+        closed = true;
+    }
+    
+    // القائمة الجانبية
+    const mobileMenu = document.getElementById("mobileMenu");
+    const menuOverlay = document.getElementById("menuOverlay");
+    if (mobileMenu && mobileMenu.classList.contains("active")) {
+        mobileMenu.classList.remove("active");
+        if (menuOverlay) menuOverlay.classList.remove("active");
+        document.body.style.overflow = "";
+        closed = true;
+    }
+    
+    return closed;
+}
     
     // دالة إضافة الهاش عند فتح أي مودال
     function addHash() {
