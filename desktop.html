@@ -3843,53 +3843,51 @@ body.modal-open{
 
     </style>
 </head>
-
 <body>
-    <!-- 🔽 ضع هذا الكود هنا 🔽 -->
+    <!-- 🔽 ضع هذا الكود هنا (أول شيء بعد <body>) 🔽 -->
     <script>
     (function() {
-        // نتحقق إذا كان الجهاز كمبيوتر (عرض الشاشة أكبر من 768 بكسل)
+        // إذا كان الجهاز كمبيوتر (عرض أكبر من 768 بكسل)
         if (window.innerWidth > 768) {
-            // 1. نوقف تحميل أي محتوى آخر في الصفحة
+            // 1. إخفاء كل محتوى الصفحة الأصلي
             document.body.innerHTML = '';
-            
-            // 2. نضبط تصميم الصفحة بالكامل ليكون في المنتصف
-            document.body.style.cssText = `
-                margin: 0;
-                padding: 20px;
+
+            // 2. إنشاء طبقة شفافة بالكامل تعرض الرسالة فقط
+            const overlay = document.createElement('div');
+            overlay.style.cssText = `
+                position: fixed;
+                top: 0; left: 0; right: 0; bottom: 0;
                 display: flex;
                 justify-content: center;
                 align-items: center;
-                min-height: 100vh;
+                background: #111111;  /* نفس لون خلفية الموقع (أو أي لون تفضله) */
+                z-index: 999999;
+                padding: 20px;
                 font-family: 'Cairo', sans-serif;
-                background: #111111;
-                color: #ffffff;
-                text-align: center;
                 direction: rtl;
+                text-align: center;
             `;
-            
-            // 3. نضيف المحتوى الجديد (رسالة الصيانة مع توضيح عمل التليفون)
-            document.body.innerHTML = `
-                <div style="max-width: 600px; padding: 30px;">
+
+            // 3. محتوى الرسالة (بدون أي زر تحويل)
+            overlay.innerHTML = `
+                <div style="max-width: 600px; width: 100%;">
                     <!-- أيقونة -->
                     <div style="font-size: 70px; margin-bottom: 25px; color: #D4AF37;">🛠️</div>
-                    
+
                     <!-- العنوان -->
                     <h1 style="font-size: 38px; font-weight: 900; color: #D4AF37; margin-bottom: 15px; letter-spacing: 2px;">
                         النسخة المكتبية قيد التطوير
                     </h1>
-                    
-                    <!-- النص التوضيحي -->
+
+                    <!-- نص توضيحي -->
                     <p style="font-size: 18px; color: #aaaaaa; line-height: 2; margin-bottom: 30px;">
                         نعمل حالياً على تحديث النسخة الخاصة بالكمبيوتر لتقديم تجربة أفضل.<br>
                         <span style="color: #ffffff; font-weight: 700;">نعتذر عن الإزعاج</span>.
                     </p>
-                    
-                    <!-- رسالة واضحة عن التليفون -->
+
+                    <!-- صندوق يؤكد عمل النسخة المحمولة -->
                     <div style="background: rgba(212, 175, 55, 0.15); border: 2px solid #D4AF37; border-radius: 20px; padding: 20px; margin-bottom: 30px;">
-                        <div style="font-size: 40px; color: #D4AF37; margin-bottom: 10px;">
-                            <i class="fas fa-mobile-alt"></i>
-                        </div>
+                        <div style="font-size: 40px; color: #D4AF37; margin-bottom: 10px;">📱</div>
                         <p style="font-size: 18px; color: #ffffff; font-weight: 700; margin-bottom: 5px;">
                             ✅ النسخة المخصصة للهواتف المحمولة تعمل بكامل طاقتها
                         </p>
@@ -3897,28 +3895,25 @@ body.modal-open{
                             يمكنك استخدام الموقع من خلال هاتفك المحمول بشكل طبيعي، جميع الخدمات متاحة.
                         </p>
                     </div>
-                    
-                    <!-- ملاحظة صغيرة -->
+
+                    <!-- ملاحظة ختامية -->
                     <p style="margin-top: 20px; font-size: 13px; color: #555555; letter-spacing: 1px;">
                         سيتم إعادة تشغيل النسخة المكتبية قريباً ✨
                     </p>
                 </div>
             `;
-            
-            // 4. نضيف أيقونات Font Awesome عشان الأيقونات تظهر
-            const link = document.createElement('link');
-            link.rel = 'stylesheet';
-            link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css';
-            document.head.appendChild(link);
-            
-            // 5. نوقف تنفيذ أي كود جافاسكريبت آخر في الصفحة
+
+            // 4. إضافة الطبقة إلى الصفحة
+            document.body.appendChild(overlay);
+
+            // 5. إيقاف تنفيذ أي كود آخر
             return;
         }
     })();
     </script>
     <!-- 🔼 نهاية الكود 🔼 -->
-    
-    <!-- باقي محتوى الصفحة (الذي لن يظهر للكمبيوتر) -->
+
+    <!-- باقي محتوى الصفحة (سيظهر فقط للهواتف) -->
 
     <div class="top-offer">
         <div class="offer-text">🎁 جارٍ تحضير عرضك الخاص...</div>
