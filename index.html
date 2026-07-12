@@ -6,10 +6,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>فانتي VANTÉ | إكسسوارات حريمي دهب استانلس فاخرة</title>
 <script>
-    // إذا كان الجهاز كمبيوتر (عرض الشاشة > 768 بكسل) -> انتقل إلى desktop.html
-    if (window.innerWidth > 768) {
-        window.location.href = "desktop.html";
-    }
+    (function() {
+        // إذا كان هناك بارامتر product في الرابط، لا نعيد التوجيه (نترك الصفحة تفتح المنتج)
+        if (window.location.search.includes('product=')) {
+            return;
+        }
+        // إذا كان الجهاز كمبيوتر (عرض الشاشة > 768 بكسل) -> انتقل إلى desktop.html
+        if (window.innerWidth > 768) {
+            window.location.href = "desktop.html";
+        }
+    })();
 </script>
  <!-- Favicon - الحل النهائي المضمون -->
 <link rel="icon" type="image/png" sizes="32x32" href="images/favicon.png">
