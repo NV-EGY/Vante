@@ -3814,11 +3814,80 @@ body.modal-open{
 #productModal .modal-content {
     padding-bottom: 90px;
 }
+/* =========================================
+   تحذير وضع الأفق (Landscape)
+========================================= */
+.rotate-warning {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #111;
+    color: #fff;
+    z-index: 999999;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 30px;
+}
+
+.rotate-warning.active {
+    display: flex;
+}
+
+.rotate-warning i {
+    font-size: 60px;
+    color: #D4AF37;
+    margin-bottom: 20px;
+    animation: rotatePhone 2s ease-in-out infinite;
+}
+
+.rotate-warning h2 {
+    font-size: 24px;
+    color: #D4AF37;
+    margin-bottom: 10px;
+}
+
+.rotate-warning p {
+    font-size: 16px;
+    color: #aaa;
+    max-width: 300px;
+}
+
+@keyframes rotatePhone {
+    0%, 100% { transform: rotate(0deg); }
+    50% { transform: rotate(90deg); }
+}
+.rotate-warning.active {
+    display: flex;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.95);
+    backdrop-filter: blur(10px);
+    z-index: 999999;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 30px;
+}
 
     </style>
 </head>
 
 <body>
+  <!-- تحذير وضع الأفق -->
+<div class="rotate-warning" id="rotateWarning">
+    <i class="fas fa-mobile-alt"></i>
+    <h2>📱 يرجى تدوير الشاشة</h2>
+    <p>لتصفح المتجر بشكل أفضل، يرجى استخدام الشاشة في الوضع الرأسي (Portrait).</p>
+</div>
 
     <div class="top-offer">
         <div class="offer-text">🎁 جارٍ تحضير عرضك الخاص...</div>
@@ -7931,6 +8000,54 @@ console.log('✅ تم تفعيل تحديث الحالات التلقائي في
             console.warn('⚠️ لم يتم تحميل المنتجات لتحديد المنتج المطلوب');
         }
     }, 500);
+})();
+</script>
+<script>
+// ========== منع وضع الأفق (Landscape) - نسخة محسنة ==========
+(function() {
+    const warning = document.getElementById('rotateWarning');
+    if (!warning) return;
+
+    let isLandscape = false;
+
+    function checkOrientation() {
+        // تنفيذ فقط على الهواتف (عرض أقل من 768)
+        if (window.innerWidth > 768) {
+            warning.classList.remove('active');
+            document.body.style.overflow = '';
+            return;
+        }
+
+        // الوضع الأفقي = العرض أكبر من الارتفاع
+        const newIsLandscape = window.innerWidth > window.innerHeight;
+
+        // إذا تغيرت الحالة
+        if (newIsLandscape !== isLandscape) {
+            isLandscape = newIsLandscape;
+            if (isLandscape) {
+                warning.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            } else {
+                warning.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        }
+    }
+
+    // 1. التحقق الفوري عند التحميل
+    checkOrientation();
+
+    // 2. التحقق عند تغيير الحجم أو الاتجاه
+    window.addEventListener('resize', checkOrientation);
+    window.addEventListener('orientationchange', function() {
+        // ننتظر 300 ملي ثانية حتى يستقر التغيير
+        setTimeout(checkOrientation, 300);
+    });
+
+    // 3. **الحل السحري: التحقق المستمر (Polling) كل ثانية واحدة**
+    // هذا يضمن اكتشاف أي تغيير حتى لو فشلت الأحداث السابقة
+    setInterval(checkOrientation, 1000);
+
 })();
 </script>
 </body>
