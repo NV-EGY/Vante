@@ -936,7 +936,13 @@
  </div>
 
 <div id="msgPopup" style="display:none;"><div class="popup-box"><div id="msgContent"></div><button onclick="closeMsg()" style="margin-top:10px;width:100%;padding:10px;border:none;background:#333;color:#fff;border-radius:10px;">إغلاق</button></div></div>
-<div id="messagesBox"><div class="inbox-header"><h3>📩 الرسائل</h3><span onclick="toggleInbox()">✖</span></div><div class="inbox-container"><div id="messagesList" class="inbox-list"></div><div id="messageView" class="inbox-view"><p style="text-align:center;color:#888;">اختر رسالة</p></div></div></div>
+<div id="messagesBox" style="display:none;">
+  <div class="inbox-header"><h3>📩 الرسائل</h3><span onclick="toggleInbox()">✖</span></div>
+  <div class="inbox-container">
+    <div id="messagesList" class="inbox-list"></div>
+    <div id="messageView" class="inbox-view"><p style="text-align:center;color:#888;">اختر رسالة</p></div>
+  </div>
+</div>
 <div id="adminLightbox" style="position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:999999; display:none; justify-content:center; align-items:center;"><img id="adminLightboxImg" src="" style="max-width:90%; max-height:90vh; object-fit:contain;"><button onclick="document.getElementById('adminLightbox').style.display='none'" style="position:absolute; top:20px; right:20px; background:#fff; border:none; font-size:24px; width:40px; height:40px; border-radius:50%; cursor:pointer;">✕</button></div>
 <!-- Custom Alert Modal -->
 <div id="customAlertOverlay" class="custom-alert-overlay">
@@ -1753,7 +1759,16 @@ window.toggleOrder = (id) => {
 };
 window.copyText = (t) => { navigator.clipboard.writeText(decodeURIComponent(t)); showToast("📋 تم نسخ التفاصيل"); };
 window.setFilter = (e, filter) => { currentFilter = filter; document.querySelectorAll(".filter-btn").forEach(btn => btn.classList.remove("active")); e.target.classList.add("active"); render(); };
-window.toggleInbox = () => { let box = document.getElementById("messagesBox"); if (box.style.display === "none") { box.style.display = "block"; setTimeout(() => box.classList.add("show"), 10); } else { box.classList.remove("show"); setTimeout(() => box.style.display = "none", 200); } };
+window.toggleInbox = () => {
+  let box = document.getElementById("messagesBox");
+  if (box.style.display === "none") {
+    box.style.display = "block";
+    setTimeout(() => box.classList.add("show"), 10);
+  } else {
+    box.classList.remove("show");
+    setTimeout(() => box.style.display = "none", 200);
+  }
+};
 window.openDatePicker = () => document.getElementById("dateFilter").showPicker();
 window.closeMsg = () => document.getElementById("msgPopup").style.display = "none";
 window.openAdminLightbox = (src) => { document.getElementById('adminLightboxImg').src = src; document.getElementById('adminLightbox').style.display = 'flex'; };
