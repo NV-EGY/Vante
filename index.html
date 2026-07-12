@@ -3815,7 +3815,7 @@ body.modal-open{
     padding-bottom: 90px;
 }
 /* =========================================
-   تحذير وضع الأفق (Landscape) - نسخة فاخرة ومحكمة
+   منع الوضع الأفقي - حل نهائي 100%
 ========================================= */
 .rotate-warning {
     display: none;
@@ -3824,33 +3824,43 @@ body.modal-open{
     left: 0;
     width: 100%;
     height: 100%;
-    background: #111111;
+    background: #000000;
     z-index: 999999;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     text-align: center;
     padding: 30px;
-    
-    /* منع أي تفاعل مع الخلفية */
     pointer-events: auto;
-    cursor: default;
+    touch-action: none;
+    user-select: none;
 }
 
 .rotate-warning.active {
     display: flex;
 }
 
-/* منع التمرير خلف التحذير */
+/* ✅ إخفاء كل شيء خلف التحذير */
 body.landscape-locked {
     overflow: hidden !important;
     position: fixed !important;
     width: 100% !important;
     height: 100% !important;
     touch-action: none !important;
+    pointer-events: none !important;
 }
 
-/* أيقونة الهاتف المتحركة */
+body.landscape-locked .rotate-warning {
+    pointer-events: auto !important;
+    touch-action: auto !important;
+}
+
+/* ✅ إخفاء المحتوى بالكامل */
+body.landscape-locked > *:not(.rotate-warning) {
+    display: none !important;
+}
+
+/* ✅ أيقونة الهاتف المتحركة */
 .rotate-warning .icon-rotate {
     font-size: 80px;
     color: #D4AF37;
@@ -3863,7 +3873,6 @@ body.landscape-locked {
     50% { transform: rotate(90deg); }
 }
 
-/* العنوان الرئيسي */
 .rotate-warning h2 {
     font-size: 32px;
     font-weight: 900;
@@ -3872,7 +3881,6 @@ body.landscape-locked {
     letter-spacing: 2px;
 }
 
-/* النص التوضيحي */
 .rotate-warning p {
     font-size: 18px;
     color: #aaaaaa;
@@ -3881,7 +3889,6 @@ body.landscape-locked {
     margin-bottom: 30px;
 }
 
-/* صندوق التوجيه */
 .rotate-warning .instruction-box {
     background: rgba(212, 175, 55, 0.15);
     border: 2px solid #D4AF37;
@@ -3916,7 +3923,6 @@ body.landscape-locked {
     color: #cccccc;
 }
 
-/* زر إعادة المحاولة */
 .rotate-warning .retry-btn {
     background: #D4AF37;
     color: #000;
@@ -3935,7 +3941,6 @@ body.landscape-locked {
     transform: scale(1.05);
 }
 
-/* ملاحظة ختامية */
 .rotate-warning .footer-note {
     margin-top: 25px;
     font-size: 13px;
@@ -8088,54 +8093,66 @@ console.log('✅ تم تفعيل تحديث الحالات التلقائي في
 })();
 </script>
 <script>
-// ========== منع وضع الأفق (Landscape) - نسخة فاخرة ==========
-// ========== منع وضع الأفق (Landscape) - نسخة فاخرة ==========
+// ========== منع الوضع الأفقي - حل نهائي 100% ==========
 (function() {
+    'use strict';
+
     const warning = document.getElementById('rotateWarning');
     if (!warning) return;
 
-    // جعل الدالة عامة لتستخدم في الزر
-    window.checkOrientation = function() {
-        // تنفيذ فقط على الهواتف (عرض أقل من 768)
-        if (window.innerWidth > 768) {
-            warning.classList.remove('active');
-            document.body.classList.remove('landscape-locked');
-            document.body.style.overflow = '';
-            return;
+    // دالة الكشف عن الوضع الأفقي
+    function isLandscape() {
+        // 1. استخدام screen.orientation (الأدق)
+        if (screen.orientation) {
+            return screen.orientation.type.includes('landscape');
         }
+        // 2. fallback: مقارنة العرض والارتفاع
+        return window.innerWidth > window.innerHeight;
+    }
 
-        // الوضع الأفقي = العرض أكبر من الارتفاع
-        if (window.innerWidth > window.innerHeight) {
+    // دالة تحديث حالة التحذير
+    function updateOrientation() {
+        const landscape = isLandscape();
+        
+        if (landscape) {
             warning.classList.add('active');
             document.body.classList.add('landscape-locked');
             document.body.style.overflow = 'hidden';
+            document.body.style.pointerEvents = 'none';
+            warning.style.pointerEvents = 'auto';
         } else {
             warning.classList.remove('active');
             document.body.classList.remove('landscape-locked');
             document.body.style.overflow = '';
+            document.body.style.pointerEvents = '';
+            warning.style.pointerEvents = '';
         }
-    };
+    }
 
-    // 1. التحقق الفوري عند التحميل
-    window.checkOrientation();
+    // التحقق الفوري
+    updateOrientation();
 
-    // 2. التحقق عند تغيير الحجم أو الاتجاه
-    window.addEventListener('resize', window.checkOrientation);
-    window.addEventListener('orientationchange', function() {
-        setTimeout(window.checkOrientation, 400);
-    });
+    // الاستماع لتغيير الاتجاه
+    if (screen.orientation) {
+        screen.orientation.addEventListener('change', updateOrientation);
+    } else {
+        // fallback للمتصفحات القديمة
+        window.addEventListener('resize', updateOrientation);
+        window.addEventListener('orientationchange', function() {
+            setTimeout(updateOrientation, 300);
+        });
+    }
 
-    // 3. التحقق المستمر كل ثانية (للتأكد من عدم فوات أي تغيير)
-    setInterval(window.checkOrientation, 1000);
+    // التحقق الدوري كل 500ms (ضمان إضافي)
+    setInterval(updateOrientation, 500);
 
-    // 4. منع أي محاولة للتمرير أثناء ظهور التحذير
+    // منع التمرير والتفاعل أثناء التحذير
     document.addEventListener('touchmove', function(e) {
         if (warning.classList.contains('active')) {
             e.preventDefault();
         }
     }, { passive: false });
 
-    // 5. منع أي نقرة على الخلفية
     document.addEventListener('click', function(e) {
         if (warning.classList.contains('active')) {
             e.preventDefault();
@@ -8143,7 +8160,10 @@ console.log('✅ تم تفعيل تحديث الحالات التلقائي في
         }
     }, true);
 
-    console.log('✅ نظام منع الوضع الأفقي (Landscape) يعمل بنجاح');
+    // جعل الدالة عامة للاستخدام في الزر
+    window.checkOrientation = updateOrientation;
+
+    console.log('✅ نظام منع الوضع الأفقي يعمل بنجاح (حل نهائي)');
 })();
 </script>
 </body>
