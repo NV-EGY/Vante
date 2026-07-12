@@ -8011,9 +8011,17 @@ listenForOrderStatusChanges();
 console.log('✅ تم تفعيل تحديث الحالات التلقائي في المتجر');
 </script>
 <script>
-// ========== فتح المنتج من الرابط (نسخة// ========== فتح المنتج من الرابط (نسخة محسنة - مضمونة 100%) ==========
+// ========== فتح المنتج من الرابط (نسخة محسّنة - مضمونة) ==========
 (function autoOpenProductFromURL() {
     'use strict';
+
+    // تعريف customAlert مبكراً لتجنب الأخطاء
+    if (typeof window.customAlert !== 'function') {
+        window.customAlert = function(msg, type = 'info') {
+            console.log(`[${type}] ${msg}`);
+            alert(msg);
+        };
+    }
 
     const params = new URLSearchParams(window.location.search);
     const productId = params.get('product');
@@ -8025,61 +8033,67 @@ console.log('✅ تم تفعيل تحديث الحالات التلقائي في
     console.log('🔍 محاولة فتح المنتج:', productId);
 
     let attempts = 0;
-    const MAX_ATTEMPTS = 40; // 20 ثانية كحد أقصى (500ms * 40)
+    const MAX_ATTEMPTS = 60; // 30 ثانية (500ms * 60)
     let interval = null;
     let timeout = null;
 
     function tryOpenProduct() {
         attempts++;
 
-        // 1. تحقق من وجود المنتجات في النطاق العام
-        if (window.allProducts && Array.isArray(window.allProducts) && window.allProducts.length > 0) {
-            const product = window.allProducts.find(p => p.id === productId);
-            if (product) {
-                console.log('✅ تم العثور على المنتج:', product.name);
-                
-                // 2. تأكد من أن openProduct معرفة
-                if (typeof window.openProduct === 'function') {
-                    // 3. فتح المودال مباشرة
-                    window.openProduct(
-                        product.id,
-                        product.name,
-                        product.price,
-                        product.image,
-                        product.sizes || ["7", "8", "9"],
-                        product.description || ""
-                    );
-                    
-                    // 4. إزالة البارامتر من الرابط (للمظهر النظيف)
-                    try {
-                        window.history.replaceState({}, document.title, window.location.pathname);
-                    } catch (e) { /* تجاهل */ }
-                    
-                    // 5. إنهاء المحاولات
-                    clearInterval(interval);
-                    clearTimeout(timeout);
-                    return;
-                } else {
-                    console.warn('⚠️ window.openProduct غير معرفة بعد، ننتظر قليلاً...');
-                    // قد تكون الدالة لم تُعرّف بعد، نستمر في المحاولة
-                }
-            } else {
-                console.warn('⚠️ المنتج غير موجود في القائمة:', productId);
-                customAlert('⚠️ المنتج غير موجود', 'error');
-                clearInterval(interval);
-                clearTimeout(timeout);
-                return;
+        // 1. التأكد من توفر المنتجات ودالة الفتح
+        if (!window.allProducts || !Array.isArray(window.allProducts) || window.allProducts.length === 0) {
+            if (attempts % 10 === 0) {
+                console.log(`⏳ في انتظار تحميل المنتجات... المحاولة ${attempts}/${MAX_ATTEMPTS}`);
             }
-        } else {
-            if (attempts % 5 === 0) { // كل 2.5 ثانية
-                console.log(`⏳ في انتظار تحميل المنتجات... المحاولة ${attempts}`);
-            }
+            return; // لا تزال البيانات غير جاهزة
         }
 
-        // إذا تجاوزنا الحد الأقصى
-        if (attempts >= MAX_ATTEMPTS) {
-            console.warn('⚠️ انتهى وقت الانتظار، لم يتم تحميل المنتجات');
-            customAlert('⚠️ تعذر تحميل المنتج، حاول تحديث الصفحة', 'error');
+        if (typeof window.openProduct !== 'function') {
+            console.warn('⚠️ window.openProduct غير معرفة بعد، ننتظر قليلاً...');
+            return;
+        }
+
+        // 2. البحث عن المنتج (id أو sku)
+        let product = window.allProducts.find(p => p.id === productId);
+        if (!product) {
+            // محاولة البحث بالـ sku (إن وجد)
+            product = window.allProducts.find(p => p.sku && p.sku === productId);
+        }
+
+        if (!product) {
+            console.warn('⚠️ المنتج غير موجود في القائمة:', productId);
+            window.customAlert('⚠️ المنتج غير موجود', 'error');
+            clearInterval(interval);
+            clearTimeout(timeout);
+            return;
+        }
+
+        console.log('✅ تم العثور على المنتج:', product.name);
+
+        // 3. فتح المنتج
+        try {
+            window.openProduct(
+                product.id,
+                product.name,
+                product.price,
+                product.image,
+                product.sizes || ["7", "8", "9"],
+                product.description || ""
+            );
+
+            // 4. إزالة البارامتر بعد فتح المودال بنجاح (مع تأخير بسيط)
+            setTimeout(() => {
+                try {
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                } catch (e) { /* تجاهل */ }
+            }, 300);
+
+            // 5. إنهاء المحاولات
+            clearInterval(interval);
+            clearTimeout(timeout);
+        } catch (err) {
+            console.error('❌ خطأ أثناء فتح المنتج:', err);
+            window.customAlert('❌ حدث خطأ أثناء فتح المنتج، حاول تحديث الصفحة', 'error');
             clearInterval(interval);
             clearTimeout(timeout);
         }
@@ -8087,19 +8101,19 @@ console.log('✅ تم تفعيل تحديث الحالات التلقائي في
 
     // بدء المحاولات كل 500ms
     interval = setInterval(tryOpenProduct, 500);
-    
+
     // مهلة نهائية (أمان)
     timeout = setTimeout(() => {
         if (interval) {
             clearInterval(interval);
             interval = null;
         }
-        console.warn('⚠️ مهلة فتح المنتج انتهت');
+        console.warn('⚠️ انتهت مهلة فتح المنتج');
+        window.customAlert('⚠️ تعذر تحميل المنتج، تأكد من اتصالك بالإنترنت وحاول مرة أخرى', 'error');
     }, MAX_ATTEMPTS * 500 + 1000);
 
     // تنفيذ المحاولة الأولى فوراً
     tryOpenProduct();
-
 })();
 </script>
 <script>
