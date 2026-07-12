@@ -3773,6 +3773,47 @@ body.modal-open{
         font-size: 12px;
     }
 }
+/* شريط الأزرار الثابت في أسفل المودال */
+#productModal .modal-footer {
+    position: sticky;
+    bottom: 0;
+    
+    padding: 15px 20px;
+    display: flex;
+    gap: 12px;
+    
+}
+#productModal .modal-footer .btn-primary,
+#productModal .modal-footer .btn-secondary {
+    flex: 1;
+    margin: 0;
+    height: 50px;
+    border-radius: 14px;
+    font-size: 15px;
+}
+#productModal .modal-footer .btn-secondary {
+    background: #f5f5f5;
+    color: #111;
+    border: none;
+}
+#productModal .modal-footer .btn-secondary:hover {
+    background: #ececec;
+}
+/* زر المشاركة يظهر بشكل مميز على الموبايل */
+@media (max-width: 480px) {
+    #productModal .modal-footer {
+        padding: 10px 15px;
+    }
+    #productModal .modal-footer .btn-primary,
+    #productModal .modal-footer .btn-secondary {
+        height: 44px;
+        font-size: 13px;
+    }
+}
+/* منع تغطية النص بواسطة الشريط الثابت */
+#productModal .modal-content {
+    padding-bottom: 90px;
+}
 
     </style>
 </head>
@@ -4056,55 +4097,50 @@ body.modal-open{
 
 <div id="productModal" class="modal">
     <button class="modal-close" onclick="closeProduct()">✕</button>
+    
+    <!-- المحتوى القابل للتمرير -->
     <div class="modal-content">
-        <!-- الصورة الكبيرة -->
         <div class="gallery-main" id="galleryMain">
-    <img id="modalImg" alt="Product Image">
-    <button class="gallery-nav next" onclick="navigateGallery(-1)">‹</button>
-<button class="gallery-nav prev" onclick="navigateGallery(1)">›</button>
-</div>
+            <img id="modalImg" alt="Product Image">
+            <button class="gallery-nav next" onclick="navigateGallery(-1)">‹</button>
+            <button class="gallery-nav prev" onclick="navigateGallery(1)">›</button>
+        </div>
+        <div class="gallery-thumbs" id="galleryThumbs"></div>
         
-<!-- داخل productModal، استبدل div gallery-thumbs القديمة بهذا -->
-<div class="gallery-thumbs" id="galleryThumbs"></div>
-
-<!-- Lightbox محسّن -->
-<div id="imageLightbox" class="image-lightbox">
-    <button class="lightbox-close" onclick="closeLightbox()">✕</button>
-    <button class="lightbox-nav prev" onclick="lightboxNav(-1)">‹</button>
-    <img id="lightboxImg" src="" alt="صورة مكبرة">
-    <button class="lightbox-nav next" onclick="lightboxNav(1)">›</button>
-</div>
-
         <div class="modal-info">
             <h2 id="modalTitle"></h2>
             <p id="modalDesc" class="modal-desc"></p>
-            
             <div class="modal-price-row">
                 <span id="modalPrice" class="modal-price"></span>
                 <span id="modalOldPrice" class="modal-old-price"></span>
             </div>
-            
-            <div id="modalStockInfo" style="text-align:center; margin: 10px 0; font-size: 14px;"></div>
-            
+            <div id="modalStockInfo" style="text-align:center; margin:10px 0; font-size:14px;"></div>
             <div class="modal-size">
                 <label>اختر المقاس</label>
                 <select id="modalSize"></select>
             </div>
-
-            <button class="btn-primary modal-add-btn" onclick="addCurrentProductToCart(event)">
-                <i class="fas fa-shopping-bag"></i> أضف للسلة
-            </button>
-
-            <div class="rating-stars" id="stars" id="rating-stars-area">
-    <span data-rate="1">★</span><span data-rate="2">★</span><span data-rate="3">★</span><span data-rate="4">★</span><span data-rate="5">★</span>
-</div>
+            <!-- تم إزالة زر الإضافة من هنا -->
+            
+            <div class="rating-stars" id="stars">
+                <span data-rate="1">★</span><span data-rate="2">★</span><span data-rate="3">★</span><span data-rate="4">★</span><span data-rate="5">★</span>
+            </div>
             <textarea id="reviewText" placeholder="اكتب رأيك..."></textarea>
             <button class="btn-primary review-submit" onclick="submitReview()">إرسال التقييم</button>
-            <div style="margin-top: 25px; border-top: 1px solid #eee; padding-top: 20px;">
-    <h4 style="text-align: center; margin-bottom: 15px; color: #D4AF37;">📝 آراء العملاء</h4>
-    <div id="productReviewsContainer"></div>
-</div>
+            <div style="margin-top:25px; border-top:1px solid #eee; padding-top:20px;">
+                <h4 style="text-align:center; margin-bottom:15px; color:#D4AF37;">📝 آراء العملاء</h4>
+                <div id="productReviewsContainer"></div>
+            </div>
         </div>
+    </div>
+
+    <!-- الشريط الثابت السفلي (يحتوي على أزرار الإضافة والمشاركة) -->
+    <div class="modal-footer" id="modalFooter">
+        <button class="btn-primary modal-add-btn" onclick="addCurrentProductToCart(event)">
+            <i class="fas fa-shopping-bag"></i> أضف للسلة
+        </button>
+        <button class="btn-secondary share-btn" onclick="shareProduct()">
+            <i class="fas fa-share-alt"></i> مشاركة
+        </button>
     </div>
 </div>
 
@@ -6177,6 +6213,81 @@ document.querySelectorAll('.desktop-dropdown > a').forEach(link => {
     });
 });
 
+// ========== مشاركة المنتج ==========
+window.shareProduct = function() {
+    if (!currentProduct) {
+        customAlert("⚠️ لا يوجد منتج للمشاركة", 'warning');
+        return;
+    }
+    const productId = currentProduct.id;
+    const productName = currentProduct.name;
+    const baseUrl = window.location.origin + window.location.pathname;
+    const shareUrl = baseUrl + '?product=' + encodeURIComponent(productId);
+    
+    // ✅ الرسالة المطلوبة
+    const shareText = `🛍️ ${productName} من VANTÉ\n${shareUrl}`;
+
+    if (navigator.share) {
+        navigator.share({
+            title: productName,
+            text: `🛍️ ${productName} من VANTÉ`,
+            url: shareUrl
+        }).catch(() => {});
+        return;
+    }
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(shareText).then(() => {
+            customAlert('✅ تم نسخ الرابط، شاركه مع أصدقائك!', 'success');
+        }).catch(() => {
+            fallbackShare(shareText);
+        });
+    } else {
+        fallbackShare(shareText);
+    }
+};
+
+// بديل للمتصفحات القديمة: فتح واتساب
+function fallbackShare(text) {
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
+    window.open(whatsappUrl, '_blank');
+}
+// ========== فتح المنتج من الرابط ==========
+(function autoOpenProductFromURL() {
+    const params = new URLSearchParams(window.location.search);
+    const productId = params.get('product');
+    if (!productId) return;
+
+    // انتظر تحميل المنتجات من Firebase
+    let attempts = 0;
+    const maxAttempts = 20; // 10 ثوانٍ كحد أقصى
+    const interval = setInterval(() => {
+        attempts++;
+        if (window.allProducts && window.allProducts.length > 0) {
+            clearInterval(interval);
+            const product = window.allProducts.find(p => p.id === productId);
+            if (product) {
+                // فتح المودال مباشرة
+                window.openProduct(
+                    product.id,
+                    product.name,
+                    product.price,
+                    product.image,
+                    product.sizes || ["7", "8", "9"],
+                    product.description || ""
+                );
+                // إزالة البارامتر من الرابط (اختياري)
+                window.history.replaceState({}, document.title, window.location.pathname);
+            } else {
+                customAlert('⚠️ المنتج غير موجود', 'error');
+            }
+        } else if (attempts >= maxAttempts) {
+            clearInterval(interval);
+            console.warn('لم يتم تحميل المنتجات لتحديد المنتج المطلوب');
+        }
+    }, 500);
+})();
+
     // ========== القوائم والبحث ==========
     function setCategory(category) {
     displayedProductsCount = 8;   // ← أضف هذا السطر
@@ -6859,6 +6970,15 @@ window.navigateGallery = function(direction) {
         activeThumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
     }
 };
+// تحديث حالة زر الإضافة (تمكين/تعطيل) حسب المخزون
+function updateModalAddButton() {
+    const addBtn = document.querySelector('.modal-add-btn');
+    if (!addBtn) return;
+    // استدعاء الدالة الموجودة بالفعل updateModalStockDisplay
+    if (typeof window.updateModalStockDisplay === 'function') {
+        window.updateModalStockDisplay();
+    }
+}
 
  
  window.changeMainImage = function(imgSrc, thumbElement) {
