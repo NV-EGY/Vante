@@ -6,16 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>فانتي VANTÉ | إكسسوارات حريمي دهب استانلس فاخرة</title>
 <script>
-    (function() {
-        // إذا كان هناك بارامتر product في الرابط، لا نعيد التوجيه (نترك الصفحة تفتح المنتج)
-        if (window.location.search.includes('product=')) {
-            return;
-        }
-        // إذا كان الجهاز كمبيوتر (عرض الشاشة > 768 بكسل) -> انتقل إلى desktop.html
-        if (window.innerWidth > 768) {
-            window.location.href = "desktop.html";
-        }
-    })();
+    // إذا كان الجهاز كمبيوتر (عرض الشاشة > 768 بكسل) -> انتقل إلى desktop.html
+    if (window.innerWidth > 768) {
+        window.location.href = "desktop.html";
+    }
 </script>
  <!-- Favicon - الحل النهائي المضمون -->
 <link rel="icon" type="image/png" sizes="32x32" href="images/favicon.png">
@@ -3820,170 +3814,11 @@ body.modal-open{
 #productModal .modal-content {
     padding-bottom: 90px;
 }
-/* =========================================
-   منع الوضع الأفقي - حل نهائي 100%
-========================================= */
-.rotate-warning {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: #000000;
-    z-index: 999999;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 30px;
-    pointer-events: auto;
-    touch-action: none;
-    user-select: none;
-}
-
-.rotate-warning.active {
-    display: flex;
-}
-
-/* ✅ إخفاء كل شيء خلف التحذير */
-body.landscape-locked {
-    overflow: hidden !important;
-    position: fixed !important;
-    width: 100% !important;
-    height: 100% !important;
-    touch-action: none !important;
-    pointer-events: none !important;
-}
-
-body.landscape-locked .rotate-warning {
-    pointer-events: auto !important;
-    touch-action: auto !important;
-}
-
-/* ✅ إخفاء المحتوى بالكامل */
-body.landscape-locked > *:not(.rotate-warning) {
-    display: none !important;
-}
-
-/* ✅ أيقونة الهاتف المتحركة */
-.rotate-warning .icon-rotate {
-    font-size: 80px;
-    color: #D4AF37;
-    margin-bottom: 25px;
-    animation: rotatePhone 2.5s ease-in-out infinite;
-}
-
-@keyframes rotatePhone {
-    0%, 100% { transform: rotate(0deg); }
-    50% { transform: rotate(90deg); }
-}
-
-.rotate-warning h2 {
-    font-size: 32px;
-    font-weight: 900;
-    color: #D4AF37;
-    margin-bottom: 15px;
-    letter-spacing: 2px;
-}
-
-.rotate-warning p {
-    font-size: 18px;
-    color: #aaaaaa;
-    line-height: 2;
-    max-width: 400px;
-    margin-bottom: 30px;
-}
-
-.rotate-warning .instruction-box {
-    background: rgba(212, 175, 55, 0.15);
-    border: 2px solid #D4AF37;
-    border-radius: 20px;
-    padding: 25px 30px;
-    max-width: 450px;
-    width: 100%;
-    margin-bottom: 30px;
-}
-
-.rotate-warning .instruction-box .arrow-icon {
-    font-size: 50px;
-    color: #D4AF37;
-    display: block;
-    margin-bottom: 10px;
-}
-
-.rotate-warning .instruction-box .step {
-    font-size: 16px;
-    color: #ffffff;
-    font-weight: 700;
-    margin: 8px 0;
-}
-
-.rotate-warning .instruction-box .step span {
-    color: #D4AF37;
-    margin-left: 8px;
-}
-
-.rotate-warning .instruction-box .sub-text {
-    font-size: 14px;
-    color: #cccccc;
-}
-
-.rotate-warning .retry-btn {
-    background: #D4AF37;
-    color: #000;
-    border: none;
-    padding: 12px 40px;
-    border-radius: 40px;
-    font-size: 16px;
-    font-weight: 800;
-    cursor: pointer;
-    transition: 0.3s;
-    margin-top: 5px;
-}
-
-.rotate-warning .retry-btn:hover {
-    background: #fff;
-    transform: scale(1.05);
-}
-
-.rotate-warning .footer-note {
-    margin-top: 25px;
-    font-size: 13px;
-    color: #555555;
-    letter-spacing: 1px;
-}
 
     </style>
 </head>
 
 <body>
-<!-- تحذير وضع الأفق - نسخة فاخرة -->
-<div class="rotate-warning" id="rotateWarning">
-    <div class="icon-rotate">
-        <i class="fas fa-mobile-alt"></i>
-    </div>
-    
-    <h2>📱 يرجى تدوير الشاشة</h2>
-    
-    <p>
-        لتصفح المتجر بشكل أفضل، يرجى استخدام الشاشة في<br>
-        <span style="color: #ffffff; font-weight: 700;">الوضع الرأسي (Portrait)</span>.
-    </p>
-    
-    <div class="instruction-box">
-        <span class="arrow-icon">↻</span>
-        <div class="step"><span>①</span> قم بتدوير هاتفك</div>
-        <div class="step"><span>②</span> سيظهر المحتوى تلقائياً</div>
-        <div class="sub-text">✨ تجربة تصفح أفضل مع VANTÉ</div>
-    </div>
-    
-    <button class="retry-btn" onclick="checkOrientation()">
-        <i class="fas fa-sync-alt"></i> تحقق مرة أخرى
-    </button>
-    
-    <div class="footer-note">✦ النسخة المحمولة متاحة في الوضع الرأسي ✦</div>
-</div>
 
     <div class="top-offer">
         <div class="offer-text">🎁 جارٍ تحضير عرضك الخاص...</div>
@@ -6417,6 +6252,41 @@ function fallbackShare(text) {
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
     window.open(whatsappUrl, '_blank');
 }
+// ========== فتح المنتج من الرابط ==========
+(function autoOpenProductFromURL() {
+    const params = new URLSearchParams(window.location.search);
+    const productId = params.get('product');
+    if (!productId) return;
+
+    // انتظر تحميل المنتجات من Firebase
+    let attempts = 0;
+    const maxAttempts = 20; // 10 ثوانٍ كحد أقصى
+    const interval = setInterval(() => {
+        attempts++;
+        if (window.allProducts && window.allProducts.length > 0) {
+            clearInterval(interval);
+            const product = window.allProducts.find(p => p.id === productId);
+            if (product) {
+                // فتح المودال مباشرة
+                window.openProduct(
+                    product.id,
+                    product.name,
+                    product.price,
+                    product.image,
+                    product.sizes || ["7", "8", "9"],
+                    product.description || ""
+                );
+                // إزالة البارامتر من الرابط (اختياري)
+                window.history.replaceState({}, document.title, window.location.pathname);
+            } else {
+                customAlert('⚠️ المنتج غير موجود', 'error');
+            }
+        } else if (attempts >= maxAttempts) {
+            clearInterval(interval);
+            console.warn('لم يتم تحميل المنتجات لتحديد المنتج المطلوب');
+        }
+    }, 500);
+})();
 
     // ========== القوائم والبحث ==========
     function setCategory(category) {
@@ -8017,181 +7887,50 @@ listenForOrderStatusChanges();
 console.log('✅ تم تفعيل تحديث الحالات التلقائي في المتجر');
 </script>
 <script>
-// ========== فتح المنتج من الرابط (نسخة محسّنة - مضمونة) ==========
+// ========== فتح المنتج من الرابط (نسخة مستقلة ومضمونة) ==========
 (function autoOpenProductFromURL() {
-    'use strict';
-
-    // تعريف customAlert مبكراً لتجنب الأخطاء
-    if (typeof window.customAlert !== 'function') {
-        window.customAlert = function(msg, type = 'info') {
-            console.log(`[${type}] ${msg}`);
-            alert(msg);
-        };
-    }
-
     const params = new URLSearchParams(window.location.search);
     const productId = params.get('product');
-    if (!productId) {
-        console.log('ℹ️ لا يوجد معرف منتج في الرابط');
-        return;
-    }
+    if (!productId) return;
 
     console.log('🔍 محاولة فتح المنتج:', productId);
 
+    // انتظر تحميل المنتجات من Firebase
     let attempts = 0;
-    const MAX_ATTEMPTS = 60; // 30 ثانية (500ms * 60)
-    let interval = null;
-    let timeout = null;
-
-    function tryOpenProduct() {
+    const maxAttempts = 30; // 15 ثانية كحد أقصى
+    const interval = setInterval(() => {
         attempts++;
-
-        // 1. التأكد من توفر المنتجات ودالة الفتح
-        if (!window.allProducts || !Array.isArray(window.allProducts) || window.allProducts.length === 0) {
-            if (attempts % 10 === 0) {
-                console.log(`⏳ في انتظار تحميل المنتجات... المحاولة ${attempts}/${MAX_ATTEMPTS}`);
-            }
-            return; // لا تزال البيانات غير جاهزة
-        }
-
-        if (typeof window.openProduct !== 'function') {
-            console.warn('⚠️ window.openProduct غير معرفة بعد، ننتظر قليلاً...');
-            return;
-        }
-// دعم البحث بالـ sku إذا لم يتم العثور بالـ id
-let product = window.allProducts.find(p => p.id === productId);
-if (!product) {
-    product = window.allProducts.find(p => p.sku && p.sku === productId);
-}
-
-        if (!product) {
-            console.warn('⚠️ المنتج غير موجود في القائمة:', productId);
-            window.customAlert('⚠️ المنتج غير موجود', 'error');
-            clearInterval(interval);
-            clearTimeout(timeout);
-            return;
-        }
-
-        console.log('✅ تم العثور على المنتج:', product.name);
-
-        // 3. فتح المنتج
-        try {
-            window.openProduct(
-                product.id,
-                product.name,
-                product.price,
-                product.image,
-                product.sizes || ["7", "8", "9"],
-                product.description || ""
-            );
-
-            // 4. إزالة البارامتر بعد فتح المودال بنجاح (مع تأخير بسيط)
-            setTimeout(() => {
-                try {
-                    window.history.replaceState({}, document.title, window.location.pathname);
-                } catch (e) { /* تجاهل */ }
-            }, 300);
-
-            // 5. إنهاء المحاولات
-            clearInterval(interval);
-            clearTimeout(timeout);
-        } catch (err) {
-            console.error('❌ خطأ أثناء فتح المنتج:', err);
-            window.customAlert('❌ حدث خطأ أثناء فتح المنتج، حاول تحديث الصفحة', 'error');
-            clearInterval(interval);
-            clearTimeout(timeout);
-        }
-    }
-
-    // بدء المحاولات كل 500ms
-    interval = setInterval(tryOpenProduct, 500);
-
-    // مهلة نهائية (أمان)
-    timeout = setTimeout(() => {
-        if (interval) {
-            clearInterval(interval);
-            interval = null;
-        }
-        console.warn('⚠️ انتهت مهلة فتح المنتج');
-        window.customAlert('⚠️ تعذر تحميل المنتج، تأكد من اتصالك بالإنترنت وحاول مرة أخرى', 'error');
-    }, MAX_ATTEMPTS * 500 + 1000);
-
-    // تنفيذ المحاولة الأولى فوراً
-    tryOpenProduct();
-})();
-</script>
-<script>
-// ========== منع الوضع الأفقي - حل نهائي 100% ==========
-(function() {
-    'use strict';
-
-    const warning = document.getElementById('rotateWarning');
-    if (!warning) return;
-
-    // دالة الكشف عن الوضع الأفقي
-    function isLandscape() {
-        // 1. استخدام screen.orientation (الأدق)
-        if (screen.orientation) {
-            return screen.orientation.type.includes('landscape');
-        }
-        // 2. fallback: مقارنة العرض والارتفاع
-        return window.innerWidth > window.innerHeight;
-    }
-
-    // دالة تحديث حالة التحذير
-    function updateOrientation() {
-        const landscape = isLandscape();
         
-        if (landscape) {
-            warning.classList.add('active');
-            document.body.classList.add('landscape-locked');
-            document.body.style.overflow = 'hidden';
-            document.body.style.pointerEvents = 'none';
-            warning.style.pointerEvents = 'auto';
-        } else {
-            warning.classList.remove('active');
-            document.body.classList.remove('landscape-locked');
-            document.body.style.overflow = '';
-            document.body.style.pointerEvents = '';
-            warning.style.pointerEvents = '';
+        // تحقق من وجود المنتجات
+        if (window.allProducts && window.allProducts.length > 0) {
+            clearInterval(interval);
+            const product = window.allProducts.find(p => p.id === productId);
+            if (product) {
+                console.log('✅ تم العثور على المنتج:', product.name);
+                // فتح المودال مباشرة
+                if (typeof window.openProduct === 'function') {
+                    window.openProduct(
+                        product.id,
+                        product.name,
+                        product.price,
+                        product.image,
+                        product.sizes || ["7", "8", "9"],
+                        product.description || ""
+                    );
+                } else {
+                    console.warn('⚠️ openProduct غير معرفة');
+                }
+                // إزالة البارامتر من الرابط (اختياري)
+                window.history.replaceState({}, document.title, window.location.pathname);
+            } else {
+                console.warn('⚠️ المنتج غير موجود:', productId);
+                customAlert('⚠️ المنتج غير موجود', 'error');
+            }
+        } else if (attempts >= maxAttempts) {
+            clearInterval(interval);
+            console.warn('⚠️ لم يتم تحميل المنتجات لتحديد المنتج المطلوب');
         }
-    }
-
-    // التحقق الفوري
-    updateOrientation();
-
-    // الاستماع لتغيير الاتجاه
-    if (screen.orientation) {
-        screen.orientation.addEventListener('change', updateOrientation);
-    } else {
-        // fallback للمتصفحات القديمة
-        window.addEventListener('resize', updateOrientation);
-        window.addEventListener('orientationchange', function() {
-            setTimeout(updateOrientation, 300);
-        });
-    }
-
-    // التحقق الدوري كل 500ms (ضمان إضافي)
-    setInterval(updateOrientation, 500);
-
-    // منع التمرير والتفاعل أثناء التحذير
-    document.addEventListener('touchmove', function(e) {
-        if (warning.classList.contains('active')) {
-            e.preventDefault();
-        }
-    }, { passive: false });
-
-    document.addEventListener('click', function(e) {
-        if (warning.classList.contains('active')) {
-            e.preventDefault();
-            e.stopPropagation();
-        }
-    }, true);
-
-    // جعل الدالة عامة للاستخدام في الزر
-    window.checkOrientation = updateOrientation;
-
-    console.log('✅ نظام منع الوضع الأفقي يعمل بنجاح (حل نهائي)');
+    }, 500);
 })();
 </script>
 </body>
