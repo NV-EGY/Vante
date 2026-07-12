@@ -5,12 +5,6 @@
     <meta name="description" content="تسوقي تشكيلة فانتي VANTÉ الفاخرة من الإكسسوارات الحريمي (دهب استانلس). خواتم، سلاسل، أساور، حلقان بجودة ممتازة وأسعار تنافسية.">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>فانتي VANTÉ | إكسسوارات حريمي دهب استانلس فاخرة</title>
-    <script>
-    // إذا كان الجهاز كمبيوتر (عرض الشاشة > 768 بكسل) -> انتقل إلى desktop.html
-    if (window.innerWidth > 768) {
-        window.location.href = "desktop.html";
-    }
-</script>
  <!-- Favicon - الحل النهائي المضمون -->
 <link rel="icon" type="image/png" sizes="32x32" href="images/favicon.png">
 <link rel="icon" type="image/png" sizes="16x16" href="images/favicon.png">
@@ -54,73 +48,6 @@
 }
 </script>
     <style>
-    /* ============================================
-   FORCE DESKTOP LAYOUT (للشاشات الكبيرة)
-============================================ */
-/* شبكة المنتجات 4 أعمدة */
-.products {
-    display: grid !important;
-    grid-template-columns: repeat(4, 1fr) !important;
-    gap: 24px !important;
-}
-
-/* إخفاء عناصر التمرير للهاتف */
-.best-sellers-viewport,
-.best-sellers-track,
-.pair,
-.gallery-wrapper,
-.gallery-dots,
-.gallery-btn {
-    display: none !important;
-}
-
-/* إظهار شبكة الكمبيوتر الثابتة */
-.best-sellers-gallery {
-    display: grid !important;
-    grid-template-columns: repeat(4, 1fr) !important;
-    gap: 24px !important;
-    padding: 0 !important;
-    overflow-x: visible !important;
-}
-
-/* إظهار القائمة العلوية */
-.menu {
-    display: flex !important;
-}
-
-/* إخفاء زر القائمة الجانبية في شريط التنقل */
-.mobile-actions {
-    display: none !important;
-}
-
-/* إظهار جميع أزرار الأيقونات في شريط التنقل */
-.icons button {
-    display: flex !important;
-}
-/* تحسين شكل البطاقات على الكمبيوتر */
-.product {
-    padding: 18px !important;
-    border-radius: 24px !important;
-}
-
-.product .product-image {
-    height: 240px !important;
-}
-
-.product h3 {
-    font-size: 16px !important;
-    min-height: 48px !important;
-}
-
-.product .price {
-    font-size: 18px !important;
-}
-
-/* تحسين شكل شريط التصفية */
-.filter-bar {
-    max-width: 1200px;
-    margin: 0 auto 30px;
-}
 /* ====================================
    RESET
 ==================================== */
@@ -5175,7 +5102,7 @@ function stopRandomRefresh() {
 }
 
 async function renderBestSellers() {
-    const isMobile = false;  // نجبر الكود على وضع الكمبيوتر دائماً
+    const isMobile = window.innerWidth < 769;
     const gallery = document.querySelector(".best-sellers-gallery");
     if (!gallery || !allProducts.length) return;
 
