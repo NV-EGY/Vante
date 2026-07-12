@@ -3815,7 +3815,7 @@ body.modal-open{
     padding-bottom: 90px;
 }
 /* =========================================
-   تحذير وضع الأفق (Landscape)
+   تحذير وضع الأفق (Landscape) - نسخة فاخرة ومحكمة
 ========================================= */
 .rotate-warning {
     display: none;
@@ -3824,69 +3824,154 @@ body.modal-open{
     left: 0;
     width: 100%;
     height: 100%;
-    background: #111;
-    color: #fff;
+    background: #111111;
     z-index: 999999;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     text-align: center;
     padding: 30px;
+    
+    /* منع أي تفاعل مع الخلفية */
+    pointer-events: auto;
+    cursor: default;
 }
 
 .rotate-warning.active {
     display: flex;
 }
 
-.rotate-warning i {
-    font-size: 60px;
-    color: #D4AF37;
-    margin-bottom: 20px;
-    animation: rotatePhone 2s ease-in-out infinite;
+/* منع التمرير خلف التحذير */
+body.landscape-locked {
+    overflow: hidden !important;
+    position: fixed !important;
+    width: 100% !important;
+    height: 100% !important;
+    touch-action: none !important;
 }
 
-.rotate-warning h2 {
-    font-size: 24px;
+/* أيقونة الهاتف المتحركة */
+.rotate-warning .icon-rotate {
+    font-size: 80px;
     color: #D4AF37;
-    margin-bottom: 10px;
-}
-
-.rotate-warning p {
-    font-size: 16px;
-    color: #aaa;
-    max-width: 300px;
+    margin-bottom: 25px;
+    animation: rotatePhone 2.5s ease-in-out infinite;
 }
 
 @keyframes rotatePhone {
     0%, 100% { transform: rotate(0deg); }
     50% { transform: rotate(90deg); }
 }
-.rotate-warning.active {
-    display: flex;
-    position: fixed;
-    top: 0;
-    left: 0;
+
+/* العنوان الرئيسي */
+.rotate-warning h2 {
+    font-size: 32px;
+    font-weight: 900;
+    color: #D4AF37;
+    margin-bottom: 15px;
+    letter-spacing: 2px;
+}
+
+/* النص التوضيحي */
+.rotate-warning p {
+    font-size: 18px;
+    color: #aaaaaa;
+    line-height: 2;
+    max-width: 400px;
+    margin-bottom: 30px;
+}
+
+/* صندوق التوجيه */
+.rotate-warning .instruction-box {
+    background: rgba(212, 175, 55, 0.15);
+    border: 2px solid #D4AF37;
+    border-radius: 20px;
+    padding: 25px 30px;
+    max-width: 450px;
     width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.95);
-    backdrop-filter: blur(10px);
-    z-index: 999999;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 30px;
+    margin-bottom: 30px;
+}
+
+.rotate-warning .instruction-box .arrow-icon {
+    font-size: 50px;
+    color: #D4AF37;
+    display: block;
+    margin-bottom: 10px;
+}
+
+.rotate-warning .instruction-box .step {
+    font-size: 16px;
+    color: #ffffff;
+    font-weight: 700;
+    margin: 8px 0;
+}
+
+.rotate-warning .instruction-box .step span {
+    color: #D4AF37;
+    margin-left: 8px;
+}
+
+.rotate-warning .instruction-box .sub-text {
+    font-size: 14px;
+    color: #cccccc;
+}
+
+/* زر إعادة المحاولة */
+.rotate-warning .retry-btn {
+    background: #D4AF37;
+    color: #000;
+    border: none;
+    padding: 12px 40px;
+    border-radius: 40px;
+    font-size: 16px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: 0.3s;
+    margin-top: 5px;
+}
+
+.rotate-warning .retry-btn:hover {
+    background: #fff;
+    transform: scale(1.05);
+}
+
+/* ملاحظة ختامية */
+.rotate-warning .footer-note {
+    margin-top: 25px;
+    font-size: 13px;
+    color: #555555;
+    letter-spacing: 1px;
 }
 
     </style>
 </head>
 
 <body>
-  <!-- تحذير وضع الأفق -->
+<!-- تحذير وضع الأفق - نسخة فاخرة -->
 <div class="rotate-warning" id="rotateWarning">
-    <i class="fas fa-mobile-alt"></i>
+    <div class="icon-rotate">
+        <i class="fas fa-mobile-alt"></i>
+    </div>
+    
     <h2>📱 يرجى تدوير الشاشة</h2>
-    <p>لتصفح المتجر بشكل أفضل، يرجى استخدام الشاشة في الوضع الرأسي (Portrait).</p>
+    
+    <p>
+        لتصفح المتجر بشكل أفضل، يرجى استخدام الشاشة في<br>
+        <span style="color: #ffffff; font-weight: 700;">الوضع الرأسي (Portrait)</span>.
+    </p>
+    
+    <div class="instruction-box">
+        <span class="arrow-icon">↻</span>
+        <div class="step"><span>①</span> قم بتدوير هاتفك</div>
+        <div class="step"><span>②</span> سيظهر المحتوى تلقائياً</div>
+        <div class="sub-text">✨ تجربة تصفح أفضل مع VANTÉ</div>
+    </div>
+    
+    <button class="retry-btn" onclick="checkOrientation()">
+        <i class="fas fa-sync-alt"></i> تحقق مرة أخرى
+    </button>
+    
+    <div class="footer-note">✦ النسخة المحمولة متاحة في الوضع الرأسي ✦</div>
 </div>
 
     <div class="top-offer">
@@ -8003,51 +8088,62 @@ console.log('✅ تم تفعيل تحديث الحالات التلقائي في
 })();
 </script>
 <script>
-// ========== منع وضع الأفق (Landscape) - نسخة محسنة ==========
+// ========== منع وضع الأفق (Landscape) - نسخة فاخرة ==========
+// ========== منع وضع الأفق (Landscape) - نسخة فاخرة ==========
 (function() {
     const warning = document.getElementById('rotateWarning');
     if (!warning) return;
 
-    let isLandscape = false;
-
-    function checkOrientation() {
+    // جعل الدالة عامة لتستخدم في الزر
+    window.checkOrientation = function() {
         // تنفيذ فقط على الهواتف (عرض أقل من 768)
         if (window.innerWidth > 768) {
             warning.classList.remove('active');
+            document.body.classList.remove('landscape-locked');
             document.body.style.overflow = '';
             return;
         }
 
         // الوضع الأفقي = العرض أكبر من الارتفاع
-        const newIsLandscape = window.innerWidth > window.innerHeight;
-
-        // إذا تغيرت الحالة
-        if (newIsLandscape !== isLandscape) {
-            isLandscape = newIsLandscape;
-            if (isLandscape) {
-                warning.classList.add('active');
-                document.body.style.overflow = 'hidden';
-            } else {
-                warning.classList.remove('active');
-                document.body.style.overflow = '';
-            }
+        if (window.innerWidth > window.innerHeight) {
+            warning.classList.add('active');
+            document.body.classList.add('landscape-locked');
+            document.body.style.overflow = 'hidden';
+        } else {
+            warning.classList.remove('active');
+            document.body.classList.remove('landscape-locked');
+            document.body.style.overflow = '';
         }
-    }
+    };
 
     // 1. التحقق الفوري عند التحميل
-    checkOrientation();
+    window.checkOrientation();
 
     // 2. التحقق عند تغيير الحجم أو الاتجاه
-    window.addEventListener('resize', checkOrientation);
+    window.addEventListener('resize', window.checkOrientation);
     window.addEventListener('orientationchange', function() {
-        // ننتظر 300 ملي ثانية حتى يستقر التغيير
-        setTimeout(checkOrientation, 300);
+        setTimeout(window.checkOrientation, 400);
     });
 
-    // 3. **الحل السحري: التحقق المستمر (Polling) كل ثانية واحدة**
-    // هذا يضمن اكتشاف أي تغيير حتى لو فشلت الأحداث السابقة
-    setInterval(checkOrientation, 1000);
+    // 3. التحقق المستمر كل ثانية (للتأكد من عدم فوات أي تغيير)
+    setInterval(window.checkOrientation, 1000);
 
+    // 4. منع أي محاولة للتمرير أثناء ظهور التحذير
+    document.addEventListener('touchmove', function(e) {
+        if (warning.classList.contains('active')) {
+            e.preventDefault();
+        }
+    }, { passive: false });
+
+    // 5. منع أي نقرة على الخلفية
+    document.addEventListener('click', function(e) {
+        if (warning.classList.contains('active')) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+    }, true);
+
+    console.log('✅ نظام منع الوضع الأفقي (Landscape) يعمل بنجاح');
 })();
 </script>
 </body>
