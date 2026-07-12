@@ -1,45 +1,15 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-
     <meta charset="UTF-8">
     <meta name="description" content="تسوقي تشكيلة فانتي VANTÉ الفاخرة من الإكسسوارات الحريمي (دهب استانلس). خواتم، سلاسل، أساور، حلقان بجودة ممتازة وأسعار تنافسية.">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>فانتي VANTÉ | إكسسوارات حريمي دهب استانلس فاخرة</title>
-<script>
-    (function() {
-        var width = window.innerWidth;
-        // 1. الهواتف الصغيرة: وجه إلى نسخة الهاتف
-        if (width <= 768) {
-            window.location.href = "index.html";
-            return;
-        }
-        // 2. جميع الشاشات الأكبر من 768 (كمبيوتر، تابلت، هواتف أفقية): اعرض رسالة الصيانة
-        // إخفاء كل محتوى الصفحة
-        document.body.innerHTML = '';
-        // إنشاء طبقة الرسالة
-        var overlay = document.createElement('div');
-        overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;display:flex;justify-content:center;align-items:center;background:#111111;z-index:999999;padding:20px;font-family:"Cairo",sans-serif;direction:rtl;text-align:center;';
-        overlay.innerHTML = `
-            <div style="max-width:600px;width:100%;">
-                <div style="font-size:70px;margin-bottom:25px;color:#D4AF37;">🛠️</div>
-                <h1 style="font-size:38px;font-weight:900;color:#D4AF37;margin-bottom:15px;letter-spacing:2px;">النسخة المكتبية قيد التطوير</h1>
-                <p style="font-size:18px;color:#aaaaaa;line-height:2;margin-bottom:30px;">
-                    نعمل حالياً على تحديث النسخة الخاصة بالكمبيوتر لتقديم تجربة أفضل.<br>
-                    <span style="color:#ffffff;font-weight:700;">نعتذر عن الإزعاج</span>.
-                </p>
-                <div style="background:rgba(212,175,55,0.15);border:2px solid #D4AF37;border-radius:20px;padding:20px;margin-bottom:30px;">
-                    <div style="font-size:40px;color:#D4AF37;margin-bottom:10px;">📱</div>
-                    <p style="font-size:18px;color:#ffffff;font-weight:700;margin-bottom:5px;">✅ النسخة المخصصة للهواتف المحمولة تعمل بكامل طاقتها</p>
-                    <p style="font-size:15px;color:#cccccc;">يمكنك استخدام الموقع من خلال هاتفك المحمول بشكل طبيعي، جميع الخدمات متاحة.</p>
-                </div>
-                <p style="margin-top:20px;font-size:13px;color:#555555;letter-spacing:1px;">سيتم إعادة تشغيل النسخة المكتبية قريباً ✨</p>
-            </div>
-        `;
-        document.body.appendChild(overlay);
-        // نمنع تنفيذ أي كود آخر
-        return;
-    })();
+    <script>
+    // إذا كان الجهاز هاتف (عرض الشاشة <= 768 بكسل) -> انتقل إلى index.html
+    if (window.innerWidth <= 768) {
+        window.location.href = "index.html";
+    }
 </script>
  <!-- Favicon - الحل النهائي المضمون -->
 <link rel="icon" type="image/png" sizes="32x32" href="images/favicon.png">
