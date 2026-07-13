@@ -1091,7 +1091,8 @@ window.requestNotificationPermission = function() {
 async function registerSW() {
   if ('serviceWorker' in navigator) {
     try {
-      const reg = await navigator.serviceWorker.register('service-worker.js', { scope: '/' });
+      // ✅ تغيير المسار إلى المجلد js/
+      const reg = await navigator.serviceWorker.register('js/service-worker.js', { scope: '/' });
       console.log('✅ Service Worker مسجل:', reg.scope);
     } catch (e) { console.error('❌ فشل تسجيل SW:', e); }
   }
