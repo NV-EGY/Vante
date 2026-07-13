@@ -1087,12 +1087,11 @@ window.requestNotificationPermission = function() {
     });
 };
 
-// تسجيل Service Worker
 async function registerSW() {
   if ('serviceWorker' in navigator) {
     try {
-      // ✅ تغيير المسار إلى المجلد js/
-      const reg = await navigator.serviceWorker.register('js/service-worker.js', { scope: '/' });
+      // ✅ إزالة { scope: '/' } ليأخذ النطاق الافتراضي للمجلد js/
+      const reg = await navigator.serviceWorker.register('js/service-worker.js');
       console.log('✅ Service Worker مسجل:', reg.scope);
     } catch (e) { console.error('❌ فشل تسجيل SW:', e); }
   }
