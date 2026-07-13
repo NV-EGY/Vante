@@ -50,19 +50,23 @@
       position: relative;
     }
     .search-box {
-      width: 100%;
-      max-width: 420px;
-      margin: 0 auto;
-      padding: 12px;
-      border-radius: 12px;
-      border: 1px solid #ddd;
-      text-align: center;
-      box-sizing: border-box;
-    }
-    .search-box:focus {
-      border-color: #0F7B65;
-      box-shadow: 0 0 0 3px rgba(15,123,101,0.15);
-    }
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 14px 20px;
+  border-radius: 50px;
+  border: 2px solid #e0e0e0;
+  background: #fff;
+  font-size: 16px;
+  text-align: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+.search-box:focus {
+  border-color: #D4AF37;
+  box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.2);
+  outline: none;
+}
     .header-icons {
       display: flex;
       gap: 10px;
@@ -1044,7 +1048,7 @@ import { getFirestore, collection, query, orderBy, onSnapshot, updateDoc, delete
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { createOrderInQP, listenForOrderStatusChanges, startPeriodicSync, manualSyncOrders, cancelOrderInQP } from './js/sync-orders.js';
 import { logAuditEvent } from './js/logger.js';
-// ===== إدارة الإشعارات =====
+// ===== إدارة الإشعارات المحسّنة =====
 function sendNotification(title, body, tag = null) {
   if (!("Notification" in window)) return;
   if (Notification.permission === "granted") {
@@ -1056,17 +1060,13 @@ function sendNotification(title, body, tag = null) {
       requireInteraction: true,
       silent: false,
     };
-
-    // ✅ الأفضل: استخدام Service Worker لعرض الإشعار (يعمل في الخلفية)
     if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
       navigator.serviceWorker.ready.then(reg => {
         reg.showNotification(title, options).catch(() => {
-          // Fallback للمتصفحات القديمة
           try { new Notification(title, options); } catch(e) {}
         });
       });
     } else {
-      // Fallback إذا لم يكن Service Worker جاهزاً
       try { new Notification(title, options); } catch(e) {}
     }
   } else if (Notification.permission === "default") {
@@ -1076,26 +1076,25 @@ function sendNotification(title, body, tag = null) {
   }
 }
 
-window.requestNotificationPermission = function() {
-    Notification.requestPermission().then(perm => {
-        if (perm === "granted") {
-            customAlert('✅ تم تفعيل الإشعارات بنجاح', 'success');
-            sendNotification('مرحباً', 'سيتم إعلامك بأي تحديث');
-        } else {
-            customAlert('❌ تم رفض الإشعارات، يرجى السماح من إعدادات المتصفح', 'error');
-        }
-    });
-};
-
 async function registerSW() {
   if ('serviceWorker' in navigator) {
     try {
-      // ✅ إزالة { scope: '/' } ليأخذ النطاق الافتراضي للمجلد js/
-      const reg = await navigator.serviceWorker.register('js/service-worker.js');
+      const reg = await navigator.serviceWorker.register('service-worker.js');
       console.log('✅ Service Worker مسجل:', reg.scope);
     } catch (e) { console.error('❌ فشل تسجيل SW:', e); }
   }
 }
+
+window.requestNotificationPermission = function() {
+  Notification.requestPermission().then(perm => {
+    if (perm === "granted") {
+      customAlert('✅ تم تفعيل الإشعارات', 'success');
+      sendNotification('مرحباً', 'سيتم إعلامك بأي تحديث');
+    } else {
+      customAlert('❌ تم الرفض، يرجى السماح من الإعدادات', 'error');
+    }
+  });
+};
 // استيراد الدوال المساعدة (إذا كان الملف موجوداً)
 let enhanceAllOrderCards = (orders) => { console.log('enhanceAllOrderCards called'); };
 let refreshSingleOrderCard = (orderId) => { console.log('refreshSingleOrderCard called'); };
@@ -2905,6 +2904,7 @@ onAuthStateChanged(auth, (user) => {
     }
     if (user) {
         window.currentUserEmail = user.email;
+        registerSW();
         load();
         loadShippingDiscountSettings();
         listenForOrderStatusChanges();
