@@ -1003,6 +1003,35 @@ import { getFirestore, collection, query, orderBy, onSnapshot, updateDoc, delete
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { createOrderInQP, listenForOrderStatusChanges, startPeriodicSync, manualSyncOrders, cancelOrderInQP } from './js/sync-orders.js';
 import { logAuditEvent } from './js/logger.js';
+// ===== إدارة الإشعارات =====
+function sendNotification(title, body, tag = null) {
+  if (!("Notification" in window)) return;
+  if (Notification.permission === "granted") {
+    const options = {
+      body,
+      icon: "images/icon-or-192x192.png",
+      badge: "images/icon-or-192x192.png",
+      tag: tag || Date.now().toString(),
+      requireInteraction: true,
+      silent: false,
+    };
+    try { new Notification(title, options); } catch (e) {}
+  } else if (Notification.permission === "default") {
+    Notification.requestPermission().then(perm => {
+      if (perm === "granted") sendNotification(title, body, tag);
+    });
+  }
+}
+
+// تسجيل Service Worker
+async function registerSW() {
+  if ('serviceWorker' in navigator) {
+    try {
+      const reg = await navigator.serviceWorker.register('service-worker.js', { scope: '/' });
+      console.log('✅ Service Worker مسجل:', reg.scope);
+    } catch (e) { console.error('❌ فشل تسجيل SW:', e); }
+  }
+}
 // استيراد الدوال المساعدة (إذا كان الملف موجوداً)
 let enhanceAllOrderCards = (orders) => { console.log('enhanceAllOrderCards called'); };
 let refreshSingleOrderCard = (orderId) => { console.log('refreshSingleOrderCard called'); };
@@ -1112,6 +1141,7 @@ console.log("🔍 [Audit Log] قبل التسجيل - orderId:", id, "orderNumbe
 
         customAlert("✅ تم تحديث الحالة بنجاح", 'success');
         render();
+        sendNotification(`🔄 تغيير حالة الطلب #${orderData.orderID}`, `من ${oldStatus} إلى ${status}`);
     } catch (e) {
         console.error(e);
         customAlert("❌ حدث خطأ أثناء الحفظ: " + e.message, 'error');
@@ -1197,6 +1227,7 @@ window.applyBulkStatus = async (newStatus) => {
 
     let msg = `✅ تم تحديث ${successCount} طلب بنجاح`;
     if (skippedCount > 0) msg += `، تم تخطي ${skippedCount} طلب (لديه شحنة سابقة)`;
+    sendNotification(`✅ تحديث جماعي`, `تم تغيير حالة ${successCount} طلب إلى ${newStatus}`);
     if (errorCount > 0) msg += `، فشل ${errorCount} طلب`;
     customAlert(msg, 'success');
     clearAllSelections();
@@ -1796,8 +1827,17 @@ function load() {
     loadReviews();
     loadShippingRates();
 
-    // ===== مستمع الرسائل =====
+    // ===== مستمع الرسائل (تم تصحيحه) =====
+    let initialLoadMessages = true;
     onSnapshot(query(collection(db, "messages"), orderBy("createdAt", "desc")), (snap) => {
+        snap.docChanges().forEach(change => {
+            if (change.type === "added" && !initialLoadMessages) {
+                const msg = change.doc.data();
+                sendNotification(`📩 رسالة جديدة من ${msg.name || 'مرسل'}`, msg.message || '');
+            }
+        });
+        initialLoadMessages = false;
+
         let unread = 0, html = "";
         messages = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         messages.forEach(m => {
@@ -1813,24 +1853,22 @@ function load() {
         badge.innerText = unread;
     });
 
-    // ===== مستمع الطلبات =====
+    // ===== مستمع الطلبات (تم تصحيحه) =====
     let initialLoad = true;
-
     onSnapshot(query(collection(db, "orders"), orderBy("createdAt", "desc")), (snap) => {
-        // ✅ معالجة الطلبات الجديدة
         snap.docChanges().forEach(async (change) => {
             if (change.type === "added" && !initialLoad) {
-                const orderId = change.doc.id;
                 const orderData = change.doc.data();
-                
+                const orderId = change.doc.id;
+                const customerName = orderData.customerName || 'عميل';
+                const orderID = orderData.orderID || 'طلب';
+
+                // 🔔 إشعار + صوت
+                sendNotification(`🛒 طلب جديد #${orderID}`, `من ${customerName} - ${orderData.phone || ''}`);
                 new Audio("https://assets.mixkit.co/sfx/preview/mixkit-bell-notification-933.mp3").play().catch(()=>{});
-                if (Notification.permission === "granted") {
-                    new Notification("طلب جديد", { 
-                        body: `${orderData.customerName || 'عميل'} - ${orderData.phone || ''}` 
-                    });
-                }
+
                 showPopup(orderData);
-                
+
                 try {
                     await logAuditEvent({
                         action: 'order_created',
@@ -1848,21 +1886,17 @@ function load() {
                         performedBy: 'system',
                         severity: 'info'
                     });
-                    console.log("✅ [Audit Log] تم تسجيل طلب جديد:", orderData.orderID);
                 } catch (e) {
                     console.error("❌ [Audit Log] فشل تسجيل طلب جديد:", e.message);
                 }
             }
         });
 
-        // ✅ تحديث البيانات
+        // تحديث البيانات
         lastCount = snap.size;
-        const newOrders = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        orders = newOrders;
-        window.orders = newOrders;
-        
+        orders = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        window.orders = orders;
         render();
-        
         if (initialLoad) {
             initialLoad = false;
             console.log("✅ [Admin] تم تحميل الطلبات الأولي، جاهز للإشعارات");
@@ -2149,14 +2183,24 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// تحميل التقييمات من Firestore
+let initialLoadReviews = true;
 function loadReviews() {
     onSnapshot(query(collection(db, "reviews"), orderBy("createdAt", "desc")), (snap) => {
+        snap.docChanges().forEach(change => {
+            if (change.type === "added" && !initialLoadReviews) {
+                const review = change.doc.data();
+                if (!review.deleted) {
+                    sendNotification(`⭐ تقييم جديد`, `من ${review.userName || 'مستخدم'} عن ${review.productName || 'منتج'}`);
+                }
+            }
+        });
+        initialLoadReviews = false;
         allReviews = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        updatePendingReviewsBadge(); // تحديث العداد
+        updatePendingReviewsBadge();
         if (currentTab === 'reviews') renderReviews();
     });
 }
+
 const govData = {
  "القاهرة": ["مدينة نصر","مصر الجديدة","مصر القديمة","التجمع الأول","التجمع الثالث","التجمع الخامس","الرحاب","مدينتي","الشروق","بدر","المعادي","زهراء المعادي","حلوان","15 مايو","عين شمس","المطرية","السلام","المرج","الزيتون","حدائق القبة","روض الفرج","شبرا مصر","وسط البلد","القاهرة الجديدة","القطامية","المقطم","هليوبوليس الجديدة","مدينة المستقبل","أحياء أخرى"],
  "الجيزة": ["الجيزة","الدقي","العجوزة","إمبابة","بولاق الدكرور","الهرم","فيصل","الطالبية","العمرانية","حدائق الاهرام","6 أكتوبر","الشيخ زايد","حدائق أكتوبر","الحوامدية","البدرشين","العياط","أوسيم","كرداسة","الصف","دهشور","ناهيا","المنصورية","ألبراجيل","أبو رواش","منشأة القناطر","المنيب","أبو النمرس","شبرامنت","سقارة","نكلة","أطفيح","أحياء أخرى"],
@@ -2791,10 +2835,14 @@ window.copyToClipboard = function(text) {
     });
 };
 onAuthStateChanged(auth, (user) => {
+    registerSW();
+    if (Notification.permission === "default") {
+        Notification.requestPermission().then(perm => console.log("إذن الإشعارات:", perm));
+    }
     if (user) {
         window.currentUserEmail = user.email;
-        load();  // ✅ استدعاء load() هنا
-        loadShippingDiscountSettings();  // ✅ تحميل إعدادات الخصم
+        load();
+        loadShippingDiscountSettings();
         listenForOrderStatusChanges();
         startPeriodicSync(3);
         console.log('✅ تم تفعيل المزامنة التلقائية مع QP Express');
@@ -2802,8 +2850,7 @@ onAuthStateChanged(auth, (user) => {
         window.location.href = "login.html";
     }
 });
-// ✅ دالة قوية لتحديث الطلبات من Firestore مباشرة
-// ✅ دالة قوية لتحديث الطلبات من Firestore مباشرة
+
 window.forceRender = async function() {
     try {
         console.log("🔄 [forceRender] جاري تحديث الطلبات من Firestore...");
