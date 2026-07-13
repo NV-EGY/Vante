@@ -773,6 +773,7 @@
   </style>
 </head>
 <body>
+  
 <div class="header">
   <div class="header-top">
     <h2 style="margin:0;">📦 VANTÉ Dashboard</h2>
@@ -787,11 +788,19 @@
 <div class="icon-btn" onclick="goToProducts()" style="background: #D4AF37; color: #000;">
   📦
 </div>
-<div class="icon-btn" onclick="window.location.href='https://vante.sbs/profits'" style="background: #2ecc71; color: #fff;">
-  💰
-</div>
+
     </div>
   </div>
+  <div class="heder">
+  <button onclick="window.location.href='https://vante.sbs/profits'" style="background:#D4AF37;border:none;padding:8px 16px;border-radius:30px;font-weight:bold;">
+  💰 المبيعات
+</button>
+  <button onclick="requestNotificationPermission()" style="background:#D4AF37;border:none;padding:8px 16px;border-radius:30px;font-weight:bold;">
+    🔔 تفعيل الإشعارات
+</button>
+</div>
+  </div>
+  
   <input type="text" id="search" class="search-box" placeholder="🔍 بحث بالاسم، الهاتف، رقم الطلب">
   <input type="date" id="dateFilter" style="display:none;">
   <div style="display: flex; gap: 10px; margin: 5px 0; justify-content: center;">
@@ -1015,13 +1024,36 @@ function sendNotification(title, body, tag = null) {
       requireInteraction: true,
       silent: false,
     };
-    try { new Notification(title, options); } catch (e) {}
+
+    // ✅ الأفضل: استخدام Service Worker لعرض الإشعار (يعمل في الخلفية)
+    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+      navigator.serviceWorker.ready.then(reg => {
+        reg.showNotification(title, options).catch(() => {
+          // Fallback للمتصفحات القديمة
+          try { new Notification(title, options); } catch(e) {}
+        });
+      });
+    } else {
+      // Fallback إذا لم يكن Service Worker جاهزاً
+      try { new Notification(title, options); } catch(e) {}
+    }
   } else if (Notification.permission === "default") {
     Notification.requestPermission().then(perm => {
       if (perm === "granted") sendNotification(title, body, tag);
     });
   }
 }
+
+window.requestNotificationPermission = function() {
+    Notification.requestPermission().then(perm => {
+        if (perm === "granted") {
+            customAlert('✅ تم تفعيل الإشعارات بنجاح', 'success');
+            sendNotification('مرحباً', 'سيتم إعلامك بأي تحديث');
+        } else {
+            customAlert('❌ تم رفض الإشعارات، يرجى السماح من إعدادات المتصفح', 'error');
+        }
+    });
+};
 
 // تسجيل Service Worker
 async function registerSW() {
@@ -2835,7 +2867,7 @@ window.copyToClipboard = function(text) {
     });
 };
 onAuthStateChanged(auth, (user) => {
-    registerSW();
+    registerSW();  // ✅ موجود
     if (Notification.permission === "default") {
         Notification.requestPermission().then(perm => console.log("إذن الإشعارات:", perm));
     }
