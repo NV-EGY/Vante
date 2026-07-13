@@ -791,13 +791,45 @@
 
     </div>
   </div>
-  <div class="heder">
-  <button onclick="window.location.href='https://vante.sbs/profits'" style="background:#D4AF37;border:none;padding:8px 16px;border-radius:30px;font-weight:bold;">
-  💰 المبيعات
-</button>
-  <button onclick="requestNotificationPermission()" style="background:#D4AF37;border:none;padding:8px 16px;border-radius:30px;font-weight:bold;">
-    🔔 تفعيل الإشعارات
-</button>
+<div style="display: flex; gap: 12px; justify-content: center; align-items: center; margin: 8px 0; width: 100%; flex-wrap: wrap;">
+    <button onclick="window.location.href='https://vante.sbs/profits'" 
+            style="background: linear-gradient(135deg, #D4AF37, #B8860B); 
+                   color: #000; 
+                   border: none; 
+                   padding: 10px 24px; 
+                   border-radius: 50px; 
+                   font-weight: 700; 
+                   font-size: 14px; 
+                   cursor: pointer; 
+                   box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);
+                   transition: all 0.3s ease;
+                   display: flex;
+                   align-items: center;
+                   gap: 8px;"
+            onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 6px 25px rgba(212, 175, 55, 0.6)';"
+            onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 4px 15px rgba(212, 175, 55, 0.4)';">
+        <i class="fas fa-chart-line"></i> 💰 المبيعات
+    </button>
+    
+    <button onclick="requestNotificationPermission()" 
+            style="background: linear-gradient(135deg, #0F7B65, #0a5f4f); 
+                   color: #fff; 
+                   border: none; 
+                   padding: 10px 24px; 
+                   border-radius: 50px; 
+                   font-weight: 700; 
+                   font-size: 14px; 
+                   cursor: pointer; 
+                   box-shadow: 0 4px 15px rgba(15, 123, 101, 0.4);
+                   transition: all 0.3s ease;
+                   display: flex;
+                   align-items: center;
+                   gap: 8px;"
+            onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 6px 25px rgba(15, 123, 101, 0.6)';"
+            onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 4px 15px rgba(15, 123, 101, 0.4)';">
+        <i class="fas fa-bell"></i> 🔔 تفعيل الإشعارات
+    </button>
+</div>
 </div>
   </div>
   
