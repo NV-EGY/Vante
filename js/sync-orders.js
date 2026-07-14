@@ -4,7 +4,7 @@ import {
     getFirestore, doc, onSnapshot, getDoc, updateDoc, 
     collection, query, where, getDocs, serverTimestamp 
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { logAuditEvent } from './logger.js';
+import { logAuditEvent } from './js/logger.js';
 
 const firebaseConfig = {
     apiKey: "AIzaSyCotT8EP2uy_HsgHknxeGBorKoEUORPtmU",
