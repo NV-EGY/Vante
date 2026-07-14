@@ -1761,16 +1761,18 @@ window.calculateProfitFromEdit = () => {
 };
 
 window.saveEdit = async (id) => {
-
     const oldOrder = orders.find(o => o.id === id);
-    if (!oldOrder) { customAlert("❌ الطلب غير موجود", 'error'); return; }
+    if (!oldOrder) { 
+        customAlert("❌ الطلب غير موجود", 'error'); 
+        return; 
+    }
 
-// ✅ منع تعديل الطلبات المحظورة نهائياً
-const restrictedStatuses = ["undelivered", "rejected", "returned", "hold", "returned_confirmed"];
-if (restrictedStatuses.includes(order.status)) {
-    customAlert(`⚠️ لا يمكن تعديل طلب في حالة "${order.status}".`, 'warning');
-    return;
-}
+    // ✅ منع تعديل الطلبات المحظورة نهائياً
+    const restrictedStatuses = ["undelivered", "rejected", "returned", "hold", "returned_confirmed"];
+    if (restrictedStatuses.includes(oldOrder.status)) {
+        customAlert(`⚠️ لا يمكن تعديل طلب في حالة "${oldOrder.status}".`, 'warning');
+        return;
+    }
 
     const order = orders.find(x => x.id === id);
     const detailsCount = Array.isArray(order?.orderDetails) ? order.orderDetails.length : 0;
@@ -1790,6 +1792,25 @@ if (restrictedStatuses.includes(order.status)) {
     const shippingCostPaid = parseFloat(document.getElementById("editShippingPaid").value) || 0;
     const profit = finalTotal - totalCost - shippingCostPaid;
     const notes = document.getElementById("editNotes")?.value || '';
+
+    // ✅ التحقق من المخزون قبل التعديل (تم نقل هذا الكود إلى هنا)
+    const allProducts = window.allProducts || [];
+    for (const item of orderDetails) {
+        if (!item.name || !item.size) continue;
+        const product = allProducts.find(p => p.name === item.name);
+        if (product && product.stockBySize) {
+            const currentStock = product.stockBySize[item.size];
+            if (currentStock !== null && currentStock !== undefined) {
+                const oldItem = oldOrder.orderDetails?.find(d => d.name === item.name && d.size === item.size);
+                const oldQty = oldItem ? oldItem.qty : 0;
+                const diff = item.qty - oldQty;
+                if (diff > 0 && currentStock < diff) {
+                    customAlert(`❌ المخزون غير كافٍ للمنتج "${item.name}" مقاس ${item.size} (المتوفر: ${currentStock}، المطلوب: ${diff})`, 'error');
+                    return;
+                }
+            }
+        }
+    }
 
     const newData = {
         customerName: document.getElementById("editName").value,
@@ -1841,25 +1862,6 @@ if (restrictedStatuses.includes(order.status)) {
                     notes: newData.notes || ''
                 }
             },
-              // ✅ التحقق من المخزون قبل التعديل
-for (const item of orderDetails) {
-    if (!item.name || !item.size) continue;
-    const product = allProducts.find(p => p.name === item.name);
-    if (product && product.stockBySize) {
-        const currentStock = product.stockBySize[item.size];
-        if (currentStock !== null && currentStock !== undefined) {
-            // حساب الكمية المستخدمة حالياً في الطلب القديم
-            const oldItem = oldOrder.orderDetails?.find(d => d.name === item.name && d.size === item.size);
-            const oldQty = oldItem ? oldItem.qty : 0;
-            // الفرق بين الكمية الجديدة والقديمة
-            const diff = item.qty - oldQty;
-            if (diff > 0 && currentStock < diff) {
-                customAlert(`❌ المخزون غير كافٍ للمنتج "${item.name}" مقاس ${item.size} (المتوفر: ${currentStock}، المطلوب: ${diff})`, 'error');
-                return;
-            }
-        }
-    }
-}
             performedBy: window.currentUserEmail || 'system',
             severity: 'info'
         });
