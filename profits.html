@@ -266,6 +266,16 @@
 
             <!-- Stats -->
             <div class="stats-grid" id="statsGrid"></div>
+            <!-- قسم إدارة المصروفات -->
+<div class="section-expenses" style="background:#fff; border-radius:20px; padding:20px; margin-bottom:30px;">
+    <h3 class="section-title"><i class="fas fa-receipt"></i> المصروفات</h3>
+    <div style="display:flex; gap:15px; flex-wrap:wrap; align-items:center;">
+        <input type="text" id="expenseDescription" placeholder="وصف المصروف" style="flex:2; min-width:150px; padding:10px; border-radius:12px; border:1px solid #ddd;">
+        <input type="number" id="expenseAmount" placeholder="المبلغ" style="flex:1; min-width:100px; padding:10px; border-radius:12px; border:1px solid #ddd;">
+        <button onclick="addExpense()" class="btn-primary" style="padding:10px 25px;">➕ إضافة</button>
+    </div>
+    <div id="expensesList" style="margin-top:15px;"></div>
+</div>
 
             <!-- ========== قسم الطلبات المسلمة ========== -->
             <div class="section-delivered">
@@ -389,6 +399,9 @@
         } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
         import { logAuditEvent } from './js/logger.js';
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        // ✅ استيراد الدالة من sync-orders.js
+import { restoreStockForOrder } from './js/sync-orders.js';
+// ثم استخدمها مباشرة
 
         const firebaseConfig = {
             apiKey: "AIzaSyCotT8EP2uy_HsgHknxeGBorKoEUORPtmU",
@@ -403,35 +416,6 @@
         const auth = getAuth();
 
         console.log("✅ Firebase initialized");
-
-        // ========== دالة إعادة المخزون ==========
-        async function restoreStockForOrder(orderId, orderData) {
-            if (orderData.stockRestored) {
-                console.log(`⚠️ المخزون للطلب ${orderId} تم استرجاعه مسبقاً، تخطي.`);
-                return;
-            }
-            for (const item of (orderData.orderDetails || [])) {
-                if (!item.name || !item.size) continue;
-                let productId = item.productId;
-                let productDoc;
-                if (productId) {
-                    productDoc = await getDoc(doc(db, "products", productId));
-                } else {
-                    const productSnap = await getDocs(query(collection(db, "products"), where("name", "==", item.name)));
-                    if (!productSnap.empty) productDoc = productSnap.docs[0];
-                }
-                if (productDoc && productDoc.exists()) {
-                    const productRef = doc(db, "products", productDoc.id);
-                    const stockBySize = productDoc.data().stockBySize || {};
-                    const currentStock = stockBySize[item.size];
-                    if (currentStock !== null && currentStock !== undefined) {
-                        stockBySize[item.size] = (currentStock || 0) + item.qty;
-                        await updateDoc(productRef, { stockBySize });
-                    }
-                }
-            }
-            await updateDoc(doc(db, "orders", orderId), { stockRestored: true });
-        }
 
         // ========== متغيرات عامة ==========
         let allDeliveredOrders = [];
@@ -575,6 +559,42 @@
             });
             container.innerHTML = html;
         }
+        
+        window.addExpense = async function() {
+    const description = document.getElementById('expenseDescription').value.trim();
+    const amount = parseFloat(document.getElementById('expenseAmount').value);
+    if (!description || isNaN(amount) || amount <= 0) {
+        customAlert('⚠️ يرجى إدخال وصف صحيح ومبلغ', 'warning');
+        return;
+    }
+    try {
+        await addDoc(collection(db, "expenses"), {
+            description: description,
+            amount: amount,
+            createdAt: serverTimestamp()
+        });
+        document.getElementById('expenseDescription').value = '';
+        document.getElementById('expenseAmount').value = '';
+        customAlert('✅ تم إضافة المصروف', 'success');
+    } catch (e) {
+        customAlert('❌ حدث خطأ: ' + e.message, 'error');
+    }
+};
+
+// عرض المصروفات
+onSnapshot(collection(db, "expenses"), (snap) => {
+    const expenses = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const list = document.getElementById('expensesList');
+    if (list) {
+        list.innerHTML = expenses.map(e => `
+            <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #eee;">
+                <span>${e.description}</span>
+                <span style="font-weight:700; color:#e74c3c;">-${e.amount.toFixed(2)} جنيه</span>
+                <button onclick="deleteExpense('${e.id}')" style="background:none; border:none; color:#e74c3c; cursor:pointer;">✖</button>
+            </div>
+        `).join('');
+    }
+});
 
         // ========== عرض المرتجعات المؤكدة ==========
         function renderConfirmedReturns() {
