@@ -66,23 +66,27 @@ function convertToFirestoreValue(value) {
 }
 
 export async function logAuditEvent(data) {
-  // ✅ التأكد من وجود currentUserEmail
-if (!performedBy || performedBy === 'system') {
-    performedBy = window.currentUserEmail || 'system';
-}
+    // ✅ استخراج performedBy من data أولاً
+    let { performedBy } = data;
+    
+    // ✅ التأكد من وجود قيمة
+    if (!performedBy || performedBy === 'system') {
+        performedBy = window.currentUserEmail || 'system';
+    }
+    
     // ✅ السماح بالتسجيل فقط من صفحات الإدارة
     const currentPath = window.location.pathname;
     const allowedPages = [
-    'admin-order',
-    'admin-products',
-    'admin-product',
-    'Profits',
-    'Audit-log',
-    'admin-order (1)',
-    '/',            // ← الصفحة الرئيسية
-    '/index.html',  // ← الصفحة الرئيسية
-    ''              // ← في بعض الحالات يكون المسار فارغاً
-];
+        'admin-order',
+        'admin-products',
+        'admin-product',
+        'Profits',
+        'Audit-log',
+        'admin-order (1)',
+        '/',
+        '/index.html',
+        ''
+    ];
     const isAdminPage = allowedPages.some(page => currentPath.includes(page));
     if (!isAdminPage) return;
 
