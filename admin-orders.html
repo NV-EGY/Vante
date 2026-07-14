@@ -1058,8 +1058,13 @@
 </div>
 
 <script type="module">
+// ✅ الاستيرادات الصحيحة في admin-order.html
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, query, orderBy, onSnapshot, updateDoc, deleteDoc, doc, serverTimestamp, getDoc, getDocs, where, addDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { 
+    getFirestore, collection, query, orderBy, onSnapshot, 
+    updateDoc, deleteDoc, doc, serverTimestamp, getDoc, 
+    getDocs, where, addDoc, setDoc 
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { createOrderInQP, listenForOrderStatusChanges, startPeriodicSync, manualSyncOrders, cancelOrderInQP } from './js/sync-orders.js';
 import { logAuditEvent } from './js/logger.js';
