@@ -22,212 +22,243 @@
         *{margin:0;padding:0;box-sizing:border-box;}
         body{font-family:'Cairo',sans-serif;background:#f4f6f9;padding:20px;}
         .container{max-width:1400px;margin:auto;}
+        
+        /* ===== كاردات الإحصائيات المحسّنة ===== */
         .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px;margin-bottom:30px;}
-        .stat-card{background:#fff;border-radius:20px;padding:20px;box-shadow:0 5px 15px rgba(0,0,0,0.05);border-right:5px solid #D4AF37;}
-        .stat-card h3{font-size:14px;color:#666;margin-bottom:10px;}
+        .stat-card{background:#fff;border-radius:20px;padding:20px;box-shadow:0 5px 15px rgba(0,0,0,0.05);border-right:5px solid #D4AF37;transition:all 0.3s ease;}
+        .stat-card:hover{transform:translateY(-4px);box-shadow:0 12px 30px rgba(0,0,0,0.08);}
+        .stat-card h3{font-size:14px;color:#666;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
         .stat-card .value{font-size:32px;font-weight:900;color:#111;}
-        .filter-bar{display:flex;gap:15px;margin-bottom:20px;flex-wrap:wrap;align-items:center;}
-        select, input, button{padding:10px;border-radius:12px;border:1px solid #ddd;font-family:Cairo;}
-        .btn{background:#111;color:#fff;padding:10px 20px;border:none;border-radius:30px;cursor:pointer;}
-        .btn-primary{background:#D4AF37;color:#000;font-weight:bold;}
-        .btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(212,175,55,0.3);}
+        .stat-card .sub-value{font-size:14px;color:#888;margin-top:4px;}
+        
+        /* ===== شريط الفلاتر ===== */
+        .filter-bar{display:flex;gap:15px;margin-bottom:20px;flex-wrap:wrap;align-items:center;background:#fff;padding:15px 20px;border-radius:16px;box-shadow:0 2px 10px rgba(0,0,0,0.04);}
+        .filter-bar select, .filter-bar input, .filter-bar button{padding:10px 16px;border-radius:12px;border:1px solid #ddd;font-family:Cairo;font-size:14px;background:#fff;transition:all 0.3s;}
+        .filter-bar select:focus, .filter-bar input:focus{border-color:#D4AF37;outline:none;box-shadow:0 0 0 3px rgba(212,175,55,0.15);}
+        .btn{background:#111;color:#fff;padding:10px 20px;border:none;border-radius:30px;cursor:pointer;transition:all 0.3s ease;font-weight:700;display:inline-flex;align-items:center;gap:8px;}
+        .btn:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,0.15);}
+        .btn-primary{background:#D4AF37;color:#000;}
+        .btn-primary:hover{background:#B8860B;color:#fff;box-shadow:0 8px 20px rgba(212,175,55,0.3);}
+        .btn-danger{background:#e74c3c;color:#fff;}
+        .btn-danger:hover{background:#c0392b;}
+        .btn-success{background:#27ae60;color:#fff;}
+        .btn-success:hover{background:#219a52;}
+        
+        /* ===== Password Overlay ===== */
         .password-overlay {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.8);
-            backdrop-filter: blur(8px);
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(10px);
             z-index: 10000;
             display: flex;
             align-items: center;
             justify-content: center;
             visibility: visible;
             opacity: 1;
-            transition: 0.3s;
+            transition: 0.4s ease;
         }
-        .password-overlay.hide {
-            visibility: hidden;
-            opacity: 0;
-        }
+        .password-overlay.hide { visibility: hidden; opacity: 0; pointer-events: none; }
         .password-box {
             background: #fff;
             border-radius: 32px;
-            padding: 30px;
+            padding: 40px 35px;
             width: 90%;
             max-width: 400px;
             text-align: center;
-            box-shadow: 0 30px 50px rgba(0,0,0,0.3);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.3);
         }
-        .password-box h2 {
-            color: #D4AF37;
-            margin-bottom: 20px;
+        .password-box .lock-icon {
+            width: 70px; height: 70px;
+            background: linear-gradient(135deg, #D4AF37, #B8860B);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 20px;
         }
+        .password-box .lock-icon i { font-size: 32px; color: #000; }
+        .password-box h2 { color: #111; margin-bottom: 10px; font-size: 24px; }
+        .password-box p { color: #888; margin-bottom: 20px; font-size: 14px; }
         .password-box input {
-            width: 100%;
-            padding: 14px;
-            border-radius: 30px;
-            border: 1px solid #ddd;
-            margin: 15px 0;
-            font-size: 16px;
-            text-align: center;
-            letter-spacing: 2px;
+            width: 100%; padding: 14px 20px;
+            border-radius: 30px; border: 2px solid #eee;
+            margin: 10px 0 15px; font-size: 16px;
+            text-align: center; letter-spacing: 4px;
+            transition: 0.3s; font-family: 'Cairo', sans-serif;
         }
+        .password-box input:focus { border-color: #D4AF37; outline: none; }
+        .password-box .error-msg { color: #e74c3c; font-size: 13px; margin-top: 8px; min-height: 24px; }
         .password-box button {
-            background: #111;
-            color: #fff;
-            width: 100%;
-            padding: 12px;
-            border-radius: 30px;
-            font-weight: bold;
-            cursor: pointer;
+            width: 100%; padding: 14px;
+            border-radius: 30px; border: none;
+            background: #111; color: #fff;
+            font-weight: 700; font-size: 16px;
+            cursor: pointer; transition: 0.3s;
         }
-        .error-msg {
-            color: #e74c3c;
-            font-size: 13px;
-            margin-top: 8px;
-        }
-        .logout-btn {
-            background: #e74c3c;
-            color: white;
-            border: none;
-            padding: 6px 15px;
-            border-radius: 30px;
-            cursor: pointer;
-            font-size: 13px;
-            margin-right: 10px;
-        }
-        .logout-btn:hover {
-            background: #c0392b;
-        }
-        .table-wrapper {
-            overflow-x: auto;
-            border-radius: 16px;
-            border: 1px solid #eee;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 14px;
-        }
-        th {
-            background: #111;
-            color: #fff;
-            padding: 12px;
-            text-align: center;
-            white-space: nowrap;
-        }
-        td {
-            padding: 10px;
-            text-align: center;
-            border-bottom: 1px solid #eee;
-        }
-        tbody tr:hover {
-            background: #fafafa;
-        }
-        .detail-cell {
-            text-align: right;
-            font-size: 12px;
-            max-width: 200px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .profit-positive {
-            color: #27ae60;
-            font-weight: 700;
-        }
-        .profit-negative {
-            color: #e74c3c;
-            font-weight: 700;
-        }
+        .password-box button:hover { background: #D4AF37; color: #000; }
+        
+        /* ===== جداول احترافية ===== */
+        .table-wrapper { overflow-x: auto; border-radius: 16px; border: 1px solid #eee; background: #fff; }
+        table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        th { background: #111; color: #fff; padding: 14px 16px; text-align: center; white-space: nowrap; font-weight: 700; }
+        td { padding: 12px 16px; text-align: center; border-bottom: 1px solid #f0f0f0; }
+        tbody tr:hover { background: #fafafa; }
+        .detail-cell { text-align: right; font-size: 12px; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .profit-positive { color: #27ae60; font-weight: 700; }
+        .profit-negative { color: #e74c3c; font-weight: 700; }
+        
+        /* ===== بطاقات المرتجعات ===== */
         .pending-return-card {
             background: #fff;
             border: 1px solid #f0c27a;
             border-radius: 16px;
-            padding: 16px;
+            padding: 18px 20px;
             margin-bottom: 12px;
             transition: 0.3s;
             border-right: 4px solid #f39c12;
         }
-        .pending-return-card:hover {
-            box-shadow: 0 4px 15px rgba(243, 156, 18, 0.15);
-        }
+        .pending-return-card:hover { box-shadow: 0 4px 15px rgba(243, 156, 18, 0.15); transform: translateY(-2px); }
         .status-badge {
-            display: inline-block;
-            padding: 2px 12px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 700;
+            display: inline-block; padding: 2px 14px;
+            border-radius: 20px; font-size: 11px; font-weight: 700;
         }
         .status-badge.undelivered { background: #e67e22; color: #fff; }
         .status-badge.rejected { background: #c0392b; color: #fff; }
         .status-badge.returned { background: #9b59b6; color: #fff; }
         .confirm-return-btn {
-            background: #27ae60;
-            color: #fff;
-            border: none;
-            padding: 6px 16px;
-            border-radius: 30px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: 0.3s;
-            font-size: 12px;
+            background: #27ae60; color: #fff; border: none;
+            padding: 6px 18px; border-radius: 30px;
+            font-weight: 700; cursor: pointer; transition: 0.3s;
+            font-size: 12px; display: inline-flex; align-items: center; gap: 6px;
         }
-        .confirm-return-btn:hover {
-            background: #2ecc71;
-            transform: translateY(-2px);
-        }
-        .confirm-return-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-        .return-details {
-            font-size: 13px;
-            color: #555;
-            margin-top: 8px;
-            line-height: 1.6;
-        }
+        .confirm-return-btn:hover { background: #2ecc71; transform: translateY(-2px); }
+        .confirm-return-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        .return-details { font-size: 13px; color: #555; margin-top: 8px; line-height: 1.8; }
         .return-details strong { color: #111; }
-        .section-title {
-            margin-bottom: 15px;
-            font-size: 18px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
+        
+        /* ===== الأقسام ===== */
+        .section-title { margin-bottom: 15px; font-size: 18px; display: flex; align-items: center; gap: 10px; }
         .section-title .badge-count {
-            background: #f39c12;
-            color: #fff;
-            border-radius: 30px;
-            padding: 2px 12px;
-            font-size: 14px;
+            background: #f39c12; color: #fff;
+            border-radius: 30px; padding: 2px 14px; font-size: 14px;
         }
         .section-pending {
-            border: 2px solid #f39c12;
-            border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 30px;
-            background: #fff;
+            border: 2px solid #f39c12; border-radius: 20px;
+            padding: 20px; margin-bottom: 30px; background: #fff;
         }
-        .section-delivered {
-            background: #fff;
-            border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 30px;
-            overflow-x: auto;
+        .section-delivered, .section-confirmed, .section-expenses {
+            background: #fff; border-radius: 20px;
+            padding: 20px; margin-bottom: 30px;
         }
-        .section-confirmed {
-            background: #fff;
-            border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 30px;
-            overflow-x: auto;
+        
+        /* ===== إدارة المصروفات المحسّنة ===== */
+        .expense-form {
+            display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-end;
+            background: #f8f9fa; padding: 20px; border-radius: 16px;
+            margin-bottom: 20px;
         }
+        .expense-form .form-group { flex: 1; min-width: 150px; }
+        .expense-form label {
+            display: block; font-weight: 700; font-size: 13px;
+            color: #555; margin-bottom: 6px;
+        }
+        .expense-form input {
+            width: 100%; padding: 10px 14px;
+            border-radius: 12px; border: 1px solid #ddd;
+            font-family: 'Cairo', sans-serif; font-size: 14px;
+            transition: 0.3s;
+        }
+        .expense-form input:focus { border-color: #D4AF37; outline: none; box-shadow: 0 0 0 3px rgba(212,175,55,0.15); }
+        .expense-item {
+            display: flex; justify-content: space-between;
+            align-items: center; padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+            transition: 0.2s;
+        }
+        .expense-item:hover { background: #fafafa; padding: 10px 8px; border-radius: 8px; }
+        .expense-item .desc { font-weight: 600; color: #333; }
+        .expense-item .amount { font-weight: 700; color: #e74c3c; }
+        .expense-item .actions { display: flex; gap: 8px; }
+        .expense-item .actions button {
+            background: none; border: none; cursor: pointer;
+            padding: 4px 8px; border-radius: 6px; transition: 0.2s;
+            font-size: 14px;
+        }
+        .expense-item .actions .delete-btn:hover { background: #fee; color: #e74c3c; }
+        .expense-total {
+            text-align: left; font-weight: 700; font-size: 16px;
+            padding: 12px 0; border-top: 2px solid #eee;
+            margin-top: 10px;
+        }
+        .expense-total span { color: #e74c3c; }
+        .empty-expenses { color: #999; text-align: center; padding: 30px; }
+        
+        /* ===== Custom Alert/Confirm (محسّن) ===== */
+        .custom-alert-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+            z-index: 99999; display: none; align-items: center; justify-content: center;
+        }
+        .custom-alert-overlay.active { display: flex; }
+        .custom-alert-box {
+            background: #fff; border-radius: 28px; width: 90%; max-width: 380px;
+            overflow: hidden; box-shadow: 0 30px 50px rgba(0,0,0,0.3);
+            transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.34, 1.2, 0.64, 1);
+            direction: rtl;
+        }
+        .custom-alert-overlay.active .custom-alert-box { transform: scale(1); }
+        .alert-header { padding: 20px 20px 10px; text-align: center; }
+        .alert-header i { font-size: 48px; margin-bottom: 10px; }
+        .alert-header.success i { color: #2ecc71; }
+        .alert-header.error i { color: #e74c3c; }
+        .alert-header.warning i { color: #f39c12; }
+        .alert-header.info i { color: #3498db; }
+        .alert-title { font-size: 22px; font-weight: 800; color: #111; }
+        .alert-message { padding: 0 20px 20px; font-size: 15px; color: #555; text-align: center; line-height: 1.6; }
+        .alert-buttons { display: flex; border-top: 1px solid #eee; }
+        .alert-buttons button {
+            flex: 1; padding: 14px; border: none; background: #fff;
+            font-weight: 700; font-size: 16px; cursor: pointer; transition: 0.2s;
+        }
+        .alert-buttons button:first-child { border-left: 1px solid #eee; color: #0F7B65; }
+        .alert-buttons button:last-child { color: #888; }
+        .alert-buttons button:hover { background: #f9f9f9; }
+        
+        .custom-confirm-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
+            z-index: 99999; display: none; align-items: center; justify-content: center;
+        }
+        .custom-confirm-overlay.active { display: flex; }
+        .custom-confirm-box {
+            background: #fff; border-radius: 28px; width: 90%; max-width: 360px;
+            overflow: hidden; box-shadow: 0 30px 50px rgba(0,0,0,0.3);
+            transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.34, 1.2, 0.64, 1);
+            direction: rtl;
+        }
+        .custom-confirm-overlay.active .custom-confirm-box { transform: scale(1); }
+        .confirm-header { background: #111; padding: 20px; text-align: center; }
+        .confirm-header i { font-size: 50px; color: #f39c12; margin-bottom: 10px; }
+        .confirm-header h3 { color: #fff; font-size: 20px; font-weight: 800; margin: 0; }
+        .confirm-message { padding: 25px 20px; font-size: 16px; color: #333; text-align: center; line-height: 1.6; }
+        .confirm-buttons { display: flex; border-top: 1px solid #eee; }
+        .confirm-buttons button {
+            flex: 1; padding: 15px; border: none; background: #fff;
+            font-weight: 700; font-size: 16px; cursor: pointer; transition: 0.2s;
+        }
+        .confirm-buttons button:first-child { border-left: 1px solid #eee; color: #e74c3c; }
+        .confirm-buttons button:last-child { color: #0F7B65; }
+        .confirm-buttons button:hover { background: #f9f9f9; }
+        
+        .logout-btn {
+            background: #e74c3c; color: white; border: none;
+            padding: 6px 18px; border-radius: 30px; cursor: pointer;
+            font-size: 13px; font-weight: 700; transition: 0.3s;
+            display: inline-flex; align-items: center; gap: 6px;
+        }
+        .logout-btn:hover { background: #c0392b; transform: translateY(-2px); }
+        
         @media(max-width:700px){th,td{font-size:11px;padding:6px;}}
-        @media(max-width:480px){.container{padding:0;}}
+        @media(max-width:480px){.container{padding:0;} .expense-form{flex-direction:column;} }
     </style>
 </head>
 <body>
@@ -235,11 +266,12 @@
     <!-- Password Overlay -->
     <div id="passwordOverlay" class="password-overlay">
         <div class="password-box">
-            <h2><i class="fas fa-lock"></i> دخول خاص للأرباح</h2>
+            <div class="lock-icon"><i class="fas fa-lock"></i></div>
+            <h2>دخول خاص للأرباح</h2>
             <p>أدخل كلمة السر للوصول إلى لوحة الأرباح</p>
-            <input type="password" id="passwordInput" placeholder="********">
+            <input type="password" id="passwordInput" placeholder="••••••••">
             <div id="passwordError" class="error-msg"></div>
-            <button id="confirmPasswordBtn">تأكيد</button>
+            <button id="confirmPasswordBtn">تأكيد الدخول</button>
         </div>
     </div>
 
@@ -248,7 +280,9 @@
         <div class="container">
             <!-- Header -->
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
-                <h1 style="font-size:28px;"><i class="fas fa-chart-line"></i> حساب الأرباح المتكامل</h1>
+                <h1 style="font-size:28px; display:flex; align-items:center; gap:12px;">
+                    <i class="fas fa-chart-line" style="color:#D4AF37;"></i> حساب الأرباح المتكامل
+                </h1>
                 <div style="display:flex; gap:10px; flex-wrap:wrap;">
                     <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</button>
                     <button class="btn" onclick="window.location.href='admin-orders.html'">📦 العودة للطلبات</button>
@@ -260,22 +294,38 @@
                 <select id="monthFilter">
                     <option value="all">كل الشهور</option>
                 </select>
-                <button class="btn-primary" onclick="exportToExcel()"><i class="fas fa-file-excel"></i> تصدير Excel</button>
-                <button onclick="loadData()" class="btn"><i class="fas fa-sync"></i> تحديث</button>
+                <button class="btn btn-primary" onclick="exportToExcel()"><i class="fas fa-file-excel"></i> تصدير Excel</button>
+                <button class="btn" onclick="loadData()"><i class="fas fa-sync"></i> تحديث</button>
             </div>
 
             <!-- Stats -->
             <div class="stats-grid" id="statsGrid"></div>
-            <!-- قسم إدارة المصروفات -->
-<div class="section-expenses" style="background:#fff; border-radius:20px; padding:20px; margin-bottom:30px;">
-    <h3 class="section-title"><i class="fas fa-receipt"></i> المصروفات</h3>
-    <div style="display:flex; gap:15px; flex-wrap:wrap; align-items:center;">
-        <input type="text" id="expenseDescription" placeholder="وصف المصروف" style="flex:2; min-width:150px; padding:10px; border-radius:12px; border:1px solid #ddd;">
-        <input type="number" id="expenseAmount" placeholder="المبلغ" style="flex:1; min-width:100px; padding:10px; border-radius:12px; border:1px solid #ddd;">
-        <button onclick="addExpense()" class="btn-primary" style="padding:10px 25px;">➕ إضافة</button>
-    </div>
-    <div id="expensesList" style="margin-top:15px;"></div>
-</div>
+
+            <!-- ========== قسم إدارة المصروفات (المعدل بالكامل) ========== -->
+            <div class="section-expenses">
+                <h3 class="section-title"><i class="fas fa-receipt" style="color:#D4AF37;"></i> المصروفات</h3>
+                
+                <div class="expense-form">
+                    <div class="form-group">
+                        <label><i class="fas fa-tag"></i> وصف المصروف</label>
+                        <input type="text" id="expenseDescription" placeholder="مثال: فاتورة كهرباء">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-dollar-sign"></i> المبلغ (جنيه)</label>
+                        <input type="number" id="expenseAmount" placeholder="0.00" step="0.01" min="0">
+                    </div>
+                    <button class="btn btn-success" onclick="addExpense()" style="padding:12px 30px; margin-bottom:2px;">
+                        <i class="fas fa-plus"></i> إضافة مصروف
+                    </button>
+                </div>
+                
+                <div id="expensesList">
+                    <div class="empty-expenses"><i class="fas fa-inbox" style="font-size:32px; display:block; margin-bottom:10px; color:#ddd;"></i> لا توجد مصروفات مسجلة</div>
+                </div>
+                <div class="expense-total" id="expenseTotal">
+                    إجمالي المصروفات: <span id="totalExpensesDisplay">0.00</span> جنيه
+                </div>
+            </div>
 
             <!-- ========== قسم الطلبات المسلمة ========== -->
             <div class="section-delivered">
@@ -342,21 +392,108 @@
         </div>
     </div>
 
+    <!-- Custom Alert Modal -->
+    <div id="customAlertOverlay" class="custom-alert-overlay">
+        <div class="custom-alert-box">
+            <div class="alert-header" id="alertHeaderIcon">
+                <i class="fas fa-check-circle"></i>
+                <div class="alert-title" id="alertTitle">نجاح</div>
+            </div>
+            <div class="alert-message" id="alertMessage">تمت العملية بنجاح</div>
+            <div class="alert-buttons">
+                <button id="alertConfirmBtn">موافق</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Confirm Modal -->
+    <div id="customConfirmOverlay" class="custom-confirm-overlay">
+        <div class="custom-confirm-box">
+            <div class="confirm-header">
+                <i class="fas fa-question-circle"></i>
+                <h3>تأكيد العملية</h3>
+            </div>
+            <div class="confirm-message" id="confirmMessage">هل أنت متأكد؟</div>
+            <div class="confirm-buttons">
+                <button id="confirmNoBtn">إلغاء</button>
+                <button id="confirmYesBtn">تأكيد</button>
+            </div>
+        </div>
+    </div>
+
     <!-- ========== سكربت كلمة السر ========== -->
     <script>
         const SECRET_HASH = "VmFudGVQcm9maXRAMjAyNg==";
 
-        window.customConfirm = function(message) {
+        // ===== Custom Alert (محسّن) =====
+        window.customAlert = function(message, type = 'success', title = '') {
             return new Promise((resolve) => {
-                if (confirm(message)) resolve(true);
-                else resolve(false);
+                const overlay = document.getElementById('customAlertOverlay');
+                const headerIcon = document.getElementById('alertHeaderIcon');
+                const titleEl = document.getElementById('alertTitle');
+                const msgEl = document.getElementById('alertMessage');
+                const confirmBtn = document.getElementById('alertConfirmBtn');
+                
+                let iconClass = 'fa-check-circle';
+                let defaultTitle = '';
+                if (type === 'success') { iconClass = 'fa-check-circle'; defaultTitle = '✅ نجاح'; }
+                else if (type === 'error') { iconClass = 'fa-exclamation-triangle'; defaultTitle = '❌ خطأ'; }
+                else if (type === 'warning') { iconClass = 'fa-exclamation-circle'; defaultTitle = '⚠️ تنبيه'; }
+                else { iconClass = 'fa-info-circle'; defaultTitle = 'ℹ️ معلومات'; }
+                
+                headerIcon.innerHTML = `<i class="fas ${iconClass}"></i><div class="alert-title">${title || defaultTitle}</div>`;
+                msgEl.innerText = message;
+                overlay.classList.add('active');
+                
+                const onConfirm = () => {
+                    overlay.classList.remove('active');
+                    confirmBtn.removeEventListener('click', onConfirm);
+                    resolve();
+                };
+                confirmBtn.addEventListener('click', onConfirm);
+                
+                overlay.addEventListener('click', (e) => {
+                    if (e.target === overlay) {
+                        overlay.classList.remove('active');
+                        confirmBtn.removeEventListener('click', onConfirm);
+                        resolve();
+                    }
+                });
             });
         };
 
-        window.customAlert = function(message, type) {
-            alert(message);
+        // ===== Custom Confirm (محسّن) =====
+        window.customConfirm = function(message) {
+            return new Promise((resolve) => {
+                const overlay = document.getElementById('customConfirmOverlay');
+                const msgEl = document.getElementById('confirmMessage');
+                const yesBtn = document.getElementById('confirmYesBtn');
+                const noBtn = document.getElementById('confirmNoBtn');
+                
+                msgEl.innerText = message;
+                overlay.classList.add('active');
+                
+                const onYes = () => { overlay.classList.remove('active'); cleanup(); resolve(true); };
+                const onNo = () => { overlay.classList.remove('active'); cleanup(); resolve(false); };
+                const cleanup = () => {
+                    yesBtn.removeEventListener('click', onYes);
+                    noBtn.removeEventListener('click', onNo);
+                };
+                
+                yesBtn.addEventListener('click', onYes);
+                noBtn.addEventListener('click', onNo);
+                
+                overlay.addEventListener('click', (e) => {
+                    if (e.target === overlay) {
+                        overlay.classList.remove('active');
+                        cleanup();
+                        resolve(false);
+                    }
+                });
+            });
         };
 
+        // ===== Password =====
         function checkPassword() {
             const input = document.getElementById("passwordInput").value;
             const decodedSecret = atob(SECRET_HASH);
@@ -395,13 +532,11 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import {
             getFirestore, collection, query, where, onSnapshot, getDocs,
-            doc, getDoc, updateDoc, serverTimestamp
+            doc, getDoc, updateDoc, serverTimestamp, addDoc, deleteDoc
         } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
         import { logAuditEvent } from './js/logger.js';
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        // ✅ استيراد الدالة من sync-orders.js
-import { restoreStockForOrder } from './js/sync-orders.js';
-// ثم استخدمها مباشرة
+        import { restoreStockForOrder } from './js/sync-orders.js';
 
         const firebaseConfig = {
             apiKey: "AIzaSyCotT8EP2uy_HsgHknxeGBorKoEUORPtmU",
@@ -421,6 +556,7 @@ import { restoreStockForOrder } from './js/sync-orders.js';
         let allDeliveredOrders = [];
         let pendingReturns = [];
         let confirmedReturns = [];
+        let allExpenses = [];
         let totalExpenses = 0;
         let currentMonthFilter = "all";
 
@@ -461,6 +597,133 @@ import { restoreStockForOrder } from './js/sync-orders.js';
                 document.getElementById("confirmedReturnsList").innerHTML = `<tr><td colspan="10">⚠️ خطأ في التحميل: ${error.message}</td></tr>`;
             });
         }
+
+        // ========== تحميل المصروفات (مع عرض في الواجهة) ==========
+        function loadExpenses() {
+            const q = query(collection(db, "expenses"), where("deleted", "!=", true));
+            onSnapshot(q, (snap) => {
+                allExpenses = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                renderExpenses();
+                updateExpenseTotal();
+            }, (error) => {
+                console.error("❌ خطأ في تحميل المصروفات:", error);
+            });
+        }
+
+        // ========== عرض المصروفات ==========
+        function renderExpenses() {
+            const container = document.getElementById('expensesList');
+            if (!container) return;
+
+            if (allExpenses.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-expenses">
+                        <i class="fas fa-inbox" style="font-size:32px; display:block; margin-bottom:10px; color:#ddd;"></i>
+                        لا توجد مصروفات مسجلة
+                    </div>
+                `;
+                return;
+            }
+
+            // ترتيب تنازلي (الأحدث أولاً)
+            const sorted = [...allExpenses].sort((a, b) => {
+                const dateA = a.createdAt?.toDate?.() || new Date(0);
+                const dateB = b.createdAt?.toDate?.() || new Date(0);
+                return dateB - dateA;
+            });
+
+            container.innerHTML = sorted.map(exp => `
+                <div class="expense-item">
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <span style="color:#888; font-size:12px;">${exp.createdAt?.toDate ? formatDate(exp.createdAt.toDate()) : ''}</span>
+                        <span class="desc">${escapeHtml(exp.description || 'بدون وصف')}</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:15px;">
+                        <span class="amount">-${Number(exp.amount || 0).toFixed(2)} جنيه</span>
+                        <div class="actions">
+                            <button class="delete-btn" onclick="window.deleteExpense('${exp.id}')" title="حذف المصروف">
+                                <i class="fas fa-trash-alt" style="color:#e74c3c;"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // ========== تحديث إجمالي المصروفات ==========
+        function updateExpenseTotal() {
+            totalExpenses = allExpenses.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+            const displayEl = document.getElementById('totalExpensesDisplay');
+            if (displayEl) displayEl.textContent = totalExpenses.toFixed(2);
+            
+            // تحديث الإحصائيات إذا كانت موجودة
+            if (allDeliveredOrders.length > 0) {
+                updateStats(allDeliveredOrders);
+            }
+        }
+
+        // ========== دالة إضافة مصروف (المعدلة) ==========
+        window.addExpense = async function() {
+            const description = document.getElementById('expenseDescription').value.trim();
+            const amount = parseFloat(document.getElementById('expenseAmount').value);
+
+            if (!description) {
+                await customAlert('⚠️ يرجى إدخال وصف للمصروف', 'warning');
+                return;
+            }
+            if (isNaN(amount) || amount <= 0) {
+                await customAlert('⚠️ يرجى إدخال مبلغ صحيح (أكبر من صفر)', 'warning');
+                return;
+            }
+
+            try {
+                await addDoc(collection(db, "expenses"), {
+                    description: description,
+                    amount: amount,
+                    createdAt: serverTimestamp(),
+                    deleted: false
+                });
+
+                document.getElementById('expenseDescription').value = '';
+                document.getElementById('expenseAmount').value = '';
+                
+                await customAlert('✅ تم إضافة المصروف بنجاح!', 'success');
+                
+                // تسجيل في Audit Log
+                try {
+                    await logAuditEvent({
+                        action: 'expense_added',
+                        orderId: null,
+                        orderNumber: null,
+                        details: {
+                            description: description,
+                            amount: amount
+                        },
+                        performedBy: window.currentUserEmail || 'system',
+                        severity: 'info'
+                    });
+                } catch(e) { console.warn('⚠️ فشل تسجيل Audit Log:', e); }
+
+            } catch (error) {
+                console.error("❌ خطأ في إضافة المصروف:", error);
+                await customAlert('❌ حدث خطأ أثناء إضافة المصروف: ' + error.message, 'error');
+            }
+        };
+
+        // ========== دالة حذف مصروف ==========
+        window.deleteExpense = async function(expenseId) {
+            const confirmed = await customConfirm('⚠️ هل أنت متأكد من حذف هذا المصروف؟');
+            if (!confirmed) return;
+
+            try {
+                // حذف ناعم (نضع علامة deleted بدلاً من الحذف الفعلي)
+                await updateDoc(doc(db, "expenses", expenseId), { deleted: true });
+                await customAlert('🗑️ تم حذف المصروف بنجاح', 'success');
+            } catch (error) {
+                console.error("❌ خطأ في حذف المصروف:", error);
+                await customAlert('❌ حدث خطأ أثناء حذف المصروف: ' + error.message, 'error');
+            }
+        };
 
         // ========== عرض الطلبات المسلمة ==========
         function renderDeliveredOrders(orders) {
@@ -559,42 +822,6 @@ import { restoreStockForOrder } from './js/sync-orders.js';
             });
             container.innerHTML = html;
         }
-        
-        window.addExpense = async function() {
-    const description = document.getElementById('expenseDescription').value.trim();
-    const amount = parseFloat(document.getElementById('expenseAmount').value);
-    if (!description || isNaN(amount) || amount <= 0) {
-        customAlert('⚠️ يرجى إدخال وصف صحيح ومبلغ', 'warning');
-        return;
-    }
-    try {
-        await addDoc(collection(db, "expenses"), {
-            description: description,
-            amount: amount,
-            createdAt: serverTimestamp()
-        });
-        document.getElementById('expenseDescription').value = '';
-        document.getElementById('expenseAmount').value = '';
-        customAlert('✅ تم إضافة المصروف', 'success');
-    } catch (e) {
-        customAlert('❌ حدث خطأ: ' + e.message, 'error');
-    }
-};
-
-// عرض المصروفات
-onSnapshot(collection(db, "expenses"), (snap) => {
-    const expenses = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    const list = document.getElementById('expensesList');
-    if (list) {
-        list.innerHTML = expenses.map(e => `
-            <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #eee;">
-                <span>${e.description}</span>
-                <span style="font-weight:700; color:#e74c3c;">-${e.amount.toFixed(2)} جنيه</span>
-                <button onclick="deleteExpense('${e.id}')" style="background:none; border:none; color:#e74c3c; cursor:pointer;">✖</button>
-            </div>
-        `).join('');
-    }
-});
 
         // ========== عرض المرتجعات المؤكدة ==========
         function renderConfirmedReturns() {
@@ -633,7 +860,7 @@ onSnapshot(collection(db, "expenses"), (snap) => {
             tbody.innerHTML = html;
         }
 
-        // ========== الإحصائيات ==========
+        // ========== الإحصائيات (المعدلة لتشمل المصروفات) ==========
         function updateStats(orders) {
             let totalRevenue = orders.reduce((s, o) => s + (o.finalTotal || 0), 0);
             let totalCostProducts = orders.reduce((s, o) => s + (o.totalCost || 0), 0);
@@ -641,10 +868,27 @@ onSnapshot(collection(db, "expenses"), (snap) => {
             let netProfit = totalRevenue - totalCostProducts - totalShippingCost - totalExpenses;
 
             document.getElementById("statsGrid").innerHTML = `
-                <div class="stat-card"><h3>💰 إجمالي الإيرادات</h3><div class="value">${totalRevenue.toFixed(2)} جنيه</div></div>
-                <div class="stat-card"><h3>📦 تكلفة المنتجات (جملة)</h3><div class="value">${totalCostProducts.toFixed(2)} جنيه</div></div>
-                <div class="stat-card"><h3>🚚 تكلفة الشحن الفعلية</h3><div class="value">${totalShippingCost.toFixed(2)} جنيه</div></div>
-                <div class="stat-card"><h3>✅ صافي الربح</h3><div class="value" style="color:${netProfit>=0?'#27ae60':'#e74c3c'};">${netProfit.toFixed(2)} جنيه</div></div>
+                <div class="stat-card">
+                    <h3><i class="fas fa-coins" style="color:#D4AF37;"></i> إجمالي الإيرادات</h3>
+                    <div class="value">${totalRevenue.toFixed(2)} <span style="font-size:14px;color:#888;">جنيه</span></div>
+                </div>
+                <div class="stat-card">
+                    <h3><i class="fas fa-boxes" style="color:#3498db;"></i> تكلفة المنتجات (جملة)</h3>
+                    <div class="value">${totalCostProducts.toFixed(2)} <span style="font-size:14px;color:#888;">جنيه</span></div>
+                </div>
+                <div class="stat-card">
+                    <h3><i class="fas fa-truck" style="color:#9b59b6;"></i> تكلفة الشحن الفعلية</h3>
+                    <div class="value">${totalShippingCost.toFixed(2)} <span style="font-size:14px;color:#888;">جنيه</span></div>
+                </div>
+                <div class="stat-card">
+                    <h3><i class="fas fa-receipt" style="color:#e74c3c;"></i> إجمالي المصروفات</h3>
+                    <div class="value" style="color:#e74c3c;">${totalExpenses.toFixed(2)} <span style="font-size:14px;color:#888;">جنيه</span></div>
+                </div>
+                <div class="stat-card">
+                    <h3><i class="fas fa-chart-line" style="color:${netProfit>=0?'#27ae60':'#e74c3c'};"></i> صافي الربح</h3>
+                    <div class="value" style="color:${netProfit>=0?'#27ae60':'#e74c3c'};">${netProfit.toFixed(2)} <span style="font-size:14px;color:#888;">جنيه</span></div>
+                    ${netProfit >= 0 ? '<div class="sub-value" style="color:#27ae60;">📈 ربح</div>' : '<div class="sub-value" style="color:#e74c3c;">📉 خسارة</div>'}
+                </div>
             `;
         }
 
@@ -690,7 +934,7 @@ onSnapshot(collection(db, "expenses"), (snap) => {
             }
 
             try {
-                const confirmed = await window.customConfirm("⚠️ هل أنت متأكد من استلام المنتجات المرتجعة؟ سيتم إعادة الكميات إلى المخزون.");
+                const confirmed = await customConfirm("⚠️ هل أنت متأكد من استلام المنتجات المرتجعة؟ سيتم إعادة الكميات إلى المخزون.");
                 if (!confirmed) {
                     if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-check-circle"></i> تأكيد استلام المرتجع'; }
                     return;
@@ -698,7 +942,7 @@ onSnapshot(collection(db, "expenses"), (snap) => {
 
                 const orderSnap = await getDoc(doc(db, "orders", orderId));
                 if (!orderSnap.exists()) {
-                    window.customAlert("❌ الطلب غير موجود", "error");
+                    await customAlert("❌ الطلب غير موجود", "error");
                     if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-check-circle"></i> تأكيد استلام المرتجع'; }
                     return;
                 }
@@ -737,7 +981,7 @@ onSnapshot(collection(db, "expenses"), (snap) => {
                     console.warn("⚠️ فشل تسجيل Audit Log:", e);
                 }
 
-                window.customAlert("✅ تم تأكيد استلام المرتجع وإعادة الكميات إلى المخزون بنجاح!", "success");
+                await customAlert("✅ تم تأكيد استلام المرتجع وإعادة الكميات إلى المخزون بنجاح!", "success");
 
                 // ✅ تحديث واجهة الطلبات إذا كانت مفتوحة
                 if (typeof window.forceRender === 'function') {
@@ -748,7 +992,7 @@ onSnapshot(collection(db, "expenses"), (snap) => {
 
             } catch (error) {
                 console.error("❌ خطأ في تأكيد المرتجع:", error);
-                window.customAlert("❌ حدث خطأ أثناء تأكيد المرتجع: " + error.message, "error");
+                await customAlert("❌ حدث خطأ أثناء تأكيد المرتجع: " + error.message, "error");
             } finally {
                 if (btn) {
                     btn.disabled = false;
@@ -780,20 +1024,27 @@ onSnapshot(collection(db, "expenses"), (snap) => {
             XLSX.writeFile(wb, `profits_${new Date().toISOString().slice(0,10)}.xlsx`);
         };
 
-        // ========== مراقبة المصروفات ==========
-        onSnapshot(collection(db, "expenses"), (snap) => {
-            const expenses = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-            totalExpenses = expenses.reduce((s, e) => s + (e.amount || 0), 0);
-            if (typeof applyFilter === 'function') applyFilter();
-        }, (error) => {
-            console.error("❌ خطأ في مصروفات:", error);
-        });
+        // ========== دوال مساعدة ==========
+        function formatDate(date) {
+            return date.toLocaleString('ar-EG', {
+                year: 'numeric', month: 'short', day: 'numeric',
+                hour: '2-digit', minute: '2-digit'
+            });
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
 
         // ========== تحميل البيانات ==========
         function loadData() {
             loadDeliveredOrders();
             loadPendingReturns();
             loadConfirmedReturns();
+            loadExpenses();
         }
         window.loadData = loadData;
 
