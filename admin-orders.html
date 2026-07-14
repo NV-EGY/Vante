@@ -988,13 +988,6 @@
   <button class="bulk-status-btn delivered" onclick="applyBulkStatus('delivered')"><i class="fas fa-check-circle"></i> <span>تسليم</span></button>
   <button class="bulk-status-btn cancelled" onclick="applyBulkStatus('cancelled')"><i class="fas fa-ban"></i> <span>إلغاء</span></button>
   <button class="bulk-status-btn confirmed" onclick="applyBulkStatus('confirmed')"><i class="fas fa-check-double"></i> <span>تأكيد</span></button>
-<button class="bulk-status-btn hold" onclick="applyBulkStatus('hold')"><i class="fas fa-pause"></i> <span>معلق</span></button>
-<button class="bulk-status-btn returned" onclick="applyBulkStatus('returned')"><i class="fas fa-undo-alt"></i> <span>مرتجع</span></button>
-<button class="bulk-status-btn undelivered" onclick="applyBulkStatus('undelivered')"><i class="fas fa-times-circle"></i> <span>لم يصل</span></button>
-<button class="bulk-status-btn rejected" onclick="applyBulkStatus('rejected')"><i class="fas fa-hand-paper"></i> <span>رفض</span></button>
-<button class="bulk-status-btn returned_confirmed" onclick="applyBulkStatus('returned_confirmed')">
-    <i class="fas fa-check"></i> <span>تأكيد المرتجع</span>
-</button>
   <button class="clear-selection-btn" onclick="clearAllSelections()"><i class="fas fa-times"></i> <span>إلغاء</span></button>
   
 </div>
@@ -1187,11 +1180,26 @@ function loadOpenStates() {
 }
 // =================== دالة تحديث حالة فردية ===================
 window.update = async (id, status) => {
+    // ✅ الحالات المحظورة التي لا يمكن تغييرها يدوياً
+    const restrictedStatuses = ["undelivered", "rejected", "returned", "hold", "returned_confirmed"];
+    
+    // ✅ منع تغيير الحالة إلى حالة محظورة
+    if (restrictedStatuses.includes(status)) {
+        customAlert(`⚠️ لا يمكن تغيير الحالة إلى "${status}" يدوياً. هذه الحالة يتحكم بها نظام الشحن أو صفحة الأرباح.`, 'warning');
+        return;
+    }
+
     try {
         const orderSnap = await getDoc(doc(db, "orders", id));
         if (!orderSnap.exists()) throw new Error("الطلب غير موجود");
         const orderData = orderSnap.data();
         const oldStatus = orderData.status;
+
+        // ✅ منع تغيير الطلبات التي في حالة محظورة
+        if (restrictedStatuses.includes(oldStatus)) {
+            customAlert(`⚠️ هذا الطلب في حالة "${oldStatus}" ولا يمكن تغييرها يدوياً.`, 'warning');
+            return;
+        }
 
         // منع إنشاء شحنة جديدة إذا كان لديه qpSerial
         if (status === "shipped" && orderData.qpSerial) {
@@ -1242,12 +1250,21 @@ window.update = async (id, status) => {
 
 // =================== دالة تحديث مجموعة (Bulk) ===================
 window.applyBulkStatus = async (newStatus) => {
-    const forbidden = ["undelivered", "rejected", "returned", "hold"];
-    // ✅ نسمح بـ "returned_confirmed" في التحديد الجماعي
-    const allowedBulk = ["new", "confirmed", "processing", "shipped", "delivered", "cancelled", "returned_confirmed"];
+    // ✅ الحالات المحظورة نهائياً (لا يمكن تغييرها يدوياً بأي شكل)
+    const forbidden = ["undelivered", "rejected", "returned", "hold", "returned_confirmed"];
+    
+    // ✅ الحالات المسموح بها في التحديد الجماعي
+    const allowedBulk = ["new", "confirmed", "processing", "shipped", "delivered", "cancelled"];
 
-    if (!allowedBulk.includes(newStatus) && !forbidden.includes(newStatus)) {
-        customAlert(`⚠️ لا يمكن تغيير الحالة إلى "${newStatus}" بشكل جماعي`, 'warning');
+    // ✅ منع تغيير الحالة إلى حالة محظورة
+    if (forbidden.includes(newStatus)) {
+        customAlert(`⚠️ لا يمكن تغيير الحالة إلى "${newStatus}" بشكل جماعي. هذه الحالة يتحكم بها نظام الشحن أو صفحة الأرباح.`, 'warning');
+        return;
+    }
+
+    // ✅ منع تغيير الحالة إلى حالة غير مسموح بها في التحديد الجماعي
+    if (!allowedBulk.includes(newStatus)) {
+        customAlert(`⚠️ لا يمكن تغيير الحالة إلى "${newStatus}" بشكل جماعي.`, 'warning');
         return;
     }
 
@@ -1257,14 +1274,15 @@ window.applyBulkStatus = async (newStatus) => {
         return;
     }
 
-    // التحقق من الحالة الحالية
+    // ✅ التحقق من الحالة الحالية للطلبات المختارة (منع تغيير الطلبات المحظورة)
+    const restrictedStatuses = ["undelivered", "rejected", "returned", "hold", "returned_confirmed"];
     for (const cb of selected) {
         const card = cb.closest(".card");
         const orderId = card.querySelector(".order-id")?.getAttribute("data-id");
         if (!orderId) continue;
         const orderData = orders.find(o => o.id === orderId);
-        if (orderData && forbidden.includes(orderData.status)) {
-            customAlert(`الطلب ${orderData.orderID} في حالة ${orderData.status} ولا يمكن تغييره`, "warning");
+        if (orderData && restrictedStatuses.includes(orderData.status)) {
+            customAlert(`⚠️ الطلب ${orderData.orderID} في حالة "${orderData.status}" ولا يمكن تغييره يدوياً.`, "warning");
             return;
         }
     }
@@ -1284,11 +1302,13 @@ window.applyBulkStatus = async (newStatus) => {
             const orderData = orderSnap.data();
             const oldStatus = orderData.status;
 
+            // ✅ تخطي الطلبات التي لها شحنة سابقة إذا كانت الحالة الجديدة "شحن"
             if (newStatus === "shipped" && orderData.qpSerial) {
                 skippedCount++;
                 continue;
             }
 
+            // ✅ إدارة المخزون
             if (newStatus === "cancelled") {
                 await restoreStockForOrder(orderId);
             }
@@ -1494,40 +1514,156 @@ window.deleteOrder = async (id) => {
 };
 
 window.editOrder = (id) => {
-  let o = orders.find(x => x.id === id);
-  if (!o) return;
-  let box = document.getElementById("msgPopup");
-  let detailsHtml = '';
-const details = Array.isArray(o.orderDetails) ? o.orderDetails : [];
-details.forEach((item, idx) => {
-    detailsHtml += `<div style="background:#f8f8f8; padding:12px; border-radius:12px; margin-bottom:10px;">
-      <b>المنتج ${idx+1}</b>
-      <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:8px;">
-        <input id="editDetailName_${idx}" value="${item.name || ''}" placeholder="المنتج" style="flex:2;">
-        <input id="editDetailSize_${idx}" value="${item.size || ''}" placeholder="المقاس" style="flex:1;">
-        <input id="editDetailQty_${idx}" type="number" value="${item.qty || 1}" style="flex:1;">
-        <input id="editDetailPrice_${idx}" type="number" value="${item.price || 0}" style="flex:1;">
-        <input id="editDetailCost_${idx}" type="number" value="${item.costPrice || 0}" placeholder="سعر الجملة" style="flex:1;">
-      </div>
-    </div>`;
-  });
-  box.innerHTML = `<div class="popup-box"><div class="popup-header"><span>✏️ تعديل ID: ${o.orderID}</span><span onclick="closeMsg()" style="cursor:pointer;">✖</span></div>
-    <div class="popup-body">
-      <input id="editName" value="${o.customerName || ''}" placeholder="الاسم"><br><br>
-      <input id="editPhone" value="${o.phone || ''}" placeholder="الهاتف"><br><br>
-      <input id="editGov" value="${o.gov || ''}" placeholder="المحافظة"><br><br>
-      <input id="editCity" value="${o.city || ''}" placeholder="المدينة"><br><br>
-      <input id="editAddress" value="${o.address || ''}" placeholder="العنوان"><br><br><hr>
-      <div id="editDetailsContainer">${detailsHtml}</div><hr>
-      <input id="editShippingPaid" type="number" value="${o.shippingCostPaid || 0}" placeholder="تكلفة الشحن الفعلية (التي دفعتها للتاجر/شركة الشحن)"><br><br>
-      <input id="editTotalCost" type="number" value="${o.totalCost || 0}" placeholder="التكلفة الإجمالية للمنتجات (جملة)"><br><br>
-      <input id="editProfit" type="number" value="${o.profit || 0}" placeholder="صافي الربح" readonly style="background:#f0f0f0;"><br><br>
-<input id="editTotal" type="number" value="${o.finalTotal || 0}" placeholder="الإجمالي النهائي (العميل)"><br><br>
-      <button onclick="calculateProfitFromEdit()" style="background:#f39c12; border:none; padding:6px; border-radius:8px;">حساب الربح تلقائياً</button>
-    </div>
-    <div class="popup-footer"><button onclick="saveEdit('${id}')" style="width:100%;padding:10px;background:#0F7B65;color:#fff;border:none;border-radius:10px;">حفظ</button>
-    <button onclick="closeMsg()" style="width:100%;margin-top:8px;padding:10px;background:#333;color:#fff;border:none;border-radius:10px;">إغلاق</button></div></div>`;
-  box.style.display = "flex";
+    const o = orders.find(x => x.id === id);
+    if (!o) {
+        customAlert('❌ الطلب غير موجود', 'error');
+        return;
+    }
+
+    const box = document.getElementById("msgPopup");
+    const details = Array.isArray(o.orderDetails) ? o.orderDetails : [];
+    
+    // ===== بناء HTML احترافي =====
+    let detailsHtml = '';
+    details.forEach((item, idx) => {
+        detailsHtml += `
+            <div style="background:#f8f9fa; border-radius:12px; padding:14px; margin-bottom:12px; border-right:3px solid #D4AF37;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <span style="font-weight:800; color:#0F7B65;">📦 المنتج ${idx + 1}</span>
+                    <span style="font-size:11px; color:#888;">رقم المنتج: ${idx + 1}</span>
+                </div>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                    <div>
+                        <label style="font-size:11px; font-weight:700; color:#555; display:block; margin-bottom:2px;">🏷️ اسم المنتج</label>
+                        <input id="editDetailName_${idx}" value="${item.name || ''}" placeholder="اسم المنتج" style="width:100%; padding:6px 10px; border-radius:8px; border:1px solid #ddd; font-size:13px;">
+                    </div>
+                    <div>
+                        <label style="font-size:11px; font-weight:700; color:#555; display:block; margin-bottom:2px;">📏 المقاس</label>
+                        <input id="editDetailSize_${idx}" value="${item.size || ''}" placeholder="المقاس" style="width:100%; padding:6px 10px; border-radius:8px; border:1px solid #ddd; font-size:13px;">
+                    </div>
+                    <div>
+                        <label style="font-size:11px; font-weight:700; color:#555; display:block; margin-bottom:2px;">🔢 الكمية</label>
+                        <input id="editDetailQty_${idx}" type="number" value="${item.qty || 1}" min="1" style="width:100%; padding:6px 10px; border-radius:8px; border:1px solid #ddd; font-size:13px;">
+                    </div>
+                    <div>
+                        <label style="font-size:11px; font-weight:700; color:#555; display:block; margin-bottom:2px;">💰 سعر البيع</label>
+                        <input id="editDetailPrice_${idx}" type="number" value="${item.price || 0}" step="0.01" style="width:100%; padding:6px 10px; border-radius:8px; border:1px solid #ddd; font-size:13px;">
+                    </div>
+                    <div style="grid-column: span 2;">
+                        <label style="font-size:11px; font-weight:700; color:#555; display:block; margin-bottom:2px;">💲 سعر الجملة (التكلفة)</label>
+                        <input id="editDetailCost_${idx}" type="number" value="${item.costPrice || 0}" step="0.01" placeholder="سعر الشراء" style="width:100%; padding:6px 10px; border-radius:8px; border:1px solid #ddd; font-size:13px;">
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+
+    // ===== الحقول الأساسية =====
+    box.innerHTML = `
+        <div class="popup-box" style="max-width: 500px;">
+            <!-- Header -->
+            <div class="popup-header" style="background: #0F7B65; color: #fff; border-radius: 16px 16px 0 0; padding: 16px 20px;">
+                <span style="font-size:18px; font-weight:800;">✏️ تعديل الطلب</span>
+                <span onclick="closeMsg()" style="cursor:pointer; font-size:24px; opacity:0.8;">✖</span>
+            </div>
+
+            <div class="popup-body" style="padding: 20px; max-height: 70vh; overflow-y: auto;">
+                <!-- معلومات العميل -->
+                <div style="background: #f0f7ff; border-radius:12px; padding:16px; margin-bottom:16px; border-right:4px solid #3498db;">
+                    <h4 style="color: #0F7B65; margin-bottom:12px; font-size:15px;">👤 بيانات العميل</h4>
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                        <div>
+                            <label style="font-size:11px; font-weight:700; color:#555; display:block; margin-bottom:2px;">الاسم الكامل</label>
+                            <input id="editName" value="${o.customerName || ''}" placeholder="اسم العميل" style="width:100%; padding:8px 12px; border-radius:8px; border:1px solid #ddd; font-size:14px;">
+                        </div>
+                        <div>
+                            <label style="font-size:11px; font-weight:700; color:#555; display:block; margin-bottom:2px;">📱 رقم الهاتف</label>
+                            <input id="editPhone" value="${o.phone || ''}" placeholder="رقم الهاتف" style="width:100%; padding:8px 12px; border-radius:8px; border:1px solid #ddd; font-size:14px;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- معلومات العنوان -->
+                <div style="background: #f5f0ff; border-radius:12px; padding:16px; margin-bottom:16px; border-right:4px solid #9b59b6;">
+                    <h4 style="color: #0F7B65; margin-bottom:12px; font-size:15px;">📍 عنوان الشحن</h4>
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                        <div>
+                            <label style="font-size:11px; font-weight:700; color:#555; display:block; margin-bottom:2px;">المحافظة</label>
+                            <input id="editGov" value="${o.gov || ''}" placeholder="المحافظة" style="width:100%; padding:8px 12px; border-radius:8px; border:1px solid #ddd; font-size:14px;">
+                        </div>
+                        <div>
+                            <label style="font-size:11px; font-weight:700; color:#555; display:block; margin-bottom:2px;">المدينة</label>
+                            <input id="editCity" value="${o.city || ''}" placeholder="المدينة" style="width:100%; padding:8px 12px; border-radius:8px; border:1px solid #ddd; font-size:14px;">
+                        </div>
+                        <div style="grid-column: span 2;">
+                            <label style="font-size:11px; font-weight:700; color:#555; display:block; margin-bottom:2px;">العنوان بالتفصيل</label>
+                            <input id="editAddress" value="${o.address || ''}" placeholder="الشارع - رقم المنزل - الدور" style="width:100%; padding:8px 12px; border-radius:8px; border:1px solid #ddd; font-size:14px;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- تفاصيل المنتجات -->
+                <div style="background: #fff8f0; border-radius:12px; padding:16px; margin-bottom:16px; border-right:4px solid #f39c12;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                        <h4 style="color: #0F7B65; font-size:15px;">💎 تفاصيل المنتجات</h4>
+                        <span style="font-size:12px; color:#888;">${details.length} منتج</span>
+                    </div>
+                    <div id="editDetailsContainer">
+                        ${detailsHtml}
+                    </div>
+                </div>
+
+                <!-- الحسابات المالية -->
+                <div style="background: #f0fff4; border-radius:12px; padding:16px; margin-bottom:16px; border-right:4px solid #2ecc71;">
+                    <h4 style="color: #0F7B65; margin-bottom:12px; font-size:15px;">💰 الحسابات المالية</h4>
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                        <div>
+                            <label style="font-size:11px; font-weight:700; color:#555; display:block; margin-bottom:2px;">🚚 تكلفة الشحن الفعلية</label>
+                            <input id="editShippingPaid" type="number" value="${o.shippingCostPaid || 0}" step="0.01" placeholder="تكلفة الشحن" style="width:100%; padding:8px 12px; border-radius:8px; border:1px solid #ddd; font-size:14px;">
+                            <small style="color:#888; font-size:10px;">المبلغ الذي دفعته لشركة الشحن</small>
+                        </div>
+                        <div>
+                            <label style="font-size:11px; font-weight:700; color:#555; display:block; margin-bottom:2px;">📦 تكلفة المنتجات (جملة)</label>
+                            <input id="editTotalCost" type="number" value="${o.totalCost || 0}" step="0.01" placeholder="التكلفة الإجمالية" style="width:100%; padding:8px 12px; border-radius:8px; border:1px solid #ddd; font-size:14px;">
+                            <small style="color:#888; font-size:10px;">إجمالي سعر الشراء للمنتجات</small>
+                        </div>
+                        <div>
+                            <label style="font-size:11px; font-weight:700; color:#555; display:block; margin-bottom:2px;">💵 الإجمالي (العميل)</label>
+                            <input id="editTotal" type="number" value="${o.finalTotal || 0}" step="0.01" placeholder="الإجمالي النهائي" style="width:100%; padding:8px 12px; border-radius:8px; border:1px solid #ddd; font-size:14px; background:#f8f8f8; font-weight:700;">
+                            <small style="color:#888; font-size:10px;">المبلغ الذي دفعه العميل</small>
+                        </div>
+                        <div>
+                            <label style="font-size:11px; font-weight:700; color:#555; display:block; margin-bottom:2px;">📈 صافي الربح</label>
+                            <input id="editProfit" type="number" value="${o.profit || 0}" step="0.01" readonly style="width:100%; padding:8px 12px; border-radius:8px; border:1px solid #2ecc71; font-size:14px; background:#e8f5e9; font-weight:800; color:#2ecc71;">
+                            <small style="color:#888; font-size:10px;">يحسب تلقائياً: الإجمالي - تكلفة المنتجات - تكلفة الشحن</small>
+                        </div>
+                    </div>
+                    <button onclick="calculateProfitFromEdit()" style="margin-top:12px; background:#f39c12; color:#000; border:none; padding:8px 16px; border-radius:8px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
+                        <i class="fas fa-calculator"></i> حساب الربح تلقائياً
+                    </button>
+                </div>
+
+                <!-- ملاحظات -->
+                <div style="background: #f8f9fa; border-radius:12px; padding:16px; margin-bottom:16px; border-right:4px solid #6c757d;">
+                    <label style="font-size:11px; font-weight:700; color:#555; display:block; margin-bottom:4px;">📝 ملاحظات إضافية</label>
+                    <textarea id="editNotes" rows="2" placeholder="أي ملاحظات على الطلب..." style="width:100%; padding:8px 12px; border-radius:8px; border:1px solid #ddd; font-size:14px; resize:vertical;">${o.notes || ''}</textarea>
+                </div>
+
+                <!-- زر الحفظ -->
+                <div style="display:flex; gap:10px; margin-top:10px;">
+                    <button onclick="saveEdit('${id}')" style="flex:2; padding:12px; background:#0F7B65; color:#fff; border:none; border-radius:10px; font-weight:800; font-size:16px; cursor:pointer; transition:0.3s;">
+                        <i class="fas fa-save"></i> حفظ التعديلات
+                    </button>
+                    <button onclick="closeMsg()" style="flex:1; padding:12px; background:#dc3545; color:#fff; border:none; border-radius:10px; font-weight:700; cursor:pointer; transition:0.3s;">
+                        <i class="fas fa-times"></i> إلغاء
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    box.style.display = "flex";
+    box.style.alignItems = "center";
+    box.style.justifyContent = "center";
 };
 
 window.calculateProfitFromEdit = () => {
@@ -1536,83 +1672,109 @@ window.calculateProfitFromEdit = () => {
     let finalTotal = parseFloat(document.getElementById("editTotal").value) || 0;
     let profit = finalTotal - totalCost - shippingPaid;
     document.getElementById("editProfit").value = profit.toFixed(2);
+    
+    // تغيير اللون حسب الربح/الخسارة
+    const profitEl = document.getElementById("editProfit");
+    if (profit >= 0) {
+        profitEl.style.color = "#2ecc71";
+        profitEl.style.background = "#e8f5e9";
+    } else {
+        profitEl.style.color = "#e74c3c";
+        profitEl.style.background = "#fde8e8";
+    }
 };
 
 window.saveEdit = async (id) => {
-  const oldOrder = orders.find(o => o.id === id);
-  if (!oldOrder) { customAlert("الطلب غير موجود", 'error'); return; }
-  const order = orders.find(x => x.id === id);
-const detailsCount = Array.isArray(order?.orderDetails) ? order.orderDetails.length : 0;
-  let orderDetails = [];
-  for (let i = 0; i < detailsCount; i++) {
-    let name = document.getElementById(`editDetailName_${i}`)?.value || '';
-    let size = document.getElementById(`editDetailSize_${i}`)?.value || '';
-    let qty = parseInt(document.getElementById(`editDetailQty_${i}`)?.value) || 0;
-    let price = parseFloat(document.getElementById(`editDetailPrice_${i}`)?.value) || 0;
-    let costPrice = parseFloat(document.getElementById(`editDetailCost_${i}`)?.value) || 0;
-    if (name || qty > 0) orderDetails.push({ name, size, qty, price, costPrice });
-  }
+    const oldOrder = orders.find(o => o.id === id);
+    if (!oldOrder) { customAlert("❌ الطلب غير موجود", 'error'); return; }
 
-  const finalTotal = parseFloat(document.getElementById("editTotal").value) || 0;
-  const totalCost = parseFloat(document.getElementById("editTotalCost").value) || 0;
-  const shippingCostPaid = parseFloat(document.getElementById("editShippingPaid").value) || 0;
-  const profit = finalTotal - totalCost - shippingCostPaid;
+    // ✅ التحقق من الحالة المحظورة قبل التعديل
+    const restrictedStatuses = ["undelivered", "rejected", "returned", "hold", "returned_confirmed"];
+    if (restrictedStatuses.includes(oldOrder.status)) {
+        customAlert(`⚠️ لا يمكن تعديل طلب في حالة "${oldOrder.status}".`, 'warning');
+        return;
+    }
 
-  const newData = {
-    customerName: document.getElementById("editName").value,
-    phone: document.getElementById("editPhone").value,
-    gov: document.getElementById("editGov").value,
-    city: document.getElementById("editCity").value,
-    address: document.getElementById("editAddress").value,
-    orderDetails,
-    finalTotal,
-    totalCost,
-    shippingCostPaid,
-    profit
-  };
+    const order = orders.find(x => x.id === id);
+    const detailsCount = Array.isArray(order?.orderDetails) ? order.orderDetails.length : 0;
+    
+    let orderDetails = [];
+    for (let i = 0; i < detailsCount; i++) {
+        let name = document.getElementById(`editDetailName_${i}`)?.value || '';
+        let size = document.getElementById(`editDetailSize_${i}`)?.value || '';
+        let qty = parseInt(document.getElementById(`editDetailQty_${i}`)?.value) || 0;
+        let price = parseFloat(document.getElementById(`editDetailPrice_${i}`)?.value) || 0;
+        let costPrice = parseFloat(document.getElementById(`editDetailCost_${i}`)?.value) || 0;
+        if (name || qty > 0) orderDetails.push({ name, size, qty, price, costPrice });
+    }
 
-  try {
-    await updateDoc(doc(db, "orders", id), newData);
+    const finalTotal = parseFloat(document.getElementById("editTotal").value) || 0;
+    const totalCost = parseFloat(document.getElementById("editTotalCost").value) || 0;
+    const shippingCostPaid = parseFloat(document.getElementById("editShippingPaid").value) || 0;
+    const profit = finalTotal - totalCost - shippingCostPaid;
+    const notes = document.getElementById("editNotes")?.value || '';
 
-    const changedFields = [];
-    const fieldsToCheck = ['customerName', 'phone', 'gov', 'city', 'address', 'finalTotal', 'totalCost', 'shippingCostPaid'];
-    fieldsToCheck.forEach(field => {
-      if (JSON.stringify(oldOrder[field]) !== JSON.stringify(newData[field])) {
-        changedFields.push(field);
-      }
-    });
+    const newData = {
+        customerName: document.getElementById("editName").value,
+        phone: document.getElementById("editPhone").value,
+        gov: document.getElementById("editGov").value,
+        city: document.getElementById("editCity").value,
+        address: document.getElementById("editAddress").value,
+        orderDetails,
+        finalTotal,
+        totalCost,
+        shippingCostPaid,
+        profit,
+        notes,
+        updatedAt: serverTimestamp()
+    };
 
-    await logAuditEvent({
-      action: 'order_edited',
-      orderId: id,
-      orderNumber: oldOrder.orderID,
-      details: {
-        changedFields,
-        oldData: {
-          customerName: oldOrder.customerName,
-          phone: oldOrder.phone,
-          finalTotal: oldOrder.finalTotal,
-          totalCost: oldOrder.totalCost,
-          shippingCostPaid: oldOrder.shippingCostPaid
-        },
-        newData: {
-          customerName: newData.customerName,
-          phone: newData.phone,
-          finalTotal: newData.finalTotal,
-          totalCost: newData.totalCost,
-          shippingCostPaid: newData.shippingCostPaid
-        }
-      },
-      performedBy: window.currentUserEmail || 'system',  // <-- الفاصلة هنا
-      severity: 'info'                                   // <-- تم إصلاحها
-    });
+    try {
+        await updateDoc(doc(db, "orders", id), newData);
 
-    closeMsg();
-    customAlert("تم حفظ التعديلات", 'success');
-  } catch (e) {
-    console.error(e);
-    customAlert("خطأ في الحفظ", 'error');
-  }
+        // تسجيل التغييرات
+        const changedFields = [];
+        const fieldsToCheck = ['customerName', 'phone', 'gov', 'city', 'address', 'finalTotal', 'totalCost', 'shippingCostPaid', 'notes'];
+        fieldsToCheck.forEach(field => {
+            if (JSON.stringify(oldOrder[field]) !== JSON.stringify(newData[field])) {
+                changedFields.push(field);
+            }
+        });
+
+        await logAuditEvent({
+            action: 'order_edited',
+            orderId: id,
+            orderNumber: oldOrder.orderID,
+            details: {
+                changedFields,
+                oldData: {
+                    customerName: oldOrder.customerName,
+                    phone: oldOrder.phone,
+                    finalTotal: oldOrder.finalTotal,
+                    totalCost: oldOrder.totalCost,
+                    shippingCostPaid: oldOrder.shippingCostPaid,
+                    notes: oldOrder.notes || ''
+                },
+                newData: {
+                    customerName: newData.customerName,
+                    phone: newData.phone,
+                    finalTotal: newData.finalTotal,
+                    totalCost: newData.totalCost,
+                    shippingCostPaid: newData.shippingCostPaid,
+                    notes: newData.notes || ''
+                }
+            },
+            performedBy: window.currentUserEmail || 'system',
+            severity: 'info'
+        });
+
+        closeMsg();
+        customAlert("✅ تم حفظ التعديلات بنجاح!", 'success');
+        render();
+    } catch (e) {
+        console.error(e);
+        customAlert("❌ خطأ في الحفظ: " + e.message, 'error');
+    }
 };
 
 function updateBulkBar() {
@@ -1756,6 +1918,7 @@ function render() {
         for (let o of ordersInDay) {
             totalOrders++;
             const isOpen = openStates[o.id] !== undefined ? openStates[o.id] : false;
+            
             let status = o.status || "new";
             let statusText = {
                 new: 'جديد',
