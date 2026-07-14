@@ -20,8 +20,7 @@ try {
 }
 
 const db = getFirestore(app);
-export { db };
-export { restoreStockForOrder };
+
 // =================== إعدادات QP ===================
 let QP_CONFIG = null;
 
@@ -440,18 +439,15 @@ export async function listenForOrderStatusChanges() {
     startPeriodicSync(3);
     console.log("👂 تم تفعيل الاستماع لتغييرات حالة الطلبات من QP Express");
 }
-// =================== إلغاء طلب في QP ===================
 // =================== إلغاء طلب في QP (محلياً) ===================
 export async function cancelOrderInQP(orderId, serial) {
     try {
-        // بغض النظر عن الـ serial، نضع علامة الإلغاء محلياً
-        // لأن نظام QP لا يوفر نقطة نهاية للإلغاء حالياً
         console.log(`🗑️ إلغاء الطلب ${orderId} محلياً (serial: ${serial || 'غير موجود'})`);
         
         await updateDoc(doc(db, "orders", orderId), {
             qpDeleted: true,
             qpStatus: "Cancelled (local)",
-            qpSerial: null,          // إزالة الرقم التسلسلي
+            qpSerial: null,
             qpLastSync: serverTimestamp()
         });
         
@@ -464,3 +460,18 @@ export async function cancelOrderInQP(orderId, serial) {
         return { success: false, error: error.message };
     }
 }
+
+// =================== التصدير النهائي ===================
+export { 
+    db,
+    restoreStockForOrder,
+    deductStockForOrder,
+    createOrderInQP,
+    getOrderUpdateHistory,
+    processUpdates,
+    manualSyncOrders,
+    startPeriodicSync,
+    stopPeriodicSync,
+    listenForOrderStatusChanges,
+    cancelOrderInQP
+};
