@@ -774,6 +774,9 @@
 .shipping-group-content {
     background: #f8fafc;
 }
+/* داخل <style> */
+.status.returned_confirmed { background: #2ecc71; color: #fff; }
+.status.returned_confirmed::before { content: "✅"; font-size: 11px; font-weight: normal; }
   </style>
 </head>
 <body>
@@ -856,6 +859,10 @@
   <button onclick="setFilter(event, 'rejected')" class="filter-btn" data-filter="rejected"><i class="fas fa-hand-paper"></i></button>
   <button onclick="setFilter(event, 'returned')" class="filter-btn" data-filter="returned"><i class="fas fa-undo-alt"></i></button>
   <button onclick="setFilter(event, 'hold')" class="filter-btn" data-filter="hold"><i class="fas fa-pause"></i></button>
+  <!-- داخل <div class="filters"> -->
+<button onclick="setFilter(event, 'returned_confirmed')" class="filter-btn" data-filter="returned_confirmed">
+    <i class="fas fa-check"></i> <!-- تم تغيير الأيقونة -->
+</button>
 </div>
 <div id="reviewsPanel" style="display: none;">
     <div id="reviewFiltersContainer" style="display: flex; gap: 8px; margin-bottom: 15px; overflow-x: auto; justify-content: center; flex-wrap: nowrap;">
@@ -975,6 +982,9 @@
 <button class="bulk-status-btn undelivered" onclick="applyBulkStatus('undelivered')"><i class="fas fa-times-circle"></i> <span>لم يصل</span></button>
 <button class="bulk-status-btn rejected" onclick="applyBulkStatus('rejected')"><i class="fas fa-hand-paper"></i> <span>رفض</span></button>
   <button class="clear-selection-btn" onclick="clearAllSelections()"><i class="fas fa-times"></i> <span>إلغاء</span></button>
+  <button class="bulk-status-btn returned_confirmed" onclick="applyBulkStatus('returned_confirmed')">
+    <i class="fas fa-check-double"></i> <span>تأكيد المرتجع</span>
+</button>
 </div>
 
 <div id="reviewsPanel" style="display: none;">
@@ -1171,24 +1181,31 @@ window.update = async (id, status) => {
         const orderData = orderSnap.data();
         const oldStatus = orderData.status;
 
-        // منع إعادة إنشاء الشحنة إذا كان لديه qpSerial
+        // منع إنشاء شحنة جديدة إذا كان لديه qpSerial
         if (status === "shipped" && orderData.qpSerial) {
             customAlert(`⚠️ هذا الطلب لديه بالفعل رقم شحنة: ${orderData.qpSerial}، لا يمكن إعادة إنشاء شحنة جديدة.`, 'warning');
             return;
         }
 
-        if (status === "cancelled") {
+        // ✅ إدارة المخزون حسب الحالة الجديدة
+        const noStockRestore = ["undelivered", "rejected", "returned"];
+        const needsStockRestore = ["cancelled", "returned_confirmed"];
+
+        if (needsStockRestore.includes(status) && oldStatus !== "returned_confirmed") {
             await restoreStockForOrder(id);
+        } else if (noStockRestore.includes(status)) {
+            // لا نغير المخزون، ننتظر تأكيد المسؤول
+            console.log(`ℹ️ الطلب ${id} في حالة ${status}، المخزون لم يتغير.`);
         }
 
         // تحديث الحالة
         await updateDoc(doc(db, "orders", id), { status });
 
-        // إنشاء شحنة في QP إذا كانت الحالة شحن ولا يوجد qpSerial
+        // إنشاء شحنة في QP إذا كانت الحالة شحن
         if (status === "shipped") {
             await createOrderInQP({ id, ...orderData });
         }
-console.log("🔍 [Audit Log] قبل التسجيل - orderId:", id, "orderNumber:", orderData.orderID);
+
         // ✅ تسجيل الحدث
         await logAuditEvent({
             action: 'status_change',
@@ -1214,8 +1231,11 @@ console.log("🔍 [Audit Log] قبل التسجيل - orderId:", id, "orderNumbe
 // =================== دالة تحديث مجموعة (Bulk) ===================
 window.applyBulkStatus = async (newStatus) => {
     const forbidden = ["undelivered", "rejected", "returned", "hold"];
-    if (forbidden.includes(newStatus)) {
-        customAlert("لا يمكن تغيير حالة الطلب يدوياً إلى هذه الحالة", "warning");
+    // ✅ نسمح بـ "returned_confirmed" في التحديد الجماعي
+    const allowedBulk = ["new", "confirmed", "processing", "shipped", "delivered", "cancelled", "returned_confirmed"];
+
+    if (!allowedBulk.includes(newStatus) && !forbidden.includes(newStatus)) {
+        customAlert(`⚠️ لا يمكن تغيير الحالة إلى "${newStatus}" بشكل جماعي`, 'warning');
         return;
     }
 
@@ -1735,7 +1755,8 @@ function render() {
                 undelivered: 'لم يصل',
                 rejected: 'رفض',
                 returned: 'مرتجع',
-                hold: 'معلق'
+                hold: 'معلق',
+                returned_confirmed: '✅ تم استلام المرتجع'  
             }[status] || status;
 
             const detailsArray = Array.isArray(o.orderDetails) ? o.orderDetails : [];
