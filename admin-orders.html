@@ -1061,7 +1061,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, collection, query, orderBy, onSnapshot, updateDoc, deleteDoc, doc, serverTimestamp, getDoc, getDocs, where, addDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { createOrderInQP, listenForOrderStatusChanges, startPeriodicSync, manualSyncOrders, cancelOrderInQP } from './js/sync-orders.js';
+import { createOrderInQP, listenForOrderStatusChanges, startPeriodicSync, manualSyncOrders, cancelOrderInQP, restoreStockForOrder, deductStockForOrder } from './js/sync-orders.js';
 import { logAuditEvent } from './js/logger.js';
 // ===== إدارة الإشعارات المحسّنة =====
 function sendNotification(title, body, tag = null) {
@@ -1177,12 +1177,10 @@ function loadOpenStates() {
 }
 // =================== دالة تحديث حالة فردية ===================
 window.update = async (id, status) => {
-    // ✅ الحالات المحظورة التي لا يمكن تغييرها يدوياً
     const restrictedStatuses = ["undelivered", "rejected", "returned", "hold", "returned_confirmed"];
     
-    // ✅ منع تغيير الحالة إلى حالة محظورة
     if (restrictedStatuses.includes(status)) {
-        customAlert(`⚠️ لا يمكن تغيير الحالة إلى "${status}" يدوياً. هذه الحالة يتحكم بها نظام الشحن أو صفحة الأرباح.`, 'warning');
+        customAlert(`⚠️ لا يمكن تغيير الحالة إلى "${status}" يدوياً.`, 'warning');
         return;
     }
 
@@ -1192,27 +1190,28 @@ window.update = async (id, status) => {
         const orderData = orderSnap.data();
         const oldStatus = orderData.status;
 
-        // ✅ منع تغيير الطلبات التي في حالة محظورة
         if (restrictedStatuses.includes(oldStatus)) {
             customAlert(`⚠️ هذا الطلب في حالة "${oldStatus}" ولا يمكن تغييرها يدوياً.`, 'warning');
             return;
         }
 
-        // منع إنشاء شحنة جديدة إذا كان لديه qpSerial
         if (status === "shipped" && orderData.qpSerial) {
             customAlert(`⚠️ هذا الطلب لديه بالفعل رقم شحنة: ${orderData.qpSerial}، لا يمكن إعادة إنشاء شحنة جديدة.`, 'warning');
             return;
         }
 
-        // ✅ إدارة المخزون حسب الحالة الجديدة
-        const noStockRestore = ["undelivered", "rejected", "returned"];
-        const needsStockRestore = ["cancelled", "returned_confirmed"];
-
-        if (needsStockRestore.includes(status) && oldStatus !== "returned_confirmed") {
+        // ====== ✅ منطق المخزون المتكامل ======
+        
+        // 1️⃣ إذا كنا ننتقل من cancelled إلى حالة نشطة → خصم المخزون
+        if (oldStatus === "cancelled" && !["cancelled", "returned_confirmed"].includes(status)) {
+            await deductStockForOrder(id, orderData);
+            console.log(`📦 تم خصم المخزون للطلب ${orderData.orderID} (cancelled → ${status})`);
+        }
+        
+        // 2️⃣ إذا كنا ننتقل إلى cancelled أو returned_confirmed → إعادة المخزون
+        if (["cancelled", "returned_confirmed"].includes(status) && oldStatus !== "returned_confirmed") {
             await restoreStockForOrder(id);
-        } else if (noStockRestore.includes(status)) {
-            // لا نغير المخزون، ننتظر تأكيد المسؤول
-            console.log(`ℹ️ الطلب ${id} في حالة ${status}، المخزون لم يتغير.`);
+            console.log(`🔄 تم إعادة المخزون للطلب ${orderData.orderID} (${oldStatus} → ${status})`);
         }
 
         // تحديث الحالة
@@ -1231,7 +1230,13 @@ window.update = async (id, status) => {
             details: {
                 oldStatus,
                 newStatus: status,
-                notes: `تم تغيير الحالة من ${oldStatus} إلى ${status}`
+                notes: `تم تغيير الحالة من ${oldStatus} إلى ${status}${
+                    oldStatus === "cancelled" && !["cancelled", "returned_confirmed"].includes(status) 
+                        ? ' (تم خصم المخزون مرة أخرى)' 
+                        : ['cancelled', 'returned_confirmed'].includes(status) && oldStatus !== "returned_confirmed"
+                        ? ' (تم إعادة المخزون)'
+                        : ''
+                }`
             },
             performedBy: window.currentUserEmail || 'system'
         });
@@ -1245,7 +1250,7 @@ window.update = async (id, status) => {
     }
 };
 
-// =================== دالة تحديث مجموعة (Bulk) ===================
+// =================== دالة تحديث مجموعة (Bulk) - النسخة النهائية ===================
 window.applyBulkStatus = async (newStatus) => {
     // ✅ الحالات المحظورة نهائياً (لا يمكن تغييرها يدوياً بأي شكل)
     const forbidden = ["undelivered", "rejected", "returned", "hold", "returned_confirmed"];
@@ -1293,9 +1298,11 @@ window.applyBulkStatus = async (newStatus) => {
         const card = cb.closest(".card");
         const orderId = card.querySelector(".order-id")?.getAttribute("data-id");
         if (!orderId) continue;
+        
         try {
             const orderSnap = await getDoc(doc(db, "orders", orderId));
             if (!orderSnap.exists()) continue;
+            
             const orderData = orderSnap.data();
             const oldStatus = orderData.status;
 
@@ -1305,18 +1312,48 @@ window.applyBulkStatus = async (newStatus) => {
                 continue;
             }
 
-            // ✅ إدارة المخزون
-            if (newStatus === "cancelled") {
-                await restoreStockForOrder(orderId);
+            // ============================================================
+            // ✅ منطق المخزون المتكامل (الجزء الأهم)
+            // ============================================================
+            
+            // 1️⃣ إذا كنا ننتقل من cancelled إلى حالة نشطة → خصم المخزون مرة أخرى
+            if (oldStatus === "cancelled" && !["cancelled", "returned_confirmed"].includes(newStatus)) {
+                if (typeof deductStockForOrder === 'function') {
+                    await deductStockForOrder(orderId, orderData);
+                    console.log(`📦 تم خصم المخزون للطلب ${orderData.orderID} (cancelled → ${newStatus})`);
+                } else {
+                    console.warn('⚠️ deductStockForOrder غير معرفة، تخطي خصم المخزون');
+                }
+            }
+            
+            // 2️⃣ إذا كنا ننتقل إلى cancelled أو returned_confirmed → إعادة المخزون
+            if (["cancelled", "returned_confirmed"].includes(newStatus) && oldStatus !== "returned_confirmed") {
+                if (typeof restoreStockForOrder === 'function') {
+                    await restoreStockForOrder(orderId);
+                    console.log(`🔄 تم إعادة المخزون للطلب ${orderData.orderID} (${oldStatus} → ${newStatus})`);
+                } else {
+                    console.warn('⚠️ restoreStockForOrder غير معرفة، تخطي إعادة المخزون');
+                }
             }
 
+            // ✅ تحديث الحالة
             await updateDoc(doc(db, "orders", orderId), { status: newStatus });
 
+            // ✅ إنشاء شحنة في QP إذا كانت الحالة "شحن"
             if (newStatus === "shipped") {
                 await createOrderInQP({ id: orderId, ...orderData });
             }
 
-            // ✅ تسجيل الحدث داخل الحلقة (لكل طلب على حدة)
+            // ✅ تسجيل الحدث في Audit Log مع تفاصيل دقيقة
+            let notes = `تغيير جماعي من ${oldStatus} إلى ${newStatus}`;
+            
+            // إضافة ملاحظة عن تغيير المخزون
+            if (oldStatus === "cancelled" && !["cancelled", "returned_confirmed"].includes(newStatus)) {
+                notes += ' (تم خصم المخزون مرة أخرى)';
+            } else if (["cancelled", "returned_confirmed"].includes(newStatus) && oldStatus !== "returned_confirmed") {
+                notes += ' (تم إعادة المخزون)';
+            }
+            
             await logAuditEvent({
                 action: 'status_change',
                 orderId: orderId,
@@ -1324,24 +1361,31 @@ window.applyBulkStatus = async (newStatus) => {
                 details: {
                     oldStatus: oldStatus,
                     newStatus: newStatus,
-                    notes: `تغيير جماعي من ${oldStatus} إلى ${newStatus}`
+                    notes: notes,
+                    source: 'bulk_action'
                 },
                 performedBy: window.currentUserEmail || 'system',
                 severity: 'info'
             });
 
             successCount++;
+            
         } catch (e) {
-            console.error(e);
+            console.error(`❌ فشل تحديث الطلب ${orderId}:`, e);
             errorCount++;
         }
     }
 
+    // ✅ عرض النتيجة النهائية
     let msg = `✅ تم تحديث ${successCount} طلب بنجاح`;
     if (skippedCount > 0) msg += `، تم تخطي ${skippedCount} طلب (لديه شحنة سابقة)`;
-    sendNotification(`✅ تحديث جماعي`, `تم تغيير حالة ${successCount} طلب إلى ${newStatus}`);
     if (errorCount > 0) msg += `، فشل ${errorCount} طلب`;
+    
+    // إشعار
+    sendNotification(`✅ تحديث جماعي`, `تم تغيير حالة ${successCount} طلب إلى ${newStatus}`);
     customAlert(msg, 'success');
+    
+    // تنظيف التحديدات وإعادة الرندر
     clearAllSelections();
     render();
 };
