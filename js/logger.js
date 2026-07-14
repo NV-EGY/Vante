@@ -28,6 +28,13 @@ const db = getFirestore(app);
  * تحويل أي قيمة إلى صيغة Firestore REST API
  */
 function convertToFirestoreValue(value) {
+    // ✅ معالجة Timestamp
+    if (value && typeof value === 'object' && value.toDate && typeof value.toDate === 'function') {
+        return { timestampValue: value.toDate().toISOString() };
+    }
+    if (value instanceof Date) {
+        return { timestampValue: value.toISOString() };
+    }
     if (value === null || value === undefined) {
         return { nullValue: null };
     }
@@ -59,6 +66,10 @@ function convertToFirestoreValue(value) {
 }
 
 export async function logAuditEvent(data) {
+  // ✅ التأكد من وجود currentUserEmail
+if (!performedBy || performedBy === 'system') {
+    performedBy = window.currentUserEmail || 'system';
+}
     // ✅ السماح بالتسجيل فقط من صفحات الإدارة
     const currentPath = window.location.pathname;
     const allowedPages = [
