@@ -35,6 +35,43 @@ async function loadQPConfig() {
     throw new Error("لم يتم العثور على بيانات تسجيل الدخول لـ QP Express في Firestore");
 }
 
+// دالة إعادة المخزون للمنتجات (مستنسخة من admin-order مع تحسينات)
+async function restoreStockForOrder(orderId, orderData) {
+    if (orderData.stockRestored) {
+        console.log(`⚠️ المخزون للطلب ${orderId} تم استرجاعه مسبقاً، تخطي.`);
+        return;
+    }
+    for (const item of (orderData.orderDetails || [])) {
+        if (!item.name || !item.size) continue;
+        let productId = item.productId;
+        let productDoc;
+        if (productId) {
+            productDoc = await getDoc(doc(db, "products", productId));
+        } else {
+            const productSnap = await getDocs(query(collection(db, "products"), where("name", "==", item.name)));
+            if (!productSnap.empty) productDoc = productSnap.docs[0];
+        }
+        if (productDoc && productDoc.exists()) {
+            const productRef = doc(db, "products", productDoc.id);
+            const stockBySize = productDoc.data().stockBySize || {};
+            const currentStock = stockBySize[item.size];
+            if (currentStock !== null && currentStock !== undefined) {
+                stockBySize[item.size] = (currentStock || 0) + item.qty;
+                await updateDoc(productRef, { stockBySize });
+            }
+        }
+    }
+    // وضع علامة بأن المخزون استعيد
+    await updateDoc(doc(db, "orders", orderId), { stockRestored: true });
+}
+
+// sync-orders.js - أضف هذه الدالة بعد restoreStockForOrder
+
+/**
+ * خصم المخزون للطلب (عند إعادة تفعيل طلب ملغي)
+ * @param {string} orderId - معرف الطلب
+ * @param {Object} orderData - بيانات الطلب (اختياري)
+ */
 export async function deductStockForOrder(orderId, orderData) {
     if (!orderData) {
         const orderSnap = await getDoc(doc(db, "orders", orderId));
