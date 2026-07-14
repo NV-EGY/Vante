@@ -1,4 +1,3 @@
-
 import { initializeApp, getApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, doc, onSnapshot, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { logAuditEvent } from './logger.js';
@@ -72,7 +71,7 @@ async function restoreStockForOrder(orderId, orderData) {
  * @param {string} orderId - معرف الطلب
  * @param {Object} orderData - بيانات الطلب (اختياري)
  */
-export async function deductStockForOrder(orderId, orderData) {
+async function deductStockForOrder(orderId, orderData) {
     if (!orderData) {
         const orderSnap = await getDoc(doc(db, "orders", orderId));
         if (!orderSnap.exists()) return;
@@ -162,7 +161,7 @@ async function getCityId(govName) {
     }
 }
 // =================== إنشاء طلب في QP ===================
-export async function createOrderInQP(orderData) {
+async function createOrderInQP(orderData) {
     try {
         // التحقق من وجود شحنة سابقة
         if (orderData.qpSerial && !orderData.qpDeleted) {
@@ -244,7 +243,7 @@ await logAuditEvent({
 }
 
 // =================== جلب تحديثات الحالة ===================
-export async function getOrderUpdateHistory(page = 1, pageSize = 200) {
+async function getOrderUpdateHistory(page = 1, pageSize = 200) {
     try {
         const token = await getQPToken();
         const config = await loadQPConfig();
@@ -264,7 +263,7 @@ export async function getOrderUpdateHistory(page = 1, pageSize = 200) {
 }
 
 // =================== معالجة التحديثات (النسخة النهائية المعدلة) ===================
-export async function processUpdates(updates) {
+async function processUpdates(updates) {
     if (!updates || updates.length === 0) return;
 
     for (const update of updates) {
@@ -370,7 +369,7 @@ export async function processUpdates(updates) {
 }
 
 // =================== المزامنة اليدوية (تمت إضافتها) ===================
-export async function manualSyncOrders() {
+async function manualSyncOrders() {
     try {
         console.log("🔄 بدء المزامنة اليدوية مع QP Express...");
         const pageSize = 200;
@@ -413,7 +412,7 @@ export async function manualSyncOrders() {
 // =================== المزامنة الدورية ===================
 let syncInterval = null;
 
-export function startPeriodicSync(intervalMinutes = 3) {
+function startPeriodicSync(intervalMinutes = 3) {
     if (syncInterval) clearInterval(syncInterval);
 
     // أول مزامنة فورية
@@ -427,7 +426,7 @@ export function startPeriodicSync(intervalMinutes = 3) {
     console.log(`✅ تم بدء المزامنة التلقائية كل ${intervalMinutes} دقيقة`);
 }
 
-export function stopPeriodicSync() {
+function stopPeriodicSync() {
     if (syncInterval) {
         clearInterval(syncInterval);
         syncInterval = null;
@@ -436,7 +435,7 @@ export function stopPeriodicSync() {
 }
 
 // =================== الاستماع للتغييرات ===================
-export async function listenForOrderStatusChanges() {
+async function listenForOrderStatusChanges() {
     startPeriodicSync(3);
     console.log("👂 تم تفعيل الاستماع لتغييرات حالة الطلبات من QP Express");
 }
