@@ -34,78 +34,124 @@ async function loadQPConfig() {
     throw new Error("لم يتم العثور على بيانات تسجيل الدخول لـ QP Express في Firestore");
 }
 
-// دالة إعادة المخزون للمنتجات (مستنسخة من admin-order مع تحسينات)
-async function restoreStockForOrder(orderId, orderData) {
+// =================== دالة إعادة المخزون (النسخة النهائية المعدلة) ===================
+async function restoreStockForOrder(orderId, orderData = null) {
+    // ✅ التأكد من وجود orderData
+    if (!orderData) {
+        const orderSnap = await getDoc(doc(db, "orders", orderId));
+        if (!orderSnap.exists()) {
+            console.warn(`⚠️ الطلب ${orderId} غير موجود`);
+            return;
+        }
+        orderData = orderSnap.data();
+    }
+    
+    // ✅ التحقق من stockRestored بأمان
     if (orderData.stockRestored) {
         console.log(`⚠️ المخزون للطلب ${orderId} تم استرجاعه مسبقاً، تخطي.`);
         return;
     }
-    for (const item of (orderData.orderDetails || [])) {
+    
+    // ✅ التأكد من وجود orderDetails
+    const orderDetails = orderData.orderDetails || [];
+    if (orderDetails.length === 0) {
+        console.warn(`⚠️ الطلب ${orderId} ليس له تفاصيل منتجات`);
+        await updateDoc(doc(db, "orders", orderId), { stockRestored: true });
+        return;
+    }
+    
+    for (const item of orderDetails) {
         if (!item.name || !item.size) continue;
+        
         let productId = item.productId;
         let productDoc;
+        
         if (productId) {
             productDoc = await getDoc(doc(db, "products", productId));
         } else {
             const productSnap = await getDocs(query(collection(db, "products"), where("name", "==", item.name)));
             if (!productSnap.empty) productDoc = productSnap.docs[0];
         }
+        
         if (productDoc && productDoc.exists()) {
             const productRef = doc(db, "products", productDoc.id);
             const stockBySize = productDoc.data().stockBySize || {};
             const currentStock = stockBySize[item.size];
+            
             if (currentStock !== null && currentStock !== undefined) {
                 stockBySize[item.size] = (currentStock || 0) + item.qty;
                 await updateDoc(productRef, { stockBySize });
+                console.log(`✅ تم إعادة ${item.qty} قطعة من ${item.name} (مقاس ${item.size})`);
             }
         }
     }
-    // وضع علامة بأن المخزون استعيد
-    await updateDoc(doc(db, "orders", orderId), { stockRestored: true });
+    
+    // ✅ وضع علامة بأن المخزون استعيد
+    await updateDoc(doc(db, "orders", orderId), { 
+        stockRestored: true,
+        stockDeducted: false
+    });
+    console.log(`✅ تم استرجاع المخزون للطلب ${orderId}`);
 }
 
-// sync-orders.js - أضف هذه الدالة بعد restoreStockForOrder
-
-/**
- * خصم المخزون للطلب (عند إعادة تفعيل طلب ملغي)
- * @param {string} orderId - معرف الطلب
- * @param {Object} orderData - بيانات الطلب (اختياري)
- */
-async function deductStockForOrder(orderId, orderData) {
+// =================== دالة خصم المخزون (النسخة النهائية المعدلة) ===================
+async function deductStockForOrder(orderId, orderData = null) {
+    // ✅ التأكد من وجود orderData
     if (!orderData) {
         const orderSnap = await getDoc(doc(db, "orders", orderId));
-        if (!orderSnap.exists()) return;
+        if (!orderSnap.exists()) {
+            console.warn(`⚠️ الطلب ${orderId} غير موجود`);
+            return;
+        }
         orderData = orderSnap.data();
     }
     
-    // إذا كان الطلب قد تم خصم مخزونه بالفعل ولا يحتاج إلى خصم مرة أخرى
+    // ✅ التحقق من stockDeducted بأمان
     if (orderData.stockDeducted) {
         console.log(`⚠️ المخزون للطلب ${orderId} تم خصمه مسبقاً، تخطي.`);
         return;
     }
     
-    for (const item of (orderData.orderDetails || [])) {
+    // ✅ التأكد من وجود orderDetails
+    const orderDetails = orderData.orderDetails || [];
+    if (orderDetails.length === 0) {
+        console.warn(`⚠️ الطلب ${orderId} ليس له تفاصيل منتجات`);
+        await updateDoc(doc(db, "orders", orderId), { stockDeducted: true });
+        return;
+    }
+    
+    for (const item of orderDetails) {
         if (!item.name || !item.size) continue;
+        
         let productId = item.productId;
         let productDoc;
+        
         if (productId) {
             productDoc = await getDoc(doc(db, "products", productId));
         } else {
             const productSnap = await getDocs(query(collection(db, "products"), where("name", "==", item.name)));
             if (!productSnap.empty) productDoc = productSnap.docs[0];
         }
+        
         if (productDoc && productDoc.exists()) {
             const productRef = doc(db, "products", productDoc.id);
             const stockBySize = productDoc.data().stockBySize || {};
             const currentStock = stockBySize[item.size];
+            
             if (currentStock !== null && currentStock !== undefined) {
                 stockBySize[item.size] = Math.max(0, (currentStock || 0) - item.qty);
                 await updateDoc(productRef, { stockBySize });
+                console.log(`✅ تم خصم ${item.qty} قطعة من ${item.name} (مقاس ${item.size})`);
             }
         }
     }
-    // وضع علامة بأن المخزون خُصم
-    await updateDoc(doc(db, "orders", orderId), { stockDeducted: true, stockRestored: false });
+    
+    // ✅ وضع علامة بأن المخزون خُصم
+    await updateDoc(doc(db, "orders", orderId), { 
+        stockDeducted: true,
+        stockRestored: false
+    });
+    console.log(`✅ تم خصم المخزون للطلب ${orderId}`);
 }
 
 // =================== الحصول على توكن ===================
