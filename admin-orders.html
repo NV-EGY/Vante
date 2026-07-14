@@ -981,10 +981,11 @@
 <button class="bulk-status-btn returned" onclick="applyBulkStatus('returned')"><i class="fas fa-undo-alt"></i> <span>مرتجع</span></button>
 <button class="bulk-status-btn undelivered" onclick="applyBulkStatus('undelivered')"><i class="fas fa-times-circle"></i> <span>لم يصل</span></button>
 <button class="bulk-status-btn rejected" onclick="applyBulkStatus('rejected')"><i class="fas fa-hand-paper"></i> <span>رفض</span></button>
-  <button class="clear-selection-btn" onclick="clearAllSelections()"><i class="fas fa-times"></i> <span>إلغاء</span></button>
-  <button class="bulk-status-btn returned_confirmed" onclick="applyBulkStatus('returned_confirmed')">
-    <i class="fas fa-check-double"></i> <span>تأكيد المرتجع</span>
+<button class="bulk-status-btn returned_confirmed" onclick="applyBulkStatus('returned_confirmed')">
+    <i class="fas fa-check"></i> <span>تأكيد المرتجع</span>
 </button>
+  <button class="clear-selection-btn" onclick="clearAllSelections()"><i class="fas fa-times"></i> <span>إلغاء</span></button>
+  
 </div>
 
 <div id="reviewsPanel" style="display: none;">
@@ -1756,7 +1757,7 @@ function render() {
                 rejected: 'رفض',
                 returned: 'مرتجع',
                 hold: 'معلق',
-                returned_confirmed: '✅ تم استلام المرتجع'  
+                returned_confirmed: 'تم استلام المرتجع'  
             }[status] || status;
 
             const detailsArray = Array.isArray(o.orderDetails) ? o.orderDetails : [];
