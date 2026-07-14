@@ -219,7 +219,7 @@ export async function getOrderUpdateHistory(page = 1, pageSize = 200) {
     }
 }
 
-// =================== معالجة التحديثات (النسخة النهائية الصحيحة) ===================
+// =================== معالجة التحديثات (النسخة النهائية المعدلة) ===================
 export async function processUpdates(updates) {
     if (!updates || updates.length === 0) return;
 
@@ -240,15 +240,14 @@ export async function processUpdates(updates) {
 
             // ----- حالة المرتجع (من QP) -----
             if (update.has_return && update.has_return === true) {
-                // إعادة المخزون أولاً
-                await restoreStockForOrder(orderId, currentData);
+                // ✅ عند المرتجع، نغير الحالة إلى returned (ولكن لا نعيد المخزون تلقائياً)
+                // سيتم تأكيد الاستلام يدوياً من المسؤول في Profits
                 await updateDoc(doc(db, "orders", orderId), {
                     status: "returned",
-                    notes: "مرتجع (تم إرجاع المنتج)",
-                    shippingCostPaid: 0,
-                    stockRestored: true
+                    notes: (notes || "مرتجع من شركة الشحن - في انتظار تأكيد المسؤول"),
+                    stockRestored: false  // لم نستعد المخزون بعد
                 });
-                console.log(`🔄 تم تحديث الطلب ${referenceID} إلى حالة مرتجع وإعادة المخزون`);
+                console.log(`🔄 تم تحديث الطلب ${referenceID} إلى حالة مرتجع (في انتظار التأكيد)`);
                 continue;
             }
 
@@ -275,15 +274,16 @@ export async function processUpdates(updates) {
                     break;
 
                 case "Undelivered":
-                    newStatus = "cancelled";
-                    notesToAdd = notes || "موصلش للعميل (Undelivered) - لا مصاريف شحن";
-                    newShippingCostPaid = 0;  // لا نتحمل تكلفة الشحن
+                    // ✅ لا نعيد المخزون تلقائياً، ننتظر تأكيد المسؤول
+                    newStatus = "undelivered";
+                    notesToAdd = notes || "موصلش للعميل (Undelivered) - في انتظار تأكيد المرتجع";
+                    newShippingCostPaid = 0;
                     break;
 
                 case "Rejected":
+                    // ✅ لا نعيد المخزون تلقائياً، ننتظر تأكيد المسؤول
                     newStatus = "rejected";
-                    notesToAdd = notes || "العميل رفض الطلب - يتحمل مصاريف الشحن";
-                    // نترك shippingCostPaid كما هي (نحن نتحمل التكلفة)
+                    notesToAdd = notes || "العميل رفض الطلب - في انتظار تأكيد المرتجع";
                     break;
 
                 default:
@@ -301,21 +301,23 @@ export async function processUpdates(updates) {
             if (new_value === "Undelivered") updateData.shippingExempted = true;
 
             await updateDoc(doc(db, "orders", orderId), updateData);
-            // داخل processUpdates، بعد await updateDoc(...)
-await logAuditEvent({
-    action: 'status_change',
-    orderId: orderId,
-    orderNumber: referenceID,
-    details: {
-        oldStatus: currentData.status,
-        newStatus: newStatus,
-        notes: notesToAdd || `تحديث تلقائي من QP: ${new_value}`,
-        source: 'QP Express'
-    },
-    performedBy: 'system (QP)',
-    severity: 'info'
-});
-            console.log(`🔄 تم تحديث الطلب ${referenceID} إلى حالة ${newStatus} (QP: ${new_value}) مع تكلفة شحن فعلية = ${newShippingCostPaid}`);
+
+            // ✅ تسجيل الحدث في Audit Log
+            await logAuditEvent({
+                action: 'status_change',
+                orderId: orderId,
+                orderNumber: referenceID,
+                details: {
+                    oldStatus: currentData.status,
+                    newStatus: newStatus,
+                    notes: notesToAdd || `تحديث تلقائي من QP: ${new_value}`,
+                    source: 'QP Express'
+                },
+                performedBy: 'system (QP)',
+                severity: 'info'
+            });
+
+            console.log(`🔄 تم تحديث الطلب ${referenceID} إلى حالة ${newStatus} (QP: ${new_value})`);
 
         } catch (error) {
             console.error("❌ خطأ في معالجة تحديث:", error);
