@@ -67,12 +67,7 @@ function convertToFirestoreValue(value) {
 
 export async function logAuditEvent(data) {
     // ✅ استخراج performedBy من data أولاً
-    let { performedBy } = data;
-    
-    // ✅ التأكد من وجود قيمة
-    if (!performedBy || performedBy === 'system') {
-        performedBy = window.currentUserEmail || 'system';
-    }
+    let performedBy = data.performedBy || window.currentUserEmail || 'system';
     
     // ✅ السماح بالتسجيل فقط من صفحات الإدارة
     const currentPath = window.location.pathname;
@@ -96,7 +91,6 @@ export async function logAuditEvent(data) {
             orderId = null,
             orderNumber = null,
             details = {},
-            performedBy = window.currentUserEmail || 'system',
             severity = 'info'
         } = data;
 
@@ -163,7 +157,7 @@ export async function logAuditEvent(data) {
                 orderNumber,
                 severity,
                 details,
-                performedBy,
+                performedBy: performedBy,
                 createdAt: Timestamp.now()
             };
             await addDoc(collection(db, "auditLog"), logEntry);
