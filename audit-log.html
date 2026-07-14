@@ -144,13 +144,16 @@
         <input type="date" id="filterDateTo">
         <label><i class="fas fa-tag"></i> نوع العملية</label>
         <select id="filterAction">
-            <option value="all">الكل</option>
-            <option value="status_change">تغيير حالة</option>
-            <option value="order_created">طلب جديد</option>
-            <option value="order_edited">تعديل طلب</option>
-            <option value="order_deleted">حذف طلب</option>
-            <option value="return_confirmed">تأكيد مرتجع</option>
-        </select>
+    <option value="all">الكل</option>
+    <option value="status_change">تغيير حالة</option>
+    <option value="order_created">طلب جديد</option>
+    <option value="order_edited">تعديل طلب</option>
+    <option value="order_deleted">حذف طلب</option>
+    <option value="return_confirmed">تأكيد مرتجع</option>
+    <option value="order_confirmed">تأكيد الطلب</option>      <!-- ✅ جديد -->
+    <option value="order_cancelled">إلغاء الطلب</option>     <!-- ✅ جديد -->
+    <option value="order_restored">استرداد طلب</option>     <!-- ✅ جديد -->
+</select>
         <label><i class="fas fa-search"></i> رقم الطلب</label>
         <input type="text" id="filterOrderNumber" placeholder="VNT-001">
         <label><i class="fas fa-user"></i> المستخدم</label>
