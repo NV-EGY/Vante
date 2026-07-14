@@ -440,7 +440,7 @@ export async function listenForOrderStatusChanges() {
     console.log("👂 تم تفعيل الاستماع لتغييرات حالة الطلبات من QP Express");
 }
 // =================== إلغاء طلب في QP (محلياً) ===================
-export async function cancelOrderInQP(orderId, serial) {
+async function cancelOrderInQP(orderId, serial) {
     try {
         console.log(`🗑️ إلغاء الطلب ${orderId} محلياً (serial: ${serial || 'غير موجود'})`);
         
