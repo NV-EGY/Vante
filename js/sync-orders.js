@@ -65,6 +65,50 @@ async function restoreStockForOrder(orderId, orderData) {
     await updateDoc(doc(db, "orders", orderId), { stockRestored: true });
 }
 
+// sync-orders.js - أضف هذه الدالة بعد restoreStockForOrder
+
+/**
+ * خصم المخزون للطلب (عند إعادة تفعيل طلب ملغي)
+ * @param {string} orderId - معرف الطلب
+ * @param {Object} orderData - بيانات الطلب (اختياري)
+ */
+export async function deductStockForOrder(orderId, orderData) {
+    if (!orderData) {
+        const orderSnap = await getDoc(doc(db, "orders", orderId));
+        if (!orderSnap.exists()) return;
+        orderData = orderSnap.data();
+    }
+    
+    // إذا كان الطلب قد تم خصم مخزونه بالفعل ولا يحتاج إلى خصم مرة أخرى
+    if (orderData.stockDeducted) {
+        console.log(`⚠️ المخزون للطلب ${orderId} تم خصمه مسبقاً، تخطي.`);
+        return;
+    }
+    
+    for (const item of (orderData.orderDetails || [])) {
+        if (!item.name || !item.size) continue;
+        let productId = item.productId;
+        let productDoc;
+        if (productId) {
+            productDoc = await getDoc(doc(db, "products", productId));
+        } else {
+            const productSnap = await getDocs(query(collection(db, "products"), where("name", "==", item.name)));
+            if (!productSnap.empty) productDoc = productSnap.docs[0];
+        }
+        if (productDoc && productDoc.exists()) {
+            const productRef = doc(db, "products", productDoc.id);
+            const stockBySize = productDoc.data().stockBySize || {};
+            const currentStock = stockBySize[item.size];
+            if (currentStock !== null && currentStock !== undefined) {
+                stockBySize[item.size] = Math.max(0, (currentStock || 0) - item.qty);
+                await updateDoc(productRef, { stockBySize });
+            }
+        }
+    }
+    // وضع علامة بأن المخزون خُصم
+    await updateDoc(doc(db, "orders", orderId), { stockDeducted: true, stockRestored: false });
+}
+
 // =================== الحصول على توكن ===================
 async function getQPToken() {
     const config = await loadQPConfig();
@@ -420,3 +464,4 @@ export async function cancelOrderInQP(orderId, serial) {
         return { success: false, error: error.message };
     }
 }
+export { db, restoreStockForOrder, deductStockForOrder };
