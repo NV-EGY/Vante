@@ -4497,6 +4497,14 @@ window.restoreStockForOrder = restoreStockForOrder;
             if (typeof restoreStockForOrder === 'function') {
                 await restoreStockForOrder(orderId, orderData);
                 console.log(`🔄 تم إعادة المخزون للطلب ${orderData.orderID}`);
+                
+                // ✅ ✅ ✅ العلامات الصحيحة ✅ ✅ ✅
+                await updateDoc(orderRef, { 
+                    stockRestored: true,
+                    stockDeducted: false 
+                });
+                console.log(`✅ تم تحديث علامات المخزون للطلب ${orderData.orderID}: stockRestored=true, stockDeducted=false`);
+                
             } else {
                 // محاولة إعادة المخزون يدوياً (كحل بديل)
                 console.warn('⚠️ restoreStockForOrder غير معرفة، محاولة بديلة...');
@@ -4521,7 +4529,10 @@ window.restoreStockForOrder = restoreStockForOrder;
                     }
                 }
                 // وضع علامة بأن المخزون استعيد
-                await updateDoc(orderRef, { stockRestored: true });
+                await updateDoc(orderRef, { 
+                    stockRestored: true,
+                    stockDeducted: false 
+                });
                 console.log(`✅ تم إعادة المخزون للطلب ${orderData.orderID} (بديل)`);
             }
         }
@@ -6188,6 +6199,8 @@ const orderData = {
     finalTotal: finalTotalAfter,
     status: "new",
     date: dateStr,
+    stockDeducted: true,
+    stockRestored: false,
     createdAt: serverTimestamp(),
     originalCreatedAt: serverTimestamp(),  // <--- ⬅️ أضف هذا السطر هنا
     totalCost: totalCost,
