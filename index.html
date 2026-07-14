@@ -4450,6 +4450,9 @@ async function restoreStockForOrder(orderId, orderData) {
 // اجعلها متاحة عالمياً
 window.restoreStockForOrder = restoreStockForOrder;
 
+// ============================================================
+// معالجة روابط التأكيد والرفض من العميل - النسخة النهائية
+// ============================================================
 (async function handleConfirmReject() {
     const params = new URLSearchParams(window.location.search);
     const confirmOrderId = params.get('confirm');
@@ -4458,15 +4461,27 @@ window.restoreStockForOrder = restoreStockForOrder;
     if (!orderId) return;
 
     try {
-        // ✅ التحقق من الهاش باستخدام encodeURIComponent بدلاً من btoa
+        // ✅ الحصول على الهاش من الرابط
         const hash = params.get('hash');
-        const secret = 'Vante-Secure-Key-2026-X7K9M2P5';
-        const expectedHash = encodeURIComponent(orderId + '|' + secret);
-        if (hash !== expectedHash) {
-            customAlert('⚠️ رابط غير صالح', 'error');
+        if (!hash) {
+            customAlert('⚠️ رابط غير صالح (لا يحتوي على رمز التحقق)', 'error');
             return;
         }
 
+        const secret = 'Vante-Secure-Key-2026-X7K9M2P5';
+        const raw = orderId + '|' + secret;
+        
+        // ✅ إعادة بناء الهاش بنفس طريقة التشفير في Admin
+        let expectedHash = btoa(raw);
+        expectedHash = expectedHash.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+        
+        // ✅ مقارنة الهاش
+        if (hash !== expectedHash) {
+            customAlert('⚠️ رابط غير صالح (رمز التحقق غير متطابق)', 'error');
+            return;
+        }
+
+        // ✅ جلب بيانات الطلب من Firestore
         const orderRef = doc(db, "orders", orderId);
         const orderSnap = await getDoc(orderRef);
         if (!orderSnap.exists()) {
@@ -4479,7 +4494,12 @@ window.restoreStockForOrder = restoreStockForOrder;
 
         // ✅ منع تغيير حالة الطلبات المسلمة أو المؤكدة مسبقاً
         if (['delivered', 'confirmed', 'cancelled'].includes(orderData.status)) {
-            customAlert(`⚠️ هذا الطلب تم ${orderData.status === 'delivered' ? 'تسليمه' : orderData.status === 'confirmed' ? 'تأكيده' : 'رفضه'} مسبقاً`, 'warning');
+            const statusMap = {
+                'delivered': 'تم تسليمه',
+                'confirmed': 'تم تأكيده',
+                'cancelled': 'تم رفضه'
+            };
+            customAlert(`⚠️ هذا الطلب تم ${statusMap[orderData.status] || 'معالجته'} مسبقاً`, 'warning');
             return;
         }
 
@@ -4508,7 +4528,10 @@ window.restoreStockForOrder = restoreStockForOrder;
         }
 
         // ✅ تحديث الطلب
-        await updateDoc(orderRef, { status: newStatus });
+        await updateDoc(orderRef, { 
+            status: newStatus,
+            confirmedAt: serverTimestamp()
+        });
 
         // ✅ تسجيل الحدث في Audit Log
         try {
@@ -4520,7 +4543,9 @@ window.restoreStockForOrder = restoreStockForOrder;
                 details: {
                     oldStatus: orderData.status,
                     newStatus: newStatus,
-                    notes: confirmOrderId ? 'تم تأكيد الطلب بواسطة العميل' : 'تم إلغاء الطلب بواسطة العميل (تم إعادة المخزون)',
+                    notes: confirmOrderId 
+                        ? 'تم تأكيد الطلب بواسطة العميل' 
+                        : 'تم إلغاء الطلب بواسطة العميل (تم إعادة المخزون)',
                     customerName: orderData.customerName,
                     phone: orderData.phone
                 },
@@ -4531,17 +4556,21 @@ window.restoreStockForOrder = restoreStockForOrder;
             console.error('❌ فشل تسجيل الحدث:', logError);
         }
 
-        const msg = confirmOrderId ? '✅ تم تأكيد الطلب بنجاح! شكراً لك.' : '❌ تم رفض الطلب.';
+        const msg = confirmOrderId 
+            ? '✅ تم تأكيد الطلب بنجاح! شكراً لك.' 
+            : '❌ تم رفض الطلب.';
         customAlert(msg, 'success');
 
+        // ✅ إزالة البارامترات من الرابط
         window.history.replaceState({}, document.title, window.location.pathname);
 
+        // ✅ إعادة توجيه العميل بعد 3 ثواني
         setTimeout(() => {
             window.location.href = '/';
         }, 3000);
 
     } catch (error) {
-        console.error(error);
+        console.error('❌ خطأ في معالجة الطلب:', error);
         customAlert('❌ حدث خطأ أثناء معالجة الطلب، حاول مرة أخرى.', 'error');
     }
 })();
