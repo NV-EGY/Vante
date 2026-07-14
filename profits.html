@@ -43,6 +43,7 @@
         .btn-danger:hover{background:#c0392b;}
         .btn-success{background:#27ae60;color:#fff;}
         .btn-success:hover{background:#219a52;}
+        .btn-sm{padding:6px 14px;font-size:12px;border-radius:20px;}
         
         /* ===== Password Overlay ===== */
         .password-overlay {
@@ -150,7 +151,7 @@
             padding: 20px; margin-bottom: 30px;
         }
         
-        /* ===== إدارة المصروفات المحسّنة ===== */
+        /* ===== إدارة المصروفات المحسّنة (مع فلترة تاريخ) ===== */
         .expense-form {
             display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-end;
             background: #f8f9fa; padding: 20px; border-radius: 16px;
@@ -161,13 +162,15 @@
             display: block; font-weight: 700; font-size: 13px;
             color: #555; margin-bottom: 6px;
         }
-        .expense-form input {
+        .expense-form input, .expense-form select {
             width: 100%; padding: 10px 14px;
             border-radius: 12px; border: 1px solid #ddd;
             font-family: 'Cairo', sans-serif; font-size: 14px;
             transition: 0.3s;
         }
-        .expense-form input:focus { border-color: #D4AF37; outline: none; box-shadow: 0 0 0 3px rgba(212,175,55,0.15); }
+        .expense-form input:focus, .expense-form select:focus {
+            border-color: #D4AF37; outline: none; box-shadow: 0 0 0 3px rgba(212,175,55,0.15);
+        }
         .expense-item {
             display: flex; justify-content: space-between;
             align-items: center; padding: 10px 0;
@@ -177,12 +180,14 @@
         .expense-item:hover { background: #fafafa; padding: 10px 8px; border-radius: 8px; }
         .expense-item .desc { font-weight: 600; color: #333; }
         .expense-item .amount { font-weight: 700; color: #e74c3c; }
+        .expense-item .date { font-size: 12px; color: #999; }
         .expense-item .actions { display: flex; gap: 8px; }
         .expense-item .actions button {
             background: none; border: none; cursor: pointer;
             padding: 4px 8px; border-radius: 6px; transition: 0.2s;
             font-size: 14px;
         }
+        .expense-item .actions .edit-btn:hover { background: #e8f0fe; color: #3498db; }
         .expense-item .actions .delete-btn:hover { background: #fee; color: #e74c3c; }
         .expense-total {
             text-align: left; font-weight: 700; font-size: 16px;
@@ -191,8 +196,16 @@
         }
         .expense-total span { color: #e74c3c; }
         .empty-expenses { color: #999; text-align: center; padding: 30px; }
+        .expense-filters {
+            display: flex; gap: 12px; flex-wrap: wrap;
+            margin-bottom: 15px; padding: 12px 16px;
+            background: #f8f9fa; border-radius: 12px;
+            align-items: center;
+        }
+        .expense-filters label { font-weight: 700; font-size: 13px; color: #555; }
+        .expense-filters input { padding: 8px 12px; border-radius: 10px; border: 1px solid #ddd; font-family: 'Cairo', sans-serif; }
         
-        /* ===== Custom Alert/Confirm (محسّن) ===== */
+        /* ===== Custom Alert/Confirm ===== */
         .custom-alert-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
@@ -259,6 +272,17 @@
         
         @media(max-width:700px){th,td{font-size:11px;padding:6px;}}
         @media(max-width:480px){.container{padding:0;} .expense-form{flex-direction:column;} }
+        
+        /* ===== شارة التاريخ الجديد ===== */
+        .delivery-date-badge {
+            display: inline-block;
+            background: #3498db;
+            color: #fff;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+        }
     </style>
 </head>
 <body>
@@ -296,6 +320,7 @@
                 </select>
                 <button class="btn btn-primary" onclick="exportToExcel()"><i class="fas fa-file-excel"></i> تصدير Excel</button>
                 <button class="btn" onclick="loadData()"><i class="fas fa-sync"></i> تحديث</button>
+                <!-- ✅ تم إزالة الزر اللي مش ظاهر منه حاجة -->
             </div>
 
             <!-- Stats -->
@@ -314,9 +339,24 @@
                         <label><i class="fas fa-dollar-sign"></i> المبلغ (جنيه)</label>
                         <input type="number" id="expenseAmount" placeholder="0.00" step="0.01" min="0">
                     </div>
+                    <div class="form-group" style="flex:0.8; min-width:120px;">
+                        <label><i class="fas fa-calendar-alt"></i> التاريخ</label>
+                        <input type="date" id="expenseDate">
+                    </div>
                     <button class="btn btn-success" onclick="addExpense()" style="padding:12px 30px; margin-bottom:2px;">
                         <i class="fas fa-plus"></i> إضافة مصروف
                     </button>
+                </div>
+                
+                <!-- ✅ فلترة المصروفات حسب التاريخ -->
+                <div class="expense-filters">
+                    <label><i class="fas fa-calendar-alt"></i> فلترة المصروفات:</label>
+                    <label>من</label>
+                    <input type="date" id="expenseFilterFrom">
+                    <label>إلى</label>
+                    <input type="date" id="expenseFilterTo">
+                    <button class="btn btn-sm btn-primary" onclick="applyExpenseFilter()"><i class="fas fa-filter"></i> فلترة</button>
+                    <button class="btn btn-sm" onclick="clearExpenseFilter()"><i class="fas fa-undo"></i> إلغاء</button>
                 </div>
                 
                 <div id="expensesList">
@@ -327,7 +367,7 @@
                 </div>
             </div>
 
-            <!-- ========== قسم الطلبات المسلمة ========== -->
+            <!-- ========== قسم الطلبات المسلمة (مع تاريخ التسليم الفعلي) ========== -->
             <div class="section-delivered">
                 <h3 class="section-title">📋 تفاصيل الطلبات المسلمة</h3>
                 <div class="table-wrapper">
@@ -338,7 +378,7 @@
                                 <th>العميل</th>
                                 <th>المحافظة</th>
                                 <th>المدينة</th>
-                                <th>تاريخ التسليم</th>
+                                <th>📅 تاريخ التسليم الفعلي</th>
                                 <th>المنتجات</th>
                                 <th>الإجمالي (العميل)</th>
                                 <th>تكلفة المنتجات</th>
@@ -389,6 +429,35 @@
                 </div>
             </div>
 
+        </div>
+    </div>
+
+    <!-- ===== مودال تعديل المصروف ===== -->
+    <div id="editExpenseModal" class="custom-confirm-overlay">
+        <div class="custom-confirm-box" style="max-width:420px;">
+            <div class="confirm-header">
+                <i class="fas fa-edit" style="color:#3498db;"></i>
+                <h3>تعديل المصروف</h3>
+            </div>
+            <div class="confirm-message" style="text-align:right; direction:rtl;">
+                <div style="margin-bottom:15px;">
+                    <label style="display:block; font-weight:700; margin-bottom:5px;">الوصف</label>
+                    <input type="text" id="editExpenseDescription" style="width:100%; padding:10px; border-radius:10px; border:1px solid #ddd; font-family:'Cairo',sans-serif;">
+                </div>
+                <div style="margin-bottom:15px;">
+                    <label style="display:block; font-weight:700; margin-bottom:5px;">المبلغ (جنيه)</label>
+                    <input type="number" id="editExpenseAmount" step="0.01" style="width:100%; padding:10px; border-radius:10px; border:1px solid #ddd; font-family:'Cairo',sans-serif;">
+                </div>
+                <div style="margin-bottom:15px;">
+                    <label style="display:block; font-weight:700; margin-bottom:5px;">التاريخ</label>
+                    <input type="date" id="editExpenseDate" style="width:100%; padding:10px; border-radius:10px; border:1px solid #ddd; font-family:'Cairo',sans-serif;">
+                </div>
+                <div style="font-size:13px; color:#888;" id="editExpenseId" style="display:none;"></div>
+            </div>
+            <div class="confirm-buttons">
+                <button id="editExpenseCancelBtn">إلغاء</button>
+                <button id="editExpenseSaveBtn" style="color:#3498db;">حفظ التعديلات</button>
+            </div>
         </div>
     </div>
 
@@ -532,7 +601,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import {
             getFirestore, collection, query, where, onSnapshot, getDocs,
-            doc, getDoc, updateDoc, serverTimestamp, addDoc, deleteDoc
+            doc, getDoc, updateDoc, serverTimestamp, addDoc, deleteDoc, orderBy
         } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
         import { logAuditEvent } from './js/logger.js';
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -557,14 +626,22 @@
         let pendingReturns = [];
         let confirmedReturns = [];
         let allExpenses = [];
+        let filteredExpenses = [];
         let totalExpenses = 0;
         let currentMonthFilter = "all";
+        let editingExpenseId = null;
 
-        // ========== تحميل الطلبات المسلمة ==========
+        // ========== تحميل الطلبات المسلمة (مرتبة حسب تاريخ التسليم الفعلي) ==========
         function loadDeliveredOrders() {
             const q = query(collection(db, "orders"), where("status", "==", "delivered"));
             onSnapshot(q, (snap) => {
                 allDeliveredOrders = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                // ✅ ترتيب تنازلي حسب تاريخ التسليم الفعلي (deliveredAt)
+                allDeliveredOrders.sort((a, b) => {
+                    const dateA = a.deliveredAt?.toDate?.() || a.createdAt?.toDate?.() || new Date(0);
+                    const dateB = b.deliveredAt?.toDate?.() || b.createdAt?.toDate?.() || new Date(0);
+                    return dateB - dateA;
+                });
                 populateMonthFilter();
                 applyFilter();
             }, (error) => {
@@ -598,49 +675,71 @@
             });
         }
 
-        // ========== تحميل المصروفات (مع عرض في الواجهة) ==========
+        // ========== تحميل المصروفات (مع فلترة) ==========
         function loadExpenses() {
-            const q = query(collection(db, "expenses"), where("deleted", "!=", true));
+            const q = query(collection(db, "expenses"), where("deleted", "!=", true), orderBy("createdAt", "desc"));
             onSnapshot(q, (snap) => {
                 allExpenses = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                renderExpenses();
+                applyExpenseFilter();
                 updateExpenseTotal();
             }, (error) => {
                 console.error("❌ خطأ في تحميل المصروفات:", error);
             });
         }
 
+        // ========== فلترة المصروفات حسب التاريخ ==========
+        window.applyExpenseFilter = function() {
+            const fromDate = document.getElementById('expenseFilterFrom').value;
+            const toDate = document.getElementById('expenseFilterTo').value;
+            
+            filteredExpenses = allExpenses.filter(exp => {
+                const expDate = exp.createdAt?.toDate?.() || new Date(0);
+                const expDateStr = expDate.toISOString().split('T')[0];
+                
+                if (fromDate && expDateStr < fromDate) return false;
+                if (toDate && expDateStr > toDate) return false;
+                return true;
+            });
+            
+            renderExpenses();
+        };
+
+        window.clearExpenseFilter = function() {
+            document.getElementById('expenseFilterFrom').value = '';
+            document.getElementById('expenseFilterTo').value = '';
+            filteredExpenses = [...allExpenses];
+            renderExpenses();
+        };
+
         // ========== عرض المصروفات ==========
         function renderExpenses() {
             const container = document.getElementById('expensesList');
             if (!container) return;
 
-            if (allExpenses.length === 0) {
+            const expensesToShow = filteredExpenses.length > 0 ? filteredExpenses : allExpenses;
+
+            if (expensesToShow.length === 0) {
                 container.innerHTML = `
                     <div class="empty-expenses">
                         <i class="fas fa-inbox" style="font-size:32px; display:block; margin-bottom:10px; color:#ddd;"></i>
-                        لا توجد مصروفات مسجلة
+                        لا توجد مصروفات مسجلة${filteredExpenses.length === 0 && allExpenses.length > 0 ? ' تطابق الفلترة' : ''}
                     </div>
                 `;
                 return;
             }
 
-            // ترتيب تنازلي (الأحدث أولاً)
-            const sorted = [...allExpenses].sort((a, b) => {
-                const dateA = a.createdAt?.toDate?.() || new Date(0);
-                const dateB = b.createdAt?.toDate?.() || new Date(0);
-                return dateB - dateA;
-            });
-
-            container.innerHTML = sorted.map(exp => `
+            container.innerHTML = expensesToShow.map(exp => `
                 <div class="expense-item">
-                    <div style="display:flex; align-items:center; gap:12px;">
-                        <span style="color:#888; font-size:12px;">${exp.createdAt?.toDate ? formatDate(exp.createdAt.toDate()) : ''}</span>
+                    <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+                        <span class="date">${exp.createdAt?.toDate ? formatDate(exp.createdAt.toDate()) : 'تاريخ غير محدد'}</span>
                         <span class="desc">${escapeHtml(exp.description || 'بدون وصف')}</span>
                     </div>
-                    <div style="display:flex; align-items:center; gap:15px;">
+                    <div style="display:flex; align-items:center; gap:15px; flex-wrap:wrap;">
                         <span class="amount">-${Number(exp.amount || 0).toFixed(2)} جنيه</span>
                         <div class="actions">
+                            <button class="edit-btn" onclick="window.openEditExpense('${exp.id}')" title="تعديل المصروف">
+                                <i class="fas fa-edit" style="color:#3498db;"></i>
+                            </button>
                             <button class="delete-btn" onclick="window.deleteExpense('${exp.id}')" title="حذف المصروف">
                                 <i class="fas fa-trash-alt" style="color:#e74c3c;"></i>
                             </button>
@@ -652,20 +751,21 @@
 
         // ========== تحديث إجمالي المصروفات ==========
         function updateExpenseTotal() {
-            totalExpenses = allExpenses.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+            const expensesToSum = filteredExpenses.length > 0 ? filteredExpenses : allExpenses;
+            totalExpenses = expensesToSum.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
             const displayEl = document.getElementById('totalExpensesDisplay');
             if (displayEl) displayEl.textContent = totalExpenses.toFixed(2);
             
-            // تحديث الإحصائيات إذا كانت موجودة
             if (allDeliveredOrders.length > 0) {
                 updateStats(allDeliveredOrders);
             }
         }
 
-        // ========== دالة إضافة مصروف (المعدلة) ==========
+        // ========== دالة إضافة مصروف ==========
         window.addExpense = async function() {
             const description = document.getElementById('expenseDescription').value.trim();
             const amount = parseFloat(document.getElementById('expenseAmount').value);
+            const dateVal = document.getElementById('expenseDate').value;
 
             if (!description) {
                 await customAlert('⚠️ يرجى إدخال وصف للمصروف', 'warning');
@@ -677,19 +777,21 @@
             }
 
             try {
-                await addDoc(collection(db, "expenses"), {
+                const expenseData = {
                     description: description,
                     amount: amount,
-                    createdAt: serverTimestamp(),
+                    createdAt: dateVal ? new Date(dateVal) : serverTimestamp(),
                     deleted: false
-                });
+                };
+
+                await addDoc(collection(db, "expenses"), expenseData);
 
                 document.getElementById('expenseDescription').value = '';
                 document.getElementById('expenseAmount').value = '';
+                document.getElementById('expenseDate').value = '';
                 
                 await customAlert('✅ تم إضافة المصروف بنجاح!', 'success');
                 
-                // تسجيل في Audit Log
                 try {
                     await logAuditEvent({
                         action: 'expense_added',
@@ -697,7 +799,8 @@
                         orderNumber: null,
                         details: {
                             description: description,
-                            amount: amount
+                            amount: amount,
+                            date: dateVal || new Date().toISOString().split('T')[0]
                         },
                         performedBy: window.currentUserEmail || 'system',
                         severity: 'info'
@@ -716,7 +819,6 @@
             if (!confirmed) return;
 
             try {
-                // حذف ناعم (نضع علامة deleted بدلاً من الحذف الفعلي)
                 await updateDoc(doc(db, "expenses", expenseId), { deleted: true });
                 await customAlert('🗑️ تم حذف المصروف بنجاح', 'success');
             } catch (error) {
@@ -725,7 +827,84 @@
             }
         };
 
-        // ========== عرض الطلبات المسلمة ==========
+        // ========== دالة تعديل مصروف ==========
+        window.openEditExpense = function(expenseId) {
+            const expense = allExpenses.find(e => e.id === expenseId);
+            if (!expense) {
+                customAlert('⚠️ المصروف غير موجود', 'warning');
+                return;
+            }
+
+            editingExpenseId = expenseId;
+            document.getElementById('editExpenseDescription').value = expense.description || '';
+            document.getElementById('editExpenseAmount').value = expense.amount || 0;
+            const expDate = expense.createdAt?.toDate?.() || new Date();
+            document.getElementById('editExpenseDate').value = expDate.toISOString().split('T')[0];
+            
+            document.getElementById('editExpenseModal').classList.add('active');
+        };
+
+        window.saveEditExpense = async function() {
+            const description = document.getElementById('editExpenseDescription').value.trim();
+            const amount = parseFloat(document.getElementById('editExpenseAmount').value);
+            const dateVal = document.getElementById('editExpenseDate').value;
+
+            if (!description) {
+                await customAlert('⚠️ يرجى إدخال وصف للمصروف', 'warning');
+                return;
+            }
+            if (isNaN(amount) || amount <= 0) {
+                await customAlert('⚠️ يرجى إدخال مبلغ صحيح (أكبر من صفر)', 'warning');
+                return;
+            }
+
+            try {
+                const updateData = {
+                    description: description,
+                    amount: amount
+                };
+                if (dateVal) {
+                    updateData.createdAt = new Date(dateVal);
+                }
+
+                await updateDoc(doc(db, "expenses", editingExpenseId), updateData);
+                
+                document.getElementById('editExpenseModal').classList.remove('active');
+                await customAlert('✅ تم تعديل المصروف بنجاح!', 'success');
+                
+                try {
+                    await logAuditEvent({
+                        action: 'expense_edited',
+                        orderId: null,
+                        orderNumber: null,
+                        details: {
+                            description: description,
+                            amount: amount,
+                            date: dateVal || new Date().toISOString().split('T')[0]
+                        },
+                        performedBy: window.currentUserEmail || 'system',
+                        severity: 'info'
+                    });
+                } catch(e) { console.warn('⚠️ فشل تسجيل Audit Log:', e); }
+
+            } catch (error) {
+                console.error("❌ خطأ في تعديل المصروف:", error);
+                await customAlert('❌ حدث خطأ أثناء تعديل المصروف: ' + error.message, 'error');
+            }
+        };
+
+        // ===== أحداث مودال التعديل =====
+        document.getElementById('editExpenseCancelBtn').addEventListener('click', () => {
+            document.getElementById('editExpenseModal').classList.remove('active');
+        });
+        document.getElementById('editExpenseSaveBtn').addEventListener('click', window.saveEditExpense);
+        document.getElementById('editExpenseModal').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) {
+                document.getElementById('editExpenseModal').classList.remove('active');
+            }
+        });
+
+        // ========== عرض الطلبات المسلمة (مع تاريخ التسليم الفعلي) ==========
         function renderDeliveredOrders(orders) {
             const tbody = document.getElementById("ordersList");
             if (orders.length === 0) {
@@ -741,12 +920,20 @@
                 const finalTotal = o.finalTotal || 0;
                 const profit = (finalTotal - totalCost - shippingCostPaid).toFixed(2);
                 const profitClass = parseFloat(profit) >= 0 ? 'profit-positive' : 'profit-negative';
+                
+                // ✅ استخدام تاريخ التسليم الفعلي (deliveredAt) أو تاريخ الإنشاء كبديل
+                const deliveryDate = o.deliveredAt?.toDate?.() || o.createdAt?.toDate?.() || new Date();
+                const deliveryDateStr = deliveryDate.toLocaleDateString('ar-EG', {
+                    year: 'numeric', month: 'short', day: 'numeric',
+                    hour: '2-digit', minute: '2-digit'
+                });
+                
                 html += `<tr>
                     <td><strong>${o.orderID}</strong></td>
                     <td>${o.customerName || '-'}</td>
                     <td>${o.gov || '-'}</td>
                     <td>${o.city || '-'}</td>
-                    <td>${o.createdAt?.toDate ? o.createdAt.toDate().toLocaleDateString('ar-EG') : '-'}</td>
+                    <td><span class="delivery-date-badge">${deliveryDateStr}</span></td>
                     <td class="detail-cell" title="${productsStr}">${productsStr || '-'}</td>
                     <td>${finalTotal.toFixed(2)}</td>
                     <td>${totalCost.toFixed(2)}</td>
@@ -860,7 +1047,7 @@
             tbody.innerHTML = html;
         }
 
-        // ========== الإحصائيات (المعدلة لتشمل المصروفات) ==========
+        // ========== الإحصائيات ==========
         function updateStats(orders) {
             let totalRevenue = orders.reduce((s, o) => s + (o.finalTotal || 0), 0);
             let totalCostProducts = orders.reduce((s, o) => s + (o.totalCost || 0), 0);
@@ -892,13 +1079,13 @@
             `;
         }
 
-        // ========== التصفية ==========
+        // ========== التصفية حسب الشهر ==========
         function populateMonthFilter() {
             const monthsSet = new Set();
             allDeliveredOrders.forEach(o => {
-                if (o.createdAt?.toDate) {
-                    const d = o.createdAt.toDate();
-                    monthsSet.add(`${d.getFullYear()}-${d.getMonth()+1}`);
+                const date = o.deliveredAt?.toDate?.() || o.createdAt?.toDate?.();
+                if (date) {
+                    monthsSet.add(`${date.getFullYear()}-${date.getMonth()+1}`);
                 }
             });
             const select = document.getElementById("monthFilter");
@@ -916,8 +1103,8 @@
             if (filterVal !== "all") {
                 const [year, month] = filterVal.split('-');
                 filtered = allDeliveredOrders.filter(o => {
-                    const d = o.createdAt?.toDate();
-                    return d && d.getFullYear() == year && (d.getMonth()+1) == month;
+                    const date = o.deliveredAt?.toDate?.() || o.createdAt?.toDate?.();
+                    return date && date.getFullYear() == year && (date.getMonth()+1) == month;
                 });
             }
             renderDeliveredOrders(filtered);
@@ -949,10 +1136,8 @@
 
                 const order = orderSnap.data();
 
-                // ✅ إعادة المخزون
                 await restoreStockForOrder(orderId, order);
 
-                // ✅ تحديث الحالة
                 await updateDoc(doc(db, "orders", orderId), {
                     status: "returned_confirmed",
                     stockRestored: true,
@@ -960,7 +1145,6 @@
                     notes: (order.notes || '') + ' | تم تأكيد استلام المرتجع'
                 });
 
-                // ✅ تسجيل في Audit Log
                 try {
                     await logAuditEvent({
                         action: 'return_confirmed',
@@ -977,13 +1161,10 @@
                         performedBy: window.currentUserEmail || 'system',
                         severity: 'info'
                     });
-                } catch (e) {
-                    console.warn("⚠️ فشل تسجيل Audit Log:", e);
-                }
+                } catch (e) { console.warn("⚠️ فشل تسجيل Audit Log:", e); }
 
                 await customAlert("✅ تم تأكيد استلام المرتجع وإعادة الكميات إلى المخزون بنجاح!", "success");
 
-                // ✅ تحديث واجهة الطلبات إذا كانت مفتوحة
                 if (typeof window.forceRender === 'function') {
                     await window.forceRender();
                 } else if (typeof window.render === 'function') {
@@ -1004,13 +1185,14 @@
         // ========== تصدير Excel ==========
         window.exportToExcel = () => {
             const rows = [];
-            rows.push(['رقم الطلب', 'العميل', 'المحافظة', 'المدينة', 'التاريخ', 'المنتجات', 'الإجمالي', 'تكلفة المنتجات', 'تكلفة الشحن', 'صافي الربح']);
+            rows.push(['رقم الطلب', 'العميل', 'المحافظة', 'المدينة', 'تاريخ التسليم الفعلي', 'المنتجات', 'الإجمالي', 'تكلفة المنتجات', 'تكلفة الشحن', 'صافي الربح']);
             allDeliveredOrders.forEach(o => {
                 const details = Array.isArray(o.orderDetails) ? o.orderDetails : [];
                 const productsStr = details.map(item => `${item.name}(${item.size})x${item.qty}`).join(', ');
+                const deliveryDate = o.deliveredAt?.toDate?.() || o.createdAt?.toDate?.() || new Date();
                 rows.push([
                     o.orderID, o.customerName || '-', o.gov || '-', o.city || '-',
-                    o.createdAt?.toDate ? o.createdAt.toDate().toLocaleDateString('ar-EG') : '-',
+                    deliveryDate.toLocaleDateString('ar-EG'),
                     productsStr,
                     (o.finalTotal || 0).toFixed(2),
                     (o.totalCost || 0).toFixed(2),
