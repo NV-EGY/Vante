@@ -3040,36 +3040,6 @@ window.saveShippingDiscountSettings = async function() {
         customAlert("❌ حدث خطأ أثناء الحفظ", 'error');
     }
 };
-// دالة إعادة المخزون للطلب
-async function restoreStockForOrder(orderId) {
-    const orderSnap = await getDoc(doc(db, "orders", orderId));
-    if (!orderSnap.exists()) return;
-    const order = orderSnap.data();
-    if (order.stockRestored) return;
-
-    const details = Array.isArray(order.orderDetails) ? order.orderDetails : [];
-for (const item of details) {
-        if (!item.name || !item.size) continue;
-        let productId = item.productId;
-        let productDoc;
-        if (productId) {
-            productDoc = await getDoc(doc(db, "products", productId));
-        } else {
-            const productSnap = await getDocs(query(collection(db, "products"), where("name", "==", item.name)));
-            if (!productSnap.empty) productDoc = productSnap.docs[0];
-        }
-        if (productDoc && productDoc.exists()) {
-            const productRef = doc(db, "products", productDoc.id);
-            const stockBySize = productDoc.data().stockBySize || {};
-            const currentStock = stockBySize[item.size];
-            if (currentStock !== null && currentStock !== undefined) {
-                stockBySize[item.size] = (currentStock || 0) + item.qty;
-                await updateDoc(productRef, { stockBySize });
-            }
-        }
-    }
-    await updateDoc(doc(db, "orders", orderId), { stockRestored: true });
-}
 
 // ========== تحسين التحديث الفوري للطلبات الجديدة ==========
 // التأكد من أن onSnapshot يقوم بتحديث الواجهة بدون تأخير
@@ -3094,6 +3064,7 @@ window.copyToClipboard = function(text) {
 
 // إذا أردت سماع صوت مع كل طلب جديد (موجود بالفعل لكن نؤكد)
 // نضيف أيضاً مستمعاً لفتح مجموعة اليوم الحالي إذا كانت مغلقة
+
 function ensureTodayGroupOpen() {
     const today = new Date().toDateString();
     const groups = document.querySelectorAll('.day-group');
