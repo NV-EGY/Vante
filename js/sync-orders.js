@@ -126,14 +126,11 @@ async function getQPToken() {
     const data = await response.json();
     return data.token;
 }
-// =================== جلب معرف المدينة ===================
-// =================== جلب معرف المدينة ===================
-// استبدل دالة getCityId بالكود التالي
 async function getCityId(govName) {
-    if (!govName) return 1; // fallback للقاهرة
+    if (!govName) return 1;
 
     try {
-        // 1. البحث عن المحافظة في جدول cities
+        // ✅ البحث في جدول cities
         const citiesRef = collection(db, "cities");
         const q = query(citiesRef, where("governorate", "==", govName));
         const snap = await getDocs(q);
@@ -141,20 +138,22 @@ async function getCityId(govName) {
             return snap.docs[0].data().id;
         }
 
-        // 2. إذا لم نجد، نحاول البحث باسم المحافظة كـ city name
-        const docSnap = await getDoc(doc(db, "cities", govName));
-        if (docSnap.exists()) {
-            return docSnap.data().id;
-        }
-
-        // 3. إذا لم نجد، نبحث في جدول المحافظات (governorates) إن وجد
+        // ✅ البحث في جدول governorates
         const govDoc = await getDoc(doc(db, "governorates", govName));
         if (govDoc.exists()) {
-            return govDoc.data().cityId; // افترض وجود حقل cityId
+            return govDoc.data().cityId || 1;
         }
 
-        console.warn(`⚠️ لم يتم العثور على معرف للمحافظة: ${govName}`);
-        return 1; // fallback للقاهرة
+        // ✅ البحث في جدول shippingRates (كحل أخير)
+        const ratesRef = collection(db, "shippingRates");
+        const ratesSnap = await getDocs(query(ratesRef, where("gov", "==", govName)));
+        if (!ratesSnap.empty) {
+            const rate = ratesSnap.docs[0].data();
+            return rate.cityId || 1;
+        }
+
+        console.warn(`⚠️ لم يتم العثور على معرف للمحافظة: ${govName}، استخدام القاهرة (1)`);
+        return 1;
     } catch (error) {
         console.error("❌ خطأ في جلب معرف المحافظة:", error);
         return 1;
@@ -434,6 +433,24 @@ function stopPeriodicSync() {
     }
 }
 
+async function createOrderInQPWithRetry(orderData, maxRetries = 3) {
+    let lastError = null;
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            console.log(`🔄 محاولة إنشاء شحنة (${attempt}/${maxRetries}) للطلب ${orderData.orderID}`);
+            const result = await createOrderInQP(orderData);
+            if (result) return result;
+        } catch (error) {
+            lastError = error;
+            console.warn(`⚠️ فشلت المحاولة ${attempt}: ${error.message}`);
+            if (attempt < maxRetries) {
+                await new Promise(resolve => setTimeout(resolve, 2000 * attempt));
+            }
+        }
+    }
+    throw new Error(`فشل إنشاء الشحنة بعد ${maxRetries} محاولات: ${lastError?.message || 'خطأ غير معروف'}`);
+}
+
 // =================== الاستماع للتغييرات ===================
 async function listenForOrderStatusChanges() {
     startPeriodicSync(3);
@@ -442,8 +459,36 @@ async function listenForOrderStatusChanges() {
 // =================== إلغاء طلب في QP (محلياً) ===================
 async function cancelOrderInQP(orderId, serial) {
     try {
-        console.log(`🗑️ إلغاء الطلب ${orderId} محلياً (serial: ${serial || 'غير موجود'})`);
+        console.log(`🗑️ محاولة إلغاء الشحنة ${serial} في QP Express...`);
         
+        // ✅ محاولة إلغاء الشحنة عبر API (إذا كانت مدعومة)
+        try {
+            const token = await getQPToken();
+            const config = await loadQPConfig();
+            const response = await fetch(`${config.server_url}/integration/cancel_order`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ serial: serial })
+            });
+            
+            if (response.ok) {
+                console.log(`✅ تم إلغاء الشحنة ${serial} في QP Express`);
+                await updateDoc(doc(db, "orders", orderId), {
+                    qpDeleted: true,
+                    qpStatus: "Cancelled",
+                    qpSerial: null,
+                    qpLastSync: serverTimestamp()
+                });
+                return { success: true, message: "تم إلغاء الشحنة في QP Express" };
+            }
+        } catch (apiError) {
+            console.warn("⚠️ فشل إلغاء الشحنة عبر API، سيتم الإلغاء محلياً:", apiError.message);
+        }
+        
+        // ✅ الإلغاء المحلي كحل بديل
         await updateDoc(doc(db, "orders", orderId), {
             qpDeleted: true,
             qpStatus: "Cancelled (local)",
@@ -451,12 +496,9 @@ async function cancelOrderInQP(orderId, serial) {
             qpLastSync: serverTimestamp()
         });
         
-        return { 
-            success: true, 
-            message: "تم وضع علامة إلغاء محلياً (API الإلغاء غير متوفر في QP Express)" 
-        };
+        return { success: true, message: "تم الإلغاء محلياً (API غير متوفرة)" };
     } catch (error) {
-        console.error("❌ خطأ في تحديث حالة الإلغاء محلياً:", error);
+        console.error("❌ خطأ في إلغاء الشحنة:", error);
         return { success: false, error: error.message };
     }
 }
@@ -473,5 +515,6 @@ export {
     startPeriodicSync,
     stopPeriodicSync,
     listenForOrderStatusChanges,
-    cancelOrderInQP
+    cancelOrderInQP,
+    createOrderInQPWithRetry
 };
