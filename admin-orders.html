@@ -1092,12 +1092,9 @@ function sendNotification(title, body, tag = null) {
 }
 
 async function registerSW() {
-  if ('serviceWorker' in navigator) {
-    try {
-      const reg = await navigator.serviceWorker.register('service-worker.js');
-      console.log('✅ Service Worker مسجل:', reg.scope);
-    } catch (e) { console.error('❌ فشل تسجيل SW:', e); }
-  }
+  // تم تعطيل Service Worker لأنه غير ضروري لتشغيل لوحة التحكم
+  console.log('ℹ️ Service Worker معطل (اختياري)');
+  return;
 }
 
 window.requestNotificationPermission = function() {
