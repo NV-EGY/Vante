@@ -1458,6 +1458,9 @@ window.clearQPSerial = async (id) => {
         customAlert("❌ حدث خطأ أثناء مسح البيانات: " + e.message, 'error');
     }
 };
+// ============================================================
+// دالة إرسال روابط التأكيد عبر واتساب - النسخة النهائية
+// ============================================================
 window.sendWhatsAppLinks = function(orderId) {
     const o = orders.find(order => order.id === orderId);
     if (!o) {
@@ -1465,13 +1468,19 @@ window.sendWhatsAppLinks = function(orderId) {
         return;
     }
 
-    // ✅ استخدام مفتاح آمن ومتسق مع index.html
+    // ✅ استخدام Base64 بدلاً من encodeURIComponent
     const secret = 'Vante-Secure-Key-2026-X7K9M2P5';
-    // ✅ استخدام encodeURIComponent بدلاً من btoa لدعم اليونيكود
-    const hash = encodeURIComponent(orderId + '|' + secret);
+    const raw = orderId + '|' + secret;
+    
+    // ✅ تشفير Base64 وتنظيف الرموز غير الصالحة للـ URL
+    let hash = btoa(raw);
+    hash = hash.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    
+    // ✅ بناء الروابط
     const confirmLink = `https://vante.sbs/?confirm=${orderId}&hash=${hash}`;
     const rejectLink = `https://vante.sbs/?reject=${orderId}&hash=${hash}`;
     
+    // ✅ بناء رسالة واتساب
     let message = `🛒 مرحباً ${o.customerName || 'عميلنا'}\n`;
     message += `طلبك رقم: ${o.orderID}\n\n`;
     message += `✅ لتأكيد استلام الطلب، اضغط على الرابط:\n${confirmLink}\n\n`;
@@ -1482,6 +1491,10 @@ window.sendWhatsAppLinks = function(orderId) {
     const waUrl = `https://wa.me/2${o.phone}?text=${encoded}`;
     window.open(waUrl, '_blank');
 };
+
+// ============================================================
+// دالة نسخ رسالة التأكيد - النسخة النهائية
+// ============================================================
 window.copyOrderConfirmation = function(orderId) {
     const o = orders.find(order => order.id === orderId);
     if (!o) {
@@ -1489,9 +1502,12 @@ window.copyOrderConfirmation = function(orderId) {
         return;
     }
 
-    // ✅ نفس المفتاح ونفس التشفير المستخدم في sendWhatsAppLinks
+    // ✅ نفس طريقة التشفير
     const secret = 'Vante-Secure-Key-2026-X7K9M2P5';
-    const hash = encodeURIComponent(orderId + '|' + secret);
+    const raw = orderId + '|' + secret;
+    let hash = btoa(raw);
+    hash = hash.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    
     const confirmLink = `https://vante.sbs/?confirm=${orderId}&hash=${hash}`;
     const rejectLink = `https://vante.sbs/?reject=${orderId}&hash=${hash}`;
 
