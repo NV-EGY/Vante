@@ -1211,7 +1211,11 @@ window.update = async (id, status) => {
         const noStockRestore = ["undelivered", "rejected", "returned"];
         const needsStockRestore = ["cancelled", "returned_confirmed"];
 
-        if (needsStockRestore.includes(status) && oldStatus !== "returned_confirmed") {
+        // ✅ عند تغيير الحالة إلى cancelled، نعيد المخزون دائماً (حتى لو لم يكن الطلب في حالة خاصة)
+        if (status === "cancelled") {
+            await restoreStockForOrder(id);
+            console.log(`🔄 تم إعادة المخزون للطلب ${orderData.orderID} بسبب تغيير الحالة إلى cancelled`);
+        } else if (needsStockRestore.includes(status) && oldStatus !== "returned_confirmed") {
             await restoreStockForOrder(id);
         } else if (noStockRestore.includes(status)) {
             // لا نغير المخزون، ننتظر تأكيد المسؤول
@@ -1234,7 +1238,7 @@ window.update = async (id, status) => {
             details: {
                 oldStatus,
                 newStatus: status,
-                notes: `تم تغيير الحالة من ${oldStatus} إلى ${status}`
+                notes: `تم تغيير الحالة من ${oldStatus} إلى ${status}${status === 'cancelled' ? ' (تم إعادة المخزون)' : ''}`
             },
             performedBy: window.currentUserEmail || 'system'
         });
@@ -1308,9 +1312,10 @@ window.applyBulkStatus = async (newStatus) => {
                 continue;
             }
 
-            // ✅ إدارة المخزون
+            // ✅ إدارة المخزون - عند التغيير إلى cancelled نعيد المخزون
             if (newStatus === "cancelled") {
                 await restoreStockForOrder(orderId);
+                console.log(`🔄 تم إعادة المخزون للطلب ${orderData.orderID} (تغيير جماعي إلى cancelled)`);
             }
 
             await updateDoc(doc(db, "orders", orderId), { status: newStatus });
@@ -1327,7 +1332,7 @@ window.applyBulkStatus = async (newStatus) => {
                 details: {
                     oldStatus: oldStatus,
                     newStatus: newStatus,
-                    notes: `تغيير جماعي من ${oldStatus} إلى ${newStatus}`
+                    notes: `تغيير جماعي من ${oldStatus} إلى ${newStatus}${newStatus === 'cancelled' ? ' (تم إعادة المخزون)' : ''}`
                 },
                 performedBy: window.currentUserEmail || 'system',
                 severity: 'info'
@@ -1384,7 +1389,7 @@ window.sendWhatsAppLinks = function(orderId) {
     }
 
     // مفتاح الأمان (يجب أن يكون مطابقاً لما في index.html)
-    const secret = 'your-secret-key'; 
+    const secret = 'Vante-Secure-Key-2026-X7K9M2P5';
     const hash = btoa(orderId + secret);
     const confirmLink = `https://vante.sbs/?confirm=${orderId}&hash=${hash}`;
     const rejectLink = `https://vante.sbs/?reject=${orderId}&hash=${hash}`;
