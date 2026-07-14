@@ -4450,7 +4450,6 @@ async function restoreStockForOrder(orderId, orderData) {
 // اجعلها متاحة عالمياً
 window.restoreStockForOrder = restoreStockForOrder;
 
-// ====== معالجة تأكيد أو رفض الطلب عبر الرابط ======
 (async function handleConfirmReject() {
     const params = new URLSearchParams(window.location.search);
     const confirmOrderId = params.get('confirm');
@@ -4459,15 +4458,10 @@ window.restoreStockForOrder = restoreStockForOrder;
     if (!orderId) return;
 
     try {
-        if (typeof db === 'undefined') {
-            console.error('Firebase not initialized');
-            return;
-        }
-
-        // التحقق من الهاش (الأمان)
+        // ✅ التحقق من الهاش باستخدام encodeURIComponent بدلاً من btoa
         const hash = params.get('hash');
         const secret = 'Vante-Secure-Key-2026-X7K9M2P5';
-        const expectedHash = btoa(orderId + secret);
+        const expectedHash = encodeURIComponent(orderId + '|' + secret);
         if (hash !== expectedHash) {
             customAlert('⚠️ رابط غير صالح', 'error');
             return;
@@ -4483,93 +4477,58 @@ window.restoreStockForOrder = restoreStockForOrder;
         const orderData = orderSnap.data();
         const newStatus = confirmOrderId ? 'confirmed' : 'cancelled';
 
-        if (['delivered', 'cancelled', 'confirmed'].includes(orderData.status)) {
+        // ✅ منع تغيير حالة الطلبات المسلمة أو المؤكدة مسبقاً
+        if (['delivered', 'confirmed', 'cancelled'].includes(orderData.status)) {
             customAlert(`⚠️ هذا الطلب تم ${orderData.status === 'delivered' ? 'تسليمه' : orderData.status === 'confirmed' ? 'تأكيده' : 'رفضه'} مسبقاً`, 'warning');
             return;
         }
 
-        // ✅ حفظ الحالة القديمة قبل التحديث
-        const oldStatus = orderData.status;
-
-        // ✅ ====== إعادة المخزون عند الرفض ======
+        // ✅ إذا كان رفض، نعيد المخزون
         if (rejectOrderId) {
-            // استدعاء دالة إعادة المخزون إذا كانت موجودة
-            if (typeof restoreStockForOrder === 'function') {
-                await restoreStockForOrder(orderId, orderData);
-                console.log(`🔄 تم إعادة المخزون للطلب ${orderData.orderID}`);
-                
-                // ✅ ✅ ✅ العلامات الصحيحة ✅ ✅ ✅
-                await updateDoc(orderRef, { 
-                    stockRestored: true,
-                    stockDeducted: false 
-                });
-                console.log(`✅ تم تحديث علامات المخزون للطلب ${orderData.orderID}: stockRestored=true, stockDeducted=false`);
-                
-            } else {
-                // محاولة إعادة المخزون يدوياً (كحل بديل)
-                console.warn('⚠️ restoreStockForOrder غير معرفة، محاولة بديلة...');
-                for (const item of (orderData.orderDetails || [])) {
-                    if (!item.name || !item.size) continue;
-                    let productId = item.productId;
-                    let productDoc;
-                    if (productId) {
-                        productDoc = await getDoc(doc(db, "products", productId));
-                    } else {
-                        const productSnap = await getDocs(query(collection(db, "products"), where("name", "==", item.name)));
-                        if (!productSnap.empty) productDoc = productSnap.docs[0];
-                    }
-                    if (productDoc && productDoc.exists()) {
-                        const productRef = doc(db, "products", productDoc.id);
-                        const stockBySize = productDoc.data().stockBySize || {};
-                        const currentStock = stockBySize[item.size];
-                        if (currentStock !== null && currentStock !== undefined) {
-                            stockBySize[item.size] = (currentStock || 0) + item.qty;
-                            await updateDoc(productRef, { stockBySize });
-                        }
+            for (const item of (orderData.orderDetails || [])) {
+                if (!item.name || !item.size) continue;
+                let productId = item.productId;
+                let productDoc;
+                if (productId) {
+                    productDoc = await getDoc(doc(db, "products", productId));
+                } else {
+                    const productSnap = await getDocs(query(collection(db, "products"), where("name", "==", item.name)));
+                    if (!productSnap.empty) productDoc = productSnap.docs[0];
+                }
+                if (productDoc && productDoc.exists()) {
+                    const productRef = doc(db, "products", productDoc.id);
+                    const stockBySize = productDoc.data().stockBySize || {};
+                    const currentStock = stockBySize[item.size];
+                    if (currentStock !== null && currentStock !== undefined) {
+                        stockBySize[item.size] = (currentStock || 0) + item.qty;
+                        await updateDoc(productRef, { stockBySize });
                     }
                 }
-                // وضع علامة بأن المخزون استعيد
-                await updateDoc(orderRef, { 
-                    stockRestored: true,
-                    stockDeducted: false 
-                });
-                console.log(`✅ تم إعادة المخزون للطلب ${orderData.orderID} (بديل)`);
             }
         }
 
         // ✅ تحديث الطلب
         await updateDoc(orderRef, { status: newStatus });
 
-        // ✅ ========== تسجيل الحدث في Audit Log ==========
+        // ✅ تسجيل الحدث في Audit Log
         try {
             const { logAuditEvent } = await import('./js/logger.js');
-            
-            let action = confirmOrderId ? 'order_confirmed' : 'order_cancelled';
-            let notes = confirmOrderId 
-                ? '✅ تم تأكيد الطلب بواسطة العميل عبر الرابط' 
-                : '❌ تم إلغاء الطلب بواسطة العميل عبر الرابط (تم إعادة المخزون)';
-            
             await logAuditEvent({
-                action: action,
+                action: confirmOrderId ? 'order_confirmed' : 'order_cancelled',
                 orderId: orderId,
                 orderNumber: orderData.orderID || orderId,
                 details: {
-                    oldStatus: oldStatus,
+                    oldStatus: orderData.status,
                     newStatus: newStatus,
-                    notes: notes,
-                    customerName: orderData.customerName || 'غير معروف',
-                    phone: orderData.phone || '',
-                    confirmedAt: new Date().toISOString(),
-                    stockRestored: rejectOrderId ? true : false
+                    notes: confirmOrderId ? 'تم تأكيد الطلب بواسطة العميل' : 'تم إلغاء الطلب بواسطة العميل (تم إعادة المخزون)',
+                    customerName: orderData.customerName,
+                    phone: orderData.phone
                 },
                 performedBy: `customer (${orderData.phone || 'unknown'})`,
                 severity: confirmOrderId ? 'info' : 'warning'
             });
-            
-            console.log(`✅ [Audit Log] تم تسجيل ${action} للطلب ${orderData.orderID}`);
-            
         } catch (logError) {
-            console.error('❌ [Audit Log] فشل تسجيل الحدث:', logError);
+            console.error('❌ فشل تسجيل الحدث:', logError);
         }
 
         const msg = confirmOrderId ? '✅ تم تأكيد الطلب بنجاح! شكراً لك.' : '❌ تم رفض الطلب.';
