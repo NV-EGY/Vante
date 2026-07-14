@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<link rel="manifest" href="manifest-profits.json">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="أرباح VANTÉ">
-<meta name="application-name" content="أرباح VANTÉ">
-<meta name="theme-color" content="#D4AF37">
-<link rel="icon" type="image/png" sizes="32x32" href="images/favicon.png">
-<link rel="icon" type="image/png" sizes="16x16" href="images/favicon.png">
-<link rel="apple-touch-icon" href="images/icon-192x192.png">
-<link rel="icon" type="image/png" sizes="192x192" href="images/icon-192x192.png">
-<link rel="icon" type="image/png" sizes="512x512" href="images/icon-512x512.png">
+    <link rel="manifest" href="manifest-profits.json">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="أرباح VANTÉ">
+    <meta name="application-name" content="أرباح VANTÉ">
+    <meta name="theme-color" content="#D4AF37">
+    <link rel="icon" type="image/png" sizes="32x32" href="images/favicon.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="images/favicon.png">
+    <link rel="apple-touch-icon" href="images/icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="images/icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="images/icon-512x512.png">
     <meta charset="UTF-8">
     <title>لوحة الأرباح المتكاملة - VANTÉ</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
@@ -30,10 +30,7 @@
         select, input, button{padding:10px;border-radius:12px;border:1px solid #ddd;font-family:Cairo;}
         .btn{background:#111;color:#fff;padding:10px 20px;border:none;border-radius:30px;cursor:pointer;}
         .btn-primary{background:#D4AF37;color:#000;font-weight:bold;}
-        table{width:100%;background:#fff;border-radius:20px;overflow-x:auto;display:block;}
-        th,td{padding:12px;text-align:center;border-bottom:1px solid #eee;}
-        th{background:#111;color:#fff;}
-        @media(max-width:700px){th,td{font-size:12px;}}
+        .btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(212,175,55,0.3);}
         .password-overlay {
             position: fixed;
             top: 0;
@@ -104,366 +101,695 @@
         .logout-btn:hover {
             background: #c0392b;
         }
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 16px;
+            border: 1px solid #eee;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        th {
+            background: #111;
+            color: #fff;
+            padding: 12px;
+            text-align: center;
+            white-space: nowrap;
+        }
+        td {
+            padding: 10px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+        }
+        tbody tr:hover {
+            background: #fafafa;
+        }
+        .detail-cell {
+            text-align: right;
+            font-size: 12px;
+            max-width: 200px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .profit-positive {
+            color: #27ae60;
+            font-weight: 700;
+        }
+        .profit-negative {
+            color: #e74c3c;
+            font-weight: 700;
+        }
+        .pending-return-card {
+            background: #fff;
+            border: 1px solid #f0c27a;
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 12px;
+            transition: 0.3s;
+            border-right: 4px solid #f39c12;
+        }
+        .pending-return-card:hover {
+            box-shadow: 0 4px 15px rgba(243, 156, 18, 0.15);
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 2px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+        .status-badge.undelivered { background: #e67e22; color: #fff; }
+        .status-badge.rejected { background: #c0392b; color: #fff; }
+        .status-badge.returned { background: #9b59b6; color: #fff; }
+        .confirm-return-btn {
+            background: #27ae60;
+            color: #fff;
+            border: none;
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.3s;
+            font-size: 12px;
+        }
+        .confirm-return-btn:hover {
+            background: #2ecc71;
+            transform: translateY(-2px);
+        }
+        .confirm-return-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .return-details {
+            font-size: 13px;
+            color: #555;
+            margin-top: 8px;
+            line-height: 1.6;
+        }
+        .return-details strong { color: #111; }
+        .section-title {
+            margin-bottom: 15px;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .section-title .badge-count {
+            background: #f39c12;
+            color: #fff;
+            border-radius: 30px;
+            padding: 2px 12px;
+            font-size: 14px;
+        }
+        .section-pending {
+            border: 2px solid #f39c12;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 30px;
+            background: #fff;
+        }
+        .section-delivered {
+            background: #fff;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 30px;
+            overflow-x: auto;
+        }
+        .section-confirmed {
+            background: #fff;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 30px;
+            overflow-x: auto;
+        }
+        @media(max-width:700px){th,td{font-size:11px;padding:6px;}}
+        @media(max-width:480px){.container{padding:0;}}
     </style>
 </head>
 <body>
 
-<div id="passwordOverlay" class="password-overlay">
-    <div class="password-box">
-        <h2><i class="fas fa-lock"></i> دخول خاص للأرباح</h2>
-        <p>أدخل كلمة السر للوصول إلى لوحة الأرباح</p>
-        <input type="password" id="passwordInput" placeholder="********">
-        <div id="passwordError" class="error-msg"></div>
-        <button id="confirmPasswordBtn">تأكيد</button>
-    </div>
-</div>
-
-<div id="pageContent" style="display: none;">
-<div class="container">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-        <h1><i class="fas fa-chart-line"></i> حساب الأرباح المتكامل</h1>
-        <div>
-            <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</button>
-            <button class="btn" onclick="window.location.href='admin-orders.html'">📦 العودة للطلبات</button>
+    <!-- Password Overlay -->
+    <div id="passwordOverlay" class="password-overlay">
+        <div class="password-box">
+            <h2><i class="fas fa-lock"></i> دخول خاص للأرباح</h2>
+            <p>أدخل كلمة السر للوصول إلى لوحة الأرباح</p>
+            <input type="password" id="passwordInput" placeholder="********">
+            <div id="passwordError" class="error-msg"></div>
+            <button id="confirmPasswordBtn">تأكيد</button>
         </div>
     </div>
-    <div class="filter-bar">
-        <select id="monthFilter">
-            <option value="all">كل الشهور</option>
-        </select>
-        <button class="btn-primary" onclick="exportToExcel()"><i class="fas fa-file-excel"></i> تصدير Excel</button>
-        <button onclick="loadData()" class="btn">تحديث</button>
-    </div>
-    <div class="stats-grid" id="statsGrid"></div>
-    <div style="background:#fff; border-radius:20px; padding:20px; overflow-x:auto;">
-        <h3>📋 تفاصيل الطلبات المسلمة</h3>
-        <table id="ordersTable">
-            <thead><tr><th>رقم الطلب</th><th>العميل</th><th>تاريخ التسليم</th><th>الإجمالي (العميل)</th><th>تكلفة المنتجات (جملة)</th><th>تكلفة الشحن (مدفوعة)</th><th>صافي الربح</th></tr></thead>
-            <tbody id="ordersList"><tr><td colspan="7">جاري التحميل...</td></tr></tbody>
-        </table>
-    </div>
-    <div style="background:#fff; border-radius:20px; padding:20px; margin-top:30px; overflow-x:auto;">
-        <h3>📦 منتجات المرتجع (Returned)</h3>
-        <div id="returnedOrdersList" style="margin-top:15px;">
-            <p style="color:#888;">جاري التحميل...</p>
+
+    <!-- المحتوى الرئيسي -->
+    <div id="pageContent" style="display: none;">
+        <div class="container">
+            <!-- Header -->
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
+                <h1 style="font-size:28px;"><i class="fas fa-chart-line"></i> حساب الأرباح المتكامل</h1>
+                <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                    <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</button>
+                    <button class="btn" onclick="window.location.href='admin-orders.html'">📦 العودة للطلبات</button>
+                </div>
+            </div>
+
+            <!-- Filter Bar -->
+            <div class="filter-bar">
+                <select id="monthFilter">
+                    <option value="all">كل الشهور</option>
+                </select>
+                <button class="btn-primary" onclick="exportToExcel()"><i class="fas fa-file-excel"></i> تصدير Excel</button>
+                <button onclick="loadData()" class="btn"><i class="fas fa-sync"></i> تحديث</button>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-grid" id="statsGrid"></div>
+
+            <!-- ========== قسم الطلبات المسلمة ========== -->
+            <div class="section-delivered">
+                <h3 class="section-title">📋 تفاصيل الطلبات المسلمة</h3>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>رقم الطلب</th>
+                                <th>العميل</th>
+                                <th>المحافظة</th>
+                                <th>المدينة</th>
+                                <th>تاريخ التسليم</th>
+                                <th>المنتجات</th>
+                                <th>الإجمالي (العميل)</th>
+                                <th>تكلفة المنتجات</th>
+                                <th>تكلفة الشحن الفعلية</th>
+                                <th>صافي الربح</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersList"><tr><td colspan="10">⏳ جاري التحميل...</td></tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ========== قسم المرتجعات المعلقة ========== -->
+            <div class="section-pending">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:15px;">
+                    <h3 class="section-title" style="margin:0; color:#f39c12;">
+                        <i class="fas fa-clock"></i> مرتجعات قيد المراجعة
+                        <span class="badge-count" id="pendingCount">0</span>
+                    </h3>
+                    <span style="font-size:13px; color:#888;">🔄 هذه الطلبات لم تؤثر على المخزون، قم بتأكيد الاستلام لتحديثه</span>
+                </div>
+                <div id="pendingReturnsList">
+                    <p style="color:#888; text-align:center; padding:30px;">⏳ جاري تحميل المرتجعات المعلقة...</p>
+                </div>
+            </div>
+
+            <!-- ========== قسم المرتجعات المؤكدة ========== -->
+            <div class="section-confirmed">
+                <h3 class="section-title">📦 مرتجعات مؤكدة (تم استلامها)</h3>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>رقم الطلب</th>
+                                <th>العميل</th>
+                                <th>المحافظة</th>
+                                <th>المدينة</th>
+                                <th>تاريخ التأكيد</th>
+                                <th>المنتجات</th>
+                                <th>الإجمالي (العميل)</th>
+                                <th>تكلفة المنتجات</th>
+                                <th>تكلفة الشحن الفعلية</th>
+                                <th>صافي الخسارة</th>
+                            </tr>
+                        </thead>
+                        <tbody id="confirmedReturnsList"><tr><td colspan="10">⏳ جاري التحميل...</td></tr>
+                    </table>
+                </div>
+            </div>
+
         </div>
     </div>
-</div>
-</div>
 
-<!-- سكربت كلمة السر (منفصل) -->
-<script>
-const SECRET_HASH = "VmFudGVQcm9maXRAMjAyNg==";
+    <!-- ========== سكربت كلمة السر ========== -->
+    <script>
+        const SECRET_HASH = "VmFudGVQcm9maXRAMjAyNg==";
 
-window.customConfirm = function(message) {
-    return new Promise((resolve) => {
-        if (confirm(message)) resolve(true);
-        else resolve(false);
-    });
-};
-window.customAlert = function(message, type) {
-    alert(message);
-};
+        window.customConfirm = function(message) {
+            return new Promise((resolve) => {
+                if (confirm(message)) resolve(true);
+                else resolve(false);
+            });
+        };
 
-function checkPassword() {
-    const input = document.getElementById("passwordInput").value;
-    const decodedSecret = atob(SECRET_HASH);
-    if (input === decodedSecret) {
-        document.getElementById("passwordOverlay").classList.add("hide");
-        document.getElementById("pageContent").style.display = "block";
-        // loadData سيتم استدعاؤها من الموديول تلقائياً، لكن نضمنها
-        if (typeof loadData === 'function') loadData();
-    } else {
-        document.getElementById("passwordError").innerText = "❌ كلمة السر غير صحيحة";
-        document.getElementById("passwordInput").value = "";
-        document.getElementById("passwordInput").focus();
-    }
-}
+        window.customAlert = function(message, type) {
+            alert(message);
+        };
 
-function logout() {
-    document.getElementById("pageContent").style.display = "none";
-    document.getElementById("passwordOverlay").classList.remove("hide");
-    document.getElementById("passwordInput").value = "";
-    document.getElementById("passwordError").innerText = "";
-}
-
-document.addEventListener("DOMContentLoaded", function() {
-    document.getElementById("passwordOverlay").classList.remove("hide");
-    document.getElementById("pageContent").style.display = "none";
-    document.getElementById("confirmPasswordBtn").addEventListener("click", checkPassword);
-    document.getElementById("passwordInput").addEventListener("keypress", function(e) {
-        if (e.key === "Enter") checkPassword();
-    });
-});
-
-window.logout = logout;
-</script>
-
-<!-- الموديول الرئيسي (بدون استيراد خارجي) -->
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { 
-    getFirestore, 
-    collection, query, where, onSnapshot, getDocs,
-    doc, getDoc, updateDoc
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { logAuditEvent } from './js/logger.js';
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-
-const firebaseConfig = {
-    apiKey: "AIzaSyCotT8EP2uy_HsgHknxeGBorKoEUORPtmU",
-    authDomain: "vante-orders.firebaseapp.com",
-    projectId: "vante-orders",
-    storageBucket: "vante-orders.firebasestorage.app",
-    messagingSenderId: "842319700646",
-    appId: "1:842319700646:web:f6afd78ef7038c3be4ca67"
-};
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(); // تعريف auth
-
-console.log("✅ Firebase initialized");
-
-// ========== دالة إعادة المخزون (مضمنة) ==========
-async function restoreStockForOrder(orderId, orderData) {
-    if (orderData.stockRestored) {
-        console.log(`⚠️ المخزون للطلب ${orderId} تم استرجاعه مسبقاً، تخطي.`);
-        return;
-    }
-    for (const item of (orderData.orderDetails || [])) {
-        if (!item.name || !item.size) continue;
-        let productId = item.productId;
-        let productDoc;
-        if (productId) {
-            productDoc = await getDoc(doc(db, "products", productId));
-        } else {
-            const productSnap = await getDocs(query(collection(db, "products"), where("name", "==", item.name)));
-            if (!productSnap.empty) productDoc = productSnap.docs[0];
-        }
-        if (productDoc && productDoc.exists()) {
-            const productRef = doc(db, "products", productDoc.id);
-            const stockBySize = productDoc.data().stockBySize || {};
-            const currentStock = stockBySize[item.size];
-            if (currentStock !== null && currentStock !== undefined) {
-                stockBySize[item.size] = (currentStock || 0) + item.qty;
-                await updateDoc(productRef, { stockBySize });
+        function checkPassword() {
+            const input = document.getElementById("passwordInput").value;
+            const decodedSecret = atob(SECRET_HASH);
+            if (input === decodedSecret) {
+                document.getElementById("passwordOverlay").classList.add("hide");
+                document.getElementById("pageContent").style.display = "block";
+                if (typeof loadData === 'function') loadData();
+            } else {
+                document.getElementById("passwordError").innerText = "❌ كلمة السر غير صحيحة";
+                document.getElementById("passwordInput").value = "";
+                document.getElementById("passwordInput").focus();
             }
         }
-    }
-    await updateDoc(doc(db, "orders", orderId), { stockRestored: true });
-}
 
-// ========== متغيرات عامة ==========
-let allDeliveredOrders = [];
-window.totalExpenses = 0;
-
-// ========== تحميل الطلبات المسلمة ==========
-async function loadData() {
-    console.log("🔄 loadData called");
-    const q = query(collection(db, "orders"), where("status", "==", "delivered"));
-    onSnapshot(q, (snap) => {
-        console.log(`📦 عدد الطلبات المسلمة: ${snap.size}`);
-        allDeliveredOrders = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        console.log("🛒 أول طلب:", allDeliveredOrders[0] || "لا يوجد");
-        populateMonthFilter();
-        applyFilter();
-    }, (error) => {
-        console.error("❌ خطأ في onSnapshot:", error);
-        document.getElementById("ordersList").innerHTML = `<tr><td colspan="7">⚠️ خطأ في تحميل البيانات: ${error.message}</td></tr>`;
-    });
-}
-
-// ========== مراقبة المصروفات ==========
-onSnapshot(collection(db, "expenses"), (snap) => {
-    const expenses = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    window.totalExpenses = expenses.reduce((s,e)=> s + (e.amount || 0), 0);
-    if (typeof applyFilter === 'function') applyFilter();
-}, (error) => {
-    console.error("❌ خطأ في مصروفات:", error);
-});
-
-// ========== ملء قائمة الشهور ==========
-function populateMonthFilter() {
-    const monthsSet = new Set();
-    allDeliveredOrders.forEach(o => {
-        if (o.createdAt?.toDate) {
-            const d = o.createdAt.toDate();
-            monthsSet.add(`${d.getFullYear()}-${d.getMonth()+1}`);
+        function logout() {
+            document.getElementById("pageContent").style.display = "none";
+            document.getElementById("passwordOverlay").classList.remove("hide");
+            document.getElementById("passwordInput").value = "";
+            document.getElementById("passwordError").innerText = "";
         }
-    });
-    const select = document.getElementById("monthFilter");
-    select.innerHTML = '<option value="all">كل الشهور</option>';
-    [...monthsSet].sort().reverse().forEach(m => {
-        const [year, month] = m.split('-');
-        const name = new Date(year, month-1).toLocaleDateString('ar-EG', { year:'numeric', month:'long' });
-        select.innerHTML += `<option value="${m}">${name}</option>`;
-    });
-}
 
-// ========== تطبيق التصفية ==========
-function applyFilter() {
-    const filterVal = document.getElementById("monthFilter").value;
-    let filtered = allDeliveredOrders;
-    if (filterVal !== "all") {
-        const [year, month] = filterVal.split('-');
-        filtered = allDeliveredOrders.filter(o => {
-            const d = o.createdAt?.toDate();
-            return d && d.getFullYear() == year && (d.getMonth()+1) == month;
+        document.addEventListener("DOMContentLoaded", function() {
+            document.getElementById("passwordOverlay").classList.remove("hide");
+            document.getElementById("pageContent").style.display = "none";
+            document.getElementById("confirmPasswordBtn").addEventListener("click", checkPassword);
+            document.getElementById("passwordInput").addEventListener("keypress", function(e) {
+                if (e.key === "Enter") checkPassword();
+            });
         });
-    }
-    console.log(`📊 عدد الطلبات بعد التصفية: ${filtered.length}`);
-    renderStats(filtered);
-    renderOrdersTable(filtered);
-}
 
-// ========== عرض الإحصائيات ==========
-function renderStats(orders) {
-    let totalRevenue = orders.reduce((s,o)=> s + (o.finalTotal || 0), 0);
-    let totalCostProducts = orders.reduce((s,o)=> s + (o.totalCost || 0), 0);
-    let totalShippingCost = orders.reduce((s,o)=> s + (o.shippingCostPaid || 0), 0);
-    let totalExpenses = window.totalExpenses || 0;
-    let netProfit = totalRevenue - totalCostProducts - totalShippingCost - totalExpenses;
-    document.getElementById("statsGrid").innerHTML = `
-        <div class="stat-card"><h3>💰 إجمالي الإيرادات</h3><div class="value">${totalRevenue.toFixed(2)} جنيه</div></div>
-        <div class="stat-card"><h3>📦 تكلفة المنتجات (جملة)</h3><div class="value">${totalCostProducts.toFixed(2)} جنيه</div></div>
-        <div class="stat-card"><h3>🚚 تكلفة الشحن الفعلية</h3><div class="value">${totalShippingCost.toFixed(2)} جنيه</div></div>
-        <div class="stat-card"><h3>✅ صافي الربح</h3><div class="value" style="color:#27ae60;">${netProfit.toFixed(2)} جنيه</div></div>
-    `;
-}
+        window.logout = logout;
+    </script>
 
-// ========== عرض جدول الطلبات ==========
-function renderOrdersTable(orders) {
-    const tbody = document.getElementById("ordersList");
-    if (orders.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7">📭 لا توجد طلبات مسلمة في هذه الفترة</td></tr>`;
-        return;
-    }
-    let html = '';
-    orders.forEach(o => {
-        const profit = (o.profit || (o.finalTotal - (o.totalCost||0) - (o.shippingCostPaid||0))).toFixed(2);
-        html += `<tr>
-            <td>${o.orderID}</td>
-            <td>${o.customerName}</td>
-            <td>${o.createdAt?.toDate ? o.createdAt.toDate().toLocaleDateString('ar-EG') : '-'}</td>
-            <td>${o.finalTotal || 0}</td>
-            <td>${o.totalCost || 0}</td>
-            <td>${o.shippingCostPaid || 0}</td>
-            <td style="color:${profit>=0?'#27ae60':'#e74c3c'}">${profit}</td>
-        </tr>`;
-    });
-    tbody.innerHTML = html;
-}
+    <!-- ========== الموديول الرئيسي ========== -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import {
+            getFirestore, collection, query, where, onSnapshot, getDocs,
+            doc, getDoc, updateDoc, serverTimestamp
+        } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { logAuditEvent } from './js/logger.js';
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-// ========== تصدير Excel ==========
-window.exportToExcel = () => {
-    const rows = [];
-    rows.push(['رقم الطلب', 'العميل', 'التاريخ', 'الإجمالي (العميل)', 'تكلفة المنتجات (جملة)', 'تكلفة الشحن (مدفوعة)', 'صافي الربح']);
-    allDeliveredOrders.forEach(o => {
-        rows.push([
-            o.orderID, o.customerName,
-            o.createdAt?.toDate ? o.createdAt.toDate().toLocaleDateString('ar-EG') : '-',
-            o.finalTotal || 0, o.totalCost || 0, o.shippingCostPaid || 0,
-            (o.profit || (o.finalTotal - (o.totalCost||0) - (o.shippingCostPaid||0))).toFixed(2)
-        ]);
-    });
-    const ws = XLSX.utils.aoa_to_sheet(rows);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "الأرباح");
-    XLSX.writeFile(wb, `profits_${new Date().toISOString().slice(0,10)}.xlsx`);
-};
+        const firebaseConfig = {
+            apiKey: "AIzaSyCotT8EP2uy_HsgHknxeGBorKoEUORPtmU",
+            authDomain: "vante-orders.firebaseapp.com",
+            projectId: "vante-orders",
+            storageBucket: "vante-orders.firebasestorage.app",
+            messagingSenderId: "842319700646",
+            appId: "1:842319700646:web:f6afd78ef7038c3be4ca67"
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth();
 
-// ========== ربط الفلتر ==========
-document.getElementById("monthFilter").addEventListener("change", applyFilter);
+        console.log("✅ Firebase initialized");
 
-// ========== تعريف loadData على النافذة ==========
-window.loadData = loadData;
-
-// ========== تحميل البيانات فوراً ==========
-loadData();
-
-console.log("✅ الموديول جاهز");
-
-// ========== قسم المرتجعات ==========
-let returnedOrders = [];
-
-onSnapshot(query(collection(db, "orders"), where("status", "==", "returned")), (snap) => {
-    returnedOrders = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    renderReturnedOrders();
-});
-
-function renderReturnedOrders() {
-    const container = document.getElementById("returnedOrdersList");
-    if (!container) return;
-    if (returnedOrders.length === 0) {
-        container.innerHTML = "<p style='color:#888;'>لا توجد منتجات مرتجعة</p>";
-        return;
-    }
-    let html = `<table style="width:100%; border-collapse:collapse;">
-        <thead><tr><th>رقم الطلب</th><th>العميل</th><th>تاريخ المرتجع</th><th>المنتجات</th><th>إجمالي المرتجع</th><th>الإجراءات</th></tr></thead><tbody>`;
-    returnedOrders.forEach(o => {
-        const totalReturned = o.orderDetails?.reduce((sum, item) => sum + (item.qty * item.price), 0) || 0;
-        const products = o.orderDetails?.map(item => `${item.name} (x${item.qty})`).join(', ') || '-';
-        html += `<tr>
-            <td>${o.orderID}</td>
-            <td>${o.customerName}</td>
-            <td>${o.createdAt?.toDate ? o.createdAt.toDate().toLocaleDateString('ar-EG') : '-'}</td>
-            <td>${products}</td>
-            <td>${totalReturned} جنيه</td>
-            <td><button class="btn btn-primary" onclick="confirmReturnReceipt('${o.id}')" style="background:#D4AF37; color:#000; padding:5px 12px; border:none; border-radius:20px; cursor:pointer;">✅ تأكيد الاستلام</button></td>
-        </tr>`;
-    });
-    html += `</tbody></table>`;
-    container.innerHTML = html;
-}
-
-// دالة تأكيد استلام المرتجع
-window.confirmReturnReceipt = async function(orderId) {
-    const confirmed = await window.customConfirm("هل أنت متأكد من استلام المنتجات المرتجعة؟ سيتم إعادة الكميات للمخزون.");
-    if (!confirmed) return;
-    try {
-        const orderSnap = await getDoc(doc(db, "orders", orderId));
-        if (!orderSnap.exists()) {
-            window.customAlert("❌ الطلب غير موجود", "error");
-            return;
+        // ========== دالة إعادة المخزون ==========
+        async function restoreStockForOrder(orderId, orderData) {
+            if (orderData.stockRestored) {
+                console.log(`⚠️ المخزون للطلب ${orderId} تم استرجاعه مسبقاً، تخطي.`);
+                return;
+            }
+            for (const item of (orderData.orderDetails || [])) {
+                if (!item.name || !item.size) continue;
+                let productId = item.productId;
+                let productDoc;
+                if (productId) {
+                    productDoc = await getDoc(doc(db, "products", productId));
+                } else {
+                    const productSnap = await getDocs(query(collection(db, "products"), where("name", "==", item.name)));
+                    if (!productSnap.empty) productDoc = productSnap.docs[0];
+                }
+                if (productDoc && productDoc.exists()) {
+                    const productRef = doc(db, "products", productDoc.id);
+                    const stockBySize = productDoc.data().stockBySize || {};
+                    const currentStock = stockBySize[item.size];
+                    if (currentStock !== null && currentStock !== undefined) {
+                        stockBySize[item.size] = (currentStock || 0) + item.qty;
+                        await updateDoc(productRef, { stockBySize });
+                    }
+                }
+            }
+            await updateDoc(doc(db, "orders", orderId), { stockRestored: true });
         }
-        const order = orderSnap.data();
-        await restoreStockForOrder(orderId, order);
-        await updateDoc(doc(db, "orders", orderId), { 
-            status: "returned_confirmed", 
-            stockRestored: true 
+
+        // ========== متغيرات عامة ==========
+        let allDeliveredOrders = [];
+        let pendingReturns = [];
+        let confirmedReturns = [];
+        let totalExpenses = 0;
+        let currentMonthFilter = "all";
+
+        // ========== تحميل الطلبات المسلمة ==========
+        function loadDeliveredOrders() {
+            const q = query(collection(db, "orders"), where("status", "==", "delivered"));
+            onSnapshot(q, (snap) => {
+                allDeliveredOrders = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                populateMonthFilter();
+                applyFilter();
+            }, (error) => {
+                console.error("❌ خطأ في تحميل المسلمة:", error);
+                document.getElementById("ordersList").innerHTML = `<tr><td colspan="10">⚠️ خطأ في تحميل البيانات: ${error.message}</td></tr>`;
+            });
+        }
+
+        // ========== تحميل المرتجعات المعلقة ==========
+        function loadPendingReturns() {
+            const statuses = ["undelivered", "rejected", "returned"];
+            const q = query(collection(db, "orders"), where("status", "in", statuses));
+            onSnapshot(q, (snap) => {
+                pendingReturns = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                renderPendingReturns();
+            }, (error) => {
+                console.error("❌ خطأ في تحميل المعلقة:", error);
+                document.getElementById("pendingReturnsList").innerHTML = `<p style="color:#e74c3c;">❌ خطأ في التحميل: ${error.message}</p>`;
+            });
+        }
+
+        // ========== تحميل المرتجعات المؤكدة ==========
+        function loadConfirmedReturns() {
+            const q = query(collection(db, "orders"), where("status", "==", "returned_confirmed"));
+            onSnapshot(q, (snap) => {
+                confirmedReturns = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                renderConfirmedReturns();
+            }, (error) => {
+                console.error("❌ خطأ في تحميل المؤكدة:", error);
+                document.getElementById("confirmedReturnsList").innerHTML = `<tr><td colspan="10">⚠️ خطأ في التحميل: ${error.message}</td></tr>`;
+            });
+        }
+
+        // ========== عرض الطلبات المسلمة ==========
+        function renderDeliveredOrders(orders) {
+            const tbody = document.getElementById("ordersList");
+            if (orders.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="10">📭 لا توجد طلبات مسلمة في هذه الفترة</td></tr>`;
+                return;
+            }
+            let html = '';
+            orders.forEach(o => {
+                const details = Array.isArray(o.orderDetails) ? o.orderDetails : [];
+                const productsStr = details.map(item => `${item.name} (${item.size}) x${item.qty}`).join(', ');
+                const totalCost = o.totalCost || 0;
+                const shippingCostPaid = o.shippingCostPaid || 0;
+                const finalTotal = o.finalTotal || 0;
+                const profit = (finalTotal - totalCost - shippingCostPaid).toFixed(2);
+                const profitClass = parseFloat(profit) >= 0 ? 'profit-positive' : 'profit-negative';
+                html += `<tr>
+                    <td><strong>${o.orderID}</strong></td>
+                    <td>${o.customerName || '-'}</td>
+                    <td>${o.gov || '-'}</td>
+                    <td>${o.city || '-'}</td>
+                    <td>${o.createdAt?.toDate ? o.createdAt.toDate().toLocaleDateString('ar-EG') : '-'}</td>
+                    <td class="detail-cell" title="${productsStr}">${productsStr || '-'}</td>
+                    <td>${finalTotal.toFixed(2)}</td>
+                    <td>${totalCost.toFixed(2)}</td>
+                    <td>${shippingCostPaid.toFixed(2)}</td>
+                    <td class="${profitClass}">${profit}</td>
+                </tr>`;
+            });
+            tbody.innerHTML = html;
+            updateStats(orders);
+        }
+
+        // ========== عرض المرتجعات المعلقة ==========
+        function renderPendingReturns() {
+            const container = document.getElementById("pendingReturnsList");
+            const countEl = document.getElementById("pendingCount");
+            if (!container) return;
+
+            if (pendingReturns.length === 0) {
+                container.innerHTML = `<p style="color:#888; text-align:center; padding:20px;">✅ لا توجد مرتجعات معلقة</p>`;
+                if (countEl) countEl.textContent = "0";
+                return;
+            }
+
+            if (countEl) countEl.textContent = pendingReturns.length;
+
+            let html = '';
+            pendingReturns.forEach(order => {
+                const statusLabels = {
+                    undelivered: 'لم يصل',
+                    rejected: 'رفض',
+                    returned: 'مرتجع'
+                };
+                const statusClass = order.status;
+                const details = Array.isArray(order.orderDetails) ? order.orderDetails : [];
+                const productsStr = details.map(item => `${item.name} (${item.size}) x${item.qty}`).join(', ');
+                const totalCost = order.totalCost || 0;
+                const shippingCostPaid = order.shippingCostPaid || 0;
+                const finalTotal = order.finalTotal || 0;
+                const netLoss = (finalTotal - totalCost - shippingCostPaid).toFixed(2);
+                const lossClass = parseFloat(netLoss) >= 0 ? 'profit-positive' : 'profit-negative';
+
+                html += `
+                    <div class="pending-return-card">
+                        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                            <div>
+                                <strong style="font-size:16px; color:#111;">${order.orderID}</strong>
+                                <span class="status-badge ${statusClass}">${statusLabels[order.status] || order.status}</span>
+                            </div>
+                            <div>
+                                <span style="color:#D4AF37; font-weight:800;">${finalTotal.toFixed(2)} جنيه</span>
+                            </div>
+                        </div>
+                        <div class="return-details">
+                            👤 <strong>${order.customerName || 'غير معروف'}</strong>
+                            📞 ${order.phone || '-'}
+                            📍 ${order.gov || ''} - ${order.city || ''}
+                            <br>
+                            📦 المنتجات: ${productsStr || 'لا توجد تفاصيل'}
+                            <br>
+                            💰 الإجمالي: ${finalTotal.toFixed(2)} | تكلفة المنتجات: ${totalCost.toFixed(2)} | تكلفة الشحن الفعلية: ${shippingCostPaid.toFixed(2)}
+                            <br>
+                            📉 صافي الخسارة المحتملة: <span class="${lossClass}">${netLoss}</span>
+                            ${order.notes ? `<br>📝 ملاحظة: ${order.notes}` : ''}
+                        </div>
+                        <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap;">
+                            <button class="confirm-return-btn" onclick="confirmReturnReceipt('${order.id}')" data-orderid="${order.id}">
+                                <i class="fas fa-check-circle"></i> تأكيد استلام المرتجع
+                            </button>
+                            <span style="font-size:12px; color:#999;">⚠️ سيتم إعادة الكميات إلى المخزون</span>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        // ========== عرض المرتجعات المؤكدة ==========
+        function renderConfirmedReturns() {
+            const tbody = document.getElementById("confirmedReturnsList");
+            if (!tbody) return;
+
+            if (confirmedReturns.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="10">📭 لا توجد مرتجعات مؤكدة</td></tr>`;
+                return;
+            }
+
+            let html = '';
+            confirmedReturns.forEach(order => {
+                const details = Array.isArray(order.orderDetails) ? order.orderDetails : [];
+                const productsStr = details.map(item => `${item.name} (${item.size}) x${item.qty}`).join(', ');
+                const totalCost = order.totalCost || 0;
+                const shippingCostPaid = order.shippingCostPaid || 0;
+                const finalTotal = order.finalTotal || 0;
+                const netLoss = (finalTotal - totalCost - shippingCostPaid).toFixed(2);
+                const confirmDate = order.returnedConfirmedAt?.toDate ?
+                    order.returnedConfirmedAt.toDate().toLocaleDateString('ar-EG') : '-';
+
+                html += `<tr>
+                    <td><strong>${order.orderID}</strong></td>
+                    <td>${order.customerName || '-'}</td>
+                    <td>${order.gov || '-'}</td>
+                    <td>${order.city || '-'}</td>
+                    <td>${confirmDate}</td>
+                    <td class="detail-cell" title="${productsStr}">${productsStr || '-'}</td>
+                    <td>${finalTotal.toFixed(2)}</td>
+                    <td>${totalCost.toFixed(2)}</td>
+                    <td>${shippingCostPaid.toFixed(2)}</td>
+                    <td class="profit-negative">${netLoss}</td>
+                </tr>`;
+            });
+            tbody.innerHTML = html;
+        }
+
+        // ========== الإحصائيات ==========
+        function updateStats(orders) {
+            let totalRevenue = orders.reduce((s, o) => s + (o.finalTotal || 0), 0);
+            let totalCostProducts = orders.reduce((s, o) => s + (o.totalCost || 0), 0);
+            let totalShippingCost = orders.reduce((s, o) => s + (o.shippingCostPaid || 0), 0);
+            let netProfit = totalRevenue - totalCostProducts - totalShippingCost - totalExpenses;
+
+            document.getElementById("statsGrid").innerHTML = `
+                <div class="stat-card"><h3>💰 إجمالي الإيرادات</h3><div class="value">${totalRevenue.toFixed(2)} جنيه</div></div>
+                <div class="stat-card"><h3>📦 تكلفة المنتجات (جملة)</h3><div class="value">${totalCostProducts.toFixed(2)} جنيه</div></div>
+                <div class="stat-card"><h3>🚚 تكلفة الشحن الفعلية</h3><div class="value">${totalShippingCost.toFixed(2)} جنيه</div></div>
+                <div class="stat-card"><h3>✅ صافي الربح</h3><div class="value" style="color:${netProfit>=0?'#27ae60':'#e74c3c'};">${netProfit.toFixed(2)} جنيه</div></div>
+            `;
+        }
+
+        // ========== التصفية ==========
+        function populateMonthFilter() {
+            const monthsSet = new Set();
+            allDeliveredOrders.forEach(o => {
+                if (o.createdAt?.toDate) {
+                    const d = o.createdAt.toDate();
+                    monthsSet.add(`${d.getFullYear()}-${d.getMonth()+1}`);
+                }
+            });
+            const select = document.getElementById("monthFilter");
+            select.innerHTML = '<option value="all">كل الشهور</option>';
+            [...monthsSet].sort().reverse().forEach(m => {
+                const [year, month] = m.split('-');
+                const name = new Date(year, month-1).toLocaleDateString('ar-EG', { year:'numeric', month:'long' });
+                select.innerHTML += `<option value="${m}">${name}</option>`;
+            });
+        }
+
+        function applyFilter() {
+            const filterVal = document.getElementById("monthFilter").value;
+            let filtered = allDeliveredOrders;
+            if (filterVal !== "all") {
+                const [year, month] = filterVal.split('-');
+                filtered = allDeliveredOrders.filter(o => {
+                    const d = o.createdAt?.toDate();
+                    return d && d.getFullYear() == year && (d.getMonth()+1) == month;
+                });
+            }
+            renderDeliveredOrders(filtered);
+        }
+
+        document.getElementById("monthFilter").addEventListener("change", applyFilter);
+
+        // ========== دالة تأكيد استلام المرتجع ==========
+        window.confirmReturnReceipt = async function(orderId) {
+            const btn = document.querySelector(`.confirm-return-btn[data-orderid="${orderId}"]`);
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري...';
+            }
+
+            try {
+                const confirmed = await window.customConfirm("⚠️ هل أنت متأكد من استلام المنتجات المرتجعة؟ سيتم إعادة الكميات إلى المخزون.");
+                if (!confirmed) {
+                    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-check-circle"></i> تأكيد استلام المرتجع'; }
+                    return;
+                }
+
+                const orderSnap = await getDoc(doc(db, "orders", orderId));
+                if (!orderSnap.exists()) {
+                    window.customAlert("❌ الطلب غير موجود", "error");
+                    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-check-circle"></i> تأكيد استلام المرتجع'; }
+                    return;
+                }
+
+                const order = orderSnap.data();
+
+                // ✅ إعادة المخزون
+                await restoreStockForOrder(orderId, order);
+
+                // ✅ تحديث الحالة
+                await updateDoc(doc(db, "orders", orderId), {
+                    status: "returned_confirmed",
+                    stockRestored: true,
+                    returnedConfirmedAt: serverTimestamp(),
+                    notes: (order.notes || '') + ' | تم تأكيد استلام المرتجع'
+                });
+
+                // ✅ تسجيل في Audit Log
+                try {
+                    await logAuditEvent({
+                        action: 'return_confirmed',
+                        orderId: orderId,
+                        orderNumber: order.orderID,
+                        details: {
+                            customerName: order.customerName,
+                            phone: order.phone,
+                            orderDetails: order.orderDetails,
+                            totalReturned: order.orderDetails?.reduce((sum, item) => sum + (item.qty * item.price), 0) || 0,
+                            totalCost: order.totalCost || 0,
+                            shippingCostPaid: order.shippingCostPaid || 0
+                        },
+                        performedBy: window.currentUserEmail || 'system',
+                        severity: 'info'
+                    });
+                } catch (e) {
+                    console.warn("⚠️ فشل تسجيل Audit Log:", e);
+                }
+
+                window.customAlert("✅ تم تأكيد استلام المرتجع وإعادة الكميات إلى المخزون بنجاح!", "success");
+
+                // ✅ تحديث واجهة الطلبات إذا كانت مفتوحة
+                if (typeof window.forceRender === 'function') {
+                    await window.forceRender();
+                } else if (typeof window.render === 'function') {
+                    window.render();
+                }
+
+            } catch (error) {
+                console.error("❌ خطأ في تأكيد المرتجع:", error);
+                window.customAlert("❌ حدث خطأ أثناء تأكيد المرتجع: " + error.message, "error");
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-check-circle"></i> تأكيد استلام المرتجع';
+                }
+            }
+        };
+
+        // ========== تصدير Excel ==========
+        window.exportToExcel = () => {
+            const rows = [];
+            rows.push(['رقم الطلب', 'العميل', 'المحافظة', 'المدينة', 'التاريخ', 'المنتجات', 'الإجمالي', 'تكلفة المنتجات', 'تكلفة الشحن', 'صافي الربح']);
+            allDeliveredOrders.forEach(o => {
+                const details = Array.isArray(o.orderDetails) ? o.orderDetails : [];
+                const productsStr = details.map(item => `${item.name}(${item.size})x${item.qty}`).join(', ');
+                rows.push([
+                    o.orderID, o.customerName || '-', o.gov || '-', o.city || '-',
+                    o.createdAt?.toDate ? o.createdAt.toDate().toLocaleDateString('ar-EG') : '-',
+                    productsStr,
+                    (o.finalTotal || 0).toFixed(2),
+                    (o.totalCost || 0).toFixed(2),
+                    (o.shippingCostPaid || 0).toFixed(2),
+                    (o.finalTotal - (o.totalCost||0) - (o.shippingCostPaid||0)).toFixed(2)
+                ]);
+            });
+            const ws = XLSX.utils.aoa_to_sheet(rows);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "الأرباح");
+            XLSX.writeFile(wb, `profits_${new Date().toISOString().slice(0,10)}.xlsx`);
+        };
+
+        // ========== مراقبة المصروفات ==========
+        onSnapshot(collection(db, "expenses"), (snap) => {
+            const expenses = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            totalExpenses = expenses.reduce((s, e) => s + (e.amount || 0), 0);
+            if (typeof applyFilter === 'function') applyFilter();
+        }, (error) => {
+            console.error("❌ خطأ في مصروفات:", error);
         });
-        window.customAlert("✅ تم تأكيد استلام المرتجع وإعادة الكميات", "success");
-        await logAuditEvent({
-    action: 'return_confirmed',
-    orderId: orderId,
-    orderNumber: order.orderID,
-    details: {
-        customerName: order.customerName,
-        orderDetails: order.orderDetails,
-        totalReturned: order.orderDetails?.reduce((sum, item) => sum + (item.qty * item.price), 0) || 0
-    },
-    performedBy: window.currentUserEmail || 'system',
-    severity: 'info'
-});
-    } catch (e) {
-        console.error(e);
-        window.customAlert("❌ حدث خطأ", "error");
-    }
-};
 
-onAuthStateChanged(auth, (user) => {
-    if (user) {
-        window.currentUserEmail = user.email;
-        console.log("✅ تم تعيين البريد الإلكتروني:", user.email);
-    }
-});
-</script>
+        // ========== تحميل البيانات ==========
+        function loadData() {
+            loadDeliveredOrders();
+            loadPendingReturns();
+            loadConfirmedReturns();
+        }
+        window.loadData = loadData;
 
-<script>
-  
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW error:', err));
-}
-</script>
+        // ========== بدء التشغيل ==========
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                window.currentUserEmail = user.email;
+                loadData();
+                console.log("✅ تم تفعيل لوحة الأرباح");
+            } else {
+                window.location.href = "login.html";
+            }
+        });
+
+        console.log("✅ موديول الأرباح جاهز");
+    </script>
+
 </body>
 </html>
