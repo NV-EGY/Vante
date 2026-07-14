@@ -4,7 +4,6 @@ import { initializeApp, getApp } from "https://www.gstatic.com/firebasejs/10.12.
 import {
     getFirestore, collection, addDoc, Timestamp, getDoc, doc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { logAuditEvent } from './js/logger.js';
 
 const firebaseConfig = {
     apiKey: "AIzaSyCotT8EP2uy_HsgHknxeGBorKoEUORPtmU",
