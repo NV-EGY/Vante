@@ -6123,7 +6123,13 @@ async function executeCheckout() {
             const msgDiv = document.getElementById("shippingDiscountMessage");
             if (msgDiv) msgDiv.style.display = "block";
         }
-        // ✅ حدث Purchase
+        
+        // ========== 4. حساب الإجمالي النهائي ==========
+        const finalTotalBefore = subtotal + customerShippingFee;
+        const finalTotalAfter = 
+        finalTotalBefore - savedDiscount;
+        
+                // ✅ حدث Purchase
 fbq('track', 'Purchase', {
     content_ids: cart.map(item => item.productId || 'unknown'),
     contents: cart.map(item => ({
@@ -6135,11 +6141,6 @@ fbq('track', 'Purchase', {
     num_items: cart.length,
     order_id: orderID
 });
-        
-        // ========== 4. حساب الإجمالي النهائي ==========
-        const finalTotalBefore = subtotal + customerShippingFee;
-        const finalTotalAfter = finalTotalBefore - savedDiscount;
-        
         // ========== 5. إنشاء رقم الطلب وبيانات العميل ==========
         const ordersRef = collection(db, "orders");
         const today = new Date();
