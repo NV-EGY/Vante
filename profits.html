@@ -19,7 +19,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
     <style>
-        /* جميع الأنماط كما هي، لا تغيير فيها */
+        /* جميع الأنماط كما هي مع بعض التحسينات */
         *{margin:0;padding:0;box-sizing:border-box;}
         body{font-family:'Cairo',sans-serif;background:#f4f6f9;padding:20px;}
         .container{max-width:1400px;margin:auto;}
@@ -152,9 +152,9 @@
             transition: 0.2s;
         }
         .expense-item:hover { background: #fafafa; padding: 10px 8px; border-radius: 8px; }
-        .expense-item .desc { font-weight: 600; color: #333; }
-        .expense-item .amount { font-weight: 700; color: #e74c3c; }
-        .expense-item .date { font-size: 12px; color: #999; }
+        .expense-item .desc { font-weight: 600; color: #333; flex:1; text-align:right; }
+        .expense-item .amount { font-weight: 700; color: #e74c3c; min-width:100px; text-align:left; }
+        .expense-item .date { font-size: 12px; color: #999; min-width:120px; }
         .expense-item .actions { display: flex; gap: 8px; }
         .expense-item .actions button {
             background: none; border: none; cursor: pointer;
@@ -179,6 +179,9 @@
             border-radius: 12px;
             font-size: 11px;
             font-weight: 700;
+        }
+        .delivery-date-badge.fallback {
+            background: #f39c12;
         }
         /* مودال تعديل المصروف */
         .custom-confirm-overlay {
@@ -282,7 +285,6 @@
                 </select>
                 <button class="btn btn-primary" onclick="exportToExcel()"><i class="fas fa-file-excel"></i> تصدير Excel</button>
                 <button class="btn" onclick="loadData()"><i class="fas fa-sync"></i> تحديث</button>
-                <!-- تم إزالة زر CSV -->
             </div>
 
             <!-- Stats -->
@@ -309,8 +311,6 @@
                         <i class="fas fa-plus"></i> إضافة مصروف
                     </button>
                 </div>
-                
-                <!-- ✅ تم إزالة فلتر المصروفات المنفصل، وتم دمجه مع فلتر الشهور العام -->
                 
                 <div id="expensesList">
                     <div class="empty-expenses"><i class="fas fa-inbox" style="font-size:32px; display:block; margin-bottom:10px; color:#ddd;"></i> لا توجد مصروفات مسجلة</div>
@@ -584,14 +584,14 @@
             const q = query(collection(db, "orders"), where("status", "==", "delivered"));
             onSnapshot(q, (snap) => {
                 allDeliveredOrders = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                // ✅ ترتيب تنازلي حسب تاريخ التسليم الفعلي (deliveredAt)
+                // ✅ ترتيب تنازلي حسب تاريخ التسليم الفعلي (deliveredAt) أو updatedAt أو createdAt
                 allDeliveredOrders.sort((a, b) => {
-                    const dateA = a.deliveredAt?.toDate?.() || a.createdAt?.toDate?.() || new Date(0);
-                    const dateB = b.deliveredAt?.toDate?.() || b.createdAt?.toDate?.() || new Date(0);
+                    const dateA = a.deliveredAt?.toDate?.() || a.updatedAt?.toDate?.() || a.createdAt?.toDate?.() || new Date(0);
+                    const dateB = b.deliveredAt?.toDate?.() || b.updatedAt?.toDate?.() || b.createdAt?.toDate?.() || new Date(0);
                     return dateB - dateA;
                 });
                 populateMonthFilter();
-                applyFilters(); // ✅ تطبيق الفلتر على الكل (الطلبات والمصروفات)
+                applyFilters();
             }, (error) => {
                 console.error("❌ خطأ في تحميل المسلمة:", error);
                 document.getElementById("ordersList").innerHTML = `<tr><td colspan="10">⚠️ خطأ في تحميل البيانات: ${error.message}</td></tr>`;
@@ -623,12 +623,15 @@
             });
         }
 
-        // ========== تحميل المصروفات ==========
+        // ========== تحميل المصروفات (بدون شرط deleted لإظهار الكل ثم التصفية) ==========
         function loadExpenses() {
-            const q = query(collection(db, "expenses"), where("deleted", "!=", true), orderBy("createdAt", "desc"));
+            // ✅ جلب جميع المصروفات بدون شرط deleted
+            const q = query(collection(db, "expenses"), orderBy("createdAt", "desc"));
             onSnapshot(q, (snap) => {
-                allExpenses = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                // ✅ بعد تحميل المصروفات، نطبق الفلتر
+                // ✅ تصفية المصروفات التي ليس بها deleted: true
+                allExpenses = snap.docs
+                    .map(d => ({ id: d.id, ...d.data() }))
+                    .filter(exp => exp.deleted !== true);
                 applyFilters();
             }, (error) => {
                 console.error("❌ خطأ في تحميل المصروفات:", error);
@@ -637,13 +640,14 @@
 
         // ========== دالة تطبيق الفلتر على الطلبات والمصروفات معاً ==========
         function applyFilters() {
-            // 1. فلترة الطلبات حسب الشهر
             const filterVal = document.getElementById("monthFilter").value;
+            
+            // 1. فلترة الطلبات حسب الشهر (باستخدام deliveredAt أو updatedAt أو createdAt)
             let filteredOrders = allDeliveredOrders;
             if (filterVal !== "all") {
                 const [year, month] = filterVal.split('-');
                 filteredOrders = allDeliveredOrders.filter(o => {
-                    const date = o.deliveredAt?.toDate?.() || o.createdAt?.toDate?.();
+                    const date = o.deliveredAt?.toDate?.() || o.updatedAt?.toDate?.() || o.createdAt?.toDate?.();
                     return date && date.getFullYear() == year && (date.getMonth()+1) == month;
                 });
             }
@@ -666,11 +670,11 @@
             const displayEl = document.getElementById('totalExpensesDisplay');
             if (displayEl) displayEl.textContent = totalExpenses.toFixed(2);
             
-            // 4. تحديث الإحصائيات (باستخدام الطلبات المفلترة)
+            // 4. تحديث الإحصائيات
             updateStats(filteredOrders);
         }
 
-        // ========== عرض المصروفات (مع تمرير قائمة مفلترة) ==========
+        // ========== عرض المصروفات ==========
         function renderExpenses(expensesToShow) {
             const container = document.getElementById('expensesList');
             if (!container) return;
@@ -687,7 +691,7 @@
 
             container.innerHTML = expensesToShow.map(exp => `
                 <div class="expense-item">
-                    <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+                    <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; flex:1;">
                         <span class="date">${exp.createdAt?.toDate ? formatDate(exp.createdAt.toDate()) : 'تاريخ غير محدد'}</span>
                         <span class="desc">${escapeHtml(exp.description || 'بدون وصف')}</span>
                     </div>
@@ -706,7 +710,7 @@
             `).join('');
         }
 
-        // ========== عرض الطلبات المسلمة ==========
+        // ========== عرض الطلبات المسلمة (مع تاريخ التسليم الفعلي) ==========
         function renderDeliveredOrders(orders) {
             const tbody = document.getElementById("ordersList");
             if (orders.length === 0) {
@@ -723,19 +727,22 @@
                 const profit = (finalTotal - totalCost - shippingCostPaid).toFixed(2);
                 const profitClass = parseFloat(profit) >= 0 ? 'profit-positive' : 'profit-negative';
                 
-                // ✅ استخدام تاريخ التسليم الفعلي
-                const deliveryDate = o.deliveredAt?.toDate?.() || o.createdAt?.toDate?.() || new Date();
+                // ✅ استخدام deliveredAt إن وجد، وإلا updatedAt، وإلا createdAt
+                let deliveryDate = o.deliveredAt?.toDate?.() || o.updatedAt?.toDate?.() || o.createdAt?.toDate?.() || new Date();
+                let isFallback = !o.deliveredAt;
                 const deliveryDateStr = deliveryDate.toLocaleDateString('ar-EG', {
                     year: 'numeric', month: 'short', day: 'numeric',
                     hour: '2-digit', minute: '2-digit'
                 });
+                const badgeClass = isFallback ? 'delivery-date-badge fallback' : 'delivery-date-badge';
+                const badgeTitle = isFallback ? '⚠️ تاريخ الإنشاء (غير متوفر تاريخ تسليم فعلي)' : '✅ تاريخ التسليم الفعلي';
                 
                 html += `<tr>
                     <td><strong>${o.orderID}</strong></td>
                     <td>${o.customerName || '-'}</td>
                     <td>${o.gov || '-'}</td>
                     <td>${o.city || '-'}</td>
-                    <td><span class="delivery-date-badge">${deliveryDateStr}</span></td>
+                    <td><span class="${badgeClass}" title="${badgeTitle}">${deliveryDateStr}</span></td>
                     <td class="detail-cell" title="${productsStr}">${productsStr || '-'}</td>
                     <td>${finalTotal.toFixed(2)}</td>
                     <td>${totalCost.toFixed(2)}</td>
@@ -884,12 +891,11 @@
         function populateMonthFilter() {
             const monthsSet = new Set();
             allDeliveredOrders.forEach(o => {
-                const date = o.deliveredAt?.toDate?.() || o.createdAt?.toDate?.();
+                const date = o.deliveredAt?.toDate?.() || o.updatedAt?.toDate?.() || o.createdAt?.toDate?.();
                 if (date) {
                     monthsSet.add(`${date.getFullYear()}-${date.getMonth()+1}`);
                 }
             });
-            // إضافة شهور المصروفات أيضاً
             allExpenses.forEach(exp => {
                 const date = exp.createdAt?.toDate?.();
                 if (date) {
@@ -904,7 +910,6 @@
                 const name = new Date(year, month-1).toLocaleDateString('ar-EG', { year:'numeric', month:'long' });
                 select.innerHTML += `<option value="${m}">${name}</option>`;
             });
-            // استعادة القيمة المحددة سابقاً إن وجدت
             if (currentValue && monthsSet.has(currentValue)) {
                 select.value = currentValue;
             }
@@ -930,7 +935,7 @@
                     description: description,
                     amount: amount,
                     createdAt: dateVal ? new Date(dateVal) : serverTimestamp(),
-                    deleted: false
+                    deleted: false  // ✅ ضروري للتصفية
                 };
 
                 await addDoc(collection(db, "expenses"), expenseData);
@@ -1124,21 +1129,19 @@
             }
         };
 
-        // ========== تصدير Excel (مع المصروفات حسب الفلتر) ==========
+        // ========== تصدير Excel ==========
         window.exportToExcel = () => {
             const filterVal = document.getElementById("monthFilter").value;
             
-            // تحديد الطلبات المفلترة
             let ordersToExport = allDeliveredOrders;
             if (filterVal !== "all") {
                 const [year, month] = filterVal.split('-');
                 ordersToExport = allDeliveredOrders.filter(o => {
-                    const date = o.deliveredAt?.toDate?.() || o.createdAt?.toDate?.();
+                    const date = o.deliveredAt?.toDate?.() || o.updatedAt?.toDate?.() || o.createdAt?.toDate?.();
                     return date && date.getFullYear() == year && (date.getMonth()+1) == month;
                 });
             }
             
-            // تحديد المصروفات المفلترة
             let expensesToExport = allExpenses;
             if (filterVal !== "all") {
                 const [year, month] = filterVal.split('-');
@@ -1149,19 +1152,17 @@
             }
 
             const rows = [];
-            // عنوان التقرير
             const monthName = filterVal === "all" ? "كل الشهور" : 
                 new Date(filterVal.split('-')[0], parseInt(filterVal.split('-')[1])-1)
                 .toLocaleDateString('ar-EG', { year:'numeric', month:'long' });
             rows.push([`تقرير أرباح VANTÉ - ${monthName}`]);
             rows.push([]);
             
-            // جدول الطلبات
             rows.push(['رقم الطلب', 'العميل', 'المحافظة', 'المدينة', 'تاريخ التسليم الفعلي', 'المنتجات', 'الإجمالي', 'تكلفة المنتجات', 'تكلفة الشحن', 'صافي الربح']);
             ordersToExport.forEach(o => {
                 const details = Array.isArray(o.orderDetails) ? o.orderDetails : [];
                 const productsStr = details.map(item => `${item.name}(${item.size})x${item.qty}`).join(', ');
-                const deliveryDate = o.deliveredAt?.toDate?.() || o.createdAt?.toDate?.() || new Date();
+                const deliveryDate = o.deliveredAt?.toDate?.() || o.updatedAt?.toDate?.() || o.createdAt?.toDate?.() || new Date();
                 rows.push([
                     o.orderID, o.customerName || '-', o.gov || '-', o.city || '-',
                     deliveryDate.toLocaleDateString('ar-EG'),
@@ -1173,7 +1174,6 @@
                 ]);
             });
 
-            // إضافة سطر فارغ ثم المصروفات
             rows.push([]);
             rows.push(['ملخص المصروفات']);
             rows.push(['التاريخ', 'الوصف', 'المبلغ']);
@@ -1185,7 +1185,6 @@
                     Number(exp.amount || 0).toFixed(2)
                 ]);
             });
-            // إجمالي المصروفات
             const totalExp = expensesToExport.reduce((sum, e) => sum + Number(e.amount || 0), 0);
             rows.push(['', 'إجمالي المصروفات', totalExp.toFixed(2)]);
 
@@ -1235,7 +1234,7 @@
             }
         });
 
-        console.log("✅ موديول الأرباح جاهز (نسخة جبارة)");
+        console.log("✅ موديول الأرباح جاهز (نسخة جبارة معدلة)");
     </script>
 
 </body>
