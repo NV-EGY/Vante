@@ -19,19 +19,16 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
     <style>
+        /* جميع الأنماط كما هي، لا تغيير فيها */
         *{margin:0;padding:0;box-sizing:border-box;}
         body{font-family:'Cairo',sans-serif;background:#f4f6f9;padding:20px;}
         .container{max-width:1400px;margin:auto;}
-        
-        /* ===== كاردات الإحصائيات المحسّنة ===== */
         .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px;margin-bottom:30px;}
         .stat-card{background:#fff;border-radius:20px;padding:20px;box-shadow:0 5px 15px rgba(0,0,0,0.05);border-right:5px solid #D4AF37;transition:all 0.3s ease;}
         .stat-card:hover{transform:translateY(-4px);box-shadow:0 12px 30px rgba(0,0,0,0.08);}
         .stat-card h3{font-size:14px;color:#666;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
         .stat-card .value{font-size:32px;font-weight:900;color:#111;}
         .stat-card .sub-value{font-size:14px;color:#888;margin-top:4px;}
-        
-        /* ===== شريط الفلاتر ===== */
         .filter-bar{display:flex;gap:15px;margin-bottom:20px;flex-wrap:wrap;align-items:center;background:#fff;padding:15px 20px;border-radius:16px;box-shadow:0 2px 10px rgba(0,0,0,0.04);}
         .filter-bar select, .filter-bar input, .filter-bar button{padding:10px 16px;border-radius:12px;border:1px solid #ddd;font-family:Cairo;font-size:14px;background:#fff;transition:all 0.3s;}
         .filter-bar select:focus, .filter-bar input:focus{border-color:#D4AF37;outline:none;box-shadow:0 0 0 3px rgba(212,175,55,0.15);}
@@ -44,36 +41,23 @@
         .btn-success{background:#27ae60;color:#fff;}
         .btn-success:hover{background:#219a52;}
         .btn-sm{padding:6px 14px;font-size:12px;border-radius:20px;}
-        
-        /* ===== Password Overlay ===== */
+        /* Password Overlay */
         .password-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85);
-            backdrop-filter: blur(10px);
-            z-index: 10000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            visibility: visible;
-            opacity: 1;
-            transition: 0.4s ease;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(10px);
+            z-index: 10000; display: flex; align-items: center; justify-content: center;
+            visibility: visible; opacity: 1; transition: 0.4s ease;
         }
         .password-overlay.hide { visibility: hidden; opacity: 0; pointer-events: none; }
         .password-box {
-            background: #fff;
-            border-radius: 32px;
-            padding: 40px 35px;
-            width: 90%;
-            max-width: 400px;
-            text-align: center;
+            background: #fff; border-radius: 32px; padding: 40px 35px;
+            width: 90%; max-width: 400px; text-align: center;
             box-shadow: 0 30px 60px rgba(0,0,0,0.3);
         }
         .password-box .lock-icon {
             width: 70px; height: 70px;
             background: linear-gradient(135deg, #D4AF37, #B8860B);
-            border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
             margin: 0 auto 20px;
         }
         .password-box .lock-icon i { font-size: 32px; color: #000; }
@@ -96,8 +80,7 @@
             cursor: pointer; transition: 0.3s;
         }
         .password-box button:hover { background: #D4AF37; color: #000; }
-        
-        /* ===== جداول احترافية ===== */
+        /* جداول */
         .table-wrapper { overflow-x: auto; border-radius: 16px; border: 1px solid #eee; background: #fff; }
         table { width: 100%; border-collapse: collapse; font-size: 14px; }
         th { background: #111; color: #fff; padding: 14px 16px; text-align: center; white-space: nowrap; font-weight: 700; }
@@ -106,15 +89,10 @@
         .detail-cell { text-align: right; font-size: 12px; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .profit-positive { color: #27ae60; font-weight: 700; }
         .profit-negative { color: #e74c3c; font-weight: 700; }
-        
-        /* ===== بطاقات المرتجعات ===== */
+        /* بطاقات المرتجعات */
         .pending-return-card {
-            background: #fff;
-            border: 1px solid #f0c27a;
-            border-radius: 16px;
-            padding: 18px 20px;
-            margin-bottom: 12px;
-            transition: 0.3s;
+            background: #fff; border: 1px solid #f0c27a; border-radius: 16px;
+            padding: 18px 20px; margin-bottom: 12px; transition: 0.3s;
             border-right: 4px solid #f39c12;
         }
         .pending-return-card:hover { box-shadow: 0 4px 15px rgba(243, 156, 18, 0.15); transform: translateY(-2px); }
@@ -135,8 +113,7 @@
         .confirm-return-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
         .return-details { font-size: 13px; color: #555; margin-top: 8px; line-height: 1.8; }
         .return-details strong { color: #111; }
-        
-        /* ===== الأقسام ===== */
+        /* الأقسام */
         .section-title { margin-bottom: 15px; font-size: 18px; display: flex; align-items: center; gap: 10px; }
         .section-title .badge-count {
             background: #f39c12; color: #fff;
@@ -150,8 +127,7 @@
             background: #fff; border-radius: 20px;
             padding: 20px; margin-bottom: 30px;
         }
-        
-        /* ===== إدارة المصروفات المحسّنة (مع فلترة تاريخ) ===== */
+        /* إدارة المصروفات */
         .expense-form {
             display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-end;
             background: #f8f9fa; padding: 20px; border-radius: 16px;
@@ -162,15 +138,13 @@
             display: block; font-weight: 700; font-size: 13px;
             color: #555; margin-bottom: 6px;
         }
-        .expense-form input, .expense-form select {
+        .expense-form input {
             width: 100%; padding: 10px 14px;
             border-radius: 12px; border: 1px solid #ddd;
             font-family: 'Cairo', sans-serif; font-size: 14px;
             transition: 0.3s;
         }
-        .expense-form input:focus, .expense-form select:focus {
-            border-color: #D4AF37; outline: none; box-shadow: 0 0 0 3px rgba(212,175,55,0.15);
-        }
+        .expense-form input:focus { border-color: #D4AF37; outline: none; box-shadow: 0 0 0 3px rgba(212,175,55,0.15); }
         .expense-item {
             display: flex; justify-content: space-between;
             align-items: center; padding: 10px 0;
@@ -196,16 +170,43 @@
         }
         .expense-total span { color: #e74c3c; }
         .empty-expenses { color: #999; text-align: center; padding: 30px; }
-        .expense-filters {
-            display: flex; gap: 12px; flex-wrap: wrap;
-            margin-bottom: 15px; padding: 12px 16px;
-            background: #f8f9fa; border-radius: 12px;
-            align-items: center;
+        /* شارة التاريخ */
+        .delivery-date-badge {
+            display: inline-block;
+            background: #3498db;
+            color: #fff;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
         }
-        .expense-filters label { font-weight: 700; font-size: 13px; color: #555; }
-        .expense-filters input { padding: 8px 12px; border-radius: 10px; border: 1px solid #ddd; font-family: 'Cairo', sans-serif; }
-        
-        /* ===== Custom Alert/Confirm ===== */
+        /* مودال تعديل المصروف */
+        .custom-confirm-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
+            z-index: 99999; display: none; align-items: center; justify-content: center;
+        }
+        .custom-confirm-overlay.active { display: flex; }
+        .custom-confirm-box {
+            background: #fff; border-radius: 28px; width: 90%; max-width: 360px;
+            overflow: hidden; box-shadow: 0 30px 50px rgba(0,0,0,0.3);
+            transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.34, 1.2, 0.64, 1);
+            direction: rtl;
+        }
+        .custom-confirm-overlay.active .custom-confirm-box { transform: scale(1); }
+        .confirm-header { background: #111; padding: 20px; text-align: center; }
+        .confirm-header i { font-size: 50px; color: #f39c12; margin-bottom: 10px; }
+        .confirm-header h3 { color: #fff; font-size: 20px; font-weight: 800; margin: 0; }
+        .confirm-message { padding: 25px 20px; font-size: 16px; color: #333; text-align: center; line-height: 1.6; }
+        .confirm-buttons { display: flex; border-top: 1px solid #eee; }
+        .confirm-buttons button {
+            flex: 1; padding: 15px; border: none; background: #fff;
+            font-weight: 700; font-size: 16px; cursor: pointer; transition: 0.2s;
+        }
+        .confirm-buttons button:first-child { border-left: 1px solid #eee; color: #e74c3c; }
+        .confirm-buttons button:last-child { color: #0F7B65; }
+        .confirm-buttons button:hover { background: #f9f9f9; }
+        /* Custom Alert */
         .custom-alert-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
@@ -235,33 +236,6 @@
         .alert-buttons button:first-child { border-left: 1px solid #eee; color: #0F7B65; }
         .alert-buttons button:last-child { color: #888; }
         .alert-buttons button:hover { background: #f9f9f9; }
-        
-        .custom-confirm-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
-            z-index: 99999; display: none; align-items: center; justify-content: center;
-        }
-        .custom-confirm-overlay.active { display: flex; }
-        .custom-confirm-box {
-            background: #fff; border-radius: 28px; width: 90%; max-width: 360px;
-            overflow: hidden; box-shadow: 0 30px 50px rgba(0,0,0,0.3);
-            transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.34, 1.2, 0.64, 1);
-            direction: rtl;
-        }
-        .custom-confirm-overlay.active .custom-confirm-box { transform: scale(1); }
-        .confirm-header { background: #111; padding: 20px; text-align: center; }
-        .confirm-header i { font-size: 50px; color: #f39c12; margin-bottom: 10px; }
-        .confirm-header h3 { color: #fff; font-size: 20px; font-weight: 800; margin: 0; }
-        .confirm-message { padding: 25px 20px; font-size: 16px; color: #333; text-align: center; line-height: 1.6; }
-        .confirm-buttons { display: flex; border-top: 1px solid #eee; }
-        .confirm-buttons button {
-            flex: 1; padding: 15px; border: none; background: #fff;
-            font-weight: 700; font-size: 16px; cursor: pointer; transition: 0.2s;
-        }
-        .confirm-buttons button:first-child { border-left: 1px solid #eee; color: #e74c3c; }
-        .confirm-buttons button:last-child { color: #0F7B65; }
-        .confirm-buttons button:hover { background: #f9f9f9; }
-        
         .logout-btn {
             background: #e74c3c; color: white; border: none;
             padding: 6px 18px; border-radius: 30px; cursor: pointer;
@@ -269,20 +243,8 @@
             display: inline-flex; align-items: center; gap: 6px;
         }
         .logout-btn:hover { background: #c0392b; transform: translateY(-2px); }
-        
         @media(max-width:700px){th,td{font-size:11px;padding:6px;}}
         @media(max-width:480px){.container{padding:0;} .expense-form{flex-direction:column;} }
-        
-        /* ===== شارة التاريخ الجديد ===== */
-        .delivery-date-badge {
-            display: inline-block;
-            background: #3498db;
-            color: #fff;
-            padding: 2px 10px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 700;
-        }
     </style>
 </head>
 <body>
@@ -320,13 +282,13 @@
                 </select>
                 <button class="btn btn-primary" onclick="exportToExcel()"><i class="fas fa-file-excel"></i> تصدير Excel</button>
                 <button class="btn" onclick="loadData()"><i class="fas fa-sync"></i> تحديث</button>
-                <!-- ✅ تم إزالة الزر اللي مش ظاهر منه حاجة -->
+                <!-- تم إزالة زر CSV -->
             </div>
 
             <!-- Stats -->
             <div class="stats-grid" id="statsGrid"></div>
 
-            <!-- ========== قسم إدارة المصروفات (المعدل بالكامل) ========== -->
+            <!-- ========== قسم إدارة المصروفات ========== -->
             <div class="section-expenses">
                 <h3 class="section-title"><i class="fas fa-receipt" style="color:#D4AF37;"></i> المصروفات</h3>
                 
@@ -348,16 +310,7 @@
                     </button>
                 </div>
                 
-                <!-- ✅ فلترة المصروفات حسب التاريخ -->
-                <div class="expense-filters">
-                    <label><i class="fas fa-calendar-alt"></i> فلترة المصروفات:</label>
-                    <label>من</label>
-                    <input type="date" id="expenseFilterFrom">
-                    <label>إلى</label>
-                    <input type="date" id="expenseFilterTo">
-                    <button class="btn btn-sm btn-primary" onclick="applyExpenseFilter()"><i class="fas fa-filter"></i> فلترة</button>
-                    <button class="btn btn-sm" onclick="clearExpenseFilter()"><i class="fas fa-undo"></i> إلغاء</button>
-                </div>
+                <!-- ✅ تم إزالة فلتر المصروفات المنفصل، وتم دمجه مع فلتر الشهور العام -->
                 
                 <div id="expensesList">
                     <div class="empty-expenses"><i class="fas fa-inbox" style="font-size:32px; display:block; margin-bottom:10px; color:#ddd;"></i> لا توجد مصروفات مسجلة</div>
@@ -452,7 +405,6 @@
                     <label style="display:block; font-weight:700; margin-bottom:5px;">التاريخ</label>
                     <input type="date" id="editExpenseDate" style="width:100%; padding:10px; border-radius:10px; border:1px solid #ddd; font-family:'Cairo',sans-serif;">
                 </div>
-                <div style="font-size:13px; color:#888;" id="editExpenseId" style="display:none;"></div>
             </div>
             <div class="confirm-buttons">
                 <button id="editExpenseCancelBtn">إلغاء</button>
@@ -494,7 +446,6 @@
     <script>
         const SECRET_HASH = "VmFudGVQcm9maXRAMjAyNg==";
 
-        // ===== Custom Alert (محسّن) =====
         window.customAlert = function(message, type = 'success', title = '') {
             return new Promise((resolve) => {
                 const overlay = document.getElementById('customAlertOverlay');
@@ -531,7 +482,6 @@
             });
         };
 
-        // ===== Custom Confirm (محسّن) =====
         window.customConfirm = function(message) {
             return new Promise((resolve) => {
                 const overlay = document.getElementById('customConfirmOverlay');
@@ -562,7 +512,6 @@
             });
         };
 
-        // ===== Password =====
         function checkPassword() {
             const input = document.getElementById("passwordInput").value;
             const decodedSecret = atob(SECRET_HASH);
@@ -596,7 +545,7 @@
         window.logout = logout;
     </script>
 
-    <!-- ========== الموديول الرئيسي ========== -->
+    <!-- ========== الموديول الرئيسي (مع التعديلات الجبارة) ========== -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import {
@@ -626,7 +575,6 @@
         let pendingReturns = [];
         let confirmedReturns = [];
         let allExpenses = [];
-        let filteredExpenses = [];
         let totalExpenses = 0;
         let currentMonthFilter = "all";
         let editingExpenseId = null;
@@ -643,7 +591,7 @@
                     return dateB - dateA;
                 });
                 populateMonthFilter();
-                applyFilter();
+                applyFilters(); // ✅ تطبيق الفلتر على الكل (الطلبات والمصروفات)
             }, (error) => {
                 console.error("❌ خطأ في تحميل المسلمة:", error);
                 document.getElementById("ordersList").innerHTML = `<tr><td colspan="10">⚠️ خطأ في تحميل البيانات: ${error.message}</td></tr>`;
@@ -675,54 +623,63 @@
             });
         }
 
-        // ========== تحميل المصروفات (مع فلترة) ==========
+        // ========== تحميل المصروفات ==========
         function loadExpenses() {
             const q = query(collection(db, "expenses"), where("deleted", "!=", true), orderBy("createdAt", "desc"));
             onSnapshot(q, (snap) => {
                 allExpenses = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                applyExpenseFilter();
-                updateExpenseTotal();
+                // ✅ بعد تحميل المصروفات، نطبق الفلتر
+                applyFilters();
             }, (error) => {
                 console.error("❌ خطأ في تحميل المصروفات:", error);
             });
         }
 
-        // ========== فلترة المصروفات حسب التاريخ ==========
-        window.applyExpenseFilter = function() {
-            const fromDate = document.getElementById('expenseFilterFrom').value;
-            const toDate = document.getElementById('expenseFilterTo').value;
-            
-            filteredExpenses = allExpenses.filter(exp => {
-                const expDate = exp.createdAt?.toDate?.() || new Date(0);
-                const expDateStr = expDate.toISOString().split('T')[0];
-                
-                if (fromDate && expDateStr < fromDate) return false;
-                if (toDate && expDateStr > toDate) return false;
-                return true;
-            });
-            
-            renderExpenses();
-        };
+        // ========== دالة تطبيق الفلتر على الطلبات والمصروفات معاً ==========
+        function applyFilters() {
+            // 1. فلترة الطلبات حسب الشهر
+            const filterVal = document.getElementById("monthFilter").value;
+            let filteredOrders = allDeliveredOrders;
+            if (filterVal !== "all") {
+                const [year, month] = filterVal.split('-');
+                filteredOrders = allDeliveredOrders.filter(o => {
+                    const date = o.deliveredAt?.toDate?.() || o.createdAt?.toDate?.();
+                    return date && date.getFullYear() == year && (date.getMonth()+1) == month;
+                });
+            }
+            renderDeliveredOrders(filteredOrders);
 
-        window.clearExpenseFilter = function() {
-            document.getElementById('expenseFilterFrom').value = '';
-            document.getElementById('expenseFilterTo').value = '';
-            filteredExpenses = [...allExpenses];
-            renderExpenses();
-        };
+            // 2. فلترة المصروفات حسب نفس الشهر
+            let filteredExpenses = allExpenses;
+            if (filterVal !== "all") {
+                const [year, month] = filterVal.split('-');
+                filteredExpenses = allExpenses.filter(exp => {
+                    const date = exp.createdAt?.toDate?.();
+                    if (!date) return false;
+                    return date.getFullYear() == year && (date.getMonth()+1) == month;
+                });
+            }
+            renderExpenses(filteredExpenses);
+            
+            // 3. تحديث إجمالي المصروفات بناءً على الفلترة
+            totalExpenses = filteredExpenses.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+            const displayEl = document.getElementById('totalExpensesDisplay');
+            if (displayEl) displayEl.textContent = totalExpenses.toFixed(2);
+            
+            // 4. تحديث الإحصائيات (باستخدام الطلبات المفلترة)
+            updateStats(filteredOrders);
+        }
 
-        // ========== عرض المصروفات ==========
-        function renderExpenses() {
+        // ========== عرض المصروفات (مع تمرير قائمة مفلترة) ==========
+        function renderExpenses(expensesToShow) {
             const container = document.getElementById('expensesList');
             if (!container) return;
 
-            const expensesToShow = filteredExpenses.length > 0 ? filteredExpenses : allExpenses;
-
-            if (expensesToShow.length === 0) {
+            if (!expensesToShow || expensesToShow.length === 0) {
                 container.innerHTML = `
                     <div class="empty-expenses">
                         <i class="fas fa-inbox" style="font-size:32px; display:block; margin-bottom:10px; color:#ddd;"></i>
-                        لا توجد مصروفات مسجلة${filteredExpenses.length === 0 && allExpenses.length > 0 ? ' تطابق الفلترة' : ''}
+                        لا توجد مصروفات${document.getElementById("monthFilter").value !== "all" ? ' في هذا الشهر' : ''}
                     </div>
                 `;
                 return;
@@ -749,162 +706,7 @@
             `).join('');
         }
 
-        // ========== تحديث إجمالي المصروفات ==========
-        function updateExpenseTotal() {
-            const expensesToSum = filteredExpenses.length > 0 ? filteredExpenses : allExpenses;
-            totalExpenses = expensesToSum.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
-            const displayEl = document.getElementById('totalExpensesDisplay');
-            if (displayEl) displayEl.textContent = totalExpenses.toFixed(2);
-            
-            if (allDeliveredOrders.length > 0) {
-                updateStats(allDeliveredOrders);
-            }
-        }
-
-        // ========== دالة إضافة مصروف ==========
-        window.addExpense = async function() {
-            const description = document.getElementById('expenseDescription').value.trim();
-            const amount = parseFloat(document.getElementById('expenseAmount').value);
-            const dateVal = document.getElementById('expenseDate').value;
-
-            if (!description) {
-                await customAlert('⚠️ يرجى إدخال وصف للمصروف', 'warning');
-                return;
-            }
-            if (isNaN(amount) || amount <= 0) {
-                await customAlert('⚠️ يرجى إدخال مبلغ صحيح (أكبر من صفر)', 'warning');
-                return;
-            }
-
-            try {
-                const expenseData = {
-                    description: description,
-                    amount: amount,
-                    createdAt: dateVal ? new Date(dateVal) : serverTimestamp(),
-                    deleted: false
-                };
-
-                await addDoc(collection(db, "expenses"), expenseData);
-
-                document.getElementById('expenseDescription').value = '';
-                document.getElementById('expenseAmount').value = '';
-                document.getElementById('expenseDate').value = '';
-                
-                await customAlert('✅ تم إضافة المصروف بنجاح!', 'success');
-                
-                try {
-                    await logAuditEvent({
-                        action: 'expense_added',
-                        orderId: null,
-                        orderNumber: null,
-                        details: {
-                            description: description,
-                            amount: amount,
-                            date: dateVal || new Date().toISOString().split('T')[0]
-                        },
-                        performedBy: window.currentUserEmail || 'system',
-                        severity: 'info'
-                    });
-                } catch(e) { console.warn('⚠️ فشل تسجيل Audit Log:', e); }
-
-            } catch (error) {
-                console.error("❌ خطأ في إضافة المصروف:", error);
-                await customAlert('❌ حدث خطأ أثناء إضافة المصروف: ' + error.message, 'error');
-            }
-        };
-
-        // ========== دالة حذف مصروف ==========
-        window.deleteExpense = async function(expenseId) {
-            const confirmed = await customConfirm('⚠️ هل أنت متأكد من حذف هذا المصروف؟');
-            if (!confirmed) return;
-
-            try {
-                await updateDoc(doc(db, "expenses", expenseId), { deleted: true });
-                await customAlert('🗑️ تم حذف المصروف بنجاح', 'success');
-            } catch (error) {
-                console.error("❌ خطأ في حذف المصروف:", error);
-                await customAlert('❌ حدث خطأ أثناء حذف المصروف: ' + error.message, 'error');
-            }
-        };
-
-        // ========== دالة تعديل مصروف ==========
-        window.openEditExpense = function(expenseId) {
-            const expense = allExpenses.find(e => e.id === expenseId);
-            if (!expense) {
-                customAlert('⚠️ المصروف غير موجود', 'warning');
-                return;
-            }
-
-            editingExpenseId = expenseId;
-            document.getElementById('editExpenseDescription').value = expense.description || '';
-            document.getElementById('editExpenseAmount').value = expense.amount || 0;
-            const expDate = expense.createdAt?.toDate?.() || new Date();
-            document.getElementById('editExpenseDate').value = expDate.toISOString().split('T')[0];
-            
-            document.getElementById('editExpenseModal').classList.add('active');
-        };
-
-        window.saveEditExpense = async function() {
-            const description = document.getElementById('editExpenseDescription').value.trim();
-            const amount = parseFloat(document.getElementById('editExpenseAmount').value);
-            const dateVal = document.getElementById('editExpenseDate').value;
-
-            if (!description) {
-                await customAlert('⚠️ يرجى إدخال وصف للمصروف', 'warning');
-                return;
-            }
-            if (isNaN(amount) || amount <= 0) {
-                await customAlert('⚠️ يرجى إدخال مبلغ صحيح (أكبر من صفر)', 'warning');
-                return;
-            }
-
-            try {
-                const updateData = {
-                    description: description,
-                    amount: amount
-                };
-                if (dateVal) {
-                    updateData.createdAt = new Date(dateVal);
-                }
-
-                await updateDoc(doc(db, "expenses", editingExpenseId), updateData);
-                
-                document.getElementById('editExpenseModal').classList.remove('active');
-                await customAlert('✅ تم تعديل المصروف بنجاح!', 'success');
-                
-                try {
-                    await logAuditEvent({
-                        action: 'expense_edited',
-                        orderId: null,
-                        orderNumber: null,
-                        details: {
-                            description: description,
-                            amount: amount,
-                            date: dateVal || new Date().toISOString().split('T')[0]
-                        },
-                        performedBy: window.currentUserEmail || 'system',
-                        severity: 'info'
-                    });
-                } catch(e) { console.warn('⚠️ فشل تسجيل Audit Log:', e); }
-
-            } catch (error) {
-                console.error("❌ خطأ في تعديل المصروف:", error);
-                await customAlert('❌ حدث خطأ أثناء تعديل المصروف: ' + error.message, 'error');
-            }
-        };
-
-        // ===== أحداث مودال التعديل =====
-        document.getElementById('editExpenseCancelBtn').addEventListener('click', () => {
-            document.getElementById('editExpenseModal').classList.remove('active');
-        });
-        document.getElementById('editExpenseSaveBtn').addEventListener('click', window.saveEditExpense);
-        document.getElementById('editExpenseModal').addEventListener('click', (e) => {
-            if (e.target === e.currentTarget) {
-                document.getElementById('editExpenseModal').classList.remove('active');
-            }
-        });
-
-        // ========== عرض الطلبات المسلمة (مع تاريخ التسليم الفعلي) ==========
+        // ========== عرض الطلبات المسلمة ==========
         function renderDeliveredOrders(orders) {
             const tbody = document.getElementById("ordersList");
             if (orders.length === 0) {
@@ -921,7 +723,7 @@
                 const profit = (finalTotal - totalCost - shippingCostPaid).toFixed(2);
                 const profitClass = parseFloat(profit) >= 0 ? 'profit-positive' : 'profit-negative';
                 
-                // ✅ استخدام تاريخ التسليم الفعلي (deliveredAt) أو تاريخ الإنشاء كبديل
+                // ✅ استخدام تاريخ التسليم الفعلي
                 const deliveryDate = o.deliveredAt?.toDate?.() || o.createdAt?.toDate?.() || new Date();
                 const deliveryDateStr = deliveryDate.toLocaleDateString('ar-EG', {
                     year: 'numeric', month: 'short', day: 'numeric',
@@ -942,7 +744,6 @@
                 </tr>`;
             });
             tbody.innerHTML = html;
-            updateStats(orders);
         }
 
         // ========== عرض المرتجعات المعلقة ==========
@@ -1068,7 +869,7 @@
                     <div class="value">${totalShippingCost.toFixed(2)} <span style="font-size:14px;color:#888;">جنيه</span></div>
                 </div>
                 <div class="stat-card">
-                    <h3><i class="fas fa-receipt" style="color:#e74c3c;"></i> إجمالي المصروفات</h3>
+                    <h3><i class="fas fa-receipt" style="color:#e74c3c;"></i> إجمالي المصروفات (للشهر المحدد)</h3>
                     <div class="value" style="color:#e74c3c;">${totalExpenses.toFixed(2)} <span style="font-size:14px;color:#888;">جنيه</span></div>
                 </div>
                 <div class="stat-card">
@@ -1079,7 +880,7 @@
             `;
         }
 
-        // ========== التصفية حسب الشهر ==========
+        // ========== تعبئة فلتر الشهور ==========
         function populateMonthFilter() {
             const monthsSet = new Set();
             allDeliveredOrders.forEach(o => {
@@ -1088,29 +889,170 @@
                     monthsSet.add(`${date.getFullYear()}-${date.getMonth()+1}`);
                 }
             });
+            // إضافة شهور المصروفات أيضاً
+            allExpenses.forEach(exp => {
+                const date = exp.createdAt?.toDate?.();
+                if (date) {
+                    monthsSet.add(`${date.getFullYear()}-${date.getMonth()+1}`);
+                }
+            });
             const select = document.getElementById("monthFilter");
+            const currentValue = select.value;
             select.innerHTML = '<option value="all">كل الشهور</option>';
             [...monthsSet].sort().reverse().forEach(m => {
                 const [year, month] = m.split('-');
                 const name = new Date(year, month-1).toLocaleDateString('ar-EG', { year:'numeric', month:'long' });
                 select.innerHTML += `<option value="${m}">${name}</option>`;
             });
-        }
-
-        function applyFilter() {
-            const filterVal = document.getElementById("monthFilter").value;
-            let filtered = allDeliveredOrders;
-            if (filterVal !== "all") {
-                const [year, month] = filterVal.split('-');
-                filtered = allDeliveredOrders.filter(o => {
-                    const date = o.deliveredAt?.toDate?.() || o.createdAt?.toDate?.();
-                    return date && date.getFullYear() == year && (date.getMonth()+1) == month;
-                });
+            // استعادة القيمة المحددة سابقاً إن وجدت
+            if (currentValue && monthsSet.has(currentValue)) {
+                select.value = currentValue;
             }
-            renderDeliveredOrders(filtered);
         }
 
-        document.getElementById("monthFilter").addEventListener("change", applyFilter);
+        // ========== دالة إضافة مصروف (مضمونة) ==========
+        window.addExpense = async function() {
+            const description = document.getElementById('expenseDescription').value.trim();
+            const amount = parseFloat(document.getElementById('expenseAmount').value);
+            const dateVal = document.getElementById('expenseDate').value;
+
+            if (!description) {
+                await customAlert('⚠️ يرجى إدخال وصف للمصروف', 'warning');
+                return;
+            }
+            if (isNaN(amount) || amount <= 0) {
+                await customAlert('⚠️ يرجى إدخال مبلغ صحيح (أكبر من صفر)', 'warning');
+                return;
+            }
+
+            try {
+                const expenseData = {
+                    description: description,
+                    amount: amount,
+                    createdAt: dateVal ? new Date(dateVal) : serverTimestamp(),
+                    deleted: false
+                };
+
+                await addDoc(collection(db, "expenses"), expenseData);
+
+                document.getElementById('expenseDescription').value = '';
+                document.getElementById('expenseAmount').value = '';
+                document.getElementById('expenseDate').value = '';
+                
+                await customAlert('✅ تم إضافة المصروف بنجاح!', 'success');
+                
+                // تسجيل في Audit Log
+                try {
+                    await logAuditEvent({
+                        action: 'expense_added',
+                        orderId: null,
+                        orderNumber: null,
+                        details: {
+                            description: description,
+                            amount: amount,
+                            date: dateVal || new Date().toISOString().split('T')[0]
+                        },
+                        performedBy: window.currentUserEmail || 'system',
+                        severity: 'info'
+                    });
+                } catch(e) { console.warn('⚠️ فشل تسجيل Audit Log:', e); }
+
+            } catch (error) {
+                console.error("❌ خطأ في إضافة المصروف:", error);
+                await customAlert('❌ حدث خطأ أثناء إضافة المصروف: ' + error.message, 'error');
+            }
+        };
+
+        // ========== دالة حذف مصروف ==========
+        window.deleteExpense = async function(expenseId) {
+            const confirmed = await customConfirm('⚠️ هل أنت متأكد من حذف هذا المصروف؟');
+            if (!confirmed) return;
+
+            try {
+                await updateDoc(doc(db, "expenses", expenseId), { deleted: true });
+                await customAlert('🗑️ تم حذف المصروف بنجاح', 'success');
+            } catch (error) {
+                console.error("❌ خطأ في حذف المصروف:", error);
+                await customAlert('❌ حدث خطأ أثناء حذف المصروف: ' + error.message, 'error');
+            }
+        };
+
+        // ========== دالة تعديل مصروف ==========
+        window.openEditExpense = function(expenseId) {
+            const expense = allExpenses.find(e => e.id === expenseId);
+            if (!expense) {
+                customAlert('⚠️ المصروف غير موجود', 'warning');
+                return;
+            }
+
+            editingExpenseId = expenseId;
+            document.getElementById('editExpenseDescription').value = expense.description || '';
+            document.getElementById('editExpenseAmount').value = expense.amount || 0;
+            const expDate = expense.createdAt?.toDate?.() || new Date();
+            document.getElementById('editExpenseDate').value = expDate.toISOString().split('T')[0];
+            
+            document.getElementById('editExpenseModal').classList.add('active');
+        };
+
+        window.saveEditExpense = async function() {
+            const description = document.getElementById('editExpenseDescription').value.trim();
+            const amount = parseFloat(document.getElementById('editExpenseAmount').value);
+            const dateVal = document.getElementById('editExpenseDate').value;
+
+            if (!description) {
+                await customAlert('⚠️ يرجى إدخال وصف للمصروف', 'warning');
+                return;
+            }
+            if (isNaN(amount) || amount <= 0) {
+                await customAlert('⚠️ يرجى إدخال مبلغ صحيح (أكبر من صفر)', 'warning');
+                return;
+            }
+
+            try {
+                const updateData = {
+                    description: description,
+                    amount: amount
+                };
+                if (dateVal) {
+                    updateData.createdAt = new Date(dateVal);
+                }
+
+                await updateDoc(doc(db, "expenses", editingExpenseId), updateData);
+                
+                document.getElementById('editExpenseModal').classList.remove('active');
+                await customAlert('✅ تم تعديل المصروف بنجاح!', 'success');
+                
+                try {
+                    await logAuditEvent({
+                        action: 'expense_edited',
+                        orderId: null,
+                        orderNumber: null,
+                        details: {
+                            description: description,
+                            amount: amount,
+                            date: dateVal || new Date().toISOString().split('T')[0]
+                        },
+                        performedBy: window.currentUserEmail || 'system',
+                        severity: 'info'
+                    });
+                } catch(e) { console.warn('⚠️ فشل تسجيل Audit Log:', e); }
+
+            } catch (error) {
+                console.error("❌ خطأ في تعديل المصروف:", error);
+                await customAlert('❌ حدث خطأ أثناء تعديل المصروف: ' + error.message, 'error');
+            }
+        };
+
+        // ===== أحداث مودال التعديل =====
+        document.getElementById('editExpenseCancelBtn').addEventListener('click', () => {
+            document.getElementById('editExpenseModal').classList.remove('active');
+        });
+        document.getElementById('editExpenseSaveBtn').addEventListener('click', window.saveEditExpense);
+        document.getElementById('editExpenseModal').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) {
+                document.getElementById('editExpenseModal').classList.remove('active');
+            }
+        });
 
         // ========== دالة تأكيد استلام المرتجع ==========
         window.confirmReturnReceipt = async function(orderId) {
@@ -1182,11 +1124,41 @@
             }
         };
 
-        // ========== تصدير Excel ==========
+        // ========== تصدير Excel (مع المصروفات حسب الفلتر) ==========
         window.exportToExcel = () => {
+            const filterVal = document.getElementById("monthFilter").value;
+            
+            // تحديد الطلبات المفلترة
+            let ordersToExport = allDeliveredOrders;
+            if (filterVal !== "all") {
+                const [year, month] = filterVal.split('-');
+                ordersToExport = allDeliveredOrders.filter(o => {
+                    const date = o.deliveredAt?.toDate?.() || o.createdAt?.toDate?.();
+                    return date && date.getFullYear() == year && (date.getMonth()+1) == month;
+                });
+            }
+            
+            // تحديد المصروفات المفلترة
+            let expensesToExport = allExpenses;
+            if (filterVal !== "all") {
+                const [year, month] = filterVal.split('-');
+                expensesToExport = allExpenses.filter(exp => {
+                    const date = exp.createdAt?.toDate?.();
+                    return date && date.getFullYear() == year && (date.getMonth()+1) == month;
+                });
+            }
+
             const rows = [];
+            // عنوان التقرير
+            const monthName = filterVal === "all" ? "كل الشهور" : 
+                new Date(filterVal.split('-')[0], parseInt(filterVal.split('-')[1])-1)
+                .toLocaleDateString('ar-EG', { year:'numeric', month:'long' });
+            rows.push([`تقرير أرباح VANTÉ - ${monthName}`]);
+            rows.push([]);
+            
+            // جدول الطلبات
             rows.push(['رقم الطلب', 'العميل', 'المحافظة', 'المدينة', 'تاريخ التسليم الفعلي', 'المنتجات', 'الإجمالي', 'تكلفة المنتجات', 'تكلفة الشحن', 'صافي الربح']);
-            allDeliveredOrders.forEach(o => {
+            ordersToExport.forEach(o => {
                 const details = Array.isArray(o.orderDetails) ? o.orderDetails : [];
                 const productsStr = details.map(item => `${item.name}(${item.size})x${item.qty}`).join(', ');
                 const deliveryDate = o.deliveredAt?.toDate?.() || o.createdAt?.toDate?.() || new Date();
@@ -1200,10 +1172,27 @@
                     (o.finalTotal - (o.totalCost||0) - (o.shippingCostPaid||0)).toFixed(2)
                 ]);
             });
+
+            // إضافة سطر فارغ ثم المصروفات
+            rows.push([]);
+            rows.push(['ملخص المصروفات']);
+            rows.push(['التاريخ', 'الوصف', 'المبلغ']);
+            expensesToExport.forEach(exp => {
+                const date = exp.createdAt?.toDate?.() || new Date();
+                rows.push([
+                    date.toLocaleDateString('ar-EG'),
+                    exp.description || '-',
+                    Number(exp.amount || 0).toFixed(2)
+                ]);
+            });
+            // إجمالي المصروفات
+            const totalExp = expensesToExport.reduce((sum, e) => sum + Number(e.amount || 0), 0);
+            rows.push(['', 'إجمالي المصروفات', totalExp.toFixed(2)]);
+
             const ws = XLSX.utils.aoa_to_sheet(rows);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "الأرباح");
-            XLSX.writeFile(wb, `profits_${new Date().toISOString().slice(0,10)}.xlsx`);
+            XLSX.writeFile(wb, `profits_${filterVal === "all" ? "all" : filterVal}_${new Date().toISOString().slice(0,10)}.xlsx`);
         };
 
         // ========== دوال مساعدة ==========
@@ -1230,6 +1219,11 @@
         }
         window.loadData = loadData;
 
+        // ========== مراقبة تغيير فلتر الشهر ==========
+        document.getElementById("monthFilter").addEventListener("change", function() {
+            applyFilters();
+        });
+
         // ========== بدء التشغيل ==========
         onAuthStateChanged(auth, (user) => {
             if (user) {
@@ -1241,7 +1235,7 @@
             }
         });
 
-        console.log("✅ موديول الأرباح جاهز");
+        console.log("✅ موديول الأرباح جاهز (نسخة جبارة)");
     </script>
 
 </body>
