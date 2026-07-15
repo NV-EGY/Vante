@@ -1,6 +1,23 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
+  <!-- Meta Pixel Code -->
+<script>
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '1308435801159792'); // استبدل الرقم برقم البكسل الخاص بك
+fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id=PUT_YOUR_PIXEL_ID_HERE&ev=PageView&noscript=1"
+/></noscript>
+<!-- End Meta Pixel Code -->
     <meta charset="UTF-8">
     <meta name="description" content="اكتشفي تشكيلة فانتي VANTÉ الفاخرة من الإكسسوارات الحريمي المصنوعة من الدهب الاستانلس. خواتم، سلاسل، أساور، حلقان بجودة ممتازة وأسعار تنافسية. تسوقي الآن واستمتعي بخصومات حصرية.">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -5792,6 +5809,15 @@ if (typeof updateCart === 'function') updateCart();
         }
     }
     
+    fbq('track', 'AddToCart', {
+    content_name: name,
+    content_category: product.category || 'general',
+    content_ids: [productId],
+    content_type: 'product',
+    value: price,
+    currency: 'EGP'
+});
+    
     const existing = cart.find(item => item.name === name && item.size === size);
     const productComparePrice = comparePrice !== null ? comparePrice : (allProducts.find(p => p.id === productId)?.comparePrice || null);
     
@@ -5944,7 +5970,22 @@ window.closeCart = () => {
     document.getElementById("overlay").classList.remove("active"); 
     document.body.style.overflow = '';
 };
-window.openCheckout = () => { document.getElementById("checkoutModal").classList.add("active"); document.getElementById("overlay").classList.add("active"); };
+window.openCheckout = function() {
+    document.getElementById("checkoutModal").classList.add("active");
+    document.getElementById("overlay").classList.add("active");
+    
+    // ✅ حدث InitiateCheckout
+    fbq('track', 'InitiateCheckout', {
+        content_ids: cart.map(item => item.productId || 'unknown'),
+        contents: cart.map(item => ({
+            id: item.productId || 'unknown',
+            quantity: item.qty
+        })),
+        value: cart.reduce((sum, item) => sum + (item.price * item.qty), 0),
+        currency: 'EGP',
+        num_items: cart.length
+    });
+};
 window.closeCheckout = () => { document.getElementById("checkoutModal").classList.remove("active"); document.getElementById("overlay").classList.remove("active"); };
 // ========== الدفع مع مودال تأكيد احترافي ==========
 window.checkout = async function () {
@@ -6082,6 +6123,18 @@ async function executeCheckout() {
             const msgDiv = document.getElementById("shippingDiscountMessage");
             if (msgDiv) msgDiv.style.display = "block";
         }
+        // ✅ حدث Purchase
+fbq('track', 'Purchase', {
+    content_ids: cart.map(item => item.productId || 'unknown'),
+    contents: cart.map(item => ({
+        id: item.productId || 'unknown',
+        quantity: item.qty
+    })),
+    value: finalTotalAfter,
+    currency: 'EGP',
+    num_items: cart.length,
+    order_id: orderID
+});
         
         // ========== 4. حساب الإجمالي النهائي ==========
         const finalTotalBefore = subtotal + customerShippingFee;
@@ -6969,6 +7022,16 @@ window.lightboxNav = function(direction) {
 
 // تحديث openProduct لربط lightbox
 window.openProduct = function(id, name, price, image, sizes = [], description = "") {
+        // داخل دالة openProduct
+fbq('track', 'ViewContent', {
+    content_name: name,
+    content_category: product.category || 'general',
+    content_ids: [id],
+    content_type: 'product',
+    value: price,
+    currency: 'EGP'
+});
+
   // إعادة تعيين موضع التمرير إلى الأعلى
 const modalContent = document.querySelector("#productModal .modal-content");
 if (modalContent) modalContent.scrollTop = 0;
