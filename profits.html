@@ -580,23 +580,29 @@
         let editingExpenseId = null;
 
         // ========== تحميل الطلبات المسلمة (مرتبة حسب تاريخ التسليم الفعلي) ==========
-        function loadDeliveredOrders() {
-            const q = query(collection(db, "orders"), where("status", "==", "delivered"));
-            onSnapshot(q, (snap) => {
-                allDeliveredOrders = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                // ✅ ترتيب تنازلي حسب تاريخ التسليم الفعلي (deliveredAt) أو updatedAt أو createdAt
-                allDeliveredOrders.sort((a, b) => {
-                    const dateA = a.deliveredAt?.toDate?.() || a.updatedAt?.toDate?.() || a.createdAt?.toDate?.() || new Date(0);
-                    const dateB = b.deliveredAt?.toDate?.() || b.updatedAt?.toDate?.() || b.createdAt?.toDate?.() || new Date(0);
-                    return dateB - dateA;
-                });
-                populateMonthFilter();
-                applyFilters();
-            }, (error) => {
-                console.error("❌ خطأ في تحميل المسلمة:", error);
-                document.getElementById("ordersList").innerHTML = `<tr><td colspan="10">⚠️ خطأ في تحميل البيانات: ${error.message}</td></tr>`;
-            });
-        }
+        // ========== تحميل الطلبات المسلمة (مرتبة حسب تاريخ التسليم الفعلي) ==========
+function loadDeliveredOrders() {
+    const q = query(collection(db, "orders"), where("status", "==", "delivered"));
+    onSnapshot(q, (snap) => {
+        allDeliveredOrders = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        
+        // ✅ ترتيب تنازلي حسب تاريخ التسليم الفعلي (deliveredAt أو updatedAt)
+        allDeliveredOrders.sort((a, b) => {
+            // استخدام deliveredAt إن وجد، وإلا updatedAt
+            const getDate = (order) => {
+                if (order.deliveredAt?.toDate) return order.deliveredAt.toDate();
+                if (order.updatedAt?.toDate) return order.updatedAt.toDate();
+                return order.createdAt?.toDate?.() || new Date(0);
+            };
+            return getDate(b) - getDate(a);
+        });
+        populateMonthFilter();
+        applyFilters();
+    }, (error) => {
+        console.error("❌ خطأ في تحميل المسلمة:", error);
+        document.getElementById("ordersList").innerHTML = `<tr><td colspan="10">⚠️ خطأ في تحميل البيانات: ${error.message}</td></tr>`;
+    });
+}
 
         // ========== تحميل المرتجعات المعلقة ==========
         function loadPendingReturns() {
@@ -639,19 +645,25 @@
         }
 
         // ========== دالة تطبيق الفلتر على الطلبات والمصروفات معاً ==========
-        function applyFilters() {
-            const filterVal = document.getElementById("monthFilter").value;
-            
-            // 1. فلترة الطلبات حسب الشهر (باستخدام deliveredAt أو updatedAt أو createdAt)
-            let filteredOrders = allDeliveredOrders;
-            if (filterVal !== "all") {
-                const [year, month] = filterVal.split('-');
-                filteredOrders = allDeliveredOrders.filter(o => {
-                    const date = o.deliveredAt?.toDate?.() || o.updatedAt?.toDate?.() || o.createdAt?.toDate?.();
-                    return date && date.getFullYear() == year && (date.getMonth()+1) == month;
-                });
-            }
-            renderDeliveredOrders(filteredOrders);
+        // ========== دالة تطبيق الفلتر على الطلبات والمصروفات معاً ==========
+function applyFilters() {
+    const filterVal = document.getElementById("monthFilter").value;
+    
+    // 1. فلترة الطلبات حسب الشهر (باستخدام deliveredAt أو updatedAt)
+    let filteredOrders = allDeliveredOrders;
+    if (filterVal !== "all") {
+        const [year, month] = filterVal.split('-');
+        filteredOrders = allDeliveredOrders.filter(o => {
+            // استخدام deliveredAt إن وجد، وإلا updatedAt
+            let date = null;
+            if (o.deliveredAt?.toDate) date = o.deliveredAt.toDate();
+            else if (o.updatedAt?.toDate) date = o.updatedAt.toDate();
+            else date = o.createdAt?.toDate?.();
+            return date && date.getFullYear() == year && (date.getMonth()+1) == month;
+        });
+    }
+    renderDeliveredOrders(filteredOrders);
+
 
             // 2. فلترة المصروفات حسب نفس الشهر
             let filteredExpenses = allExpenses;
@@ -711,47 +723,65 @@
         }
 
         // ========== عرض الطلبات المسلمة (مع تاريخ التسليم الفعلي) ==========
-        function renderDeliveredOrders(orders) {
-            const tbody = document.getElementById("ordersList");
-            if (orders.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="10">📭 لا توجد طلبات مسلمة في هذه الفترة</td></tr>`;
-                return;
-            }
-            let html = '';
-            orders.forEach(o => {
-                const details = Array.isArray(o.orderDetails) ? o.orderDetails : [];
-                const productsStr = details.map(item => `${item.name} (${item.size}) x${item.qty}`).join(', ');
-                const totalCost = o.totalCost || 0;
-                const shippingCostPaid = o.shippingCostPaid || 0;
-                const finalTotal = o.finalTotal || 0;
-                const profit = (finalTotal - totalCost - shippingCostPaid).toFixed(2);
-                const profitClass = parseFloat(profit) >= 0 ? 'profit-positive' : 'profit-negative';
-                
-                // ✅ استخدام deliveredAt إن وجد، وإلا updatedAt، وإلا createdAt
-                let deliveryDate = o.deliveredAt?.toDate?.() || o.updatedAt?.toDate?.() || o.createdAt?.toDate?.() || new Date();
-                let isFallback = !o.deliveredAt;
-                const deliveryDateStr = deliveryDate.toLocaleDateString('ar-EG', {
-                    year: 'numeric', month: 'short', day: 'numeric',
-                    hour: '2-digit', minute: '2-digit'
-                });
-                const badgeClass = isFallback ? 'delivery-date-badge fallback' : 'delivery-date-badge';
-                const badgeTitle = isFallback ? '⚠️ تاريخ الإنشاء (غير متوفر تاريخ تسليم فعلي)' : '✅ تاريخ التسليم الفعلي';
-                
-                html += `<tr>
-                    <td><strong>${o.orderID}</strong></td>
-                    <td>${o.customerName || '-'}</td>
-                    <td>${o.gov || '-'}</td>
-                    <td>${o.city || '-'}</td>
-                    <td><span class="${badgeClass}" title="${badgeTitle}">${deliveryDateStr}</span></td>
-                    <td class="detail-cell" title="${productsStr}">${productsStr || '-'}</td>
-                    <td>${finalTotal.toFixed(2)}</td>
-                    <td>${totalCost.toFixed(2)}</td>
-                    <td>${shippingCostPaid.toFixed(2)}</td>
-                    <td class="${profitClass}">${profit}</td>
-                </tr>`;
-            });
-            tbody.innerHTML = html;
+        // ========== عرض الطلبات المسلمة (مع تاريخ التسليم الفعلي) ==========
+function renderDeliveredOrders(orders) {
+    const tbody = document.getElementById("ordersList");
+    if (orders.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="10">📭 لا توجد طلبات مسلمة في هذه الفترة</td></tr>`;
+        return;
+    }
+    let html = '';
+    orders.forEach(o => {
+        const details = Array.isArray(o.orderDetails) ? o.orderDetails : [];
+        const productsStr = details.map(item => `${item.name} (${item.size}) x${item.qty}`).join(', ');
+        const totalCost = o.totalCost || 0;
+        const shippingCostPaid = o.shippingCostPaid || 0;
+        const finalTotal = o.finalTotal || 0;
+        const profit = (finalTotal - totalCost - shippingCostPaid).toFixed(2);
+        const profitClass = parseFloat(profit) >= 0 ? 'profit-positive' : 'profit-negative';
+        
+        // ✅ استخدام timestamp من وقت تغيير الحالة إلى delivered
+        // نقارن بين createdAt و updatedAt، لأن updatedAt هو وقت آخر تعديل (تغيير الحالة)
+        let deliveryDate;
+        let isFallback = false;
+        
+        // ✅ إذا كان الطلب فيه deliveredAt (مضاف من admin-order عند تغيير الحالة)
+        if (o.deliveredAt?.toDate) {
+            deliveryDate = o.deliveredAt.toDate();
         }
+        // ✅ وإلا نستخدم updatedAt (آخر تعديل على الطلب)
+        else if (o.updatedAt?.toDate) {
+            deliveryDate = o.updatedAt.toDate();
+            isFallback = true;
+        }
+        // ✅ وإلا نستخدم createdAt (تاريخ الإنشاء - حل أخير)
+        else {
+            deliveryDate = o.createdAt?.toDate?.() || new Date();
+            isFallback = true;
+        }
+        
+        const deliveryDateStr = deliveryDate.toLocaleDateString('ar-EG', {
+            year: 'numeric', month: 'short', day: 'numeric',
+            hour: '2-digit', minute: '2-digit'
+        });
+        const badgeClass = isFallback ? 'delivery-date-badge fallback' : 'delivery-date-badge';
+        const badgeTitle = isFallback ? '⚠️ تاريخ آخر تحديث (غير متوفر تاريخ تسليم فعلي)' : '✅ تاريخ التسليم الفعلي';
+        
+        html += `<tr>
+            <td><strong>${o.orderID}</strong></td>
+            <td>${o.customerName || '-'}</td>
+            <td>${o.gov || '-'}</td>
+            <td>${o.city || '-'}</td>
+            <td><span class="${badgeClass}" title="${badgeTitle}">${deliveryDateStr}</span></td>
+            <td class="detail-cell" title="${productsStr}">${productsStr || '-'}</td>
+            <td>${finalTotal.toFixed(2)}</td>
+            <td>${totalCost.toFixed(2)}</td>
+            <td>${shippingCostPaid.toFixed(2)}</td>
+            <td class="${profitClass}">${profit}</td>
+        </tr>`;
+    });
+    tbody.innerHTML = html;
+}
 
         // ========== عرض المرتجعات المعلقة ==========
         function renderPendingReturns() {
@@ -1130,17 +1160,21 @@
         };
 
         // ========== تصدير Excel ==========
-        window.exportToExcel = () => {
-            const filterVal = document.getElementById("monthFilter").value;
-            
-            let ordersToExport = allDeliveredOrders;
-            if (filterVal !== "all") {
-                const [year, month] = filterVal.split('-');
-                ordersToExport = allDeliveredOrders.filter(o => {
-                    const date = o.deliveredAt?.toDate?.() || o.updatedAt?.toDate?.() || o.createdAt?.toDate?.();
-                    return date && date.getFullYear() == year && (date.getMonth()+1) == month;
-                });
-            }
+        // ========== تصدير Excel ==========
+window.exportToExcel = () => {
+    const filterVal = document.getElementById("monthFilter").value;
+    
+    let ordersToExport = allDeliveredOrders;
+    if (filterVal !== "all") {
+        const [year, month] = filterVal.split('-');
+        ordersToExport = allDeliveredOrders.filter(o => {
+            let date = null;
+            if (o.deliveredAt?.toDate) date = o.deliveredAt.toDate();
+            else if (o.updatedAt?.toDate) date = o.updatedAt.toDate();
+            else date = o.createdAt?.toDate?.();
+            return date && date.getFullYear() == year && (date.getMonth()+1) == month;
+        });
+    }
             
             let expensesToExport = allExpenses;
             if (filterVal !== "all") {
