@@ -6128,19 +6128,6 @@ async function executeCheckout() {
         const finalTotalBefore = subtotal + customerShippingFee;
         const finalTotalAfter = 
         finalTotalBefore - savedDiscount;
-        
-                // ✅ حدث Purchase
-fbq('track', 'Purchase', {
-    content_ids: cart.map(item => item.productId || 'unknown'),
-    contents: cart.map(item => ({
-        id: item.productId || 'unknown',
-        quantity: item.qty
-    })),
-    value: finalTotalAfter,
-    currency: 'EGP',
-    num_items: cart.length,
-    order_id: orderID
-});
         // ========== 5. إنشاء رقم الطلب وبيانات العميل ==========
         const ordersRef = collection(db, "orders");
         const today = new Date();
@@ -6198,6 +6185,19 @@ fbq('track', 'Purchase', {
             return sum + (item.qty * (product?.costPrice || 0));
         }, 0);
         
+                        // ✅ حدث Purchase
+fbq('track', 'Purchase', {
+    content_ids: cart.map(item => item.productId || 'unknown'),
+    contents: cart.map(item => ({
+        id: item.productId || 'unknown',
+        quantity: item.qty
+    })),
+    value: finalTotalAfter,
+    currency: 'EGP',
+    num_items: cart.length,
+    order_id: orderID
+});
+        
         // ========== 7. بناء رسالة واتساب ==========
         let message = `🛍️ طلب جديد - VANTÉ\n\n`;
         message += `📦 رقم الطلب: ${orderID}\n`;
@@ -6224,7 +6224,6 @@ fbq('track', 'Purchase', {
             message += `💰 الإجمالي: ${finalTotalBefore} جنيه\n`;
         }
         
-        // ========== 8. حفظ الطلب في Firestore ==========
         // ========== 8. حفظ الطلب في Firestore ==========
 const orderData = {
     orderID,
