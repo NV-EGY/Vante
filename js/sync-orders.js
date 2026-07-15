@@ -253,11 +253,12 @@ async function createOrderInQP(orderData) {
 
         const result = await response.json();
         await updateDoc(doc(db, "orders", orderData.id), {
-            qpSerial: result.serial,
-            qpStatus: result.Order_Delivery_Status || "Pending",
-            qpLastSync: serverTimestamp(),
-            qpDeleted: false
-        });
+    qpSerial: result.serial,
+    qpStatus: result.Order_Delivery_Status || "Pending",
+    qpLastSync: serverTimestamp(),
+    qpDeleted: false,
+    updatedAt: serverTimestamp()  // ✅ أضف هذا السطر
+});
 
         console.log(`✅ تم إنشاء الطلب في QP برقم: ${result.serial}`);
         return result;
@@ -379,16 +380,22 @@ async function processUpdates(updates) {
             }
 
             const updateData = {
-                status: newStatus,
-                qpStatus: new_value,
-                qpLastSync: serverTimestamp(),
-                shippingCostPaid: newShippingCostPaid
-            };
+    status: newStatus,
+    qpStatus: new_value,
+    qpLastSync: serverTimestamp(),
+    shippingCostPaid: newShippingCostPaid,
+    updatedAt: serverTimestamp()  // ✅ أضف هذا السطر
+};
 
-            if (notesToAdd) updateData.notes = notesToAdd;
-            if (new_value === "Undelivered") updateData.shippingExempted = true;
+// ✅ إذا كانت الحالة الجديدة delivered، نضيف deliveredAt
+if (new_value === "Delivered") {
+    updateData.deliveredAt = serverTimestamp();
+}
 
-            await updateDoc(doc(db, "orders", orderId), updateData);
+if (notesToAdd) updateData.notes = notesToAdd;
+if (new_value === "Undelivered") updateData.shippingExempted = true;
+
+await updateDoc(doc(db, "orders", orderId), updateData);
 
             // ✅ تسجيل الحدث في Audit Log
             await logAuditEvent({
