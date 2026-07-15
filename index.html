@@ -8044,53 +8044,19 @@ console.log('✅ تم تفعيل تحديث الحالات التلقائي في
         }
     }, 500);
 })();
-</script>
-<!-- ============================================================ -->
-<!-- ========== META PIXEL - التهيئة الآمنة والموحدة ========== -->
+</script><!-- ============================================================ -->
+<!-- ========== META PIXEL - التهيئة المتكاملة ========== -->
 <!-- ============================================================ -->
 <script>
 (function() {
     'use strict';
 
-    // ==========================================
-    // 1. تهيئة البيكسل (مرة واحدة فقط) - بالـ ID الجديد
-    // ==========================================
     const PIXEL_ID = '1361900332752731';
 
-    function initPixel() {
-        if (typeof fbq !== 'undefined' && !window._fbq_initialized) {
-            window._fbq_initialized = true;
-            fbq('init', PIXEL_ID);
-            fbq('track', 'PageView');
-            console.log('✅ [Pixel] تم التهيئة بنجاح - ID:', PIXEL_ID);
-            return true;
-        }
-        return false;
-    }
-
-    // محاولة التهيئة فوراً
-    if (!initPixel()) {
-        let attempts = 0;
-        const maxAttempts = 20;
-        const interval = setInterval(() => {
-            attempts++;
-            if (initPixel()) {
-                clearInterval(interval);
-            } else if (attempts >= maxAttempts) {
-                clearInterval(interval);
-                console.warn('⚠️ [Pixel] لم يتم تحميل SDK');
-            }
-        }, 300);
-    }
-
-    // ==========================================
-    // 2. دالة آمنة لتتبع الأحداث
-    // ==========================================
+    // ===== دالة آمنة لتتبع الأحداث =====
     window.trackPixelEvent = function(eventName, data = {}) {
         if (typeof fbq === 'undefined') {
-            console.warn(`⚠️ [Pixel] حدث ${eventName} لم يتم إرساله - SDK غير جاهز`);
-            if (!window._pendingPixelEvents) window._pendingPixelEvents = [];
-            window._pendingPixelEvents.push({ eventName, data, timestamp: Date.now() });
+            console.warn(`⚠️ [Pixel] ${eventName} - SDK غير جاهز`);
             return false;
         }
         try {
@@ -8098,30 +8064,12 @@ console.log('✅ تم تفعيل تحديث الحالات التلقائي في
             console.log(`✅ [Pixel] ${eventName}`, data);
             return true;
         } catch (e) {
-            console.error(`❌ [Pixel] فشل إرسال ${eventName}:`, e);
+            console.error(`❌ [Pixel] فشل ${eventName}:`, e);
             return false;
         }
     };
 
-    function flushPendingEvents() {
-        if (!window._pendingPixelEvents || window._pendingPixelEvents.length === 0) return;
-        if (typeof fbq === 'undefined') return;
-
-        const pending = window._pendingPixelEvents;
-        window._pendingPixelEvents = [];
-        pending.forEach(event => {
-            if (Date.now() - event.timestamp < 60000) {
-                trackPixelEvent(event.eventName, event.data);
-            }
-        });
-    }
-
-    setInterval(flushPendingEvents, 3000);
-
-    // ==========================================
-    // 3. تعريف الأحداث الموحدة
-    // ==========================================
-
+    // ===== الأحداث =====
     window.trackViewContent = function(product) {
         if (!product) return;
         trackPixelEvent('ViewContent', {
@@ -8176,10 +8124,8 @@ console.log('✅ تم تفعيل تحديث الحالات التلقائي في
         });
     };
 
-    // ==========================================
-    // 4. ربط الأحداث بالدوال الأصلية
-    // ==========================================
-
+    // ===== ربط الدوال =====
+    // 1. ViewContent - عند فتح منتج
     const originalOpenProduct = window.openProduct;
     if (originalOpenProduct) {
         window.openProduct = function(id, name, price, image, sizes, description) {
@@ -8190,6 +8136,7 @@ console.log('✅ تم تفعيل تحديث الحالات التلقائي في
         };
     }
 
+    // 2. AddToCart - عند إضافة للسلة
     const originalAddToCart = window.addToCart;
     if (originalAddToCart) {
         window.addToCart = function(name, price, size, image, comparePrice, productId, sku) {
@@ -8202,6 +8149,7 @@ console.log('✅ تم تفعيل تحديث الحالات التلقائي في
         };
     }
 
+    // 3. InitiateCheckout - عند فتح الدفع
     const originalOpenCheckout = window.openCheckout;
     if (originalOpenCheckout) {
         window.openCheckout = function() {
@@ -8213,6 +8161,7 @@ console.log('✅ تم تفعيل تحديث الحالات التلقائي في
         };
     }
 
+    // 4. Purchase - عند تأكيد الطلب
     const originalExecuteCheckout = window.executeCheckout;
     if (originalExecuteCheckout) {
         window.executeCheckout = async function() {
@@ -8230,7 +8179,7 @@ console.log('✅ تم تفعيل تحديث الحالات التلقائي في
         };
     }
 
-    console.log('✅ [Pixel] تم تهيئة جميع الأحداث بنجاح - ID:', PIXEL_ID);
+    console.log('✅ [Pixel] جاهز - ID:', PIXEL_ID);
 })();
 </script>
 </body>
