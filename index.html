@@ -1,6 +1,23 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
+  <!-- Meta Pixel Code -->
+<script>
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '1361900332752731');
+fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id=1361900332752731&ev=PageView&noscript=1"
+/></noscript>
+<!-- End Meta Pixel Code -->
     <meta charset="UTF-8">
     <meta name="description" content="اكتشفي تشكيلة فانتي VANTÉ الفاخرة من الإكسسوارات الحريمي المصنوعة من الدهب الاستانلس. خواتم، سلاسل، أساور، حلقان بجودة ممتازة وأسعار تنافسية. تسوقي الآن واستمتعي بخصومات حصرية.">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -27,25 +44,6 @@
         window.location.href = "desktop.html";
     }
 </script>
-    
-    <!-- Meta Pixel Code -->
-<script>
-!function(f,b,e,v,n,t,s)
-{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-n.queue=[];t=b.createElement(e);t.async=!0;
-t.src=v;s=b.getElementsByTagName(e)[0];
-s.parentNode.insertBefore(t,s)}(window, document,'script',
-'https://connect.facebook.net/en_US/fbevents.js');
-fbq('init', '1361900332752731');
-fbq('track', 'PageView');
-</script>
-<noscript><img height="1" width="1" style="display:none"
-src="https://www.facebook.com/tr?id=1361900332752731&ev=PageView&noscript=1"
-/></noscript>
-<!-- End Meta Pixel Code -->
-    
  <!-- Favicon - الحل النهائي المضمون -->
 <link rel="icon" type="image/png" sizes="32x32" href="images/favicon.png">
 <link rel="icon" type="image/png" sizes="16x16" href="images/favicon.png">
@@ -5811,15 +5809,6 @@ if (typeof updateCart === 'function') updateCart();
         }
     }
     
-    fbq('track', 'AddToCart', {
-    content_name: name,
-    content_category: product.category || 'general',
-    content_ids: [productId],
-    content_type: 'product',
-    value: price,
-    currency: 'EGP'
-});
-    
     const existing = cart.find(item => item.name === name && item.size === size);
     const productComparePrice = comparePrice !== null ? comparePrice : (allProducts.find(p => p.id === productId)?.comparePrice || null);
     
@@ -5972,22 +5961,7 @@ window.closeCart = () => {
     document.getElementById("overlay").classList.remove("active"); 
     document.body.style.overflow = '';
 };
-window.openCheckout = function() {
-    document.getElementById("checkoutModal").classList.add("active");
-    document.getElementById("overlay").classList.add("active");
-    
-    // ✅ حدث InitiateCheckout
-    fbq('track', 'InitiateCheckout', {
-        content_ids: cart.map(item => item.productId || 'unknown'),
-        contents: cart.map(item => ({
-            id: item.productId || 'unknown',
-            quantity: item.qty
-        })),
-        value: cart.reduce((sum, item) => sum + (item.price * item.qty), 0),
-        currency: 'EGP',
-        num_items: cart.length
-    });
-};
+window.openCheckout = () => { document.getElementById("checkoutModal").classList.add("active"); document.getElementById("overlay").classList.add("active"); };
 window.closeCheckout = () => { document.getElementById("checkoutModal").classList.remove("active"); document.getElementById("overlay").classList.remove("active"); };
 // ========== الدفع مع مودال تأكيد احترافي ==========
 window.checkout = async function () {
@@ -6128,8 +6102,8 @@ async function executeCheckout() {
         
         // ========== 4. حساب الإجمالي النهائي ==========
         const finalTotalBefore = subtotal + customerShippingFee;
-        const finalTotalAfter = 
-        finalTotalBefore - savedDiscount;
+        const finalTotalAfter = finalTotalBefore - savedDiscount;
+        
         // ========== 5. إنشاء رقم الطلب وبيانات العميل ==========
         const ordersRef = collection(db, "orders");
         const today = new Date();
@@ -6187,19 +6161,6 @@ async function executeCheckout() {
             return sum + (item.qty * (product?.costPrice || 0));
         }, 0);
         
-                        // ✅ حدث Purchase
-fbq('track', 'Purchase', {
-    content_ids: cart.map(item => item.productId || 'unknown'),
-    contents: cart.map(item => ({
-        id: item.productId || 'unknown',
-        quantity: item.qty
-    })),
-    value: finalTotalAfter,
-    currency: 'EGP',
-    num_items: cart.length,
-    order_id: orderID
-});
-        
         // ========== 7. بناء رسالة واتساب ==========
         let message = `🛍️ طلب جديد - VANTÉ\n\n`;
         message += `📦 رقم الطلب: ${orderID}\n`;
@@ -6226,6 +6187,7 @@ fbq('track', 'Purchase', {
             message += `💰 الإجمالي: ${finalTotalBefore} جنيه\n`;
         }
         
+        // ========== 8. حفظ الطلب في Firestore ==========
         // ========== 8. حفظ الطلب في Firestore ==========
 const orderData = {
     orderID,
@@ -7024,16 +6986,6 @@ window.lightboxNav = function(direction) {
 
 // تحديث openProduct لربط lightbox
 window.openProduct = function(id, name, price, image, sizes = [], description = "") {
-        // داخل دالة openProduct
-fbq('track', 'ViewContent', {
-    content_name: name,
-    content_category: product.category || 'general',
-    content_ids: [id],
-    content_type: 'product',
-    value: price,
-    currency: 'EGP'
-});
-
   // إعادة تعيين موضع التمرير إلى الأعلى
 const modalContent = document.querySelector("#productModal .modal-content");
 if (modalContent) modalContent.scrollTop = 0;
@@ -8091,6 +8043,194 @@ console.log('✅ تم تفعيل تحديث الحالات التلقائي في
             console.warn('⚠️ لم يتم تحميل المنتجات لتحديد المنتج المطلوب');
         }
     }, 500);
+})();
+</script>
+<!-- ============================================================ -->
+<!-- ========== META PIXEL - التهيئة الآمنة والموحدة ========== -->
+<!-- ============================================================ -->
+<script>
+(function() {
+    'use strict';
+
+    // ==========================================
+    // 1. تهيئة البيكسل (مرة واحدة فقط) - بالـ ID الجديد
+    // ==========================================
+    const PIXEL_ID = '1361900332752731';
+
+    function initPixel() {
+        if (typeof fbq !== 'undefined' && !window._fbq_initialized) {
+            window._fbq_initialized = true;
+            fbq('init', PIXEL_ID);
+            fbq('track', 'PageView');
+            console.log('✅ [Pixel] تم التهيئة بنجاح - ID:', PIXEL_ID);
+            return true;
+        }
+        return false;
+    }
+
+    // محاولة التهيئة فوراً
+    if (!initPixel()) {
+        let attempts = 0;
+        const maxAttempts = 20;
+        const interval = setInterval(() => {
+            attempts++;
+            if (initPixel()) {
+                clearInterval(interval);
+            } else if (attempts >= maxAttempts) {
+                clearInterval(interval);
+                console.warn('⚠️ [Pixel] لم يتم تحميل SDK');
+            }
+        }, 300);
+    }
+
+    // ==========================================
+    // 2. دالة آمنة لتتبع الأحداث
+    // ==========================================
+    window.trackPixelEvent = function(eventName, data = {}) {
+        if (typeof fbq === 'undefined') {
+            console.warn(`⚠️ [Pixel] حدث ${eventName} لم يتم إرساله - SDK غير جاهز`);
+            if (!window._pendingPixelEvents) window._pendingPixelEvents = [];
+            window._pendingPixelEvents.push({ eventName, data, timestamp: Date.now() });
+            return false;
+        }
+        try {
+            fbq('track', eventName, data);
+            console.log(`✅ [Pixel] ${eventName}`, data);
+            return true;
+        } catch (e) {
+            console.error(`❌ [Pixel] فشل إرسال ${eventName}:`, e);
+            return false;
+        }
+    };
+
+    function flushPendingEvents() {
+        if (!window._pendingPixelEvents || window._pendingPixelEvents.length === 0) return;
+        if (typeof fbq === 'undefined') return;
+
+        const pending = window._pendingPixelEvents;
+        window._pendingPixelEvents = [];
+        pending.forEach(event => {
+            if (Date.now() - event.timestamp < 60000) {
+                trackPixelEvent(event.eventName, event.data);
+            }
+        });
+    }
+
+    setInterval(flushPendingEvents, 3000);
+
+    // ==========================================
+    // 3. تعريف الأحداث الموحدة
+    // ==========================================
+
+    window.trackViewContent = function(product) {
+        if (!product) return;
+        trackPixelEvent('ViewContent', {
+            content_name: product.name || '',
+            content_category: product.category || 'general',
+            content_ids: [product.id || 'unknown'],
+            content_type: 'product',
+            value: product.price || 0,
+            currency: 'EGP'
+        });
+    };
+
+    window.trackAddToCart = function(product, quantity = 1) {
+        if (!product) return;
+        trackPixelEvent('AddToCart', {
+            content_name: product.name || '',
+            content_category: product.category || 'general',
+            content_ids: [product.id || 'unknown'],
+            content_type: 'product',
+            value: (product.price || 0) * quantity,
+            currency: 'EGP',
+            quantity: quantity
+        });
+    };
+
+    window.trackInitiateCheckout = function(cartItems, totalValue) {
+        if (!cartItems || cartItems.length === 0) return;
+        trackPixelEvent('InitiateCheckout', {
+            content_ids: cartItems.map(item => item.productId || 'unknown'),
+            contents: cartItems.map(item => ({
+                id: item.productId || 'unknown',
+                quantity: item.qty || 1
+            })),
+            value: totalValue || 0,
+            currency: 'EGP',
+            num_items: cartItems.length
+        });
+    };
+
+    window.trackPurchase = function(order) {
+        if (!order) return;
+        trackPixelEvent('Purchase', {
+            content_ids: order.items ? order.items.map(item => item.productId || 'unknown') : [],
+            contents: order.items ? order.items.map(item => ({
+                id: item.productId || 'unknown',
+                quantity: item.qty || 1
+            })) : [],
+            value: order.total || 0,
+            currency: 'EGP',
+            num_items: order.items ? order.items.length : 0,
+            order_id: order.orderId || ''
+        });
+    };
+
+    // ==========================================
+    // 4. ربط الأحداث بالدوال الأصلية
+    // ==========================================
+
+    const originalOpenProduct = window.openProduct;
+    if (originalOpenProduct) {
+        window.openProduct = function(id, name, price, image, sizes, description) {
+            const result = originalOpenProduct.apply(this, arguments);
+            const product = window.allProducts?.find(p => p.id === id) || { id, name, price, category: 'general' };
+            window.trackViewContent(product);
+            return result;
+        };
+    }
+
+    const originalAddToCart = window.addToCart;
+    if (originalAddToCart) {
+        window.addToCart = function(name, price, size, image, comparePrice, productId, sku) {
+            const result = originalAddToCart.apply(this, arguments);
+            if (result !== false) {
+                const product = window.allProducts?.find(p => p.id === productId) || { id: productId, name, price, category: 'general' };
+                window.trackAddToCart(product);
+            }
+            return result;
+        };
+    }
+
+    const originalOpenCheckout = window.openCheckout;
+    if (originalOpenCheckout) {
+        window.openCheckout = function() {
+            const result = originalOpenCheckout.apply(this, arguments);
+            const cart = JSON.parse(localStorage.getItem('vante_cart') || '[]');
+            const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            window.trackInitiateCheckout(cart, total);
+            return result;
+        };
+    }
+
+    const originalExecuteCheckout = window.executeCheckout;
+    if (originalExecuteCheckout) {
+        window.executeCheckout = async function() {
+            const cartSnapshot = JSON.parse(localStorage.getItem('vante_cart') || '[]');
+            const total = cartSnapshot.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            const result = await originalExecuteCheckout.apply(this, arguments);
+            if (result !== false) {
+                window.trackPurchase({
+                    items: cartSnapshot,
+                    total: total,
+                    orderId: document.querySelector('.order-id')?.textContent || 'unknown'
+                });
+            }
+            return result;
+        };
+    }
+
+    console.log('✅ [Pixel] تم تهيئة جميع الأحداث بنجاح - ID:', PIXEL_ID);
 })();
 </script>
 </body>
