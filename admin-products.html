@@ -1017,6 +1017,9 @@ h2 {
     <button onclick="clearProductSelection()" class="filter-btn" style="background: #888; color: #fff; width: auto; padding: 8px 16px; border-radius: 30px; font-size: 13px;">
         <i class="fas fa-times"></i> إلغاء التحديد
     </button>
+    <button onclick="copyCSVLink()" class="filter-btn" style="background: #D4AF37; color: #000; width: auto; padding: 8px 16px; border-radius: 30px; font-size: 13px;">
+    <i class="fas fa-copy"></i> نسخ رابط CSV
+</button>
     
     <!-- عداد المحدد -->
     <span id="selectedProductsCount" style="background: #D4AF37; padding: 4px 12px; border-radius: 30px; font-weight: bold; color: #000;">
@@ -2044,6 +2047,24 @@ window.exportSelectedToCSV = function() {
     }
 };
 
+window.copyCSVLink = function() {
+    const SHEET_ID = '1_LptuKmrZNUioUdpZjcE7kkTnuzF_R8ADFRUB2eWU18';
+    const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;
+    
+    navigator.clipboard.writeText(csvUrl).then(() => {
+        customAlert('✅ تم نسخ رابط CSV بنجاح!', 'success');
+    }).catch(() => {
+        // Fallback
+        const textarea = document.createElement('textarea');
+        textarea.value = csvUrl;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        customAlert('✅ تم نسخ رابط CSV بنجاح!', 'success');
+    });
+};
+
 /**
  * فتح المنتجات المحددة في Google Sheets
  */
@@ -2057,15 +2078,26 @@ window.exportSelectedToGoogleSheets = function() {
 
     try {
         const csv = convertProductsToCSV(selected);
-        const encoded = encodeURIComponent(csv);
-        const url = `https://docs.google.com/spreadsheets/create?usp=sheets_home&ths=true&data=${encoded}`;
         
-        window.open(url, '_blank');
+        // ✅ الرابط الثابت بتاعك - استخدم الرابط ده
+        const SHEET_ID = '1_LptuKmrZNUioUdpZjcE7kkTnuzF_R8ADFRUB2eWU18';
+        const sheetUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/edit`;
         
-        const filename = `vante-catalog-selected-${new Date().toISOString().slice(0,10)}.csv`;
+        // 1. نفتح الشيت في علامة تبويب جديدة
+        window.open(sheetUrl, '_blank');
+        
+        // 2. ننزل CSV عشان نرفعه في Commerce Manager
+        const filename = `vante-catalog-${new Date().toISOString().slice(0,10)}.csv`;
         downloadCSV(csv, filename);
         
-        customAlert(`✅ تم تصدير ${selected.length} منتج إلى Google Sheets!`, 'success');
+        // 3. ننسخ الرابط بتاع الـ CSV في الحافظة
+        const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;
+        navigator.clipboard.writeText(csvUrl).then(() => {
+            customAlert(`✅ تم نسخ رابط CSV: ${csvUrl}`, 'success');
+        }).catch(() => {
+            customAlert(`✅ تم التصدير! استخدم الرابط: ${csvUrl}`, 'info');
+        });
+        
     } catch (error) {
         console.error(error);
         customAlert('❌ حدث خطأ: ' + error.message, 'error');
