@@ -2066,7 +2066,7 @@ window.copyCSVLink = function() {
 };
 
 /**
- * فتح المنتجات المحددة في Google Sheets
+ * فتح المنتجات المحددة في Google Sheets (نسخة معدلة)
  */
 window.exportSelectedToGoogleSheets = function() {
     const selected = getSelectedProducts();
@@ -2078,25 +2078,26 @@ window.exportSelectedToGoogleSheets = function() {
 
     try {
         const csv = convertProductsToCSV(selected);
-        
-        // ✅ الرابط الثابت بتاعك - استخدم الرابط ده
         const SHEET_ID = '1_LptuKmrZNUioUdpZjcE7kkTnuzF_R8ADFRUB2eWU18';
-        const sheetUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/edit`;
         
-        // 1. نفتح الشيت في علامة تبويب جديدة
+        // ✅ الطريقة الصحيحة: نفتح الشيت أولاً
+        const sheetUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/edit`;
         window.open(sheetUrl, '_blank');
         
-        // 2. ننزل CSV عشان نرفعه في Commerce Manager
-        const filename = `vante-catalog-${new Date().toISOString().slice(0,10)}.csv`;
+        // ✅ ننزل CSV مع توجيه المستخدم لرفعه
+        const filename = `vante-products-${new Date().toISOString().slice(0,10)}.csv`;
         downloadCSV(csv, filename);
         
-        // 3. ننسخ الرابط بتاع الـ CSV في الحافظة
-        const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;
-        navigator.clipboard.writeText(csvUrl).then(() => {
-            customAlert(`✅ تم نسخ رابط CSV: ${csvUrl}`, 'success');
-        }).catch(() => {
-            customAlert(`✅ تم التصدير! استخدم الرابط: ${csvUrl}`, 'info');
-        });
+        // ✅ نعرض تعليمات للمستخدم
+        customAlert(
+            `✅ تم تحميل CSV يحتوي على ${selected.length} منتج.\n\n` +
+            `📌 الخطوات التالية:\n` +
+            `1. افتح الشيت: ${sheetUrl}\n` +
+            `2. اضغط File → Import → Upload\n` +
+            `3. اختر الملف المحمل\n` +
+            `4. اختار "Replace current sheet"`,
+            'success'
+        );
         
     } catch (error) {
         console.error(error);
