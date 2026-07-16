@@ -1031,9 +1031,6 @@ h2 {
         <i class="fas fa-file-export"></i> 📤 تصدير المحدد (CSV)
     </button>
     
-    <button onclick="exportSelectedToGoogleSheets()" class="primary-btn" style="background: #4285F4; color: #fff; width: auto; padding: 8px 20px; border-radius: 30px;">
-        <i class="fab fa-google"></i> 📊 فتح في Google Sheets
-    </button>
 </div>
     <div id="productsList" class="loading-error">⏳ جاري التحميل...</div>
 </div>
@@ -2063,48 +2060,6 @@ window.copyCSVLink = function() {
         document.body.removeChild(textarea);
         customAlert('✅ تم نسخ رابط CSV بنجاح!', 'success');
     });
-};
-
-/**
- * فتح المنتجات المحددة في Google Sheets - نسخة احترافية
- */
-window.exportSelectedToGoogleSheets = function() {
-    const selected = getSelectedProducts();
-    
-    if (selected.length === 0) {
-        customAlert('⚠️ يرجى تحديد منتج واحد على الأقل!', 'warning');
-        return;
-    }
-
-    try {
-        // 1. تحويل المنتجات إلى CSV
-        const csv = convertProductsToCSV(selected);
-        
-        // 2. تحميل الملف على جهاز المستخدم
-        const filename = `vante-products-${new Date().toISOString().slice(0,10)}.csv`;
-        downloadCSV(csv, filename);
-        
-        // 3. فتح الشيت في علامة تبويب جديدة
-        const SHEET_ID = '1_LptuKmrZNUioUdpZjcE7kkTnuzF_R8ADFRUB2eWU18';
-        const sheetUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/edit`;
-        window.open(sheetUrl, '_blank');
-        
-        // 4. عرض تعليمات واضحة
-        customAlert(
-            `✅ تم تحميل ملف CSV يحتوي على ${selected.length} منتج!\n\n` +
-            `📌 **الخطوات التالية في Google Sheets:**\n` +
-            `1️⃣ افتح تبويب "File" (ملف)\n` +
-            `2️⃣ اختر "Import" (استيراد)\n` +
-            `3️⃣ اضغط "Upload" (رفع) واختر الملف المحمل\n` +
-            `4️⃣ اختار "Replace current sheet" (استبدال الورقة الحالية)\n` +
-            `5️⃣ اضغط "Import data" (استيراد البيانات)`,
-            'success'
-        );
-        
-    } catch (error) {
-        console.error(error);
-        customAlert('❌ حدث خطأ: ' + error.message, 'error');
-    }
 };
 
 /**
