@@ -1007,6 +1007,31 @@ h2 {
         </button>
     </div>
 </div>
+<div style="display: flex; gap: 10px; align-items: center; margin: 10px 0; flex-wrap: wrap;">
+    <!-- زر تحديد الكل -->
+    <button onclick="toggleSelectAllProducts()" class="filter-btn" style="background: #0F7B65; color: #fff; width: auto; padding: 8px 16px; border-radius: 30px; font-size: 13px;">
+        <i class="fas fa-check-double"></i> تحديد الكل
+    </button>
+    
+    <!-- زر إلغاء التحديد -->
+    <button onclick="clearProductSelection()" class="filter-btn" style="background: #888; color: #fff; width: auto; padding: 8px 16px; border-radius: 30px; font-size: 13px;">
+        <i class="fas fa-times"></i> إلغاء التحديد
+    </button>
+    
+    <!-- عداد المحدد -->
+    <span id="selectedProductsCount" style="background: #D4AF37; padding: 4px 12px; border-radius: 30px; font-weight: bold; color: #000;">
+        📦 0 منتج محدد
+    </span>
+    
+    <!-- زر التصدير -->
+    <button onclick="exportSelectedToCSV()" class="primary-btn" style="background: #0F7B65; color: #fff; width: auto; padding: 8px 20px; border-radius: 30px;">
+        <i class="fas fa-file-export"></i> 📤 تصدير المحدد (CSV)
+    </button>
+    
+    <button onclick="exportSelectedToGoogleSheets()" class="primary-btn" style="background: #4285F4; color: #fff; width: auto; padding: 8px 20px; border-radius: 30px;">
+        <i class="fab fa-google"></i> 📊 فتح في Google Sheets
+    </button>
+</div>
     <div id="productsList" class="loading-error">⏳ جاري التحميل...</div>
 </div>
    </div>
@@ -1417,6 +1442,12 @@ function renderFilteredProducts() {
         
         html += `
         <div class="product ${stockStatus.critical ? 'stock-alert ' + stockStatus.status : ''} ${outClass}" style="position: relative;">
+            <!-- ✅ Checkbox التحديد -->
+            <div style="position: absolute; top: 10px; left: 10px; z-index: 5; background: rgba(255,255,255,0.9); border-radius: 8px; padding: 4px 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                <input type="checkbox" class="product-select-checkbox" data-product-id="${product.id}" 
+                       onchange="updateSelectedProductsCount()" 
+                       style="width: 18px; height: 18px; accent-color: #D4AF37; cursor: pointer;">
+            </div>
             ${outOfStockCount > 0 ? `<div class="out-of-stock-badge-count">${outOfStockCount}</div>` : ''}
             <img src="${product.image}" alt="${product.name}" onerror="this.src='https://via.placeholder.com/70'">
             <div class="info">
@@ -1930,6 +1961,186 @@ function toggleFillModeVisibility() {
 }
 modeSelect.addEventListener('change', toggleFillModeVisibility);
 toggleFillModeVisibility();
+
+// ============================================================
+// ========== تحديد المنتجات للتصدير ==========
+// ============================================================
+
+/**
+ * تحديث عدد المنتجات المحددة
+ */
+window.updateSelectedProductsCount = function() {
+    const checkboxes = document.querySelectorAll('.product-select-checkbox:checked');
+    const count = checkboxes.length;
+    const counter = document.getElementById('selectedProductsCount');
+    if (counter) {
+        counter.innerHTML = `📦 ${count} منتج محدد`;
+        counter.style.background = count > 0 ? '#D4AF37' : '#888';
+        counter.style.color = count > 0 ? '#000' : '#fff';
+    }
+    return count;
+};
+
+/**
+ * تحديد/إلغاء تحديد الكل
+ */
+window.toggleSelectAllProducts = function() {
+    const checkboxes = document.querySelectorAll('.product-select-checkbox');
+    const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+    
+    checkboxes.forEach(cb => {
+        cb.checked = !allChecked;
+    });
+    
+    updateSelectedProductsCount();
+    
+    const msg = allChecked ? 'تم إلغاء تحديد الكل' : 'تم تحديد الكل';
+    customAlert(msg, 'info');
+};
+
+/**
+ * إلغاء تحديد الكل
+ */
+window.clearProductSelection = function() {
+    document.querySelectorAll('.product-select-checkbox').forEach(cb => {
+        cb.checked = false;
+    });
+    updateSelectedProductsCount();
+    customAlert('✅ تم إلغاء جميع التحديدات', 'info');
+};
+
+/**
+ * الحصول على المنتجات المحددة
+ */
+function getSelectedProducts() {
+    const selectedIds = [];
+    document.querySelectorAll('.product-select-checkbox:checked').forEach(cb => {
+        selectedIds.push(cb.dataset.productId);
+    });
+    
+    if (!window.allProducts) return [];
+    return window.allProducts.filter(p => selectedIds.includes(p.id));
+}
+
+/**
+ * تصدير المنتجات المحددة إلى CSV
+ */
+window.exportSelectedToCSV = function() {
+    const selected = getSelectedProducts();
+    
+    if (selected.length === 0) {
+        customAlert('⚠️ يرجى تحديد منتج واحد على الأقل للتصدير!', 'warning');
+        return;
+    }
+
+    try {
+        const csv = convertProductsToCSV(selected);
+        const filename = `vante-catalog-selected-${new Date().toISOString().slice(0,10)}.csv`;
+        downloadCSV(csv, filename);
+        customAlert(`✅ تم تصدير ${selected.length} منتج بنجاح!`, 'success');
+    } catch (error) {
+        console.error(error);
+        customAlert('❌ حدث خطأ أثناء التصدير: ' + error.message, 'error');
+    }
+};
+
+/**
+ * فتح المنتجات المحددة في Google Sheets
+ */
+window.exportSelectedToGoogleSheets = function() {
+    const selected = getSelectedProducts();
+    
+    if (selected.length === 0) {
+        customAlert('⚠️ يرجى تحديد منتج واحد على الأقل!', 'warning');
+        return;
+    }
+
+    try {
+        const csv = convertProductsToCSV(selected);
+        const encoded = encodeURIComponent(csv);
+        const url = `https://docs.google.com/spreadsheets/create?usp=sheets_home&ths=true&data=${encoded}`;
+        
+        window.open(url, '_blank');
+        
+        const filename = `vante-catalog-selected-${new Date().toISOString().slice(0,10)}.csv`;
+        downloadCSV(csv, filename);
+        
+        customAlert(`✅ تم تصدير ${selected.length} منتج إلى Google Sheets!`, 'success');
+    } catch (error) {
+        console.error(error);
+        customAlert('❌ حدث خطأ: ' + error.message, 'error');
+    }
+};
+
+/**
+ * تحويل المنتجات إلى CSV
+ */
+function convertProductsToCSV(products) {
+    const headers = [
+        'id', 'title', 'description', 'availability', 'condition',
+        'price', 'link', 'image_link', 'brand', 'product_type', 'google_product_category'
+    ];
+
+    const rows = products.map((p, index) => {
+        const stockBySize = p.stockBySize || {};
+        const totalStock = Object.values(stockBySize).reduce((sum, qty) => {
+            if (qty !== null && qty !== undefined) return sum + (parseInt(qty) || 0);
+            return sum;
+        }, 0);
+        
+        const availability = totalStock > 0 ? 'in stock' : 'out of stock';
+        
+        return [
+            p.id || `prod-${index + 1}`,
+            (p.name || 'منتج بدون اسم').replace(/,/g, ' '),
+            ((p.description || 'منتج فاخر من VANTÉ').replace(/<[^>]*>/g, '').substring(0, 500)).replace(/,/g, ' '),
+            availability,
+            'new',
+            p.price || 0,
+            `https://vante.sbs/?product=${p.id}`,
+            p.image || '',
+            'VANTÉ',
+            p.categoryLabel || p.category || 'عام',
+            'Jewelry & Watches > Jewelry'
+        ];
+    });
+
+    let csv = headers.join(',') + '\n';
+    rows.forEach(row => {
+        const escapedRow = row.map(cell => {
+            if (typeof cell === 'string' && (cell.includes(',') || cell.includes('"') || cell.includes('\n'))) {
+                return `"${cell.replace(/"/g, '""')}"`;
+            }
+            return cell;
+        });
+        csv += escapedRow.join(',') + '\n';
+    });
+
+    return csv;
+}
+
+/**
+ * تحميل ملف CSV
+ */
+function downloadCSV(csv, filename = 'vante-catalog.csv') {
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+}
+
+// تحديث العداد عند تحميل الصفحة
+setTimeout(() => {
+    updateSelectedProductsCount();
+}, 1000);
+
+console.log('✅ أدوات تحديد وتصدير المنتجات جاهزة!');
+
 // ========== إعدادات عرض الأكثر مبيعاً ==========
 async function loadBestSellersConfig() {
     try {
