@@ -980,7 +980,9 @@ h2 {
                <button type="button" onclick="generateSizeStockInputs()" class="secondary-btn"><i class="fas fa-sync-alt"></i> تحديث حقول الكميات</button>
            </div>
            <div class="form-actions">
-               <button onclick="addProduct()" id="addBtn" class="primary-btn"><i class="fas fa-save"></i> إضافة منتج</button>
+               <button onclick="window.addProduct()" id="addBtn" class="primary-btn">
+    <i class="fas fa-save"></i> إضافة منتج
+</button>
                <button onclick="cancelEdit()" id="cancelBtn" class="cancel-btn" style="display:none;"><i class="fas fa-times"></i> إلغاء</button>
            </div>
        </div>
@@ -1031,6 +1033,9 @@ h2 {
         <i class="fas fa-file-export"></i> 📤 تصدير المحدد (CSV)
     </button>
     
+    <button onclick="exportSelectedToGoogleSheets()" class="primary-btn" style="background: #4285F4; color: #fff; width: auto; padding: 8px 20px; border-radius: 30px;">
+        <i class="fab fa-google"></i> 📊 فتح في Google Sheets
+    </button>
 </div>
     <div id="productsList" class="loading-error">⏳ جاري التحميل...</div>
 </div>
@@ -1149,6 +1154,65 @@ let editingCouponId = null;
 let allCoupons = [];
 let allProductsForCoupon = [];
 
+// ========== دوال مساعدة ==========
+function logAuditEvent(data) {
+    console.log('📝 [Audit]', data);
+    return Promise.resolve(true);
+}
+
+function getChangedFields(oldData, newData, fields) {
+    const changed = [];
+    fields.forEach(field => {
+        if (JSON.stringify(oldData?.[field]) !== JSON.stringify(newData?.[field])) {
+            changed.push(field);
+        }
+    });
+    return changed;
+}
+
+function openSection(id) {
+    const el = document.getElementById(id);
+    if (el) el.classList.add('show');
+}
+
+function closeSection(id) {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('show');
+}
+
+function scrollToElement(elementId, delay = 300) {
+    const element = document.getElementById(elementId);
+    if (element) {
+        setTimeout(() => {
+            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, delay);
+    }
+}
+// ========== نظام SKU ==========
+const categoryCodes = {
+    'necklaces': 'NK',
+    'bracelets': 'BR',
+    'rings': 'RG',
+    'earrings': 'ER',
+    'sets': 'ST',
+    'anklets': 'AN'
+};
+
+async function getNextSequenceNumber(categoryCode) {
+    const counterRef = doc(db, "counters", "sku_sequences");
+    const counterSnap = await getDoc(counterRef);
+    let data = counterSnap.exists() ? counterSnap.data() : {};
+    if (!data[categoryCode]) data[categoryCode] = 0;
+    data[categoryCode] += 1;
+    await setDoc(counterRef, data);
+    return data[categoryCode];
+}
+
+async function generateSKUByCategory(category) {
+    const code = categoryCodes[category] || 'GEN';
+    const seq = await getNextSequenceNumber(code);
+    return `VAN-${code}-${String(seq).padStart(3, '0')}`;
+}
 function loadProductsForCouponSelect() {
     const select = document.getElementById('couponProductId');
     if (!select) return;
@@ -1216,24 +1280,8 @@ function renderCouponsList() {
     });
 }
 window.saveCoupon = async function() {
-  // داخل saveCoupon (إضافة/تعديل)
-const action = editingCouponId ? 'coupon_edited' : 'coupon_created';
-await logAuditEvent({
-  action,
-  orderId: null,
-  orderNumber: null,
-  details: {
-    code,
-    discountType,
-    discountValue,
-    appliesTo,
-    ...(editingCouponId && { oldData: oldCoupon })
-  },
-  performedBy: window.currentUserEmail || 'system',
-  severity: 'info'
-});
-
     try {
+        // قراءة البيانات من الحقول
         const code = document.getElementById("couponCode").value.trim().toUpperCase();
         const discountType = document.getElementById("couponDiscountType").value;
         const discountValue = Number(document.getElementById("couponDiscountValue").value);
@@ -1241,31 +1289,82 @@ await logAuditEvent({
         let productId = null;
         if (appliesTo === "product") {
             productId = document.getElementById("couponProductId").value;
-            if (!productId) { customAlert("اختر منتجاً أولاً", "warning"); return; }
+            if (!productId) {
+                customAlert("اختر منتجاً أولاً", "warning");
+                return;
+            }
         }
         const expiryDateStr = document.getElementById("couponExpiryDate").value;
         const maxUses = Number(document.getElementById("couponMaxUses").value) || null;
         const isActive = document.getElementById("couponIsActive").value === "true";
-        if (!code || !discountValue) { customAlert("يرجى إدخال الكود وقيمة الخصم", "warning"); return; }
+
+        // التحقق من صحة المدخلات
+        if (!code || !discountValue) {
+            customAlert("يرجى إدخال الكود وقيمة الخصم", "warning");
+            return;
+        }
         let expiryTimestamp = null;
-        if (expiryDateStr) { expiryTimestamp = new Date(expiryDateStr); if (isNaN(expiryTimestamp.getTime())) { customAlert("تاريخ الانتهاء غير صالح", "error"); return; } }
-        const couponData = { code, discountType, discountValue, appliesTo, productId: appliesTo === "product" ? productId : null, maxUses, expiryDate: expiryTimestamp ? Timestamp.fromDate(expiryTimestamp) : null, isActive, updatedAt: serverTimestamp(), description: `كود خصم ${code}` };
+        if (expiryDateStr) {
+            expiryTimestamp = new Date(expiryDateStr);
+            if (isNaN(expiryTimestamp.getTime())) {
+                customAlert("تاريخ الانتهاء غير صالح", "error");
+                return;
+            }
+        }
+
+        // تحضير البيانات
+        const couponData = {
+            code,
+            discountType,
+            discountValue,
+            appliesTo,
+            productId: appliesTo === "product" ? productId : null,
+            maxUses,
+            expiryDate: expiryTimestamp ? Timestamp.fromDate(expiryTimestamp) : null,
+            isActive,
+            updatedAt: serverTimestamp(),
+            description: `كود خصم ${code}`
+        };
+
+        // تسجيل حدث (اختياري) – بعد تعريف المتغيرات
+        await logAuditEvent({
+            action: editingCouponId ? 'coupon_edited' : 'coupon_created',
+            orderId: null,
+            orderNumber: null,
+            details: {
+                code,
+                discountType,
+                discountValue,
+                appliesTo,
+                ...(editingCouponId && { oldData: allCoupons.find(c => c.id === editingCouponId) })
+            },
+            performedBy: window.currentUserEmail || 'system',
+            severity: 'info'
+        });
+
+        // تنفيذ الإضافة أو التعديل
         if (!editingCouponId) {
-            couponData.createdAt = serverTimestamp(); couponData.usedCount = 0;
+            couponData.createdAt = serverTimestamp();
+            couponData.usedCount = 0;
             await addDoc(collection(db, "coupons"), couponData);
             customAlert("تم إضافة الكوبون بنجاح", "success");
         } else {
             await updateDoc(doc(db, "coupons", editingCouponId), couponData);
             customAlert("تم تعديل الكوبون بنجاح", "success");
+            // إعادة تعيين حالة التعديل
             editingCouponId = null;
             document.getElementById("saveCouponBtn").innerHTML = '<i class="fas fa-save"></i> حفظ الكوبون';
             document.getElementById("cancelCouponBtn").style.display = "none";
         }
+
         clearCouponForm();
-        // إغلاق قسم إضافة الكوبون بعد الحفظ
         closeSection('couponAddContent');
-    } catch(error) { customAlert("حدث خطأ أثناء الحفظ: " + error.message, "error"); }
+    } catch (error) {
+        console.error("❌ خطأ في saveCoupon:", error);
+        customAlert("حدث خطأ أثناء حفظ الكوبون: " + error.message, "error");
+    }
 };
+
 window.editCoupon = function(id) {
     const coupon = allCoupons.find(c => c.id === id);
     if (!coupon) return;
@@ -1298,15 +1397,34 @@ window.editCoupon = function(id) {
 window.cancelCouponEdit = function() { editingCouponId = null; clearCouponForm(); document.getElementById("saveCouponBtn").innerHTML = '<i class="fas fa-save"></i> حفظ الكوبون'; document.getElementById("cancelCouponBtn").style.display = "none"; };
 function clearCouponForm() { document.getElementById("couponCode").value = ""; document.getElementById("couponDiscountValue").value = ""; document.getElementById("couponExpiryDate").value = ""; document.getElementById("couponMaxUses").value = ""; document.getElementById("couponIsActive").value = "true"; document.getElementById("couponAppliesTo").value = "all"; document.getElementById("productSelectGroup").style.display = "none"; document.getElementById("couponProductId").value = ""; }
 window.deleteCoupon = async function(id) {
-  // داخل deleteCoupon
-await logAuditEvent({
-  action: 'coupon_deleted',
-  details: { code: coupon.code },
-  performedBy: window.currentUserEmail || 'system',
-  severity: 'warning'
-});
-if(await window.customConfirm("⚠️ هل أنت متأكد من حذف هذا الكوبون؟")) { await deleteDoc(doc(db, "coupons", id)); customAlert("تم الحذف", "success"); } };
+    try {
+        // البحث عن الكوبون في القائمة
+        const coupon = allCoupons.find(c => c.id === id);
+        if (!coupon) {
+            customAlert("الكوبون غير موجود", "error");
+            return;
+        }
 
+        // طلب تأكيد
+        const confirmed = await window.customConfirm(`⚠️ هل أنت متأكد من حذف الكوبون "${coupon.code}" نهائياً؟`);
+        if (!confirmed) return;
+
+        // تسجيل حدث الحذف
+        await logAuditEvent({
+            action: 'coupon_deleted',
+            details: { code: coupon.code },
+            performedBy: window.currentUserEmail || 'system',
+            severity: 'warning'
+        });
+
+        // تنفيذ الحذف
+        await deleteDoc(doc(db, "coupons", id));
+        customAlert("🗑️ تم حذف الكوبون بنجاح", "success");
+    } catch (error) {
+        console.error("❌ خطأ في deleteCoupon:", error);
+        customAlert("❌ حدث خطأ أثناء الحذف: " + error.message, "error");
+    }
+};
 // ========== Products management ==========
 let currentStockFilter = "all";
 let currentSearchTerm = "";
@@ -1557,68 +1675,87 @@ window.generateSizeStockInputs = function() {
     container.innerHTML = html;
 };
 function collectSizeStock() { const inputs = document.querySelectorAll(".size-stock-input"); const stockBySize={}; inputs.forEach(inp=>{ const size=inp.dataset.size; const val=inp.value.trim(); stockBySize[size]= val===""?null:(parseInt(val)||0); }); return stockBySize; }
-window.addProduct = async function() {
-  // داخل دالة addProduct
-await logAuditEvent({
-  action: 'product_created',
-  orderId: null,
-  orderNumber: null,
-  details: {
-    name,
-    price,
-    category,
-    sku: finalSKU,
-    sizes,
-    stockBySize,
-    description: description.substring(0, 100) // اختصار
-  },
-  performedBy: window.currentUserEmail || 'system',
-  severity: 'info'
-});
-    const name = document.getElementById("name").value.trim();
-    const price = Number(document.getElementById("price").value);
-    const image = document.getElementById("image").value.trim();
-    const additionalImages = document.getElementById("additionalImages").value.split(",").map(u=>u.trim()).filter(u=>u.length>0);
-    const comparePrice = Number(document.getElementById("comparePrice").value) || 0;
-    const rawCategory = document.getElementById("category").value;
-    const category = (rawCategory || "").toString().trim().toLowerCase().replace(/\s+/g, "");
-    const description = document.getElementById("description").value.trim();
-    const sizes = document.getElementById("sizes").value.split(",").map(s=>s.trim()).filter(Boolean);
-    const stockBySize = collectSizeStock();
-    if (!name || !price || !image || !category || !description || sizes.length===0) { 
-        customAlert("يرجى إدخال جميع البيانات الأساسية مع مقاس واحد على الأقل"); 
-        return; 
+// اجعل customAlert عامة أيضاً (لضمان ظهور الرسائل)
+window.customAlert = customAlert;
+
+// تعريف الدالة كدالة عادية ثم ربطها بـ window
+async function addProduct() {
+    try {
+        console.log("✅ addProduct تم استدعاؤها"); // للتأكد من الوصول
+
+        // سجل حدث (اختياري)
+        await logAuditEvent({
+            action: 'product_created',
+            performedBy: window.currentUserEmail || 'system',
+            severity: 'info'
+        });
+
+        const name = document.getElementById("name").value.trim();
+        const price = Number(document.getElementById("price").value);
+        const image = document.getElementById("image").value.trim();
+        const additionalImages = document.getElementById("additionalImages").value.split(",").map(u => u.trim()).filter(Boolean);
+        const comparePrice = Number(document.getElementById("comparePrice").value) || 0;
+        const rawCategory = document.getElementById("category").value;
+        const category = (rawCategory || "").toString().trim().toLowerCase().replace(/\s+/g, "");
+        const description = document.getElementById("description").value.trim();
+        const sizes = document.getElementById("sizes").value.split(",").map(s => s.trim()).filter(Boolean);
+        const stockBySize = collectSizeStock();
+
+        // التحقق من الحقول الأساسية
+        if (!name || !price || !image || !category || !description || sizes.length === 0) {
+            customAlert("يرجى إدخال جميع البيانات الأساسية مع مقاس واحد على الأقل", "warning");
+            return;
+        }
+
+        // إنشاء SKU
+        let finalSKU = document.getElementById("skuDisplay")?.value;
+        if (!editingProductId && (!finalSKU || finalSKU === "")) {
+            finalSKU = await generateSKUByCategory(rawCategory);
+        }
+
+        const productData = {
+            sku: finalSKU,
+            name,
+            price,
+            image,
+            additionalImages,
+            category,
+            categoryLabel: rawCategory,
+            description,
+            sizes,
+            comparePrice,
+            stockBySize,
+            costPrice: Number(document.getElementById("costPrice").value) || 0,
+            supplierLink: document.getElementById("supplierLink").value.trim(),
+            updatedAt: serverTimestamp(),
+            discountable: document.getElementById("discountable").value === "true"
+        };
+
+        if (editingProductId) {
+            // تعديل منتج موجود
+            await updateDoc(doc(db, "products", editingProductId), productData);
+            customAlert("تم تحديث المنتج بنجاح", "success");
+            editingProductId = null;
+            document.getElementById("addBtn").textContent = "إضافة منتج";
+            document.getElementById("cancelBtn").style.display = "none";
+        } else {
+            // إضافة منتج جديد
+            productData.createdAt = serverTimestamp();
+            await addDoc(collection(db, "products"), productData);
+            customAlert("تم إضافة المنتج بنجاح", "success");
+        }
+
+        clearForm();
+        closeSection('productFormContent');
+
+    } catch (error) {
+        console.error("❌ خطأ في addProduct:", error);
+        customAlert("حدث خطأ أثناء حفظ المنتج: " + error.message, "error");
     }
-    
-    let finalSKU = document.getElementById("skuDisplay")?.value;
-    if (!editingProductId && (!finalSKU || finalSKU === "")) {
-        finalSKU = await generateSKUByCategory(rawCategory);
-    }
-    
-    const productData = {
-        sku: finalSKU,
-        name, price, image, additionalImages, category, categoryLabel: rawCategory,
-        description, sizes, comparePrice, stockBySize,
-        costPrice: Number(document.getElementById("costPrice").value) || 0,
-        supplierLink: document.getElementById("supplierLink").value.trim(),
-        updatedAt: serverTimestamp(),
-        discountable: document.getElementById("discountable").value === "true"
-    };
-    
-    if (editingProductId) {
-        await updateDoc(doc(db, "products", editingProductId), productData);
-        customAlert("تم تحديث المنتج بنجاح");
-        editingProductId = null; 
-        document.getElementById("addBtn").textContent = "إضافة منتج"; 
-        document.getElementById("cancelBtn").style.display = "none";
-    } else { 
-        productData.createdAt = serverTimestamp(); 
-        await addDoc(collection(db, "products"), productData); 
-        customAlert("تم إضافة المنتج بنجاح"); 
-    }
-    clearForm();
-    closeSection('productFormContent');
-};
+}
+
+// ربط الدالة بالكائن العام
+window.addProduct = addProduct;
 window.cancelEdit = function() { editingProductId = null; document.getElementById("addBtn").textContent = "إضافة منتج"; document.getElementById("cancelBtn").style.display = "none"; clearForm(); };
 function clearForm() {
   document.getElementById("costPrice").value = "";
@@ -1629,114 +1766,130 @@ document.getElementById("supplierLink").value = "";
     document.getElementById("description").value = ""; document.getElementById("sizeStockInputs").innerHTML = '<p style="color:#888; font-size:13px; text-align:center;">أدخل المقاسات أولاً ثم اضغط "تحديث حقول الكميات"</p>';
     document.getElementById("discountable").value = "true"; window._editingStockBySize = {};
 }
-// دوال التحكم في الأقسام القابلة للطي
-function openSection(sectionId) {
-    const section = document.getElementById(sectionId);
-    if (section && !section.classList.contains('show')) {
-        section.classList.add('show');
-    }
-}
 
-function closeSection(sectionId) {
-    const section = document.getElementById(sectionId);
-    if (section && section.classList.contains('show')) {
-        section.classList.remove('show');
-    }
-}
-
-function scrollToElement(elementId, delay = 300) {
-    const element = document.getElementById(elementId);
-    if (element) {
-        setTimeout(() => {
-            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, delay);
-    }
-}
+// ====== تعديل المنتج ======
 window.editProduct = async function(id, data) {
-  // داخل دالة editProduct (بعد الحفظ)
-const changedFields = getChangedFields(oldProduct, newProduct, ['name', 'price', 'stockBySize', 'description']);
-await logAuditEvent({
-  action: 'product_edited',
-  orderId: null,
-  orderNumber: null,
-  details: {
-    productId: id,
-    changedFields,
-    oldData: { name: oldProduct.name, price: oldProduct.price },
-    newData: { name: newProduct.name, price: newProduct.price }
-  },
-  performedBy: window.currentUserEmail || 'system',
-  severity: 'info'
-});
-    editingProductId = id; 
-    window._editingStockBySize = data.stockBySize || {};
-    openSection('productFormContent');
-    scrollToElement('productFormSection', 350);
-    
-    // تعبئة الحقول
-    document.getElementById("costPrice").value = data.costPrice || "";
-    document.getElementById("supplierLink").value = data.supplierLink || "";
-    document.getElementById("name").value = data.name || "";
-    document.getElementById("price").value = data.price || "";
-    document.getElementById("image").value = data.image || "";
-    document.getElementById("additionalImages").value = (data.additionalImages || []).join(", ");
-    document.getElementById("sizes").value = (data.sizes || []).join(",");
-    document.getElementById("category").value = data.category || "";
-    document.getElementById("comparePrice").value = data.comparePrice || "";
-    const editor = document.getElementById("descriptionEditor"); 
-    if(editor) editor.innerHTML = data.description || "";
-    document.getElementById("description").value = data.description || ""; 
-    generateSizeStockInputs();
-    document.getElementById("addBtn").textContent = "حفظ التعديل";
-    document.getElementById("cancelBtn").style.display = "block";
-    document.getElementById("discountable").value = data.discountable !== false ? "true" : "false";
-    
-    // إضافة حقل SKU إذا لم يكن موجوداً
-    let skuField = document.getElementById("skuDisplay");
-    if (!skuField) {
-        const container = document.getElementById("productFormContent");
-        const skuDiv = document.createElement("div");
-        skuDiv.className = "form-group";
-        skuDiv.innerHTML = `<label><i class="fas fa-barcode"></i> SKU (تلقائي)</label><input type="text" id="skuDisplay" readonly style="background:#f5f5f5;">`;
-        const firstRow = container.querySelector(".form-row");
-        if (firstRow) firstRow.insertAdjacentElement('afterend', skuDiv);
-        skuField = document.getElementById("skuDisplay");
+    try {
+        editingProductId = id;
+        window._editingStockBySize = data.stockBySize || {};
+        openSection('productFormContent');
+        scrollToElement('productFormSection', 350);
+
+        // تعبئة الحقول
+        document.getElementById("costPrice").value = data.costPrice || "";
+        document.getElementById("supplierLink").value = data.supplierLink || "";
+        document.getElementById("name").value = data.name || "";
+        document.getElementById("price").value = data.price || "";
+        document.getElementById("image").value = data.image || "";
+        document.getElementById("additionalImages").value = (data.additionalImages || []).join(", ");
+        document.getElementById("sizes").value = (data.sizes || []).join(",");
+        document.getElementById("category").value = data.category || "";
+        document.getElementById("comparePrice").value = data.comparePrice || "";
+        const editor = document.getElementById("descriptionEditor");
+        if (editor) editor.innerHTML = data.description || "";
+        document.getElementById("description").value = data.description || "";
+        generateSizeStockInputs();
+        document.getElementById("addBtn").textContent = "حفظ التعديل";
+        document.getElementById("cancelBtn").style.display = "block";
+        document.getElementById("discountable").value = data.discountable !== false ? "true" : "false";
+
+        // إضافة حقل SKU إذا لم يكن موجوداً
+        let skuField = document.getElementById("skuDisplay");
+        if (!skuField) {
+            const container = document.getElementById("productFormContent");
+            const skuDiv = document.createElement("div");
+            skuDiv.className = "form-group";
+            skuDiv.innerHTML = `<label><i class="fas fa-barcode"></i> SKU (تلقائي)</label><input type="text" id="skuDisplay" readonly style="background:#f5f5f5;">`;
+            const firstRow = container.querySelector(".form-row");
+            if (firstRow) firstRow.insertAdjacentElement('afterend', skuDiv);
+            skuField = document.getElementById("skuDisplay");
+        }
+
+        let sku = data.sku;
+        if (!sku || sku.trim() === "") {
+            sku = await generateSKUByCategory(data.category);
+        }
+        skuField.value = sku;
+
+        // تسجيل حدث التعديل (اختياري) - تم تبسيطه
+        console.log(`📝 بدء تعديل المنتج: ${data.name} (${id})`);
+    } catch (error) {
+        console.error("❌ خطأ في editProduct:", error);
+        customAlert("حدث خطأ أثناء تحميل بيانات المنتج: " + error.message, "error");
     }
-    
-    let sku = data.sku;
-    if (!sku || sku.trim() === "") {
-        sku = await generateSKUByCategory(data.category);
-    }
-    skuField.value = sku;
 };
+
+// ====== حذف المنتج (نسخة محسّنة واحترافية) ======
 window.deleteProduct = async function(id) {
-  // داخل دالة deleteProduct
-await logAuditEvent({
-  action: 'product_deleted',
-  orderId: null,
-  orderNumber: null,
-  details: {
-    productId: id,
-    name: product.name,
-    sku: product.sku
-  },
-  performedBy: window.currentUserEmail || 'system',
-  severity: 'warning'
-});
-if(await window.customConfirm("⚠️ هل أنت متأكد من حذف هذا المنتج نهائياً؟")) { try { await deleteDoc(doc(db, "products", id)); customAlert("🗑️ تم حذف المنتج بنجاح", 'success'); } catch(e) { customAlert("❌ حدث خطأ أثناء الحذف", 'error'); } } };
-window.goToOrders = () => { window.location.href = "admin-orders.html"; };
-window.allProducts = []; window.allProductsLoaded = false;
+    try {
+        // 1. البحث عن المنتج في القائمة المحفوظة
+        const product = window.allProducts.find(p => p.id === id);
+        if (!product) {
+            customAlert("❌ المنتج غير موجود", "error");
+            return;
+        }
+
+        // 2. طلب تأكيد من المستخدم
+        const confirmed = await window.customConfirm(
+            `⚠️ هل أنت متأكد من حذف المنتج "${product.name}" نهائياً؟`
+        );
+        if (!confirmed) return;
+
+        // 3. تسجيل حدث الحذف (مع بيانات المنتج الصحيحة)
+        await logAuditEvent({
+            action: 'product_deleted',
+            orderId: null,
+            orderNumber: null,
+            details: {
+                productId: id,
+                name: product.name,
+                sku: product.sku || 'غير موجود'
+            },
+            performedBy: window.currentUserEmail || 'system',
+            severity: 'warning'
+        });
+
+        // 4. تنفيذ الحذف من قاعدة البيانات
+        await deleteDoc(doc(db, "products", id));
+
+        // 5. إعلام المستخدم بالنجاح
+        customAlert("🗑️ تم حذف المنتج بنجاح", "success");
+
+    } catch (error) {
+        console.error("❌ خطأ في deleteProduct:", error);
+        customAlert("❌ حدث خطأ أثناء الحذف: " + error.message, "error");
+    }
+};
+
+// ====== الانتقال إلى صفحة الطلبات ======
+window.goToOrders = () => {
+    window.location.href = "admin-orders.html";
+};
+
+// ====== تحميل المنتجات من Firestore ======
+window.allProducts = [];
+window.allProductsLoaded = false;
 const productsQuery = query(collection(db, "products"), orderBy("createdAt", "desc"));
 
 onSnapshot(productsQuery, (snapshot) => {
-    window.allProducts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    window.allProducts = snapshot.docs.map(doc => ({ 
+        id: doc.id, 
+        ...doc.data() 
+    }));
     window.allProductsLoaded = true;
     allProductsForCoupon = [...window.allProducts];
     loadProductsForCouponSelect();
     if (typeof loadCoupons === 'function') loadCoupons();
     renderFilteredProducts();
-    loadBestSellersConfig();   // <--- أضف هذا السطر
+    
+    // تحميل إعدادات الأكثر مبيعاً مع معالجة الأخطاء
+    try {
+        loadBestSellersConfig();
+    } catch(e) {
+        console.warn('⚠️ فشل تحميل إعدادات الأكثر مبيعاً:', e);
+    }
 });
+
 window.showBarcode = function(sku, elementId) {
     const container = document.getElementById(elementId);
     if (!container) return customAlert("عنصر الباركود غير موجود", "error");
@@ -1909,35 +2062,6 @@ window.generateMissingSKUs = async function() {
     }
 };
 
-// ========== نظام SKU المتقدم (متسلسل حسب القسم) ==========
-const categoryCodes = {
-    'necklaces': 'NK',
-    'bracelets': 'BR',
-    'rings': 'RG',
-    'earrings': 'ER',
-    'sets': 'ST',
-    'anklets': 'AN'
-};
-
-async function getNextSequenceNumber(categoryCode) {
-    const counterRef = doc(db, "counters", "sku_sequences");
-    const counterSnap = await getDoc(counterRef);
-    let data = counterSnap.exists() ? counterSnap.data() : {};
-    if (!data[categoryCode]) data[categoryCode] = 0;
-    data[categoryCode] += 1;
-    await setDoc(counterRef, data);
-    return data[categoryCode];
-}
-
-async function generateSKUByCategory(category) {
-    const code = categoryCodes[category] || 'GEN';
-    const seq = await getNextSequenceNumber(code);
-    return `VAN-${code}-${String(seq).padStart(3, '0')}`;
-}
-// دالة مساعدة للحصول على رمز القسم من النص
-function getCategoryCodeFromString(category) {
-    return categoryCodes[category] || 'GEN';
-}
 window.copyToClipboard = function(text) {
     if (!text || text === 'غير محدد') {
         customAlert("لا يوجد SKU قابل للنسخ", 'warning');
@@ -2060,6 +2184,46 @@ window.copyCSVLink = function() {
         document.body.removeChild(textarea);
         customAlert('✅ تم نسخ رابط CSV بنجاح!', 'success');
     });
+};
+
+/**
+ * فتح المنتجات المحددة في Google Sheets (نسخة معدلة)
+ */
+window.exportSelectedToGoogleSheets = function() {
+    const selected = getSelectedProducts();
+    
+    if (selected.length === 0) {
+        customAlert('⚠️ يرجى تحديد منتج واحد على الأقل!', 'warning');
+        return;
+    }
+
+    try {
+        const csv = convertProductsToCSV(selected);
+        const SHEET_ID = '1_LptuKmrZNUioUdpZjcE7kkTnuzF_R8ADFRUB2eWU18';
+        
+        // ✅ الطريقة الصحيحة: نفتح الشيت أولاً
+        const sheetUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/edit`;
+        window.open(sheetUrl, '_blank');
+        
+        // ✅ ننزل CSV مع توجيه المستخدم لرفعه
+        const filename = `vante-products-${new Date().toISOString().slice(0,10)}.csv`;
+        downloadCSV(csv, filename);
+        
+        // ✅ نعرض تعليمات للمستخدم
+        customAlert(
+            `✅ تم تحميل CSV يحتوي على ${selected.length} منتج.\n\n` +
+            `📌 الخطوات التالية:\n` +
+            `1. افتح الشيت: ${sheetUrl}\n` +
+            `2. اضغط File → Import → Upload\n` +
+            `3. اختر الملف المحمل\n` +
+            `4. اختار "Replace current sheet"`,
+            'success'
+        );
+        
+    } catch (error) {
+        console.error(error);
+        customAlert('❌ حدث خطأ: ' + error.message, 'error');
+    }
 };
 
 /**
