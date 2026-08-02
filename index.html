@@ -3842,6 +3842,235 @@ body.modal-open{
 #productModal .modal-content {
     padding-bottom: 90px;
 }
+.sort-icon-btn {
+    background: #111;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 30px;
+    color: #fff;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+.sort-icon-btn:hover {
+    background: #D4AF37;
+    color: #000;
+    transform: translateY(-2px);
+}
+#sortLabelText {
+    font-size: 14px;
+    font-weight: 700;
+}
+
+/* ===== زر الترتيب الفاخر - يتكيف مع حجم الكلمة ===== */
+.sort-icon-btn {
+    background: linear-gradient(145deg, #1a1a1a, #0d0d0d);
+    border: 1px solid rgba(212, 175, 55, 0.25);
+    padding: 10px 18px;
+    border-radius: 50px;
+    color: #fff;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 
+        0 4px 15px rgba(0,0,0,0.2),
+        inset 0 1px 0 rgba(255,255,255,0.05);
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    min-width: auto;  /* ✅ إزالة العرض الثابت */
+    width: auto;      /* ✅ يتكيف مع المحتوى */
+    max-width: 100%;  /* ✅ لا يتجاوز الشاشة */
+    white-space: nowrap; /* ✅ يمنع الكسر */
+}
+
+.sort-icon-btn:hover {
+    background: linear-gradient(145deg, #D4AF37, #B8860B);
+    color: #000;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(212, 175, 55, 0.35);
+    border-color: #D4AF37;
+}
+
+.sort-icon-btn:active {
+    transform: translateY(0px);
+}
+
+#sortLabelText {
+    font-size: 14px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+/* ✅ السهم يظهر دائماً */
+.sort-icon-btn .fa-chevron-down {
+    font-size: 11px;
+    color: rgba(255,255,255,0.7);
+    transition: transform 0.3s ease;
+    flex-shrink: 0; /* يمنع السهم من الانكماش */
+    margin-right: 2px;
+}
+
+.sort-icon-btn:hover .fa-chevron-down {
+    color: #000;
+}
+
+/* عند فتح القائمة - السهم يدور */
+.sort-icon-btn.open .fa-chevron-down {
+    transform: rotate(180deg);
+}
+
+/* ===== جعل زر الفلتر بنفس حجم زر الترتيب ===== */
+.filter-selected {
+    background: linear-gradient(145deg, #1a1a1a, #0d0d0d);
+    border: 1px solid rgba(212, 175, 55, 0.25);
+    padding: 12px 20px;
+    border-radius: 50px;
+    color: #fff;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 
+        0 4px 15px rgba(0,0,0,0.2),
+        inset 0 1px 0 rgba(255,255,255,0.05);
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    width: auto;
+    white-space: nowrap;
+    user-select: none;
+}
+
+.filter-selected:hover {
+    background: linear-gradient(145deg, #D4AF37, #B8860B);
+    color: #000;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(212, 175, 55, 0.35);
+    border-color: #D4AF37;
+}
+
+.filter-selected i {
+    font-size: 11px;
+    color: rgba(255,255,255,0.7);
+    transition: transform 0.3s ease;
+    flex-shrink: 0;
+}
+
+.filter-selected:hover i {
+    color: #000;
+}
+
+.filter-dropdown.open .filter-selected i {
+    transform: rotate(180deg);
+}
+
+/* ===== جعل قائمة الفلتر أضيق ومنظمة ===== */
+.filter-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+/* زر الفلتر - يتكيف مع النص دون أن ينزل لسطر جديد */
+.filter-selected {
+    background: linear-gradient(145deg, #1a1a1a, #0d0d0d);
+    border: 1px solid rgba(212, 175, 55, 0.25);
+    padding: 12px 20px;
+    border-radius: 50px;
+    color: #fff;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.05);
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    width: auto;
+    white-space: nowrap;      /* ✅ يمنع النزول لسطر جديد */
+    user-select: none;
+    max-width: 100%;
+    min-width: 100px;         /* عرض مناسب حتى لا يضيق كثيراً */
+}
+
+/* ✅ تعديل عرض القائمة المنسدلة لتكون أضيق */
+.filter-options {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%) scaleY(0);
+    transform-origin: top center;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+    min-width: 160px;         /* ✅ أضيق من قبل (كانت 200px) */
+    max-width: 220px;         /* ✅ حد أقصى حتى لا تكون واسعة جداً */
+    overflow: hidden;
+    opacity: 0;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+    z-index: 100;
+}
+
+/* عناصر القائمة - نص قصير ومنسق */
+.filter-option {
+    padding: 12px 16px;        /* ✅ تقليل padding */
+    color: #111;
+    font-weight: 600;
+    font-size: 13px;           /* ✅ تصغير الخط قليلاً */
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+    border-bottom: 1px solid #f5f5f5;
+    white-space: nowrap;       /* ✅ منع النزول لسطر جديد */
+}
+
+/* ✅ تحسين شكل شريط الفلتر والترتيب على الموبايل */
+@media (max-width: 768px) {
+    .filter-bar {
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        gap: 8px;
+        padding: 4px 2px;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    /* زر الفلتر على الموبايل أصغر */
+    .filter-selected {
+        padding: 12px 14px;
+        font-size: 12px;
+        min-width: 70px;
+    }
+    
+    .filter-options {
+        min-width: 140px;
+        max-width: 180px;
+    }
+    
+    .filter-option {
+        padding: 10px 14px;
+        font-size: 12px;
+    }
+    
+    /* زر الترتيب على الموبايل */
+    .sort-icon-btn {
+        padding: 8px 12px;
+        font-size: 12px;
+        min-width: 60px;
+    }
+    
+    #sortLabelText {
+        font-size: 11px;
+    }
+}
 
     </style>
 </head>
@@ -3882,7 +4111,7 @@ body.modal-open{
     <div class="menu-item">
         <a href="#" class="collection-toggle" onclick="toggleCollections(event)">الأقسام <i class="fas fa-chevron-down"></i></a>
         <div id="collectionsSub" class="collections-sub">
-            <a href="?category=all" data-category="all" onclick="handleMenuClick(event, 'all', this); closeMobileMenu()">كل المنتجات</a>
+            <a href="?category=all" data-category="all" onclick="handleMenuClick(event, 'all', this); closeMobileMenu()">كل الأقسام</a>
             <a href="?category=necklaces" data-category="necklaces" onclick="handleMenuClick(event, 'necklaces', this); closeMobileMenu()">سلاسل & كوليهات</a>
             <a href="?category=bracelets" data-category="bracelets" onclick="handleMenuClick(event, 'bracelets', this); closeMobileMenu()">أساور & غوايش</a>
             <a href="?category=rings" data-category="rings" onclick="handleMenuClick(event, 'rings', this); closeMobileMenu()">دبل & خواتم</a>
@@ -3912,11 +4141,11 @@ body.modal-open{
 </nav>
 
         <nav class="menu">
-    <a href="?category=all" data-category="all" onclick="event.preventDefault(); window.setCategory('all')">الصفحة الرئيسية</a>
+    <a href="?category=all" data-category="all" onclick="event.preventDefault(); window.setCategory('all')">كل الأقسام</a>
     <div class="menu-item desktop-dropdown">
         <a href="#" onclick="toggleCollections(event)">الأقسام <i class="fas fa-chevron-down"></i></a>
         <div id="collectionsSubDesktop" class="collections-sub desktop-sub">
-    <a href="?category=all" data-category="all" onclick="event.preventDefault(); window.setCategory('all')">كل المنتجات</a>
+    <a href="?category=all" data-category="all" onclick="event.preventDefault(); window.setCategory('all')">الأقسام</a>
     <a href="?category=necklaces" data-category="necklaces" onclick="event.preventDefault(); window.setCategory('necklaces')">سلاسل & كوليهات</a>
     <a href="?category=bracelets" data-category="bracelets" onclick="event.preventDefault(); window.setCategory('bracelets')">أساور & غوايش</a>
     <a href="?category=rings" data-category="rings" onclick="event.preventDefault(); window.setCategory('rings')">دبل & خواتم</a>
@@ -3968,33 +4197,36 @@ body.modal-open{
 <!-- شريط الفلترة والترتيب -->
 <div class="filter-bar">
     <!-- أيقونة الترتيب (موضوعة أولاً لتظهر على اليسار) -->
-    <div class="sort-wrapper">
-        <button class="sort-icon-btn" id="sortIconBtn" aria-label="ترتيب المنتجات">
-            <i class="fas fa-sort-amount-down-alt"></i>
-        </button>
-        <div class="sort-menu" id="sortMenu">
-            <div class="sort-option active" data-sort="latest">✨ الأحدث</div>
-            <div class="sort-option" data-sort="price_asc">💰 الأقل سعراً</div>
-            <div class="sort-option" data-sort="price_desc">💰 الأعلى سعراً</div>
-            <div class="sort-option" data-sort="best_selling">🔥 الأكثر مبيعاً</div>
-            <div class="sort-option" data-sort="top_rated">⭐ الأعلى تقييماً</div>
-        </div>
+<div class="sort-wrapper">
+    <button class="sort-icon-btn" id="sortIconBtn" aria-label="ترتيب المنتجات">
+        <span id="sortLabelText">📊 ترتيب حسب</span>
+        <i class="fas fa-chevron-down"></i>
+    </button>
+    <div class="sort-menu" id="sortMenu">
+        <div class="sort-option active" data-sort="random">🎲 عشوائي</div>
+        <div class="sort-option" data-sort="latest">✨ الأحدث</div>
+        <div class="sort-option" data-sort="price_asc">💰 الأقل سعراً</div>
+        <div class="sort-option" data-sort="price_desc">💰 الأعلى سعراً</div>
+        <div class="sort-option" data-sort="best_selling">🔥 الأكثر مبيعاً</div>
+        <div class="sort-option" data-sort="top_rated">⭐ الأعلى تقييماً</div>
     </div>
+</div>
 
     <!-- الفلتر المنسدل (الأقسام) -->
     <div class="filter-dropdown" id="filterDropdown">
         <div class="filter-selected" id="filterSelected">
-            <span id="filterLabel">كل المنتجات</span>
-            <i class="fas fa-chevron-down"></i>
-        </div>
+    <span id="filterLabel">الأقسام</span>
+    <i class="fas fa-chevron-down"></i>
+</div>
         <div class="filter-options" id="filterOptions">
-            <div class="filter-option active" data-category="all">كل المنتجات</div>
-            <div class="filter-option" data-category="necklaces">سلاسل & كوليهات</div>
-            <div class="filter-option" data-category="bracelets">أساور & غوايش</div>
-            <div class="filter-option" data-category="rings">دبل & خواتم</div>
-            <div class="filter-option" data-category="earrings">حلقان</div>
-            <div class="filter-option" data-category="sets">اطقم</div>
-            <div class="filter-option" data-category="anklets">خلخال</div>
+    <div class="filter-option active" data-category="all">كل الأقسام</div>
+    <div class="filter-option" data-category="necklaces">سلاسل & كوليهات</div>
+    <div class="filter-option" data-category="bracelets">أساور & غوايش</div>
+    <div class="filter-option" data-category="rings">دبل & خواتم</div>
+    <div class="filter-option" data-category="earrings">حلقان</div>
+    <div class="filter-option" data-category="sets">اطقم</div>
+    <div class="filter-option" data-category="anklets">خلخال</div>
+</div>
         </div>
     </div>
 </div>
@@ -4933,7 +5165,7 @@ function renderProducts() {
     const selectedCategory = normalize(currentCategory);
     let filtered = allProducts.filter(p => selectedCategory === "all" ? true : normalize(p.category || "all") === selectedCategory);
     
-    // ========== تطبيق الترتيب ==========
+// ========== تطبيق الترتيب ==========
 if (currentSort === "latest") {
     filtered.sort((a,b) => {
         const aTime = a.createdAt?.seconds || 0;
@@ -4955,6 +5187,27 @@ if (currentSort === "latest") {
         return sum / productReviews.length;
     };
     filtered.sort((a,b) => getAvgRating(b.id) - getAvgRating(a.id));
+} else if (currentSort === "random") {
+    // 🎲 ترتيب عشوائي ثابت (يعتمد على بذرة ثابتة)
+    const seed = 42; // رقم ثابت - غيّره لتغيير الترتيب
+    const shuffled = [...filtered];
+    
+    // دالة توليد رقم عشوائي من البذرة
+    function seededRandom(seed) {
+        return function() {
+            seed = (seed * 9301 + 49297) % 233280;
+            return seed / 233280;
+        };
+    }
+    
+    const random = seededRandom(seed);
+    
+    // ترتيب فيشر-ييتس مع البذرة الثابتة
+    for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    filtered = shuffled;
 }
 
 // فصل المنتجات: المتوفرة أولاً، ثم النافدة
@@ -5178,28 +5431,22 @@ filterOptions.addEventListener('click', (e) => {
     e.stopPropagation();
 });
 
-// اختيار فئة من القائمة
 filterOptions.addEventListener('click', (e) => {
     const option = e.target.closest('.filter-option');
     if (!option) return;
     
     const category = option.dataset.category;
-    const categoryName = option.textContent;
     
-    // تحديث نص الفلتر
-    filterLabel.textContent = categoryName;
+    // النص الخارجي يبقى "الأقسام" ثابتًا
+    filterLabel.textContent = 'الأقسام';
     
-    // تحديث التمييز في الخيارات
+    // تحديث الخيار النشط
     document.querySelectorAll('.filter-option').forEach(opt => opt.classList.remove('active'));
     option.classList.add('active');
     
-    // تطبيق الفلتر على المنتجات
+    // تطبيق الفلتر
     setCategory(category);
-    
-    // إغلاق القائمة المنسدلة
     filterDropdown.classList.remove('open');
-    
-    // إغلاق القائمة الجانبية (الموبايل) إن كانت مفتوحة
     closeMobileMenu();
 });
 
@@ -6395,17 +6642,24 @@ function fallbackShare(text) {
     }, 500);
 })();
 
-    // ========== القوائم والبحث ==========
-    function setCategory(category) {
-    displayedProductsCount = 8;   // ← أضف هذا السطر
+// ========== دالة setCategory كاملة ==========
+function setCategory(category) {
+    // إعادة تعيين عدد المنتجات المعروضة إلى 8
+    displayedProductsCount = 8;
+    
+    // تحديث الفئة الحالية
     currentCategory = category;
+    
+    // تحديث رابط URL
     const url = new URL(window.location);
     url.searchParams.set("category", category);
     window.history.replaceState({}, "", url);
 
+    // تحديث التمييز في روابط القوائم
     document.querySelectorAll("[data-category]").forEach(l => l.classList.remove("active"));
     document.querySelectorAll(`[data-category="${category}"]`).forEach(l => l.classList.add("active"));
 
+    // تحديث أزرار "الأقسام" في القوائم الجانبية
     const collectionsToggles = document.querySelectorAll('.collection-toggle');
     const activeCategoryLink = document.querySelector(`[data-category="${category}"]`);
     
@@ -6421,10 +6675,10 @@ function fallbackShare(text) {
             }
         } else {
             document.querySelectorAll('.collection-toggle').forEach(t => {
-    t.classList.remove('active');
-    const icon = t.querySelector('i');
-    t.innerHTML = 'الأقسام ' + (icon ? icon.outerHTML : '');
-});
+                t.classList.remove('active');
+                const icon = t.querySelector('i');
+                t.innerHTML = 'الأقسام ' + (icon ? icon.outerHTML : '');
+            });
         }
     } else {
         document.querySelectorAll('.collection-toggle').forEach(t => {
@@ -6434,16 +6688,30 @@ function fallbackShare(text) {
         });
     }
 
-    const filterLabel = document.getElementById("filterLabel");
-    const filterOptions = document.querySelectorAll(".filter-option");
-    filterOptions.forEach(opt => {
-        opt.classList.remove("active");
-        if (opt.dataset.category === category) {
-            opt.classList.add("active");
-            if (filterLabel) filterLabel.textContent = opt.textContent;
-        }
-    });
+    // ✅ تحديث الفلتر المنسدل - النص يبقى "الأقسام" دائماً
+    // ✅ تحديث الفلتر المنسدل
+const filterLabel = document.getElementById("filterLabel");
+const filterOptions = document.querySelectorAll(".filter-option");
 
+// تحديث الخيارات النشطة
+let selectedText = 'الأقسام'; // النص الافتراضي
+filterOptions.forEach(opt => {
+    opt.classList.remove("active");
+    if (opt.dataset.category === category) {
+        opt.classList.add("active");
+        // إذا كان الخيار المختار ليس "كل الأقسام"، نأخذ النص الخاص به
+        if (category !== 'all') {
+            selectedText = opt.textContent.trim();
+        }
+    }
+});
+
+// ✅ تحديث النص المعروض في زر الفلتر
+if (filterLabel) {
+    filterLabel.textContent = selectedText;
+}
+
+    // إعادة عرض المنتجات والأكثر مبيعاً
     renderProducts();
     renderBestSellers();
 }
@@ -7302,27 +7570,35 @@ function resetProductsDisplay() {
 window.setCategory = setCategory;
 
 // متغير الترتيب الحالي
-let currentSort = "latest";
+let currentSort = "random";
 pinnedProductId = null;
 // ========== نظام الترتيب ==========
 const sortIconBtn = document.getElementById("sortIconBtn");
 const sortMenu = document.getElementById("sortMenu");
 const sortOptions = document.querySelectorAll(".sort-option");
+// ✅ تدوير السهم عند فتح/إغلاق القائمة
 if (sortIconBtn) {
     sortIconBtn.addEventListener("click", (e) => {
         e.stopPropagation();
+        const isOpen = sortMenu.classList.contains("active");
         sortMenu.classList.toggle("active");
+        sortIconBtn.classList.toggle("open", !isOpen);
         pinnedProductId = null;
     });
 }
 
+// ✅ إغلاق السهم عند النقر خارج القائمة
 document.addEventListener("click", () => {
-    if (sortMenu) sortMenu.classList.remove("active");
+    if (sortMenu) {
+        sortMenu.classList.remove("active");
+        if (sortIconBtn) sortIconBtn.classList.remove("open");
+    }
 });
 
+// ✅ عند اختيار خيار، نغلق القائمة ونعيد السهم
 sortOptions.forEach(opt => {
     opt.addEventListener("click", () => {
-        pinnedProductId = null;  // أضف هذا السطر
+        pinnedProductId = null;
         const sortValue = opt.dataset.sort;
         currentSort = sortValue;
         sortOptions.forEach(o => o.classList.remove("active"));
@@ -7330,6 +7606,53 @@ sortOptions.forEach(opt => {
         displayedProductsCount = 8;
         renderProducts();
         if (sortMenu) sortMenu.classList.remove("active");
+        if (sortIconBtn) sortIconBtn.classList.remove("open");
+        
+        // ✅ تحديث النص المعروض
+        const label = document.getElementById('sortLabelText');
+        if (label) label.textContent = opt.textContent.trim();
+    });
+});
+// تحديث النص المعروض بجانب أيقونة الترتيب
+function updateSortLabel() {
+    const label = document.getElementById('sortLabelText');
+    if (!label) return;
+    
+    // ✅ إذا كان هناك خيار نشط (بخلاف random الافتراضي)، نعرض اسمه
+    const activeOption = document.querySelector('.sort-option.active');
+    if (activeOption && activeOption.dataset.sort !== 'random') {
+        label.textContent = activeOption.textContent.trim();
+    } else {
+        // ✅ في حالة عدم وجود خيار نشط أو كان الخيار هو "random" الافتراضي
+        label.textContent = '📊 ترتيب حسب';
+    }
+}
+
+// استدعاء عند تحميل الصفحة
+setTimeout(updateSortLabel, 100);
+
+// عند النقر على خيارات الترتيب
+sortOptions.forEach(opt => {
+    opt.addEventListener("click", () => {
+        pinnedProductId = null;
+        const sortValue = opt.dataset.sort;
+        currentSort = sortValue;
+        sortOptions.forEach(o => o.classList.remove("active"));
+        opt.classList.add("active");
+        displayedProductsCount = 8;
+        renderProducts();
+        if (sortMenu) sortMenu.classList.remove("active");
+        if (sortIconBtn) sortIconBtn.classList.remove("open");
+        
+        // ✅ تحديث النص المعروض
+        const label = document.getElementById('sortLabelText');
+        if (label) {
+            if (sortValue === 'random') {
+                label.textContent = '📊 ترتيب حسب';
+            } else {
+                label.textContent = opt.textContent.trim();
+            }
+        }
     });
 });
 
@@ -7355,7 +7678,7 @@ sortOptions.forEach(opt => {
                         <i class="fas fa-crown"></i> سلاسل بالأسم حصرية من DAHAP
                     </a>
                 </li>
-                <li><a href="#" onclick="event.preventDefault(); window.setCategory('all')">كل المنتجات</a></li>
+                <li><a href="#" onclick="event.preventDefault(); window.setCategory('all')">الأقسام</a></li>
                 <li><a href="#" onclick="event.preventDefault(); window.setCategory('necklaces')">سلاسل & كوليهات</a></li>
                 <li><a href="#" onclick="event.preventDefault(); window.setCategory('bracelets')">أساور & غوايش</a></li>
                 <li><a href="#" onclick="event.preventDefault(); window.setCategory('rings')">خواتم & دبل</a></li>
