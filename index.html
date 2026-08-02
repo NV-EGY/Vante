@@ -4072,6 +4072,27 @@ body.modal-open{
     }
 }
 
+/* ===== إصلاح نهائي للسحب باللمس ===== */
+#track,
+#track * {
+    touch-action: none !important;
+    -webkit-touch-callout: none !important;
+    -webkit-user-select: none !important;
+    user-select: none !important;
+}
+
+.best-sellers-viewport {
+    touch-action: none !important;
+    overflow: hidden !important;
+    position: relative !important;
+}
+
+.best-sellers-track {
+    touch-action: none !important;
+    cursor: grab !important;
+    will-change: transform !important;
+}
+
     </style>
 </head>
 
@@ -5188,8 +5209,14 @@ if (currentSort === "latest") {
     };
     filtered.sort((a,b) => getAvgRating(b.id) - getAvgRating(a.id));
 } else if (currentSort === "random") {
-    // 🎲 ترتيب عشوائي ثابت (يعتمد على بذرة ثابتة)
-    const seed = 42; // رقم ثابت - غيّره لتغيير الترتيب
+    // 🎲 ترتيب عشوائي موحد لجميع الزوار خلال نفس الفترة الزمنية
+    // استخدام الوقت مقسوماً على مدة التحديث (ساعة) كبذرة
+    
+    // حساب البذرة بناءً على الوقت الحالي والمدة
+    const intervalMs = AUTO_SORT_INTERVAL || 3600000; // ساعة افتراضياً
+    const currentHour = Math.floor(Date.now() / intervalMs);
+    const seed = currentHour * 9999 + 7777; // بذرة موحدة للجميع
+    
     const shuffled = [...filtered];
     
     // دالة توليد رقم عشوائي من البذرة
@@ -5202,7 +5229,7 @@ if (currentSort === "latest") {
     
     const random = seededRandom(seed);
     
-    // ترتيب فيشر-ييتس مع البذرة الثابتة
+    // ترتيب فيشر-ييتس مع البذرة
     for (let i = shuffled.length - 1; i > 0; i--) {
         const j = Math.floor(random() * (i + 1));
         [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
@@ -5465,8 +5492,26 @@ window.addEventListener("DOMContentLoaded", () => {
 // ========== متغيرات المعرض ==========
 let currentPairIndex = 0;
 let autoplayTimer = null;
-let resumeTimer;
+let resumeTimer = null;
 let pairWidth = 0;
+let isAutoPlaying = true;
+let isUserInteracting = false;
+let isGalleryInitialized = false;
+
+// ========== دالة تحديث عرض الزوج ==========
+function updatePairWidth() {
+    const track = document.getElementById("track");
+    if (!track) return;
+    const firstPair = track.querySelector('.pair');
+    if (firstPair) {
+        const rect = firstPair.getBoundingClientRect();
+        const style = getComputedStyle(firstPair);
+        const gap = parseFloat(style.gap) || 16;
+        pairWidth = rect.width + gap;
+    } else {
+        pairWidth = 0;
+    }
+}
 
 function startRandomRefreshIfNeeded() {
     if (randomRefreshInterval) {
@@ -5502,31 +5547,27 @@ async function renderBestSellers() {
 
     const config = bestSellersConfig;
     let selectedProducts = [];
-    let fixedPart = [];      // المنتجات الثابتة (في حالة manual)
-    let dynamicPart = [];    // المنتجات المتغيرة (العشوائية أو الأكثر مبيعاً)
+    let fixedPart = [];
+    let dynamicPart = [];
     const limit = Math.min(config.limit || 10, 20);
 
     if (config.mode === "manual" && config.manualIds && config.manualIds.length) {
-        // 1. اجلب المنتجات المختارة يدوياً (ثابتة)
         for (let id of config.manualIds) {
             const product = allProducts.find(p => p.id === id);
             if (product) fixedPart.push(product);
         }
         const remaining = limit - fixedPart.length;
         if (remaining > 0) {
-            // 2. استبعد المنتجات الثابتة من المصادر المحتملة
             const excludedIds = fixedPart.map(p => p.id);
             let candidates = allProducts.filter(p => !excludedIds.includes(p.id));
             if (config.fillMode === "random") {
-                // عشوائي: يختار كل مرة عشوائياً (ويتغير مع التحديث الدوري)
                 const shuffled = [...candidates];
                 for (let i = shuffled.length - 1; i > 0; i--) {
                     const j = Math.floor(Math.random() * (i + 1));
                     [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
                 }
                 dynamicPart = shuffled.slice(0, remaining);
-            } else { // sales
-                // الأعلى مبيعاً (ثابت)
+            } else {
                 candidates.sort((a,b) => (b.salesCount || 0) - (a.salesCount || 0));
                 dynamicPart = candidates.slice(0, remaining);
             }
@@ -5534,7 +5575,6 @@ async function renderBestSellers() {
         selectedProducts = [...fixedPart, ...dynamicPart];
     } 
     else if (config.mode === "random") {
-        // عشوائي كامل (يتغير بالكامل كل 30 ثانية)
         const shuffled = [...allProducts];
         for (let i = shuffled.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
@@ -5542,11 +5582,15 @@ async function renderBestSellers() {
         }
         selectedProducts = shuffled.slice(0, limit);
     } 
-    else { // mode === "sales"
+    else {
         selectedProducts = [...allProducts].sort((a,b) => (b.salesCount || 0) - (a.salesCount || 0)).slice(0, limit);
     }
 
     if (selectedProducts.length === 0) return;
+
+    // إيقاف الحركة التلقائية
+    stopAutoplay();
+    isUserInteracting = false;
 
     if (isMobile) {
         let html = '';
@@ -5557,8 +5601,8 @@ async function renderBestSellers() {
                 const hasDiscount = p.comparePrice && p.comparePrice > p.price;
                 const discountPercent = hasDiscount ? Math.round((1 - p.price / p.comparePrice) * 100) : 0;
                 const badgeHtml = hasDiscount 
-    ? `<span class="best-seller-badge">%${discountPercent} خصم</span>` 
-    : `<span class="best-seller-badge">الأكثر مبيعاً</span>`;
+                    ? `<span class="best-seller-badge">%${discountPercent} خصم</span>` 
+                    : `<span class="best-seller-badge">الأكثر مبيعاً</span>`;
                 const priceHtml = hasDiscount 
                     ? `<div class="price-wrapper"><span class="old-price">${p.comparePrice} EGP</span><span class="current-price">${p.price} EGP</span></div>`
                     : `<div class="price-wrapper"><span class="current-price">${p.price} EGP</span></div>`;
@@ -5572,22 +5616,33 @@ async function renderBestSellers() {
             }).join('');
             html += '</div>';
         }
+        
         const track = document.getElementById("track");
-        if (track) track.innerHTML = html;
-        const firstPair = track?.querySelector('.pair');
-        if (firstPair) pairWidth = firstPair.offsetWidth + 16;
-        goToPair(0);
-        startAutoplay();
-        bindGalleryEvents();
-        createDots();
+        if (track) {
+            track.innerHTML = html;
+            track.style.transition = 'none';
+            track.style.transform = 'none';
+        }
+        
+        // ✅ تأخير واحد فقط يحتوي على كل شيء
+        setTimeout(() => {
+            updatePairWidth();
+            if (pairWidth > 0) {
+                goToPair(0, false);
+            }
+            createDots();
+            bindGalleryEvents(); // ✅ استدعاء واحد فقط
+            setTimeout(startAutoplay, 500);
+        }, 50);
+        
     } else {
         let html = '';
         selectedProducts.forEach(p => {
             const hasDiscount = p.comparePrice && p.comparePrice > p.price;
             const discountPercent = hasDiscount ? Math.round((1 - p.price / p.comparePrice) * 100) : 0;
             const badgeHtml = hasDiscount 
-    ? `<span class="best-seller-badge">%${discountPercent} خصم</span>` 
-    : `<span class="best-seller-badge">الأكثر مبيعاً</span>`;
+                ? `<span class="best-seller-badge">%${discountPercent} خصم</span>` 
+                : `<span class="best-seller-badge">الأكثر مبيعاً</span>`;
             const priceHtml = hasDiscount 
                 ? `<div class="price-wrapper"><span class="old-price">${p.comparePrice} EGP</span><span class="current-price">${p.price} EGP</span></div>`
                 : `<div class="price-wrapper"><span class="current-price">${p.price} EGP</span></div>`;
@@ -5610,37 +5665,52 @@ window.addEventListener('resize', function() {
 });
 
 // ========== التنقل بين الأزواج ==========
-function goToPair(index) {
+function goToPair(index, smooth = true) {
     const track = document.getElementById("track");
-    if (!track) return;
+    if (!track || pairWidth <= 0) return;
+    
     const totalPairs = track.querySelectorAll('.pair').length;
-    const viewportWidth = document.getElementById('viewport').clientWidth;
+    if (totalPairs === 0) return;
+    
+    const viewport = document.getElementById('viewport');
+    const viewportWidth = viewport ? viewport.clientWidth : window.innerWidth;
     const maxAllowed = Math.max(0, totalPairs - Math.ceil(viewportWidth / pairWidth));
 
-    if (index < 0) index = 0;
-    if (index > maxAllowed) index = maxAllowed;
+    index = Math.max(0, Math.min(index, maxAllowed));
     currentPairIndex = index;
+    
     const offset = (viewportWidth / 2) - (pairWidth / 2);
     const x = offset - (currentPairIndex * pairWidth);
-    track.style.transition = 'transform 0.8s cubic-bezier(0.25, 0.8, 0.25, 1)';
+    
+    if (smooth) {
+        track.style.transition = 'transform 0.6s cubic-bezier(0.25, 0.8, 0.25, 1)';
+    } else {
+        track.style.transition = 'none';
+    }
     track.style.transform = `translate3d(${x}px, 0, 0)`;
-    updateDots();  // يجب أن تكون موجودة
+    updateDots();
 }
 
 function nextPair() {
+    if (isUserInteracting) return;
     const track = document.getElementById("track");
     if (!track) return;
     const totalPairs = track.querySelectorAll('.pair').length;
-    const viewportWidth = document.getElementById('viewport').clientWidth;
+    if (totalPairs === 0) return;
+    
+    const viewport = document.getElementById('viewport');
+    const viewportWidth = viewport ? viewport.clientWidth : window.innerWidth;
     const maxAllowed = Math.max(0, totalPairs - Math.ceil(viewportWidth / pairWidth));
 
     let next = currentPairIndex + 1;
     if (next > maxAllowed) {
-        // الرجوع إلى البداية بحركة أبطأ وسلسة
         currentPairIndex = 0;
         const offset = (viewportWidth / 2) - (pairWidth / 2);
-        track.style.transition = 'transform 1.5s cubic-bezier(0.4, 0, 0.2, 1)';
-        track.style.transform = `translate3d(${offset}px, 0, 0)`;
+        const track = document.getElementById("track");
+        if (track) {
+            track.style.transition = 'transform 1.2s cubic-bezier(0.4, 0, 0.2, 1)';
+            track.style.transform = `translate3d(${offset}px, 0, 0)`;
+        }
         updateDots();
         return;
     }
@@ -5648,20 +5718,26 @@ function nextPair() {
 }
 
 function prevPair() {
+    if (isUserInteracting) return;
     const track = document.getElementById("track");
     if (!track) return;
     const totalPairs = track.querySelectorAll('.pair').length;
-    const viewportWidth = document.getElementById('viewport').clientWidth;
+    if (totalPairs === 0) return;
+    
+    const viewport = document.getElementById('viewport');
+    const viewportWidth = viewport ? viewport.clientWidth : window.innerWidth;
     const maxAllowed = Math.max(0, totalPairs - Math.ceil(viewportWidth / pairWidth));
 
     let prev = currentPairIndex - 1;
     if (prev < 0) {
-        // الرجوع إلى النهاية بحركة سلسة
         currentPairIndex = maxAllowed;
         const offset = (viewportWidth / 2) - (pairWidth / 2);
         const x = offset - (currentPairIndex * pairWidth);
-        track.style.transition = 'transform 1.5s cubic-bezier(0.4, 0, 0.2, 1)';
-        track.style.transform = `translate3d(${x}px, 0, 0)`;
+        const track = document.getElementById("track");
+        if (track) {
+            track.style.transition = 'transform 1.2s cubic-bezier(0.4, 0, 0.2, 1)';
+            track.style.transform = `translate3d(${x}px, 0, 0)`;
+        }
         updateDots();
         return;
     }
@@ -5671,13 +5747,27 @@ function prevPair() {
 // ========== الحركة التلقائية ==========
 function startAutoplay() {
     stopAutoplay();
-    autoplayTimer = setInterval(nextPair, 2600);
+    isAutoPlaying = true;
+    isUserInteracting = false;
+    autoplayTimer = setTimeout(function autoNext() {
+        if (isAutoPlaying && !isUserInteracting) {
+            nextPair();
+            autoplayTimer = setTimeout(autoNext, 3000);
+        } else {
+            autoplayTimer = null;
+        }
+    }, 3000);
 }
 
 function stopAutoplay() {
+    isAutoPlaying = false;
     if (autoplayTimer) {
-        clearInterval(autoplayTimer);
+        clearTimeout(autoplayTimer);
         autoplayTimer = null;
+    }
+    if (resumeTimer) {
+        clearTimeout(resumeTimer);
+        resumeTimer = null;
     }
 }
 
@@ -5685,75 +5775,157 @@ function stopAutoplay() {
 let startX = 0;
 let isDragging = false;
 
+// ========== السحب اليدوي (النسخة النهائية المضمونة) ==========
 function bindGalleryEvents() {
     const track = document.getElementById("track");
-    if (!track) return;
+    if (!track) {
+        console.warn("⚠️ track not found");
+        return;
+    }
 
-    let startX = 0, startY = 0;
-    let isHorizontalSwipe = false;
+    // ===== إزالة جميع المستمعات القديمة =====
+    // نستخدم cloneNode لإزالة جميع المستمعات دفعة واحدة (الحل الأضمن)
+    const newTrack = track.cloneNode(true);
+    track.parentNode.replaceChild(newTrack, track);
+    const freshTrack = document.getElementById("track");
+    if (!freshTrack) return;
 
-    track.addEventListener('touchstart', (e) => {
-        startX = e.touches[0].clientX;
-        startY = e.touches[0].clientY;
-        isHorizontalSwipe = false;
+    // ===== المتغيرات =====
+    let touchStartX = 0, touchStartY = 0;
+    let isTouchSwipe = false;
+    let touchResumeTimer = null;
+    let mouseStartX = 0, mouseStartY = 0;
+    let isMouseSwipe = false;
+    let isMouseDown = false;
+    let mouseResumeTimer = null;
+
+    // ===== أحداث اللمس =====
+    function handleTouchStart(e) {
+        if (e.touches.length !== 1) return;
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+        isTouchSwipe = false;
+        isUserInteracting = true;
         stopAutoplay();
-        clearTimeout(resumeTimer);
-    }, { passive: true });
-
-    track.addEventListener('touchmove', (e) => {
-        const dx = Math.abs(e.touches[0].clientX - startX);
-        const dy = Math.abs(e.touches[0].clientY - startY);
-        if (dx > 10 && dx > dy) {
-            isHorizontalSwipe = true;
-            e.preventDefault(); // منع التمرير العمودي أثناء السحب الأفقي
+        if (touchResumeTimer) {
+            clearTimeout(touchResumeTimer);
+            touchResumeTimer = null;
         }
-    }, { passive: false });
+        e.preventDefault();
+    }
 
-    track.addEventListener('touchend', (e) => {
-        if (!isHorizontalSwipe) {
-            resumeTimer = setTimeout(startAutoplay, 4000);
+    function handleTouchMove(e) {
+        if (e.touches.length !== 1) return;
+        const dx = Math.abs(e.touches[0].clientX - touchStartX);
+        const dy = Math.abs(e.touches[0].clientY - touchStartY);
+        if (dx > 10 && dx > dy) {
+            isTouchSwipe = true;
+            e.preventDefault();
+        }
+    }
+
+    function handleTouchEnd(e) {
+        if (!isTouchSwipe || !e.changedTouches.length) {
+            isUserInteracting = false;
+            if (isAutoPlaying) {
+                touchResumeTimer = setTimeout(function() {
+                    isUserInteracting = false;
+                    startAutoplay();
+                }, 4000);
+            }
             return;
         }
-        const diffX = e.changedTouches[0].clientX - startX;
-        if (Math.abs(diffX) > 40) {
-            if (diffX < 0) nextPair();
-            else prevPair();
+        
+        const diffX = e.changedTouches[0].clientX - touchStartX;
+        if (Math.abs(diffX) > 35) {
+            if (diffX > 0) {
+                prevPair();
+            } else {
+                nextPair();
+            }
         } else {
             goToPair(currentPairIndex);
         }
-        resumeTimer = setTimeout(startAutoplay, 4000);
-    });
+        
+        isUserInteracting = false;
+        if (isAutoPlaying) {
+            touchResumeTimer = setTimeout(function() {
+                isUserInteracting = false;
+                startAutoplay();
+            }, 4000);
+        }
+    }
 
-    // نفس الشيء للماوس (اختياري)
-    let mouseStartX = 0, mouseStartY = 0;
-    let isMouseDrag = false;
-    track.addEventListener('mousedown', (e) => {
+    // ===== أحداث الفأرة =====
+    function handleMouseDown(e) {
+        if (e.button !== 0) return;
+        isMouseDown = true;
         mouseStartX = e.clientX;
         mouseStartY = e.clientY;
-        isMouseDrag = false;
+        isMouseSwipe = false;
+        isUserInteracting = true;
         stopAutoplay();
-        clearTimeout(resumeTimer);
-    });
-    window.addEventListener('mousemove', (e) => {
-        if (!mouseStartX) return;
+        if (mouseResumeTimer) {
+            clearTimeout(mouseResumeTimer);
+            mouseResumeTimer = null;
+        }
+        e.preventDefault();
+    }
+
+    function handleMouseMove(e) {
+        if (!isMouseDown) return;
         const dx = Math.abs(e.clientX - mouseStartX);
         const dy = Math.abs(e.clientY - mouseStartY);
-        if (dx > 10 && dx > dy) isMouseDrag = true;
-    });
-    window.addEventListener('mouseup', (e) => {
-        if (!mouseStartX) return;
-        if (isMouseDrag) {
-            const diffX = e.clientX - mouseStartX;
-            if (Math.abs(diffX) > 40) {
-                if (diffX < 0) nextPair();
-                else prevPair();
-            } else {
-                goToPair(currentPairIndex);
-            }
+        if (dx > 10 && dx > dy) {
+            isMouseSwipe = true;
+            e.preventDefault();
         }
-        mouseStartX = 0;
-        resumeTimer = setTimeout(startAutoplay, 4000);
-    });
+    }
+
+    function handleMouseUp(e) {
+        if (!isMouseDown) return;
+        isMouseDown = false;
+        
+        if (!isMouseSwipe) {
+            isUserInteracting = false;
+            if (isAutoPlaying) {
+                mouseResumeTimer = setTimeout(function() {
+                    isUserInteracting = false;
+                    startAutoplay();
+                }, 4000);
+            }
+            return;
+        }
+        
+        const diffX = e.clientX - mouseStartX;
+        if (Math.abs(diffX) > 35) {
+            if (diffX > 0) {
+                prevPair();
+            } else {
+                nextPair();
+            }
+        } else {
+            goToPair(currentPairIndex);
+        }
+        
+        isUserInteracting = false;
+        if (isAutoPlaying) {
+            mouseResumeTimer = setTimeout(function() {
+                isUserInteracting = false;
+                startAutoplay();
+            }, 4000);
+        }
+    }
+
+    // ===== ربط المستمعات على العنصر الجديد =====
+    freshTrack.addEventListener('touchstart', handleTouchStart, { passive: false });
+    freshTrack.addEventListener('touchmove', handleTouchMove, { passive: false });
+    freshTrack.addEventListener('touchend', handleTouchEnd, { passive: true });
+    freshTrack.addEventListener('mousedown', handleMouseDown);
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    
+    console.log("✅ bindGalleryEvents: تم ربط أحداث السحب بنجاح");
 }
 
 // ========== نظام التقييمات ==========
@@ -5934,6 +6106,7 @@ onSnapshot(query(productsRef), (snapshot) => {
     renderBestSellers();
     loadApprovedReviews();
     startRandomRefreshIfNeeded();   // ← أضف هذا السطر
+startAutoSortRefresh();         // ← أضف هذا السطر لبدء التحديث التلقائي
 });
 
 // ========== نقاط المعرض ==========
@@ -5947,7 +6120,17 @@ function createDots() {
     dotsContainer.innerHTML = '';
     for (let i = 0; i < totalPairs; i++) {
         const dot = document.createElement('span');
-        dot.addEventListener('click', () => goToPair(i));
+        dot.addEventListener('click', (function(index) {
+            return function() {
+                isUserInteracting = true;
+                stopAutoplay();
+                goToPair(index);
+                setTimeout(() => {
+                    isUserInteracting = false;
+                    if (isAutoPlaying) startAutoplay();
+                }, 300);
+            };
+        })(i));
         dotsContainer.appendChild(dot);
     }
     updateDots();
@@ -5961,6 +6144,19 @@ function updateDots() {
         dot.classList.toggle('active', i === currentPairIndex);
     });
 }
+// ========== إعادة حساب العرض عند تغيير حجم الشاشة ==========
+let resizeTimeout = null;
+window.addEventListener('resize', function() {
+    if (resizeTimeout) clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+        if (window.innerWidth < 769) {
+            updatePairWidth();
+            if (pairWidth > 0) {
+                goToPair(currentPairIndex, false);
+            }
+        }
+    }, 300);
+});
 
 // استدعاء createDots() في renderBestSellers بعد بناء الـ track
 // وأيضاً استدعاء updateDots() في goToPair()
@@ -7572,6 +7768,55 @@ window.setCategory = setCategory;
 // متغير الترتيب الحالي
 let currentSort = "random";
 pinnedProductId = null;
+
+// ========== نظام تحديث الترتيب التلقائي ==========
+let autoSortTimer = null;
+const AUTO_SORT_INTERVAL = 60 * 60 * 1000; // ساعة واحدة (60 دقيقة)
+// للاختبار: استخدم 10 * 1000 (10 ثوانٍ)
+// const AUTO_SORT_INTERVAL = 10 * 1000;
+// ========== تحديث الترتيب العشوائي ==========
+function refreshRandomSort() {
+    // نتحقق إذا كان الترتيب الحالي هو "random"
+    if (currentSort !== "random") {
+        console.log("⏭️ الترتيب الحالي ليس عشوائياً، تخطي التحديث");
+        return;
+    }
+    
+    console.log("🔄 تحديث الترتيب العشوائي للمنتجات...");
+    
+    // ✅ لا نحتاج إلى تغيير البذرة يدوياً، لأن البذرة تعتمد على الوقت
+    // مجرد إعادة عرض المنتجات كفيل بتغيير الترتيب
+    renderProducts();
+    
+    console.log("✅ تم تحديث الترتيب العشوائي بنجاح");
+}
+
+// ========== بدء التحديث التلقائي ==========
+function startAutoSortRefresh() {
+    // إيقاف أي مؤقت سابق
+    if (autoSortTimer) {
+        clearInterval(autoSortTimer);
+        autoSortTimer = null;
+    }
+    
+    // بدء مؤقت جديد
+    autoSortTimer = setInterval(() => {
+        refreshRandomSort();
+    }, AUTO_SORT_INTERVAL);
+    
+    console.log(`⏰ تم تفعيل تحديث الترتيب التلقائي كل ${AUTO_SORT_INTERVAL / 60000} دقيقة`);
+}
+
+// ========== إيقاف التحديث التلقائي ==========
+function stopAutoSortRefresh() {
+    if (autoSortTimer) {
+        clearInterval(autoSortTimer);
+        autoSortTimer = null;
+        console.log("⏹️ تم إيقاف تحديث الترتيب التلقائي");
+    }
+}
+
+
 // ========== نظام الترتيب ==========
 const sortIconBtn = document.getElementById("sortIconBtn");
 const sortMenu = document.getElementById("sortMenu");
