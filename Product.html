@@ -1174,6 +1174,10 @@ button:active,
     -webkit-user-select: none !important;
     user-select: none !important;
 }
+/* إخفاء size-tip عندما يكون tab-sizes غير نشط */
+#tab-sizes:not(.active) .size-tip {
+    display: none !important;
+}
     </style>
 </head>
 <body>
@@ -1364,15 +1368,57 @@ button:active,
     <div class="tab-content">
     <!-- ===== تبويب المقاسات ===== -->
     <div class="tab-pane active" id="tab-sizes">
-        <div id="sizeGuideContent">
-            <!-- المحتوى سيتغير حسب نوع المنتج -->
-        </div>
-        <div class="size-tip" style="margin-top: 16px; padding: 14px 18px; background: #f9f8f6; border-radius: 12px; border-right: 3px solid #D4AF37;">
-            <p style="font-size: 14px; color: #555;">
-                <strong>💡 نصيحة:</strong> إذا كنت بين مقاسين، اختر المقاس الأكبر للحصول على راحة أفضل.
-            </p>
-        </div>
+    <div id="sizeGuideContent">
+        <!-- المحتوى سيتغير حسب نوع المنتج -->
     </div>
+    <div class="size-tip" style="margin-top: 16px; padding: 14px 18px; background: #f9f8f6; border-radius: 12px; border-right: 3px solid #D4AF37;">
+        <p style="font-size: 14px; color: #555;">
+            <strong>💡 نصيحة:</strong> إذا كنت بين مقاسين، اختر المقاس الأكبر للحصول على راحة أفضل.
+        </p>
+    </div>
+</div>
+
+// ========== تبويبات المنتج ==========
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(function() {
+        const tabs = document.querySelectorAll('.tabs-header button');
+        const panes = {
+            sizes: document.getElementById('tab-sizes'),
+            shipping: document.getElementById('tab-shipping'),
+            reviews: document.getElementById('tab-reviews')
+        };
+        
+        if (!tabs.length || !panes.sizes || !panes.shipping || !panes.reviews) {
+            console.warn('⚠️ بعض عناصر التبويبات غير موجودة');
+            return;
+        }
+        
+        // إخفاء جميع المحتويات مبدئياً
+        Object.values(panes).forEach(p => p.classList.remove('active'));
+        panes.sizes.classList.add('active');
+        
+        tabs.forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                tabs.forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                
+                Object.values(panes).forEach(p => p.classList.remove('active'));
+                
+                const tabId = this.dataset.tab;
+                const target = panes[tabId];
+                if (target) {
+                    target.classList.add('active');
+                    console.log(`✅ تم التبديل إلى: ${tabId}`);
+                }
+            });
+        });
+        
+        console.log('✅ تم تفعيل التبويبات بنجاح');
+    }, 300);
+});
 
     <!-- ===== تبويب الشحن ===== -->
     <div class="tab-pane" id="tab-shipping">
