@@ -952,6 +952,38 @@
             .gallery-nav-btn { width: 34px; height: 34px; font-size: 14px; }
             .product-price .current { font-size: 20px; }
         }
+        /* تحسين إطار المصغرات الذهبي */
+.thumbnails img {
+    border: 2.5px solid transparent;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+.thumbnails img.active {
+    border-color: #D4AF37;
+    transform: translateY(-4px);
+    box-shadow: 0 6px 20px rgba(212,175,55,0.25);
+}
+/* إضافة توهج ذهبي خفيف للصورة النشطة */
+.thumbnails img.active {
+    border-color: #D4AF37;
+    box-shadow: 0 0 0 2px rgba(212,175,55,0.15), 0 6px 20px rgba(212,175,55,0.2);
+}
+/* تنسيق تبويب الوصف */
+#tabDescription {
+    line-height: 2;
+    color: #444;
+    font-size: 15px;
+}
+#tabDescription p {
+    margin-bottom: 12px;
+}
+#tabDescription ul, #tabDescription ol {
+    padding-right: 25px;
+    margin: 10px 0;
+}
+#tabDescription li {
+    margin-bottom: 6px;
+}
     </style>
 </head>
 <body>
@@ -1043,8 +1075,6 @@
             </div>
             
             <div id="productStock" class="stock-info">جاري التحميل...</div>
-            
-            <div class="product-description" id="productDescription"></div>
             
             <div class="size-selector">
                 <label>اختر المقاس</label>
@@ -1280,19 +1310,26 @@ function updateGalleryImage() {
 }
 window.updateGalleryImage = updateGalleryImage;
 
-function changeMainImage(src, el) {
+window.changeMainImage = function(imgSrc, thumbElement) {
     const img = document.getElementById('productImage');
-    if (!img) return;
     img.style.opacity = '0';
     setTimeout(() => {
-        img.src = src;
+        img.src = imgSrc;
         img.style.opacity = '1';
     }, 150);
+    
     document.querySelectorAll('.thumbnails img').forEach(t => t.classList.remove('active'));
-    if (el) el.classList.add('active');
-    currentImageIndex = Array.from(document.querySelectorAll('.thumbnails img')).indexOf(el);
-    if (currentImageIndex === -1) currentImageIndex = 0;
-}
+    thumbElement.classList.add('active');
+    
+    // ✅ إضافة: تحديث الصورة في lightbox (اختياري)
+    // ✅ إضافة: تحديث الفهرس الحالي
+    const allThumbs = document.querySelectorAll('.thumbnails img');
+    const index = Array.from(allThumbs).indexOf(thumbElement);
+    if (index !== -1) currentImageIndex = index;
+    
+    // ✅ إضافة: تمرير المصغرة إلى منتصف الشريط
+    thumbElement.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+};
 window.changeMainImage = changeMainImage;
 
 // ========== scroll to review ==========
@@ -1376,12 +1413,11 @@ async function loadProduct() {
             oldPriceEl.style.display = 'none';
             discountBadge.style.display = 'none';
         }
-
-        // الوصف
-        const desc = product.description || 'منتج فاخر من VANTÉ';
-        document.getElementById('productDescription').innerHTML = desc;
-        document.getElementById('tabDescription').innerHTML = desc;
-
+// تحديث تبويب الوصف (بدلاً من productDescription)
+const descContent = document.getElementById('tabDescription');
+if (descContent) {
+    descContent.innerHTML = product.description || 'منتج فاخر من VANTÉ';
+}
         // ===== التقييمات =====
         await loadReviews(product.id, db);
 
