@@ -6611,38 +6611,44 @@ function fallbackShare(text) {
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
     window.open(whatsappUrl, '_blank');
 }
-// ========== فتح المنتج من الرابط ==========
+// ========== فتح المنتج من الرابط (نسخة مستقلة ومضمونة) ==========
 (function autoOpenProductFromURL() {
     const params = new URLSearchParams(window.location.search);
-    const productId = params.get('product');
+    // ✅ تغيير من 'product' إلى 'id' ليتوافق مع الرابط
+    const productId = params.get('id');
     if (!productId) return;
 
-    // انتظر تحميل المنتجات من Firebase
+    console.log('🔍 محاولة فتح المنتج:', productId);
+
     let attempts = 0;
-    const maxAttempts = 20; // 10 ثوانٍ كحد أقصى
+    const maxAttempts = 30;
     const interval = setInterval(() => {
         attempts++;
         if (window.allProducts && window.allProducts.length > 0) {
             clearInterval(interval);
             const product = window.allProducts.find(p => p.id === productId);
             if (product) {
-                // فتح المودال مباشرة
-                window.openProduct(
-                    product.id,
-                    product.name,
-                    product.price,
-                    product.image,
-                    product.sizes || ["7", "8", "9"],
-                    product.description || ""
-                );
-                // إزالة البارامتر من الرابط (اختياري)
+                console.log('✅ تم العثور على المنتج:', product.name);
+                if (typeof window.openProduct === 'function') {
+                    window.openProduct(
+                        product.id,
+                        product.name,
+                        product.price,
+                        product.image,
+                        product.sizes || ["7", "8", "9"],
+                        product.description || ""
+                    );
+                } else {
+                    console.warn('⚠️ openProduct غير معرفة');
+                }
                 window.history.replaceState({}, document.title, window.location.pathname);
             } else {
+                console.warn('⚠️ المنتج غير موجود:', productId);
                 customAlert('⚠️ المنتج غير موجود', 'error');
             }
         } else if (attempts >= maxAttempts) {
             clearInterval(interval);
-            console.warn('لم يتم تحميل المنتجات لتحديد المنتج المطلوب');
+            console.warn('⚠️ لم يتم تحميل المنتجات لتحديد المنتج المطلوب');
         }
     }, 500);
 })();
