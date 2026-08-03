@@ -7259,74 +7259,79 @@ window.lightboxNav = function(direction) {
     document.getElementById("lightboxImg").src = lightboxImages[lightboxIndex];
 };
 
-// تحديث openProduct لربط lightbox
+// ============================================================
+// openProduct - نظام مزدوج (مودال سريع + صفحة كاملة)
+// ============================================================
 window.openProduct = function(id, name, price, image, sizes = [], description = "") {
-  // إعادة تعيين موضع التمرير إلى الأعلى
-const modalContent = document.querySelector("#productModal .modal-content");
-if (modalContent) modalContent.scrollTop = 0;
-    const product = allProducts.find(p => p.id === id);
-    const stockBySize = product ? product.stockBySize || {} : {};
-    const allImages = [image, ...(product?.additionalImages || [])].filter(Boolean);
+    // ✅ تحديد نوع الفتح: مودال (سريع) أم صفحة كاملة
+    const openAsModal = !window.location.pathname.includes('/Product.html');
     
-    currentProduct = { 
-    id, name, price: Number(price), 
-    comparePrice: product?.comparePrice || null,   // ✨ أضفنا هذا السطر
-    image, sizes, description, stockBySize, allImages 
-};
-window.currentProduct = currentProduct;
-    galleryImages = allImages;
-currentImageIndex = 0;
-    
-    document.getElementById("modalImg").src = allImages[0];
-    document.getElementById("modalImg").onclick = function() {
-        window.openLightbox(allImages, 0);
-    };
-    
-    const thumbsContainer = document.getElementById("galleryThumbs");
-    thumbsContainer.innerHTML = allImages.map((img, idx) => `
-        <img src="${img}" class="${idx === 0 ? 'active' : ''}" 
-             onclick="window.changeMainImage('${img}', this); window.openLightbox(allImages, ${idx})" 
-             alt="صورة المنتج">
-    `).join("");
-    
-    // باقي الدالة كما هي...
-    document.getElementById("modalTitle").textContent = name;
-    document.getElementById("modalDesc").innerHTML = description || "منتج فاخر من VANTÉ";
-    document.getElementById("modalPrice").textContent = Number(price) + " جنيه";
-
-// ✨ الكود الجديد
-const oldPriceEl = document.getElementById("modalOldPrice");
-if (product?.comparePrice && product.comparePrice > price) {
-    oldPriceEl.textContent = Number(product.comparePrice) + " جنيه";
-    oldPriceEl.style.display = '';   // أظهر السعر القديم مشطوبًا
-} else {
-    oldPriceEl.style.display = 'none';  // أخفه إذا لم يوجد خصم
-}
-    
-    const sizeSelect = document.getElementById("modalSize");
-    sizeSelect.innerHTML = "";
-    sizes.forEach(size => {
-        const qty = stockBySize[size] !== undefined ? stockBySize[size] : null;
-        let label = `مقاس: ${size}`;
-        if (qty !== null) {
-            label += qty > 0 ? ` (باقى ${qty} قطعه)` : ' (نفذت الكميه)';
-                    }
-        const isDisabled = (qty !== null && qty === 0);
-sizeSelect.innerHTML += `<option value="${size}" ${isDisabled ? 'disabled' : ''}>${label}</option>`;
-    });
-    
-    updateModalStockDisplay();
-    sizeSelect.onchange = updateModalStockDisplay;
-
-    document.getElementById("reviewText").value = "";
-    document.getElementById("reviewText").style.display = "none";
-    document.querySelectorAll(".rating-stars span").forEach(s => s.classList.remove("active"));
-    document.getElementById("productModal").classList.add("active");
-    document.getElementById("overlay").classList.add("active");
-    document.body.classList.add("modal-open");
-    // عرض التقييمات الخاصة بهذا المنتج
-displayReviewsInModal(id);
-setTimeout(enableSwipe, 100);
+    if (openAsModal) {
+        // ✅ الوضع السريع: فتح مودال (كما كان يعمل)
+        const product = allProducts.find(p => p.id === id);
+        const stockBySize = product ? product.stockBySize || {} : {};
+        const allImages = [image, ...(product?.additionalImages || [])].filter(Boolean);
+        
+        currentProduct = {
+            id, name, price: Number(price),
+            comparePrice: product?.comparePrice || null,
+            image, sizes, description, stockBySize, allImages
+        };
+        window.currentProduct = currentProduct;
+        galleryImages = allImages;
+        currentImageIndex = 0;
+        
+        document.getElementById("modalImg").src = allImages[0];
+        document.getElementById("modalImg").onclick = function() {
+            window.openLightbox(allImages, 0);
+        };
+        
+        const thumbsContainer = document.getElementById("galleryThumbs");
+        thumbsContainer.innerHTML = allImages.map((img, idx) => `
+            <img src="${img}" class="${idx === 0 ? 'active' : ''}" 
+                 onclick="window.changeMainImage('${img}', this); window.openLightbox(allImages, ${idx})" 
+                 alt="صورة المنتج">
+        `).join("");
+        
+        document.getElementById("modalTitle").textContent = name;
+        document.getElementById("modalDesc").innerHTML = description || "منتج فاخر من VANTÉ";
+        document.getElementById("modalPrice").textContent = Number(price) + " جنيه";
+        
+        const oldPriceEl = document.getElementById("modalOldPrice");
+        if (product?.comparePrice && product.comparePrice > price) {
+            oldPriceEl.textContent = Number(product.comparePrice) + " جنيه";
+            oldPriceEl.style.display = '';
+        } else {
+            oldPriceEl.style.display = 'none';
+        }
+        
+        const sizeSelect = document.getElementById("modalSize");
+        sizeSelect.innerHTML = "";
+        sizes.forEach(size => {
+            const qty = stockBySize[size] !== undefined ? stockBySize[size] : null;
+            let label = `مقاس: ${size}`;
+            if (qty !== null) {
+                label += qty > 0 ? ` (باقى ${qty} قطعه)` : ' (نفذت الكميه)';
+            }
+            const isDisabled = (qty !== null && qty === 0);
+            sizeSelect.innerHTML += `<option value="${size}" ${isDisabled ? 'disabled' : ''}>${label}</option>`;
+        });
+        
+        updateModalStockDisplay();
+        sizeSelect.onchange = updateModalStockDisplay;
+        
+        document.getElementById("reviewText").value = "";
+        document.getElementById("reviewText").style.display = "none";
+        document.querySelectorAll(".rating-stars span").forEach(s => s.classList.remove("active"));
+        document.getElementById("productModal").classList.add("active");
+        document.getElementById("overlay").classList.add("active");
+        document.body.classList.add("modal-open");
+        displayReviewsInModal(id);
+        setTimeout(enableSwipe, 100);
+    } else {
+        // ✅ الوضع الكامل: فتح صفحة المنتج
+        window.location.href = `/Product.html?id=${id}`;
+    }
 };
 
 window.navigateGallery = function(direction) {
