@@ -1174,7 +1174,10 @@ button:active,
     -webkit-user-select: none !important;
     user-select: none !important;
 }
-
+/* ===== إخفاء دليل المقاسات عندما يكون تبويب المقاسات غير نشط ===== */
+#tab-sizes:not(.active) .size-tip {
+    display: none !important;
+}
     </style>
 </head>
 <body>
