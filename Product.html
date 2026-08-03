@@ -1963,7 +1963,7 @@ async function loadProduct() {
         // ===== المخزون =====
         updateStockDisplay(product);
 
-      // ===== دليل المقاسات الذكي =====
+// ===== دليل المقاسات الذكي =====
 const category = product.category || 'rings';
 const sizeGuideContent = document.getElementById('sizeGuideContent');
 
@@ -1988,7 +1988,7 @@ const sizeGuides = {
             <i class="fas fa-gem" style="font-size:48px; color:#D4AF37; margin-bottom:10px; display:block;"></i>
             <img src="images/ring-guide1.jpg" alt="دليل قياس الخواتم" style="max-width:100%; border-radius:12px; margin-top:10px;">
         </div>
-        <div class="size-tip" style="margin-top:16px; padding:14px 18px; background:#f9f8f6; border-radius:12px; border-right:3px solid #D4AF37;">
+        <div style="margin-top:16px; padding:14px 18px; background:#f9f8f6; border-radius:12px; border-right:3px solid #D4AF37;">
             <p style="font-size:14px; color:#555;">
                 <strong>💡 نصيحة:</strong> إذا كنت بين مقاسين، اختر المقاس الأكبر للحصول على راحة أفضل.
             </p>
@@ -2010,7 +2010,7 @@ const sizeGuides = {
             <i class="fas fa-hand-peace" style="font-size:48px; color:#D4AF37; margin-bottom:10px; display:block;"></i>
             <img src="images/ring-guide2.jpg" alt="دليل قياس الغوايش" style="max-width:100%; border-radius:12px; margin-top:10px;">
         </div>
-        <div class="size-tip" style="margin-top:16px; padding:14px 18px; background:#f9f8f6; border-radius:12px; border-right:3px solid #D4AF37;">
+        <div style="margin-top:16px; padding:14px 18px; background:#f9f8f6; border-radius:12px; border-right:3px solid #D4AF37;">
             <p style="font-size:14px; color:#555;">
                 <strong>💡 نصيحة:</strong> إذا كنت بين مقاسين، اختر المقاس الأكبر للحصول على راحة أفضل.
             </p>
@@ -2034,7 +2034,7 @@ const sizeGuides = {
             <i class="fas fa-female" style="font-size:48px; color:#D4AF37; margin-bottom:10px; display:block;"></i>
             <img src="images/ring-guide3.jpg" alt="دليل قياس السلاسل" style="max-width:100%; border-radius:12px; margin-top:10px;">
         </div>
-        <div class="size-tip" style="margin-top:16px; padding:14px 18px; background:#f9f8f6; border-radius:12px; border-right:3px solid #D4AF37;">
+        <div style="margin-top:16px; padding:14px 18px; background:#f9f8f6; border-radius:12px; border-right:3px solid #D4AF37;">
             <p style="font-size:14px; color:#555;">
                 <strong>💡 نصيحة:</strong> إذا كنت بين مقاسين، اختر المقاس الأكبر للحصول على راحة أفضل.
             </p>
@@ -2042,11 +2042,31 @@ const sizeGuides = {
     `
 };
 
-// ✅ عرض المحتوى المناسب
+// ✅ عرض المحتوى المناسب والتحكم في ظهور تبويب المقاسات
+const tabsHeader = document.querySelector('.tabs-header');
+const sizesTabBtn = tabsHeader?.querySelector('[data-tab="sizes"]');
+const sizesTabPane = document.getElementById('tab-sizes');
+
 if (sizeGuideContent && sizeGuides[category]) {
     sizeGuideContent.innerHTML = sizeGuides[category];
+    // إظهار تبويب المقاسات
+    if (sizesTabBtn) sizesTabBtn.style.display = '';
+    if (sizesTabPane) sizesTabPane.style.display = '';
 } else if (sizeGuideContent) {
     sizeGuideContent.innerHTML = '';
+    // إخفاء تبويب المقاسات
+    if (sizesTabBtn) sizesTabBtn.style.display = 'none';
+    if (sizesTabPane) sizesTabPane.style.display = 'none';
+    
+    // تفعيل أول تبويب ظاهر (الشحن)
+    const firstVisibleTab = tabsHeader?.querySelector('button:not([style*="display: none"])');
+    if (firstVisibleTab) {
+        document.querySelectorAll('.tabs-header button').forEach(b => b.classList.remove('active'));
+        firstVisibleTab.classList.add('active');
+        document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+        const firstVisiblePane = document.getElementById(`tab-${firstVisibleTab.dataset.tab}`);
+        if (firstVisiblePane) firstVisiblePane.classList.add('active');
+    }
 }
 
         // ===== المنتجات المشابهة والأكثر مبيعاً =====
