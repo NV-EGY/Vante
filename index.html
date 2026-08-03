@@ -6581,8 +6581,18 @@ window.shareProduct = function() {
     }
     const productId = currentProduct.id;
     const productName = currentProduct.name;
-    // ✅ الرابط المباشر لصفحة المنتج
-    const shareUrl = window.location.origin + '/Product.html?id=' + encodeURIComponent(productId);
+    
+    // ✅ بناء المسار الصحيح - يعمل مع أي مسار فرعي
+    let basePath = window.location.pathname;
+    // إذا كان المسار ينتهي بـ index.html أو /، نأخذ المجلد
+    if (basePath.endsWith('/index.html') || basePath.endsWith('/')) {
+        basePath = basePath.replace(/\/[^/]*$/, '/');
+    } else {
+        // إذا كان المسار مثل /some/path/ (بدون index)، نأخذ المجلد
+        basePath = basePath.substring(0, basePath.lastIndexOf('/') + 1);
+    }
+    // استخدام المسار النسبي
+    const shareUrl = basePath + 'Product.html?id=' + encodeURIComponent(productId);
     
     const shareText = `🛍️ ${productName} من VANTÉ\n${shareUrl}`;
 
