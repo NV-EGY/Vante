@@ -1368,15 +1368,11 @@ button:active,
         <button data-tab="reviews">⭐ التقييمات</button>
     </div>
     <div class="tab-content">
-        <!-- المقاسات -->
-        <div class="tab-pane active" id="tab-sizes">
-            <div id="sizeGuideContent"></div>
-            <div class="size-tip" style="margin-top:16px; padding:14px 18px; background:#f9f8f6; border-radius:12px; border-right:3px solid #D4AF37;">
-                <p style="font-size:14px; color:#555;">
-                    <strong>💡 نصيحة:</strong> إذا كنت بين مقاسين، اختر المقاس الأكبر للحصول على راحة أفضل.
-                </p>
-            </div>
-        </div>
+<div class="tab-pane active" id="tab-sizes">
+    <div id="sizeGuideContent">
+        <!-- المحتوى سيتغير حسب نوع المنتج، وسيشمل النصيحة داخله -->
+    </div>
+</div>
 
         <!-- الشحن والإرجاع -->
         <div class="tab-pane" id="tab-shipping">
@@ -1967,78 +1963,91 @@ async function loadProduct() {
         // ===== المخزون =====
         updateStockDisplay(product);
 
-        // ===== دليل المقاسات الذكي =====
-        const category = product.category || 'rings';
-        const sizeGuideContent = document.getElementById('sizeGuideContent');
-        const sizeGuideContainer = sizeGuideContent?.parentElement;
+      // ===== دليل المقاسات الذكي =====
+const category = product.category || 'rings';
+const sizeGuideContent = document.getElementById('sizeGuideContent');
 
-        const sizeGuides = {
-            'rings': `
-                <h4>📏 دليل قياس الخواتم</h4>
-                <p><strong>الطريقة الأولى (القطر الداخلي):</strong> ضعي خاتم مناسب على يدك، ثم قيسي المسافة من الداخل باستخدام مسطرة.</p>
-                <table class="size-guide-table" style="width:100%; border-collapse:collapse; margin:10px 0;">
-                    <thead><tr style="background:#111; color:#fff;"><th style="padding:10px; border:1px solid #ddd;">القطر (مم)</th><th style="padding:10px; border:1px solid #ddd;">المقاس</th></tr></thead>
-                    <tbody>
-                        <tr><td style="padding:8px; border:1px solid #ddd;">16</td><td style="padding:8px; border:1px solid #ddd;">16</td></tr>
-                        <tr><td style="padding:8px; border:1px solid #ddd;">17</td><td style="padding:8px; border:1px solid #ddd;">17</td></tr>
-                        <tr><td style="padding:8px; border:1px solid #ddd;">18</td><td style="padding:8px; border:1px solid #ddd;">18</td></tr>
-                        <tr><td style="padding:8px; border:1px solid #ddd;">19</td><td style="padding:8px; border:1px solid #ddd;">19</td></tr>
-                        <tr><td style="padding:8px; border:1px solid #ddd;">20</td><td style="padding:8px; border:1px solid #ddd;">20</td></tr>
-                        <tr><td style="padding:8px; border:1px solid #ddd;">21</td><td style="padding:8px; border:1px solid #ddd;">21</td></tr>
-                    </tbody>
-                </table>
-                <p style="font-size:13px; color:#888;">قياس الخواتم: ضعي خاتماً مناسباً على يدك وقيسي القطر الداخلي.</p>
-                <div class="size-img-placeholder" style="background:#f9f9f9; border-radius:16px; padding:15px; text-align:center; margin-top:15px; border:1px dashed #ccc;">
-                    <i class="fas fa-gem" style="font-size:48px; color:#D4AF37; margin-bottom:10px; display:block;"></i>
-                    <img src="images/ring-guide1.jpg" alt="دليل قياس الخواتم" style="max-width:100%; border-radius:12px; margin-top:10px;">
-                </div>
-            `,
-            'bracelets': `
-                <h4>📏 دليل قياس الغوايش والأساور</h4>
-                <p><strong>الطريقة الأولى (القطر الداخلي):</strong> ضعي غويشة مناسبة على يدك، ثم قيسي المسافة من الداخل باستخدام مسطرة.</p>
-                <table class="size-guide-table" style="width:100%; border-collapse:collapse; margin:10px 0;">
-                    <thead><tr style="background:#111; color:#fff;"><th style="padding:10px; border:1px solid #ddd;">المقاس</th><th style="padding:10px; border:1px solid #ddd;">القطر الداخلي (سم)</th></tr></thead>
-                    <tbody>
-                        <tr><td style="padding:8px; border:1px solid #ddd;">60</td><td style="padding:8px; border:1px solid #ddd;">6.0 سم</td></tr>
-                        <tr><td style="padding:8px; border:1px solid #ddd;">65</td><td style="padding:8px; border:1px solid #ddd;">6.5 سم</td></tr>
-                        <tr><td style="padding:8px; border:1px solid #ddd;">70</td><td style="padding:8px; border:1px solid #ddd;">7.0 سم</td></tr>
-                    </tbody>
-                </table>
-                <p style="font-size:13px; color:#888;">قياس الغوايش: ضعي غويشة مناسبة على يدك وقيسي القطر الداخلي.</p>
-                <div class="size-img-placeholder" style="background:#f9f9f9; border-radius:16px; padding:15px; text-align:center; margin-top:15px; border:1px dashed #ccc;">
-                    <i class="fas fa-hand-peace" style="font-size:48px; color:#D4AF37; margin-bottom:10px; display:block;"></i>
-                    <img src="images/ring-guide2.jpg" alt="دليل قياس الغوايش" style="max-width:100%; border-radius:12px; margin-top:10px;">
-                </div>
-            `,
-            'necklaces': `
-                <h4>📏 دليل قياس السلاسل</h4>
-                <p>استخدم خيطاً لقياس محيط رقبتك، ثم اختر الطول المناسب حسب الجدول التالي:</p>
-                <table class="size-guide-table" style="width:100%; border-collapse:collapse; margin:10px 0;">
-                    <thead><tr style="background:#111; color:#fff;"><th style="padding:10px; border:1px solid #ddd;">طول السلسلة (سم)</th><th style="padding:10px; border:1px solid #ddd;">المناسبة</th></tr></thead>
-                    <tbody>
-                        <tr><td style="padding:8px; border:1px solid #ddd;">45 سم</td><td style="padding:8px; border:1px solid #ddd;">تشغيل حول الرقبة (Choker)</td></tr>
-                        <tr><td style="padding:8px; border:1px solid #ddd;">50 سم</td><td style="padding:8px; border:1px solid #ddd;">عظمة الترقوة</td></tr>
-                        <tr><td style="padding:8px; border:1px solid #ddd;">55 سم</td><td style="padding:8px; border:1px solid #ddd;">أسفل الترقوة</td></tr>
-                        <tr><td style="padding:8px; border:1px solid #ddd;">60 سم</td><td style="padding:8px; border:1px solid #ddd;">على الصدر</td></tr>
-                        <tr><td style="padding:8px; border:1px solid #ddd;">70 سم</td><td style="padding:8px; border:1px solid #ddd;">سلسلة طويلة (أوبرا)</td></tr>
-                    </tbody>
-                </table>
-                <p style="font-size:13px; color:#888;">قياس السلاسل: استخدم خيطاً لقياس محيط رقبتك.</p>
-                <div class="size-img-placeholder" style="background:#f9f9f9; border-radius:16px; padding:15px; text-align:center; margin-top:15px; border:1px dashed #ccc;">
-                    <i class="fas fa-female" style="font-size:48px; color:#D4AF37; margin-bottom:10px; display:block;"></i>
-                    <img src="images/ring-guide3.jpg" alt="دليل قياس السلاسل" style="max-width:100%; border-radius:12px; margin-top:10px;">
-                </div>
-            `
-        };
+// دليل المقاسات مع النصيحة داخله
+const sizeGuides = {
+    'rings': `
+        <h4>📏 دليل قياس الخواتم</h4>
+        <p><strong>الطريقة الأولى (القطر الداخلي):</strong> ضعي خاتم مناسب على يدك، ثم قيسي المسافة من الداخل باستخدام مسطرة.</p>
+        <table class="size-guide-table" style="width:100%; border-collapse:collapse; margin:10px 0;">
+            <thead><tr style="background:#111; color:#fff;"><th style="padding:10px; border:1px solid #ddd;">القطر (مم)</th><th style="padding:10px; border:1px solid #ddd;">المقاس</th></tr></thead>
+            <tbody>
+                <tr><td style="padding:8px; border:1px solid #ddd;">16</td><td style="padding:8px; border:1px solid #ddd;">16</td></tr>
+                <tr><td style="padding:8px; border:1px solid #ddd;">17</td><td style="padding:8px; border:1px solid #ddd;">17</td></tr>
+                <tr><td style="padding:8px; border:1px solid #ddd;">18</td><td style="padding:8px; border:1px solid #ddd;">18</td></tr>
+                <tr><td style="padding:8px; border:1px solid #ddd;">19</td><td style="padding:8px; border:1px solid #ddd;">19</td></tr>
+                <tr><td style="padding:8px; border:1px solid #ddd;">20</td><td style="padding:8px; border:1px solid #ddd;">20</td></tr>
+                <tr><td style="padding:8px; border:1px solid #ddd;">21</td><td style="padding:8px; border:1px solid #ddd;">21</td></tr>
+            </tbody>
+        </table>
+        <p style="font-size:13px; color:#888;">قياس الخواتم: ضعي خاتماً مناسباً على يدك وقيسي القطر الداخلي.</p>
+        <div class="size-img-placeholder" style="background:#f9f9f9; border-radius:16px; padding:15px; text-align:center; margin-top:15px; border:1px dashed #ccc;">
+            <i class="fas fa-gem" style="font-size:48px; color:#D4AF37; margin-bottom:10px; display:block;"></i>
+            <img src="images/ring-guide1.jpg" alt="دليل قياس الخواتم" style="max-width:100%; border-radius:12px; margin-top:10px;">
+        </div>
+        <div class="size-tip" style="margin-top:16px; padding:14px 18px; background:#f9f8f6; border-radius:12px; border-right:3px solid #D4AF37;">
+            <p style="font-size:14px; color:#555;">
+                <strong>💡 نصيحة:</strong> إذا كنت بين مقاسين، اختر المقاس الأكبر للحصول على راحة أفضل.
+            </p>
+        </div>
+    `,
+    'bracelets': `
+        <h4>📏 دليل قياس الغوايش والأساور</h4>
+        <p><strong>الطريقة الأولى (القطر الداخلي):</strong> ضعي غويشة مناسبة على يدك، ثم قيسي المسافة من الداخل باستخدام مسطرة.</p>
+        <table class="size-guide-table" style="width:100%; border-collapse:collapse; margin:10px 0;">
+            <thead><tr style="background:#111; color:#fff;"><th style="padding:10px; border:1px solid #ddd;">المقاس</th><th style="padding:10px; border:1px solid #ddd;">القطر الداخلي (سم)</th></tr></thead>
+            <tbody>
+                <tr><td style="padding:8px; border:1px solid #ddd;">60</td><td style="padding:8px; border:1px solid #ddd;">6.0 سم</td></tr>
+                <tr><td style="padding:8px; border:1px solid #ddd;">65</td><td style="padding:8px; border:1px solid #ddd;">6.5 سم</td></tr>
+                <tr><td style="padding:8px; border:1px solid #ddd;">70</td><td style="padding:8px; border:1px solid #ddd;">7.0 سم</td></tr>
+            </tbody>
+        </table>
+        <p style="font-size:13px; color:#888;">قياس الغوايش: ضعي غويشة مناسبة على يدك وقيسي القطر الداخلي.</p>
+        <div class="size-img-placeholder" style="background:#f9f9f9; border-radius:16px; padding:15px; text-align:center; margin-top:15px; border:1px dashed #ccc;">
+            <i class="fas fa-hand-peace" style="font-size:48px; color:#D4AF37; margin-bottom:10px; display:block;"></i>
+            <img src="images/ring-guide2.jpg" alt="دليل قياس الغوايش" style="max-width:100%; border-radius:12px; margin-top:10px;">
+        </div>
+        <div class="size-tip" style="margin-top:16px; padding:14px 18px; background:#f9f8f6; border-radius:12px; border-right:3px solid #D4AF37;">
+            <p style="font-size:14px; color:#555;">
+                <strong>💡 نصيحة:</strong> إذا كنت بين مقاسين، اختر المقاس الأكبر للحصول على راحة أفضل.
+            </p>
+        </div>
+    `,
+    'necklaces': `
+        <h4>📏 دليل قياس السلاسل</h4>
+        <p>استخدم خيطاً لقياس محيط رقبتك، ثم اختر الطول المناسب حسب الجدول التالي:</p>
+        <table class="size-guide-table" style="width:100%; border-collapse:collapse; margin:10px 0;">
+            <thead><tr style="background:#111; color:#fff;"><th style="padding:10px; border:1px solid #ddd;">طول السلسلة (سم)</th><th style="padding:10px; border:1px solid #ddd;">المناسبة</th></tr></thead>
+            <tbody>
+                <tr><td style="padding:8px; border:1px solid #ddd;">45 سم</td><td style="padding:8px; border:1px solid #ddd;">تشغيل حول الرقبة (Choker)</td></tr>
+                <tr><td style="padding:8px; border:1px solid #ddd;">50 سم</td><td style="padding:8px; border:1px solid #ddd;">عظمة الترقوة</td></tr>
+                <tr><td style="padding:8px; border:1px solid #ddd;">55 سم</td><td style="padding:8px; border:1px solid #ddd;">أسفل الترقوة</td></tr>
+                <tr><td style="padding:8px; border:1px solid #ddd;">60 سم</td><td style="padding:8px; border:1px solid #ddd;">على الصدر</td></tr>
+                <tr><td style="padding:8px; border:1px solid #ddd;">70 سم</td><td style="padding:8px; border:1px solid #ddd;">سلسلة طويلة (أوبرا)</td></tr>
+            </tbody>
+        </table>
+        <p style="font-size:13px; color:#888;">قياس السلاسل: استخدم خيطاً لقياس محيط رقبتك.</p>
+        <div class="size-img-placeholder" style="background:#f9f9f9; border-radius:16px; padding:15px; text-align:center; margin-top:15px; border:1px dashed #ccc;">
+            <i class="fas fa-female" style="font-size:48px; color:#D4AF37; margin-bottom:10px; display:block;"></i>
+            <img src="images/ring-guide3.jpg" alt="دليل قياس السلاسل" style="max-width:100%; border-radius:12px; margin-top:10px;">
+        </div>
+        <div class="size-tip" style="margin-top:16px; padding:14px 18px; background:#f9f8f6; border-radius:12px; border-right:3px solid #D4AF37;">
+            <p style="font-size:14px; color:#555;">
+                <strong>💡 نصيحة:</strong> إذا كنت بين مقاسين، اختر المقاس الأكبر للحصول على راحة أفضل.
+            </p>
+        </div>
+    `
+};
 
-        // ✅ عرض دليل المقاسات المناسب
-        if (sizeGuideContent && sizeGuides[category]) {
-            sizeGuideContent.innerHTML = sizeGuides[category];
-            if (sizeGuideContainer) sizeGuideContainer.style.display = 'block';
-        } else if (sizeGuideContent) {
-            sizeGuideContent.innerHTML = '';
-            if (sizeGuideContainer) sizeGuideContainer.style.display = 'none';
-        }
+// ✅ عرض المحتوى المناسب
+if (sizeGuideContent && sizeGuides[category]) {
+    sizeGuideContent.innerHTML = sizeGuides[category];
+} else if (sizeGuideContent) {
+    sizeGuideContent.innerHTML = '';
+}
 
         // ===== المنتجات المشابهة والأكثر مبيعاً =====
         loadSimilarProducts(product.category, product.id, db);
@@ -2276,6 +2285,55 @@ window.shareProduct = function() {
         });
     }
 };
+
+// ========== تبويبات المنتج ==========
+document.addEventListener('DOMContentLoaded', function() {
+    const tabs = document.querySelectorAll('.tabs-header button');
+    const panes = {
+        sizes: document.getElementById('tab-sizes'),
+        shipping: document.getElementById('tab-shipping'),
+        reviews: document.getElementById('tab-reviews')
+    };
+    const sizeGuideContent = document.getElementById('sizeGuideContent');
+
+    if (!tabs.length || !panes.sizes || !panes.shipping || !panes.reviews) {
+        console.warn('⚠️ بعض عناصر التبويبات غير موجودة');
+        return;
+    }
+
+    // دالة لإظهار/إخفاء دليل المقاسات بالكامل
+    function toggleSizeGuide(show) {
+        if (sizeGuideContent) {
+            sizeGuideContent.style.display = show ? 'block' : 'none';
+        }
+    }
+
+    Object.values(panes).forEach(p => p.classList.remove('active'));
+    panes.sizes.classList.add('active');
+    toggleSizeGuide(true);
+
+    tabs.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+
+            tabs.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+
+            Object.values(panes).forEach(p => p.classList.remove('active'));
+
+            const tabId = this.dataset.tab;
+            const target = panes[tabId];
+            if (target) {
+                target.classList.add('active');
+                if (tabId === 'sizes') {
+                    toggleSizeGuide(true);
+                } else {
+                    toggleSizeGuide(false);
+                }
+            }
+        });
+    });
+});
 
 // ========== تحميل الصفحة ==========
 document.addEventListener('DOMContentLoaded', loadProduct);
