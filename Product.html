@@ -34,7 +34,7 @@
         img { max-width: 100%; display: block; pointer-events: none; }
         
         /* ============================================
-           TOAST NOTIFICATIONS (مطابق للصفحة الرئيسية)
+           TOAST NOTIFICATIONS
            ============================================ */
         .vante-toast {
             position: fixed;
@@ -101,7 +101,7 @@
         }
 
         /* ============================================
-           NAVBAR - مطابق للصفحة الرئيسية
+           NAVBAR
            ============================================ */
         .nav-bar {
             background: #fff;
@@ -414,13 +414,13 @@
         .gallery-nav-btn.prev { right: 12px; }
         .gallery-nav-btn.next { left: 12px; }
         
-        /* المصغرات */
+        /* ===== المصغرات - الحل المعدل ===== */
         .thumbnails {
             display: flex;
-            gap: 10px;
+            gap: 12px;
             margin-top: 18px;
             overflow-x: auto;
-            padding-bottom: 8px;
+            padding: 4px 2px 8px 2px;
             scrollbar-width: thin;
             scroll-behavior: smooth;
         }
@@ -431,22 +431,45 @@
             background: #D4AF37;
             border-radius: 10px;
         }
-        .thumbnails img {
-            width: 80px;
-            height: 80px;
-            object-fit: cover;
-            border-radius: 12px;
-            cursor: pointer;
-            border: 2px solid transparent;
-            transition: all 0.3s ease;
+
+        /* ✅ الإطار الذهبي حول حاوية الصورة المصغرة */
+        .thumbnail-wrapper {
             flex-shrink: 0;
+            width: 84px;
+            height: 84px;
+            border-radius: 14px;
+            border: 3px solid transparent;
+            transition: all 0.3s ease;
+            overflow: hidden;
+            cursor: pointer;
             box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            padding: 2px; /* مسافة داخلية لتظهر الحافة الذهبية بالكامل */
+            background: #fff;
         }
-        .thumbnails img.active,
-        .thumbnails img:hover {
+
+        .thumbnail-wrapper.active {
+            border-color: #D4AF37;
+            box-shadow: 0 6px 18px rgba(212,175,55,0.25);
+            transform: translateY(-3px);
+        }
+
+        .thumbnail-wrapper:hover {
             border-color: #D4AF37;
             transform: translateY(-3px);
-            box-shadow: 0 6px 16px rgba(212,175,55,0.2);
+            box-shadow: 0 6px 18px rgba(212,175,55,0.15);
+        }
+
+        .thumbnail-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 11px;
+            display: block;
+            transition: transform 0.3s ease;
+        }
+
+        .thumbnail-wrapper:hover img {
+            transform: scale(1.05);
         }
 
         /* ===== PRODUCT INFO ===== */
@@ -749,6 +772,97 @@
         }
 
         /* ============================================
+           MODAL للتكبير (اضافة جديدة)
+           ============================================ */
+        .image-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.92);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+            padding: 30px;
+            cursor: zoom-out;
+            animation: fadeInModal 0.3s ease;
+        }
+        .image-modal.active {
+            display: flex;
+        }
+        .image-modal img {
+            max-width: 90%;
+            max-height: 85vh;
+            object-fit: contain;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+            border: 2px solid #D4AF37;
+        }
+        .image-modal .close-modal {
+            position: absolute;
+            top: 25px;
+            left: 25px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.12);
+            border: 2px solid #D4AF37;
+            color: #fff;
+            font-size: 28px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.3s;
+            backdrop-filter: blur(4px);
+        }
+        .image-modal .close-modal:hover {
+            background: #D4AF37;
+            color: #000;
+            transform: rotate(90deg);
+        }
+        @keyframes fadeInModal {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .image-modal .modal-counter {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.6);
+            color: #fff;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 14px;
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(212,175,55,0.3);
+        }
+        .image-modal .nav-modal {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            border: 2px solid rgba(212,175,55,0.4);
+            color: #fff;
+            font-size: 24px;
+            cursor: pointer;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+        }
+        .image-modal .nav-modal:hover {
+            background: #D4AF37;
+            color: #000;
+        }
+        .image-modal .nav-modal.prev-modal { left: 25px; }
+        .image-modal .nav-modal.next-modal { right: 25px; }
+
+        /* ============================================
            RELATED PRODUCTS & BEST SELLERS
            ============================================ */
         .related-section {
@@ -928,6 +1042,7 @@
             .products-grid { grid-template-columns: repeat(3, 1fr); gap: 18px; }
             .product-info-page h1 { font-size: 26px; }
             .product-price .current { font-size: 28px; }
+            .thumbnail-wrapper { width: 72px; height: 72px; }
         }
         @media (max-width: 768px) {
             .product-container { padding: 18px; border-radius: 20px; }
@@ -935,12 +1050,16 @@
             .products-grid { grid-template-columns: repeat(2, 1fr); gap: 14px; }
             .product-info-page h1 { font-size: 22px; }
             .product-price .current { font-size: 24px; }
-            .thumbnails img { width: 60px; height: 60px; }
+            .thumbnail-wrapper { width: 64px; height: 64px; }
             .action-buttons { flex-direction: column; }
             .btn-primary, .btn-secondary { width: 100%; justify-content: center; }
             .product-tabs .tabs-header button { padding: 12px 16px; font-size: 13px; }
             .product-tabs .tab-content { padding: 20px; }
             .breadcrumb { font-size: 12px; margin-top: 12px; }
+            .image-modal .nav-modal { width: 40px; height: 40px; font-size: 18px; }
+            .image-modal .nav-modal.prev-modal { left: 10px; }
+            .image-modal .nav-modal.next-modal { right: 10px; }
+            .image-modal .close-modal { width: 44px; height: 44px; font-size: 22px; top: 15px; left: 15px; }
         }
         @media (max-width: 480px) {
             .products-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -948,42 +1067,11 @@
             .product-card img { height: 140px; }
             .product-card h3 { font-size: 13px; }
             .product-gallery-page .main-image { height: 250px; }
-            .thumbnails img { width: 50px; height: 50px; }
+            .thumbnail-wrapper { width: 56px; height: 56px; }
             .gallery-nav-btn { width: 34px; height: 34px; font-size: 14px; }
             .product-price .current { font-size: 20px; }
+            .image-modal img { max-width: 95%; }
         }
-        /* تحسين إطار المصغرات الذهبي */
-.thumbnails img {
-    border: 2.5px solid transparent;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-}
-.thumbnails img.active {
-    border-color: #D4AF37;
-    transform: translateY(-4px);
-    box-shadow: 0 6px 20px rgba(212,175,55,0.25);
-}
-/* إضافة توهج ذهبي خفيف للصورة النشطة */
-.thumbnails img.active {
-    border-color: #D4AF37;
-    box-shadow: 0 0 0 2px rgba(212,175,55,0.15), 0 6px 20px rgba(212,175,55,0.2);
-}
-/* تنسيق تبويب الوصف */
-#tabDescription {
-    line-height: 2;
-    color: #444;
-    font-size: 15px;
-}
-#tabDescription p {
-    margin-bottom: 12px;
-}
-#tabDescription ul, #tabDescription ol {
-    padding-right: 25px;
-    margin: 10px 0;
-}
-#tabDescription li {
-    margin-bottom: 6px;
-}
     </style>
 </head>
 <body>
@@ -1051,7 +1139,7 @@
         <!-- ===== الصور ===== -->
         <div class="product-gallery-page">
             <div class="main-image" id="mainImageContainer">
-                <img id="productImage" src="" alt="صورة المنتج">
+                <img id="productImage" src="" alt="صورة المنتج" onclick="openImageModal(0)">
                 <button class="gallery-nav-btn prev" onclick="navigateGallery(-1)">‹</button>
                 <button class="gallery-nav-btn next" onclick="navigateGallery(1)">›</button>
             </div>
@@ -1075,6 +1163,8 @@
             </div>
             
             <div id="productStock" class="stock-info">جاري التحميل...</div>
+            
+            <div class="product-description" id="productDescription"></div>
             
             <div class="size-selector">
                 <label>اختر المقاس</label>
@@ -1102,6 +1192,17 @@
         </div>
     </div>
 </section>
+
+<!-- ============================================
+     MODAL لتكبير الصور (إضافة جديدة)
+============================================ -->
+<div class="image-modal" id="imageModal" onclick="closeImageModal(event)">
+    <button class="close-modal" onclick="closeImageModal()"><i class="fas fa-times"></i></button>
+    <button class="nav-modal prev-modal" onclick="navigateModal(-1)">‹</button>
+    <button class="nav-modal next-modal" onclick="navigateModal(1)">›</button>
+    <img id="modalImage" src="" alt="تكبير الصورة">
+    <div class="modal-counter" id="modalCounter">1 / 1</div>
+</div>
 
 <!-- ============================================
      PRODUCT TABS (الوصف / المقاسات / الشحن)
@@ -1230,7 +1331,7 @@ function closeMobileMenu() {
     document.body.style.overflow = "";
 }
 
-// ========== TOAST SYSTEM (مطابق للصفحة الرئيسية) ==========
+// ========== TOAST SYSTEM ==========
 function showToast(message, type = 'success') {
     const existingToast = document.querySelector('.vante-toast');
     if (existingToast) existingToast.remove();
@@ -1269,6 +1370,7 @@ let currentProduct = null;
 let currentImages = [];
 let currentImageIndex = 0;
 let selectedSize = null;
+let modalImageIndex = 0;
 
 // ========== عرض النجوم ==========
 function renderStars(rating) {
@@ -1283,7 +1385,7 @@ function renderStars(rating) {
     return html;
 }
 
-// ========== التنقل في الجاليري ==========
+// ========== التنقل في الجاليري الرئيسي ==========
 function navigateGallery(dir) {
     if (!currentImages.length) return;
     currentImageIndex = (currentImageIndex + dir + currentImages.length) % currentImages.length;
@@ -1299,38 +1401,87 @@ function updateGalleryImage() {
         img.src = currentImages[currentImageIndex];
         img.style.opacity = '1';
     }, 150);
-    document.querySelectorAll('.thumbnails img').forEach((el, i) => {
-        el.classList.toggle('active', i === currentImageIndex);
+    
+    // تحديث حالة المصغرات
+    document.querySelectorAll('.thumbnail-wrapper').forEach((wrapper, i) => {
+        wrapper.classList.toggle('active', i === currentImageIndex);
     });
+    
     // تمرير المصغرة النشطة إلى view
-    const activeThumb = document.querySelector('.thumbnails img.active');
-    if (activeThumb) {
-        activeThumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    const activeWrapper = document.querySelector('.thumbnail-wrapper.active');
+    if (activeWrapper) {
+        activeWrapper.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
     }
 }
 window.updateGalleryImage = updateGalleryImage;
 
-window.changeMainImage = function(imgSrc, thumbElement) {
+// ========== تغيير الصورة الرئيسية عند النقر على المصغرة ==========
+function changeMainImage(src, wrapperElement, index) {
     const img = document.getElementById('productImage');
+    if (!img) return;
     img.style.opacity = '0';
     setTimeout(() => {
-        img.src = imgSrc;
+        img.src = src;
         img.style.opacity = '1';
     }, 150);
     
-    document.querySelectorAll('.thumbnails img').forEach(t => t.classList.remove('active'));
-    thumbElement.classList.add('active');
-    
-    // ✅ إضافة: تحديث الصورة في lightbox (اختياري)
-    // ✅ إضافة: تحديث الفهرس الحالي
-    const allThumbs = document.querySelectorAll('.thumbnails img');
-    const index = Array.from(allThumbs).indexOf(thumbElement);
-    if (index !== -1) currentImageIndex = index;
-    
-    // ✅ إضافة: تمرير المصغرة إلى منتصف الشريط
-    thumbElement.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-};
+    // تحديث حالة المصغرات
+    document.querySelectorAll('.thumbnail-wrapper').forEach(w => w.classList.remove('active'));
+    if (wrapperElement) {
+        wrapperElement.classList.add('active');
+    }
+    currentImageIndex = index;
+    // تحديث الصورة في المودال أيضاً
+    modalImageIndex = index;
+}
 window.changeMainImage = changeMainImage;
+
+// ========== MODAL لتكبير الصور ==========
+function openImageModal(index) {
+    if (!currentImages.length) return;
+    const modal = document.getElementById('imageModal');
+    const modalImg = document.getElementById('modalImage');
+    modalImageIndex = index !== undefined ? index : currentImageIndex;
+    modalImg.src = currentImages[modalImageIndex];
+    document.getElementById('modalCounter').textContent = `${modalImageIndex + 1} / ${currentImages.length}`;
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+window.openImageModal = openImageModal;
+
+function closeImageModal(e) {
+    if (e && e.target !== e.currentTarget) return;
+    const modal = document.getElementById('imageModal');
+    modal.classList.remove('active');
+    document.body.style.overflow = '';
+}
+window.closeImageModal = closeImageModal;
+
+function navigateModal(dir) {
+    if (!currentImages.length) return;
+    modalImageIndex = (modalImageIndex + dir + currentImages.length) % currentImages.length;
+    const modalImg = document.getElementById('modalImage');
+    modalImg.style.opacity = '0';
+    setTimeout(() => {
+        modalImg.src = currentImages[modalImageIndex];
+        modalImg.style.opacity = '1';
+    }, 150);
+    document.getElementById('modalCounter').textContent = `${modalImageIndex + 1} / ${currentImages.length}`;
+}
+window.navigateModal = navigateModal;
+
+// إغلاق المودال بالضغط على ESC
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        closeImageModal();
+    }
+    if (e.key === 'ArrowRight' && document.getElementById('imageModal').classList.contains('active')) {
+        navigateModal(1);
+    }
+    if (e.key === 'ArrowLeft' && document.getElementById('imageModal').classList.contains('active')) {
+        navigateModal(-1);
+    }
+});
 
 // ========== scroll to review ==========
 function scrollToReview() {
@@ -1385,14 +1536,18 @@ async function loadProduct() {
         const allImages = [product.image, ...(product.additionalImages || [])].filter(Boolean);
         currentImages = allImages;
         currentImageIndex = 0;
+        modalImageIndex = 0;
 
         const mainImg = document.getElementById('productImage');
-        if (mainImg) mainImg.src = allImages[0] || '';
+        if (mainImg && allImages.length) mainImg.src = allImages[0];
 
+        // ===== عرض المصغرات مع الإطار الذهبي =====
         const thumbsContainer = document.getElementById('thumbnails');
         thumbsContainer.innerHTML = allImages.map((img, idx) => `
-            <img src="${img}" class="${idx === 0 ? 'active' : ''}" 
-                 onclick="changeMainImage('${img}', this)" alt="صورة">
+            <div class="thumbnail-wrapper ${idx === 0 ? 'active' : ''}" 
+                 onclick="changeMainImage('${img}', this, ${idx})">
+                <img src="${img}" alt="صورة مصغرة ${idx + 1}" loading="lazy">
+            </div>
         `).join('');
 
         // ===== المعلومات =====
@@ -1413,11 +1568,12 @@ async function loadProduct() {
             oldPriceEl.style.display = 'none';
             discountBadge.style.display = 'none';
         }
-// تحديث تبويب الوصف (بدلاً من productDescription)
-const descContent = document.getElementById('tabDescription');
-if (descContent) {
-    descContent.innerHTML = product.description || 'منتج فاخر من VANTÉ';
-}
+
+        // الوصف
+        const desc = product.description || 'منتج فاخر من VANTÉ';
+        document.getElementById('productDescription').innerHTML = desc;
+        document.getElementById('tabDescription').innerHTML = desc;
+
         // ===== التقييمات =====
         await loadReviews(product.id, db);
 
