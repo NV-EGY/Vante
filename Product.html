@@ -1577,7 +1577,6 @@ async function loadProduct() {
         // الوصف
         const desc = product.description || 'منتج فاخر من VANTÉ';
         document.getElementById('productDescription').innerHTML = desc;
-        document.getElementById('tabDescription').innerHTML = desc;
 
         // ===== التقييمات =====
         await loadReviews(product.id, db);
