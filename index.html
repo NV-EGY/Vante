@@ -6583,9 +6583,9 @@ window.shareProduct = function() {
     const productId = currentProduct.id;
     const productName = currentProduct.name;
     const baseUrl = window.location.origin + window.location.pathname;
-    const shareUrl = baseUrl + '?product=' + encodeURIComponent(productId);
+    // ✅ تغيير ?product= إلى ?id=
+    const shareUrl = baseUrl + '?id=' + encodeURIComponent(productId);
     
-    // ✅ الرسالة المطلوبة
     const shareText = `🛍️ ${productName} من VANTÉ\n${shareUrl}`;
 
     if (navigator.share) {
@@ -8384,24 +8384,21 @@ console.log('✅ تم تفعيل تحديث الحالات التلقائي في
 // ========== فتح المنتج من الرابط (نسخة مستقلة ومضمونة) ==========
 (function autoOpenProductFromURL() {
     const params = new URLSearchParams(window.location.search);
-    const productId = params.get('product');
+    // ✅ تغيير 'product' إلى 'id'
+    const productId = params.get('id');
     if (!productId) return;
 
     console.log('🔍 محاولة فتح المنتج:', productId);
 
-    // انتظر تحميل المنتجات من Firebase
     let attempts = 0;
-    const maxAttempts = 30; // 15 ثانية كحد أقصى
+    const maxAttempts = 30;
     const interval = setInterval(() => {
         attempts++;
-        
-        // تحقق من وجود المنتجات
         if (window.allProducts && window.allProducts.length > 0) {
             clearInterval(interval);
             const product = window.allProducts.find(p => p.id === productId);
             if (product) {
                 console.log('✅ تم العثور على المنتج:', product.name);
-                // فتح المودال مباشرة
                 if (typeof window.openProduct === 'function') {
                     window.openProduct(
                         product.id,
@@ -8414,7 +8411,6 @@ console.log('✅ تم تفعيل تحديث الحالات التلقائي في
                 } else {
                     console.warn('⚠️ openProduct غير معرفة');
                 }
-                // إزالة البارامتر من الرابط (اختياري)
                 window.history.replaceState({}, document.title, window.location.pathname);
             } else {
                 console.warn('⚠️ المنتج غير موجود:', productId);
