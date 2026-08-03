@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="productTitle">VANTÉ - منتج</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+
+<!-- شريط التنقل -->
+<header class="nav-bar">
+    <div class="logo">VANTÉ</div>
+    <nav class="menu">
+        <a href="index.html">الرئيسية</a>
+        <a href="index.html?category=all">جميع المنتجات</a>
+    </nav>
+    <div class="icons">
+        <button onclick="window.location.href='index.html'"><i class="fas fa-shopping-bag"></i></button>
+    </div>
+</header>
+
+<!-- محتوى المنتج -->
+<section class="product-page">
+    <div class="product-container">
+        <!-- الصور -->
+        <div class="product-gallery-page">
+            <div class="main-image">
+                <img id="productImage" src="" alt="صورة المنتج">
+            </div>
+            <div class="thumbnails" id="thumbnails"></div>
+        </div>
+        
+        <!-- معلومات المنتج -->
+        <div class="product-info-page">
+            <h1 id="productName">اسم المنتج</h1>
+            <div class="product-rating" id="productRating">⭐ 0.0 (0 تقييم)</div>
+            <div class="product-price">
+                <span id="productPrice">0</span>
+                <span class="currency">EGP</span>
+                <span id="productOldPrice" class="old-price"></span>
+            </div>
+            <div id="productStock" class="stock-info"></div>
+            
+            <div class="product-description" id="productDescription"></div>
+            
+            <div class="size-selector">
+                <label>اختر المقاس</label>
+                <select id="productSize"></select>
+            </div>
+            
+            <button class="btn-primary add-to-cart" onclick="addToCartFromPage()">
+                <i class="fas fa-shopping-bag"></i> أضف للسلة
+            </button>
+            
+            <button class="btn-secondary share-btn" onclick="shareProduct()">
+                <i class="fas fa-share-alt"></i> مشاركة المنتج
+            </button>
+        </div>
+    </div>
+</section>
+
+<!-- المنتجات المشابهة -->
+<section class="similar-products">
+    <h2 class="flame-title">🔥 منتجات مشابهة</h2>
+    <div class="products-grid" id="similarProducts"></div>
+</section>
+
+<!-- الأكثر مبيعاً -->
+<section class="best-sellers">
+    <h2 class="flame-title">✨ الأكثر مبيعاً</h2>
+    <div class="products-grid" id="bestSellers"></div>
+</section>
+
+<script type="module">
+// ========== استيراد Firebase ==========
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, doc, getDoc, collection, query, where, getDocs, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyCotT8EP2uy_HsgHknxeGBorKoEUORPtmU",
+    authDomain: "vante-orders.firebaseapp.com",
+    projectId: "vante-orders",
+    storageBucket: "vante-orders.firebasestorage.app",
+    messagingSenderId: "842319700646",
+    appId: "1:842319700646:web:f6afd78ef7038c3be4ca67",
+    measurementId: "G-56ZC1RW0T7"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// ========== جلب بيانات المنتج من الرابط ==========
+const params = new URLSearchParams(window.location.search);
+const productId = params.get('id');
+
+if (!productId) {
+    window.location.href = 'index.html';
+}
+
+// ========== عرض المنتج ==========
+async function loadProduct() {
+    try {
+        const productRef = doc(db, "products", productId);
+        const productSnap = await getDoc(productRef);
+        
+        if (!productSnap.exists()) {
+            window.location.href = 'index.html';
+            return;
+        }
+        
+        const product = { id: productSnap.id, ...productSnap.data() };
+        
+        // تحديث العنوان
+        document.title = `VANTÉ - ${product.name}`;
+        document.getElementById('productTitle').textContent = `VANTÉ - ${product.name}`;
+        
+        // تحديث الصورة الرئيسية
+        document.getElementById('productImage').src = product.image;
+        document.getElementById('productImage').alt = product.name;
+        
+        // تحديث المصغرات
+        const thumbnails = document.getElementById('thumbnails');
+        const allImages = [product.image, ...(product.additionalImages || [])].filter(Boolean);
+        thumbnails.innerHTML = allImages.map(img => `
+            <img src="${img}" onclick="document.getElementById('productImage').src='${img}'" alt="صورة">
+        `).join('');
+        
+        // تحديث المعلومات
+        document.getElementById('productName').textContent = product.name;
+        document.getElementById('productPrice').textContent = `${product.price} جنيه`;
+        
+        if (product.comparePrice && product.comparePrice > product.price) {
+            document.getElementById('productOldPrice').textContent = `${product.comparePrice} جنيه`;
+            document.getElementById('productOldPrice').style.display = 'inline';
+        } else {
+            document.getElementById('productOldPrice').style.display = 'none';
+        }
+        
+        document.getElementById('productDescription').innerHTML = product.description || 'منتج فاخر من VANTÉ';
+        
+        // تحديث المقاسات
+        const sizeSelect = document.getElementById('productSize');
+        const sizes = product.sizes || ['7', '8', '9'];
+        sizeSelect.innerHTML = sizes.map(s => `
+            <option value="${s}">مقاس: ${s}</option>
+        `).join('');
+        
+        // تحديث المخزون
+        const stockInfo = document.getElementById('productStock');
+        const stockBySize = product.stockBySize || {};
+        const totalStock = Object.values(stockBySize).reduce((sum, qty) => sum + (parseInt(qty) || 0), 0);
+        if (totalStock > 0) {
+            stockInfo.innerHTML = `<span style="color:#27ae60;">✅ متوفر: ${totalStock} قطعة</span>`;
+        } else {
+            stockInfo.innerHTML = `<span style="color:#c0392b;">❌ نفذت الكمية</span>`;
+        }
+        
+        // تحميل المنتجات المشابهة والأكثر مبيعاً
+        loadSimilarProducts(product.category, product.id);
+        loadBestSellers(product.id);
+        
+        // تخزين المنتج في window للاستخدام في الدوال الأخرى
+        window.currentProduct = product;
+        
+    } catch (error) {
+        console.error('خطأ في تحميل المنتج:', error);
+    }
+}
+
+// ========== تحميل المنتجات المشابهة ==========
+async function loadSimilarProducts(category, excludeId) {
+    try {
+        const productsRef = collection(db, "products");
+        const q = query(
+            productsRef,
+            where("category", "==", category),
+            limit(8)
+        );
+        const snapshot = await getDocs(q);
+        
+        const products = snapshot.docs
+            .map(doc => ({ id: doc.id, ...doc.data() }))
+            .filter(p => p.id !== excludeId);
+        
+        const container = document.getElementById('similarProducts');
+        container.innerHTML = products.map(p => `
+            <div class="product-card" onclick="window.location.href='/product.html?id=${p.id}'">
+                <img src="${p.image}" alt="${p.name}">
+                <h3>${p.name}</h3>
+                <div class="price">${p.price} جنيه</div>
+            </div>
+        `).join('');
+        
+    } catch (error) {
+        console.error('خطأ في تحميل المنتجات المشابهة:', error);
+    }
+}
+
+// ========== تحميل الأكثر مبيعاً ==========
+async function loadBestSellers(excludeId) {
+    try {
+        const productsRef = collection(db, "products");
+        const q = query(
+            productsRef,
+            orderBy("salesCount", "desc"),
+            limit(6)
+        );
+        const snapshot = await getDocs(q);
+        
+        const products = snapshot.docs
+            .map(doc => ({ id: doc.id, ...doc.data() }))
+            .filter(p => p.id !== excludeId);
+        
+        const container = document.getElementById('bestSellers');
+        container.innerHTML = products.map(p => `
+            <div class="product-card" onclick="window.location.href='/product.html?id=${p.id}'">
+                <img src="${p.image}" alt="${p.name}">
+                <h3>${p.name}</h3>
+                <div class="price">${p.price} جنيه</div>
+            </div>
+        `).join('');
+        
+    } catch (error) {
+        console.error('خطأ في تحميل الأكثر مبيعاً:', error);
+    }
+}
+
+// ========== إضافة للسلة من صفحة المنتج ==========
+window.addToCartFromPage = function() {
+    const product = window.currentProduct;
+    if (!product) return;
+    
+    const size = document.getElementById('productSize').value;
+    if (!size) {
+        alert('يرجى اختيار المقاس');
+        return;
+    }
+    
+    // جلب السلة من localStorage
+    let cart = JSON.parse(localStorage.getItem('vante_cart') || '[]');
+    
+    // البحث عن المنتج في السلة
+    const existing = cart.find(item => item.id === product.id && item.size === size);
+    if (existing) {
+        existing.qty += 1;
+    } else {
+        cart.push({
+            id: product.id,
+            name: product.name,
+            price: product.price,
+            size: size,
+            image: product.image,
+            qty: 1
+        });
+    }
+    
+    localStorage.setItem('vante_cart', JSON.stringify(cart));
+    alert(`✅ تم إضافة ${product.name} إلى السلة`);
+};
+
+// ========== مشاركة المنتج ==========
+window.shareProduct = function() {
+    const product = window.currentProduct;
+    if (!product) return;
+    
+    const url = window.location.href;
+    const text = `🛍️ ${product.name} من VANTÉ\nالسعر: ${product.price} جنيه\n${url}`;
+    
+    if (navigator.share) {
+        navigator.share({ title: product.name, text: text, url: url });
+    } else {
+        navigator.clipboard?.writeText(text).then(() => {
+            alert('✅ تم نسخ الرابط');
+        });
+    }
+};
+
+// ========== تحميل الصفحة ==========
+loadProduct();
+
+</script>
+
+<style>
+/* ========== ستايل صفحة المنتج ========== */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: 'Cairo', sans-serif;
+    background: #fff;
+    color: #111;
+    direction: rtl;
+}
+
+.nav-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px 35px;
+    border-bottom: 1px solid #eee;
+    background: #fff;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+.logo {
+    font-size: 30px;
+    font-weight: 900;
+    background: linear-gradient(135deg, #D4AF37, #FFD700);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.menu { display: flex; gap: 28px; }
+.menu a {
+    color: #111;
+    text-decoration: none;
+    font-weight: 700;
+    transition: 0.3s;
+}
+.menu a:hover { color: #D4AF37; }
+.icons button {
+    width: 44px;
+    height: 44px;
+    border: none;
+    border-radius: 50%;
+    background: #111;
+    color: #fff;
+    cursor: pointer;
+}
+
+/* ========== صفحة المنتج ========== */
+.product-page {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 0 20px;
+}
+.product-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 50px;
+    background: #fff;
+    border-radius: 24px;
+    padding: 30px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.05);
+}
+
+/* معرض الصور */
+.product-gallery-page .main-image {
+    width: 100%;
+    height: 450px;
+    border-radius: 16px;
+    overflow: hidden;
+    background: #f5f5f5;
+}
+.product-gallery-page .main-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.thumbnails {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+    overflow-x: auto;
+}
+.thumbnails img {
+    width: 70px;
+    height: 70px;
+    object-fit: cover;
+    border-radius: 10px;
+    cursor: pointer;
+    border: 2px solid #eee;
+    transition: 0.3s;
+}
+.thumbnails img:hover { border-color: #D4AF37; }
+
+/* معلومات المنتج */
+.product-info-page h1 {
+    font-size: 28px;
+    margin-bottom: 10px;
+}
+.product-rating {
+    color: #FFD700;
+    font-size: 16px;
+    margin-bottom: 15px;
+}
+.product-price {
+    font-size: 32px;
+    font-weight: 900;
+    color: #D4AF37;
+    margin-bottom: 10px;
+}
+.product-price .old-price {
+    text-decoration: line-through;
+    color: #999;
+    font-size: 20px;
+    margin-right: 15px;
+}
+.stock-info {
+    margin: 15px 0;
+    font-size: 16px;
+}
+.product-description {
+    color: #555;
+    line-height: 1.8;
+    margin: 20px 0;
+    font-size: 15px;
+}
+.size-selector {
+    margin: 20px 0;
+}
+.size-selector label {
+    font-weight: 700;
+    display: block;
+    margin-bottom: 8px;
+}
+.size-selector select {
+    width: 100%;
+    padding: 14px;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    font-size: 15px;
+}
+.btn-primary {
+    width: 100%;
+    padding: 16px;
+    border: none;
+    border-radius: 14px;
+    background: #111;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.3s;
+}
+.btn-primary:hover { background: #D4AF37; color: #000; }
+.btn-secondary {
+    width: 100%;
+    padding: 16px;
+    border: 1px solid #ddd;
+    border-radius: 14px;
+    background: #fff;
+    color: #111;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.3s;
+    margin-top: 10px;
+}
+.btn-secondary:hover { background: #f5f5f5; }
+
+/* ========== المنتجات المشابهة والأكثر مبيعاً ========== */
+.similar-products, .best-sellers {
+    max-width: 1200px;
+    margin: 50px auto;
+    padding: 0 20px;
+}
+.products-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+}
+.product-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 15px;
+    text-align: center;
+    cursor: pointer;
+    transition: 0.3s;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+}
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+}
+.product-card img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 12px;
+}
+.product-card h3 {
+    margin: 10px 0 5px;
+    font-size: 15px;
+}
+.product-card .price {
+    color: #D4AF37;
+    font-weight: 900;
+    font-size: 16px;
+}
+
+/* ========== استجابة ========== */
+@media (max-width: 768px) {
+    .product-container {
+        grid-template-columns: 1fr;
+        gap: 30px;
+        padding: 20px;
+    }
+    .product-gallery-page .main-image { height: 300px; }
+    .products-grid { grid-template-columns: repeat(2, 1fr); }
+    .nav-bar { padding: 12px 18px; }
+    .menu { display: none; }
+}
+@media (max-width: 480px) {
+    .products-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+    .product-card img { height: 140px; }
+    .product-info-page h1 { font-size: 22px; }
+    .product-price { font-size: 24px; }
+}
+</style>
+
+</body>
+</html>
