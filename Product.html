@@ -1368,59 +1368,17 @@ button:active,
     <div class="tab-content">
     <!-- ===== تبويب المقاسات ===== -->
     <div class="tab-pane active" id="tab-sizes">
-    <div id="sizeGuideContent">
-        <!-- المحتوى سيتغير حسب نوع المنتج -->
+        <div id="sizeGuideContent">
+            <!-- المحتوى سيتغير حسب نوع المنتج (خواتم/غوايش/سلاسل) -->
+        </div>
+        <div class="size-tip" style="margin-top: 16px; padding: 14px 18px; background: #f9f8f6; border-radius: 12px; border-right: 3px solid #D4AF37;">
+            <p style="font-size: 14px; color: #555;">
+                <strong>💡 نصيحة:</strong> إذا كنت بين مقاسين، اختر المقاس الأكبر للحصول على راحة أفضل.
+            </p>
+        </div>
     </div>
-    <div class="size-tip" style="margin-top: 16px; padding: 14px 18px; background: #f9f8f6; border-radius: 12px; border-right: 3px solid #D4AF37;">
-        <p style="font-size: 14px; color: #555;">
-            <strong>💡 نصيحة:</strong> إذا كنت بين مقاسين، اختر المقاس الأكبر للحصول على راحة أفضل.
-        </p>
-    </div>
-</div>
 
-// ========== تبويبات المنتج ==========
-document.addEventListener('DOMContentLoaded', function() {
-    setTimeout(function() {
-        const tabs = document.querySelectorAll('.tabs-header button');
-        const panes = {
-            sizes: document.getElementById('tab-sizes'),
-            shipping: document.getElementById('tab-shipping'),
-            reviews: document.getElementById('tab-reviews')
-        };
-        
-        if (!tabs.length || !panes.sizes || !panes.shipping || !panes.reviews) {
-            console.warn('⚠️ بعض عناصر التبويبات غير موجودة');
-            return;
-        }
-        
-        // إخفاء جميع المحتويات مبدئياً
-        Object.values(panes).forEach(p => p.classList.remove('active'));
-        panes.sizes.classList.add('active');
-        
-        tabs.forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                tabs.forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-                
-                Object.values(panes).forEach(p => p.classList.remove('active'));
-                
-                const tabId = this.dataset.tab;
-                const target = panes[tabId];
-                if (target) {
-                    target.classList.add('active');
-                    console.log(`✅ تم التبديل إلى: ${tabId}`);
-                }
-            });
-        });
-        
-        console.log('✅ تم تفعيل التبويبات بنجاح');
-    }, 300);
-});
-
-    <!-- ===== تبويب الشحن ===== -->
+    <!-- ===== تبويب الشحن والإرجاع ===== -->
     <div class="tab-pane" id="tab-shipping">
         <h4 style="color: #D4AF37; font-size: 18px; margin-bottom: 12px;">📦 سياسة الشحن</h4>
         <p style="color: #555; line-height: 1.8;">
@@ -1446,19 +1404,20 @@ document.addEventListener('DOMContentLoaded', function() {
     <div class="tab-pane" id="tab-reviews">
         <h4 style="text-align: center; margin-bottom: 15px; color: #D4AF37; font-size: 18px;">⭐ تقييمات العملاء</h4>
         <div id="productReviewsContainer">
-                <div style="text-align: center; padding: 30px 20px; color: #888;">
-                    <i class="fas fa-star" style="font-size: 40px; color: #ddd; margin-bottom: 12px; display: block;"></i>
-                    <p style="font-size: 16px;">لا توجد تقييمات لهذا المنتج بعد</p>
-                    <button class="btn-secondary" style="margin-top: 12px; padding: 10px 24px; border-radius: 30px; font-size: 13px; cursor: pointer; border: 1px solid #D4AF37; background: transparent; color: #D4AF37; transition: 0.3s;" 
-                            onmouseover="this.style.background='#D4AF37'; this.style.color='#000';" 
-                            onmouseout="this.style.background='transparent'; this.style.color='#D4AF37';"
-                            onclick="scrollToStars()">
-                        <i class="fas fa-pen"></i> كن أول من يقيم
-                    </button>
-                </div>
+            <!-- التقييمات ستظهر هنا عن طريق JavaScript -->
+            <div style="text-align: center; padding: 30px 20px; color: #888;">
+                <i class="fas fa-star" style="font-size: 40px; color: #ddd; margin-bottom: 12px; display: block;"></i>
+                <p style="font-size: 16px;">لا توجد تقييمات لهذا المنتج بعد</p>
+                <button class="btn-secondary" style="margin-top: 12px; padding: 10px 24px; border-radius: 30px; font-size: 13px; cursor: pointer; border: 1px solid #D4AF37; background: transparent; color: #D4AF37; transition: 0.3s;" 
+                        onmouseover="this.style.background='#D4AF37'; this.style.color='#000';" 
+                        onmouseout="this.style.background='transparent'; this.style.color='#D4AF37';"
+                        onclick="scrollToStars()">
+                    <i class="fas fa-pen"></i> كن أول من يقيم
+                </button>
             </div>
         </div>
     </div>
+</div>
 </section>
 
 <!-- ============================================
@@ -1917,6 +1876,48 @@ window.scrollToStars = function() {
     document.getElementById('reviewText').focus();
     document.getElementById('reviewText').scrollIntoView({ behavior: 'smooth', block: 'center' });
 };
+
+// ========== تبويبات المنتج ==========
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(function() {
+        const tabs = document.querySelectorAll('.tabs-header button');
+        const panes = {
+            sizes: document.getElementById('tab-sizes'),
+            shipping: document.getElementById('tab-shipping'),
+            reviews: document.getElementById('tab-reviews')
+        };
+        
+        if (!tabs.length || !panes.sizes || !panes.shipping || !panes.reviews) {
+            console.warn('⚠️ بعض عناصر التبويبات غير موجودة');
+            return;
+        }
+        
+        // إخفاء جميع المحتويات مبدئياً
+        Object.values(panes).forEach(p => p.classList.remove('active'));
+        panes.sizes.classList.add('active');
+        
+        tabs.forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                tabs.forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                
+                Object.values(panes).forEach(p => p.classList.remove('active'));
+                
+                const tabId = this.dataset.tab;
+                const target = panes[tabId];
+                if (target) {
+                    target.classList.add('active');
+                    console.log(`✅ تم التبديل إلى: ${tabId}`);
+                }
+            });
+        });
+        
+        console.log('✅ تم تفعيل التبويبات بنجاح');
+    }, 300);
+});
 
 // ========== تحميل المنتج ==========
 async function loadProduct() {
