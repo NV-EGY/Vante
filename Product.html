@@ -1353,42 +1353,62 @@ button:active,
 </div>
 
 <!-- ============================================
-     PRODUCT TABS
+     PRODUCT TABS (المقاسات - الشحن - التقييمات)
 ============================================ -->
 <section class="product-tabs">
     <div class="tabs-header">
-    <button class="active" data-tab="sizes">📏 المقاسات</button>
-    <button data-tab="shipping">🚚 الشحن والإرجاع</button>
-    <button data-tab="reviews">⭐ التقييمات</button>
-</div>
+        <button class="active" data-tab="sizes">📏 المقاسات</button>
+        <button data-tab="shipping">🚚 الشحن والإرجاع</button>
+        <button data-tab="reviews">⭐ التقييمات</button>
+    </div>
     <div class="tab-content">
-    <div class="tab-pane active" id="tab-sizes">
-        <h4>📏 دليل المقاسات</h4>
-        <p>اختر المقاس المناسب حسب الجدول التالي:</p>
-        <div id="sizeGuideContent">
-            <!-- المحتوى سيتغير حسب نوع المنتج -->
+        <!-- ===== تبويب المقاسات ===== -->
+        <div class="tab-pane active" id="tab-sizes">
+            <div id="sizeGuideContent">
+                <!-- المحتوى سيتغير حسب نوع المنتج -->
+            </div>
+            <div class="size-tip" style="margin-top: 16px; padding: 14px 18px; background: #f9f8f6; border-radius: 12px; border-right: 3px solid #D4AF37;">
+                <p style="font-size: 14px; color: #555;">
+                    <strong>💡 نصيحة:</strong> إذا كنت بين مقاسين، اختر المقاس الأكبر للحصول على راحة أفضل.
+                </p>
+            </div>
         </div>
-        <div class="size-tip" style="margin-top: 16px; padding: 14px 18px; background: #f9f8f6; border-radius: 12px; border-right: 3px solid #D4AF37;">
-            <p style="font-size: 14px; color: #555;"><strong>💡 نصيحة:</strong> إذا كنت بين مقاسين، اختر المقاس الأكبر للحصول على راحة أفضل.</p>
+
+        <!-- ===== تبويب الشحن والإرجاع ===== -->
+        <div class="tab-pane" id="tab-shipping">
+            <h4 style="color: #D4AF37; font-size: 18px; margin-bottom: 12px;">📦 سياسة الشحن</h4>
+            <p style="color: #555; line-height: 1.8;">
+                نشحن إلى جميع محافظات مصر عبر شركات شحن موثوقة. مدة التوصيل من 3 إلى 7 أيام عمل حسب المحافظة.
+            </p>
+            <p style="margin-top: 12px; color: #555; line-height: 1.8;">
+                <strong>تكلفة الشحن:</strong> (مجاني للطلبات فوق 1000 جنيه).
+            </p>
+            
+            <h4 style="color: #D4AF37; font-size: 18px; margin-top: 25px; margin-bottom: 12px;">🔄 سياسة الإرجاع والاستبدال</h4>
+            <p style="color: #555; line-height: 1.8;">
+                يحق لك استبدال أو إرجاع المنتج خلال 14 يومًا من تاريخ الاستلام بشرط أن يكون بحالته الأصلية والتغليف سليم.
+            </p>
+            <p style="margin-top: 8px; color: #555; line-height: 1.8;">
+                لبدء عملية الإرجاع، يرجى التواصل مع خدمة العملاء عبر رقم الواتساب او "تواصل مع المسئول".
+            </p>
+            <p style="margin-top: 8px; color: #888; font-size: 14px; line-height: 1.8;">
+                ملاحظة: تكاليف الشحن للإرجاع يتحملها العميل إلا في حالة وجود عيب صناعي.
+            </p>
         </div>
-    </div>
-    <div class="tab-pane" id="tab-shipping">
-        <h4>📦 سياسة الشحن</h4>
-        <p>نشحن إلى جميع محافظات مصر عبر شركات شحن موثوقة. مدة التوصيل من 3 إلى 7 أيام عمل حسب المحافظة.</p>
-        <p style="margin-top: 12px;"><strong>تكلفة الشحن:</strong> (مجاني للطلبات فوق 1000 جنيه).</p>
-        
-        <h4 style="margin-top: 25px;">🔄 سياسة الإرجاع والاستبدال</h4>
-        <p>يحق لك استبدال أو إرجاع المنتج خلال 14 يومًا من تاريخ الاستلام بشرط أن يكون بحالته الأصلية والتغليف سليم.</p>
-        <p>لبدء عملية الإرجاع، يرجى التواصل مع خدمة العملاء عبر رقم الواتساب او "تواصل مع المسئول".</p>
-        <p style="margin-top: 8px; color: #888; font-size: 14px;">ملاحظة: تكاليف الشحن للإرجاع يتحملها العميل إلا في حالة وجود عيب صناعي.</p>
-    </div>
-    <div class="tab-pane" id="tab-reviews">
-        <h4 style="text-align:center; margin-bottom:15px; color:#D4AF37;">⭐ تقييمات العملاء</h4>
+
+        <!-- ===== تبويب التقييمات ===== -->
+        <div class="tab-pane" id="tab-reviews">
+            <h4 style="text-align: center; margin-bottom: 15px; color: #D4AF37; font-size: 18px;">⭐ تقييمات العملاء</h4>
             <div id="productReviewsContainer">
-                <div style="text-align:center; padding:30px 20px; color:#888;">
-                    <i class="fas fa-star" style="font-size:40px; color:#ddd; margin-bottom:12px; display:block;"></i>
-                    <p>لا توجد تقييمات لهذا المنتج بعد</p>
-                    <button class="btn-secondary" style="margin-top:12px; padding:10px 24px; border-radius:30px; font-size:13px;" onclick="scrollToStars()">كن أول من يقيم</button>
+                <div style="text-align: center; padding: 30px 20px; color: #888;">
+                    <i class="fas fa-star" style="font-size: 40px; color: #ddd; margin-bottom: 12px; display: block;"></i>
+                    <p style="font-size: 16px;">لا توجد تقييمات لهذا المنتج بعد</p>
+                    <button class="btn-secondary" style="margin-top: 12px; padding: 10px 24px; border-radius: 30px; font-size: 13px; cursor: pointer; border: 1px solid #D4AF37; background: transparent; color: #D4AF37; transition: 0.3s;" 
+                            onmouseover="this.style.background='#D4AF37'; this.style.color='#000';" 
+                            onmouseout="this.style.background='transparent'; this.style.color='#D4AF37';"
+                            onclick="scrollToStars()">
+                        <i class="fas fa-pen"></i> كن أول من يقيم
+                    </button>
                 </div>
             </div>
         </div>
