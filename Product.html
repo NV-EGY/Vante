@@ -448,12 +448,12 @@
             cursor: pointer;
         }
         .stars-container span {
-            font-size: 30px;
-            color: #ddd;
-            transition: all 0.3s ease;
-            cursor: pointer;
-            user-select: none;
-        }
+    font-size: 38px !important;  /* من 30px إلى 38px */
+    color: #ddd;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    user-select: none;
+}
         .stars-container span:hover {
             transform: scale(1.15);
         }
@@ -1114,6 +1114,34 @@
             .image-modal img { max-width: 95%; }
             .stars-container span { font-size: 20px; }
         }
+        .size-guide-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 15px 0;
+}
+.size-guide-table th, .size-guide-table td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: center;
+}
+.size-guide-table th {
+    background: #111;
+    color: #fff;
+}
+.size-img-placeholder {
+    background: #f9f9f9;
+    border-radius: 16px;
+    padding: 15px;
+    text-align: center;
+    margin-top: 15px;
+    border: 1px dashed #ccc;
+}
+.size-img-placeholder i {
+    font-size: 48px;
+    color: #D4AF37;
+    margin-bottom: 10px;
+    display: block;
+}
     </style>
 </head>
 <body>
@@ -1311,14 +1339,15 @@
             </div>
         </div>
         <div class="tab-pane" id="tab-shipping">
-            <h4>🚚 سياسة الشحن والإرجاع</h4>
-            <p>نشحن إلى جميع محافظات مصر عبر شركات شحن موثوقة. مدة التوصيل من 3 إلى 7 أيام عمل حسب المحافظة.</p>
-            <p style="margin-top: 12px;"><strong>تكلفة الشحن:</strong> 70 جنيه (مجاني للطلبات فوق 1000 جنيه).</p>
-            <h4 style="margin-top: 20px;">🔄 سياسة الإرجاع والاستبدال</h4>
-            <p>يحق لك استبدال أو إرجاع المنتج خلال 14 يومًا من تاريخ الاستلام بشرط أن يكون بحالته الأصلية والتغليف سليم.</p>
-            <p>لبدء عملية الإرجاع، يرجى التواصل مع خدمة العملاء عبر رقم الواتساب.</p>
-            <p style="margin-top: 8px; color: #888; font-size: 14px;">ملاحظة: تكاليف الشحن للإرجاع يتحملها العميل إلا في حالة وجود عيب صناعي.</p>
-        </div>
+    <h4>📦 سياسة الشحن</h4>
+    <p>نشحن إلى جميع محافظات مصر عبر شركات شحن موثوقة. مدة التوصيل من 3 إلى 7 أيام عمل حسب المحافظة.</p>
+    <p style="margin-top: 12px;"><strong>تكلفة الشحن:</strong> مجاني للطلبات فوق 1000 جنيه (70 جنيه للطلبات الأقل).</p>
+    
+    <h4 style="margin-top: 25px;">🔄 سياسة الإرجاع والاستبدال</h4>
+    <p>يحق لك استبدال أو إرجاع المنتج خلال 14 يومًا من تاريخ الاستلام بشرط أن يكون بحالته الأصلية والتغليف سليم.</p>
+    <p>لبدء عملية الإرجاع، يرجى التواصل مع خدمة العملاء عبر رقم الواتساب او  "تواصل مع المسئول".</p>
+    <p style="margin-top: 8px; color: #888; font-size: 14px;">ملاحظة: تكاليف الشحن للإرجاع يتحملها العميل إلا في حالة وجود عيب صناعي.</p>
+</div>
         <div class="tab-pane" id="tab-reviews">
             <h4 style="text-align:center; margin-bottom:15px; color:#D4AF37;">⭐ تقييمات العملاء</h4>
             <div id="productReviewsContainer">
@@ -1594,10 +1623,29 @@ function updateReviewBadges() {
         reviewCounts[productId]++;
     });
     
+    // تحديث في المنتجات
     document.querySelectorAll('.review-badge span[id^="reviewCount-"]').forEach(el => {
         const productId = el.id.replace('reviewCount-', '');
         el.textContent = reviewCounts[productId] || 0;
     });
+    
+    // تحديث في صفحة المنتج (النجوم جنب اسم المنتج)
+    if (window.currentProduct) {
+        const count = reviewCounts[window.currentProduct.id] || 0;
+        const reviewCountText = document.getElementById('reviewCountText');
+        if (reviewCountText) {
+            reviewCountText.textContent = `(${count} تقييم)`;
+        }
+        // تحديث متوسط التقييمات
+        const productReviews = allReviews.filter(r => r.productId === window.currentProduct.id);
+        if (productReviews.length > 0) {
+            const avg = productReviews.reduce((sum, r) => sum + r.rating, 0) / productReviews.length;
+            const starsContainer = document.getElementById('productStars');
+            if (starsContainer) {
+                starsContainer.innerHTML = renderStars(avg);
+            }
+        }
+    }
 }
 
 // عرض التقييمات
@@ -1852,9 +1900,10 @@ async function loadProduct() {
         const desc = product.description || 'منتج فاخر من VANTÉ';
         document.getElementById('productDescription').innerHTML = desc;
 
-        // ===== التقييمات =====
-        await loadApprovedReviews(db);
-        displayReviews(product.id);
+// ===== التقييمات =====
+await loadApprovedReviews(db);
+displayReviews(product.id);
+updateReviewBadges(); // ✅ أضف هذا السطر
 
         // ===== المقاسات =====
         const sizes = product.sizes || ['7', '8', '9'];
@@ -1876,46 +1925,80 @@ async function loadProduct() {
         // ===== المخزون =====
         updateStockDisplay(product);
 
-        // ===== دليل المقاسات =====
-        const sizeGuideMap = {
-            'rings': `
-                <table class="size-guide-table" style="width:100%; border-collapse:collapse; margin:10px 0;">
-                    <thead><tr style="background:#111; color:#fff;"><th style="padding:10px; border:1px solid #ddd;">المقاس</th><th style="padding:10px; border:1px solid #ddd;">القطر (مم)</th></tr></thead>
-                    <tbody>
-                        <tr><td style="padding:8px; border:1px solid #ddd;">16</td><td style="padding:8px; border:1px solid #ddd;">16 مم</td></tr>
-                        <tr><td style="padding:8px; border:1px solid #ddd;">17</td><td style="padding:8px; border:1px solid #ddd;">17 مم</td></tr>
-                        <tr><td style="padding:8px; border:1px solid #ddd;">18</td><td style="padding:8px; border:1px solid #ddd;">18 مم</td></tr>
-                        <tr><td style="padding:8px; border:1px solid #ddd;">19</td><td style="padding:8px; border:1px solid #ddd;">19 مم</td></tr>
-                        <tr><td style="padding:8px; border:1px solid #ddd;">20</td><td style="padding:8px; border:1px solid #ddd;">20 مم</td></tr>
-                        <tr><td style="padding:8px; border:1px solid #ddd;">21</td><td style="padding:8px; border:1px solid #ddd;">21 مم</td></tr>
-                    </tbody>
-                </table>
-                <p style="font-size:13px; color:#888;">قياس الخواتم: ضعي خاتماً مناسباً على يدك وقيسي القطر الداخلي.</p>
-            `,
-            'bracelets': `
-                <table class="size-guide-table" style="width:100%; border-collapse:collapse; margin:10px 0;">
-                    <thead><tr style="background:#111; color:#fff;"><th style="padding:10px; border:1px solid #ddd;">المقاس</th><th style="padding:10px; border:1px solid #ddd;">القطر الداخلي (سم)</th></tr></thead>
-                    <tbody>
-                        <tr><td style="padding:8px; border:1px solid #ddd;">60</td><td style="padding:8px; border:1px solid #ddd;">6.0 سم</td></tr>
-                        <tr><td style="padding:8px; border:1px solid #ddd;">65</td><td style="padding:8px; border:1px solid #ddd;">6.5 سم</td></tr>
-                        <tr><td style="padding:8px; border:1px solid #ddd;">70</td><td style="padding:8px; border:1px solid #ddd;">7.0 سم</td></tr>
-                    </tbody>
-                </table>
-                <p style="font-size:13px; color:#888;">قياس الغوايش: ضعي غويشة مناسبة على يدك وقيسي القطر الداخلي.</p>
-            `,
-            'necklaces': `
-                <table class="size-guide-table" style="width:100%; border-collapse:collapse; margin:10px 0;">
-                    <thead><tr style="background:#111; color:#fff;"><th style="padding:10px; border:1px solid #ddd;">الطول (سم)</th><th style="padding:10px; border:1px solid #ddd;">المناسبة</th></tr></thead>
-                    <tbody>
-                        <tr><td style="padding:8px; border:1px solid #ddd;">45 سم</td><td style="padding:8px; border:1px solid #ddd;">تشغيل حول الرقبة</td></tr>
-                        <tr><td style="padding:8px; border:1px solid #ddd;">50 سم</td><td style="padding:8px; border:1px solid #ddd;">عظمة الترقوة</td></tr>
-                        <tr><td style="padding:8px; border:1px solid #ddd;">55 سم</td><td style="padding:8px; border:1px solid #ddd;">أسفل الترقوة</td></tr>
-                        <tr><td style="padding:8px; border:1px solid #ddd;">60 سم</td><td style="padding:8px; border:1px solid #ddd;">على الصدر</td></tr>
-                    </tbody>
-                </table>
-                <p style="font-size:13px; color:#888;">قياس السلاسل: استخدم خيطاً لقياس محيط رقبتك.</p>
-            `
-        };
+// ===== دليل المقاسات الذكي =====
+const category = product.category || 'rings';
+const sizeGuideContent = document.getElementById('sizeGuideContent');
+const sizeGuideContainer = sizeGuideContent?.parentElement;
+
+// دليل المقاسات حسب النوع
+const sizeGuides = {
+    'rings': `
+        <h4>📏 دليل قياس الخواتم</h4>
+        <p><strong>الطريقة الأولى (القطر الداخلي):</strong> ضعي خاتم مناسب على يدك، ثم قيسي المسافة من الداخل باستخدام مسطرة.</p>
+        <table class="size-guide-table" style="width:100%; border-collapse:collapse; margin:10px 0;">
+            <thead><tr style="background:#111; color:#fff;"><th style="padding:10px; border:1px solid #ddd;">القطر (مم)</th><th style="padding:10px; border:1px solid #ddd;">المقاس</th></tr></thead>
+            <tbody>
+                <tr><td style="padding:8px; border:1px solid #ddd;">16</td><td style="padding:8px; border:1px solid #ddd;">16</td></tr>
+                <tr><td style="padding:8px; border:1px solid #ddd;">17</td><td style="padding:8px; border:1px solid #ddd;">17</td></tr>
+                <tr><td style="padding:8px; border:1px solid #ddd;">18</td><td style="padding:8px; border:1px solid #ddd;">18</td></tr>
+                <tr><td style="padding:8px; border:1px solid #ddd;">19</td><td style="padding:8px; border:1px solid #ddd;">19</td></tr>
+                <tr><td style="padding:8px; border:1px solid #ddd;">20</td><td style="padding:8px; border:1px solid #ddd;">20</td></tr>
+                <tr><td style="padding:8px; border:1px solid #ddd;">21</td><td style="padding:8px; border:1px solid #ddd;">21</td></tr>
+            </tbody>
+        </table>
+        <p style="font-size:13px; color:#888;">قياس الخواتم: ضعي خاتماً مناسباً على يدك وقيسي القطر الداخلي.</p>
+        <div class="size-img-placeholder" style="background:#f9f9f9; border-radius:16px; padding:15px; text-align:center; margin-top:15px; border:1px dashed #ccc;">
+            <i class="fas fa-gem" style="font-size:48px; color:#D4AF37; margin-bottom:10px; display:block;"></i>
+            <img src="images/ring-guide1.jpg" alt="دليل قياس الخواتم" style="max-width:100%; border-radius:12px; margin-top:10px;">
+        </div>
+    `,
+    'bracelets': `
+        <h4>📏 دليل قياس الغوايش والأساور</h4>
+        <p><strong>الطريقة الأولى (القطر الداخلي):</strong> ضعي غويشة مناسبة على يدك، ثم قيسي المسافة من الداخل باستخدام مسطرة.</p>
+        <table class="size-guide-table" style="width:100%; border-collapse:collapse; margin:10px 0;">
+            <thead><tr style="background:#111; color:#fff;"><th style="padding:10px; border:1px solid #ddd;">المقاس</th><th style="padding:10px; border:1px solid #ddd;">القطر الداخلي (سم)</th></tr></thead>
+            <tbody>
+                <tr><td style="padding:8px; border:1px solid #ddd;">60</td><td style="padding:8px; border:1px solid #ddd;">6.0 سم</td></tr>
+                <tr><td style="padding:8px; border:1px solid #ddd;">65</td><td style="padding:8px; border:1px solid #ddd;">6.5 سم</td></tr>
+                <tr><td style="padding:8px; border:1px solid #ddd;">70</td><td style="padding:8px; border:1px solid #ddd;">7.0 سم</td></tr>
+            </tbody>
+        </table>
+        <p style="font-size:13px; color:#888;">قياس الغوايش: ضعي غويشة مناسبة على يدك وقيسي القطر الداخلي.</p>
+        <div class="size-img-placeholder" style="background:#f9f9f9; border-radius:16px; padding:15px; text-align:center; margin-top:15px; border:1px dashed #ccc;">
+            <i class="fas fa-hand-peace" style="font-size:48px; color:#D4AF37; margin-bottom:10px; display:block;"></i>
+            <img src="images/ring-guide2.jpg" alt="دليل قياس الغوايش" style="max-width:100%; border-radius:12px; margin-top:10px;">
+        </div>
+    `,
+    'necklaces': `
+        <h4>📏 دليل قياس السلاسل</h4>
+        <p>استخدم خيطاً لقياس محيط رقبتك، ثم اختر الطول المناسب حسب الجدول التالي:</p>
+        <table class="size-guide-table" style="width:100%; border-collapse:collapse; margin:10px 0;">
+            <thead><tr style="background:#111; color:#fff;"><th style="padding:10px; border:1px solid #ddd;">طول السلسلة (سم)</th><th style="padding:10px; border:1px solid #ddd;">المناسبة</th></tr></thead>
+            <tbody>
+                <tr><td style="padding:8px; border:1px solid #ddd;">45 سم</td><td style="padding:8px; border:1px solid #ddd;">تشغيل حول الرقبة (Choker)</td></tr>
+                <tr><td style="padding:8px; border:1px solid #ddd;">50 سم</td><td style="padding:8px; border:1px solid #ddd;">عظمة الترقوة</td></tr>
+                <tr><td style="padding:8px; border:1px solid #ddd;">55 سم</td><td style="padding:8px; border:1px solid #ddd;">أسفل الترقوة</td></tr>
+                <tr><td style="padding:8px; border:1px solid #ddd;">60 سم</td><td style="padding:8px; border:1px solid #ddd;">على الصدر</td></tr>
+                <tr><td style="padding:8px; border:1px solid #ddd;">70 سم</td><td style="padding:8px; border:1px solid #ddd;">سلسلة طويلة (أوبرا)</td></tr>
+            </tbody>
+        </table>
+        <p style="font-size:13px; color:#888;">قياس السلاسل: استخدم خيطاً لقياس محيط رقبتك.</p>
+        <div class="size-img-placeholder" style="background:#f9f9f9; border-radius:16px; padding:15px; text-align:center; margin-top:15px; border:1px dashed #ccc;">
+            <i class="fas fa-female" style="font-size:48px; color:#D4AF37; margin-bottom:10px; display:block;"></i>
+            <img src="images/ring-guide3.jpg" alt="دليل قياس السلاسل" style="max-width:100%; border-radius:12px; margin-top:10px;">
+        </div>
+    `
+};
+
+// ✅ إذا كان المنتج من نوع معين، نعرض الدليل المناسب
+if (sizeGuideContent && sizeGuides[category]) {
+    sizeGuideContent.innerHTML = sizeGuides[category];
+    if (sizeGuideContainer) sizeGuideContainer.style.display = 'block';
+} else if (sizeGuideContent) {
+    // إذا كان المنتج ليس له دليل مقاسات (مثل حلقان، أطقم، خلخال)
+    sizeGuideContent.innerHTML = '';
+    if (sizeGuideContainer) sizeGuideContainer.style.display = 'none';
+}
         const categoryKey = product.category || 'rings';
         const guideHtml = sizeGuideMap[categoryKey] || sizeGuideMap['rings'];
         document.getElementById('sizeGuideContent').innerHTML = guideHtml;
