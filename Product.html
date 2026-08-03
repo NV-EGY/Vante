@@ -1142,6 +1142,38 @@
     margin-bottom: 10px;
     display: block;
 }
+/* ===== إزالة اللون الأزرق من جميع العناصر ===== */
+* {
+    -webkit-tap-highlight-color: transparent !important;
+    -webkit-touch-callout: none !important;
+    -webkit-user-select: none !important;
+    user-select: none !important;
+}
+
+/* إزالة تأثير التركيز من الأزرار والنجوم */
+button:focus,
+button:active,
+.stars-container span:focus,
+.stars-container span:active,
+.rating-submit-btn:focus,
+.rating-submit-btn:active,
+.btn-primary:focus,
+.btn-primary:active,
+.btn-secondary:focus,
+.btn-secondary:active {
+    outline: none !important;
+    box-shadow: none !important;
+    -webkit-tap-highlight-color: transparent !important;
+}
+
+/* إزالة اللون الأزرق من النجوم تحديداً */
+.stars-container span {
+    -webkit-tap-highlight-color: transparent !important;
+    outline: none !important;
+    -webkit-touch-callout: none !important;
+    -webkit-user-select: none !important;
+    user-select: none !important;
+}
     </style>
 </head>
 <body>
@@ -2189,20 +2221,53 @@ window.shareProduct = function() {
 };
 
 // ========== تبويبات المنتج ==========
-document.querySelectorAll('.tabs-header button').forEach(btn => {
-    btn.addEventListener('click', function() {
-        // إزالة active من جميع الأزرار
-        document.querySelectorAll('.tabs-header button').forEach(b => b.classList.remove('active'));
-        this.classList.add('active');
+document.addEventListener('DOMContentLoaded', function() {
+    // ننتظر حتى يتم تحميل العناصر
+    setTimeout(function() {
+        const tabs = document.querySelectorAll('.tabs-header button');
+        const panes = {
+            sizes: document.getElementById('tab-sizes'),
+            shipping: document.getElementById('tab-shipping'),
+            reviews: document.getElementById('tab-reviews')
+        };
         
-        // إخفاء جميع المحتويات
-        const tabId = this.dataset.tab;
-        document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+        // التأكد من وجود العناصر
+        if (!tabs.length || !panes.sizes || !panes.shipping || !panes.reviews) {
+            console.warn('⚠️ بعض عناصر التبويبات غير موجودة');
+            return;
+        }
         
-        // إظهار المحتوى المطلوب
-        const target = document.getElementById(`tab-${tabId}`);
-        if (target) target.classList.add('active');
-    });
+        // إخفاء جميع المحتويات مبدئياً
+        Object.values(panes).forEach(p => p.classList.remove('active'));
+        // إظهار التبويب النشط
+        panes.sizes.classList.add('active');
+        
+        tabs.forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // إزالة active من جميع الأزرار
+                tabs.forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                
+                // إخفاء جميع المحتويات
+                Object.values(panes).forEach(p => p.classList.remove('active'));
+                
+                // إظهار المحتوى المطلوب
+                const tabId = this.dataset.tab;
+                const target = panes[tabId];
+                if (target) {
+                    target.classList.add('active');
+                    console.log(`✅ تم التبديل إلى: ${tabId}`);
+                } else {
+                    console.warn(`⚠️ التبويب ${tabId} غير موجود`);
+                }
+            });
+        });
+        
+        console.log('✅ تم تفعيل التبويبات بنجاح');
+    }, 300); // تأخير بسيط لضمان تحميل DOM
 });
 
 // ========== تحميل الصفحة ==========
