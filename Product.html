@@ -1174,10 +1174,7 @@ button:active,
     -webkit-user-select: none !important;
     user-select: none !important;
 }
-/* ===== إخفاء دليل المقاسات عندما يكون تبويب المقاسات غير نشط ===== */
-#tab-sizes:not(.active) .size-tip {
-    display: none !important;
-}
+
     </style>
 </head>
 <body>
@@ -2239,32 +2236,49 @@ document.addEventListener('DOMContentLoaded', function() {
         shipping: document.getElementById('tab-shipping'),
         reviews: document.getElementById('tab-reviews')
     };
-    
+    const sizeTip = document.querySelector('.size-tip'); // نختار دليل المقاسات
+
     // التأكد من وجود العناصر
     if (!tabs.length || !panes.sizes || !panes.shipping || !panes.reviews) {
         console.warn('⚠️ بعض عناصر التبويبات غير موجودة');
         return;
     }
-    
+
+    // دالة لإظهار/إخفاء دليل المقاسات
+    function toggleSizeTip(show) {
+        if (sizeTip) {
+            sizeTip.style.display = show ? 'block' : 'none';
+        }
+    }
+
     // إخفاء جميع المحتويات مبدئياً
     Object.values(panes).forEach(p => p.classList.remove('active'));
     panes.sizes.classList.add('active');
-    
+    toggleSizeTip(true); // نضهر دليل المقاسات
+
     tabs.forEach(btn => {
         btn.addEventListener('click', function(e) {
             e.preventDefault();
-            
+
             // إزالة active من جميع الأزرار
             tabs.forEach(b => b.classList.remove('active'));
             this.classList.add('active');
-            
+
             // إخفاء جميع المحتويات
             Object.values(panes).forEach(p => p.classList.remove('active'));
-            
+
             // إظهار المحتوى المطلوب
             const tabId = this.dataset.tab;
             const target = panes[tabId];
-            if (target) target.classList.add('active');
+            if (target) {
+                target.classList.add('active');
+                // التحكم في دليل المقاسات: يظهر فقط إذا كان التبويب هو "sizes"
+                if (tabId === 'sizes') {
+                    toggleSizeTip(true);
+                } else {
+                    toggleSizeTip(false);
+                }
+            }
         });
     });
 });
