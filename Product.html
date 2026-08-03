@@ -1671,20 +1671,17 @@ function updateReviewBadges() {
         reviewCounts[productId]++;
     });
     
-    // تحديث في المنتجات
     document.querySelectorAll('.review-badge span[id^="reviewCount-"]').forEach(el => {
         const productId = el.id.replace('reviewCount-', '');
         el.textContent = reviewCounts[productId] || 0;
     });
     
-    // تحديث في صفحة المنتج (النجوم جنب اسم المنتج)
     if (window.currentProduct) {
         const count = reviewCounts[window.currentProduct.id] || 0;
         const reviewCountText = document.getElementById('reviewCountText');
         if (reviewCountText) {
             reviewCountText.textContent = `(${count} تقييم)`;
         }
-        // تحديث متوسط التقييمات
         const productReviews = allReviews.filter(r => r.productId === window.currentProduct.id);
         if (productReviews.length > 0) {
             const avg = productReviews.reduce((sum, r) => sum + r.rating, 0) / productReviews.length;
@@ -1827,7 +1824,6 @@ window.submitRating = async function() {
         
         showToast('✅ تم إرسال تقييمك بنجاح! سيظهر بعد المراجعة.', 'success');
         
-        // إعادة تعيين
         selectedRating = 0;
         document.getElementById('reviewText').value = '';
         document.getElementById('reviewInputArea').style.display = 'none';
@@ -1930,7 +1926,6 @@ async function loadProduct() {
         document.getElementById('productName').textContent = product.name;
         document.getElementById('productPrice').textContent = `${product.price} جنيه`;
         
-        // السعر القديم والخصم
         const oldPriceEl = document.getElementById('productOldPrice');
         const discountBadge = document.getElementById('discountBadge');
         if (product.comparePrice && product.comparePrice > product.price) {
@@ -1944,14 +1939,13 @@ async function loadProduct() {
             discountBadge.style.display = 'none';
         }
 
-        // الوصف
         const desc = product.description || 'منتج فاخر من VANTÉ';
         document.getElementById('productDescription').innerHTML = desc;
 
-// ===== التقييمات =====
-await loadApprovedReviews(db);
-displayReviews(product.id);
-updateReviewBadges(); // ✅ أضف هذا السطر
+        // ===== التقييمات =====
+        await loadApprovedReviews(db);
+        displayReviews(product.id);
+        updateReviewBadges();
 
         // ===== المقاسات =====
         const sizes = product.sizes || ['7', '8', '9'];
@@ -1973,89 +1967,139 @@ updateReviewBadges(); // ✅ أضف هذا السطر
         // ===== المخزون =====
         updateStockDisplay(product);
 
-// ===== دليل المقاسات الذكي =====
-const category = product.category || 'rings';
-const sizeGuideContent = document.getElementById('sizeGuideContent');
-const sizeGuideContainer = sizeGuideContent?.parentElement;
+        // ===== دليل المقاسات الذكي =====
+        const category = product.category || 'rings';
+        const sizeGuideContent = document.getElementById('sizeGuideContent');
+        const sizeGuideContainer = sizeGuideContent?.parentElement;
 
-// دليل المقاسات حسب النوع
-const sizeGuides = {
-    'rings': `
-        <h4>📏 دليل قياس الخواتم</h4>
-        <p><strong>الطريقة الأولى (القطر الداخلي):</strong> ضعي خاتم مناسب على يدك، ثم قيسي المسافة من الداخل باستخدام مسطرة.</p>
-        <table class="size-guide-table" style="width:100%; border-collapse:collapse; margin:10px 0;">
-            <thead><tr style="background:#111; color:#fff;"><th style="padding:10px; border:1px solid #ddd;">القطر (مم)</th><th style="padding:10px; border:1px solid #ddd;">المقاس</th></tr></thead>
-            <tbody>
-                <tr><td style="padding:8px; border:1px solid #ddd;">16</td><td style="padding:8px; border:1px solid #ddd;">16</td></tr>
-                <tr><td style="padding:8px; border:1px solid #ddd;">17</td><td style="padding:8px; border:1px solid #ddd;">17</td></tr>
-                <tr><td style="padding:8px; border:1px solid #ddd;">18</td><td style="padding:8px; border:1px solid #ddd;">18</td></tr>
-                <tr><td style="padding:8px; border:1px solid #ddd;">19</td><td style="padding:8px; border:1px solid #ddd;">19</td></tr>
-                <tr><td style="padding:8px; border:1px solid #ddd;">20</td><td style="padding:8px; border:1px solid #ddd;">20</td></tr>
-                <tr><td style="padding:8px; border:1px solid #ddd;">21</td><td style="padding:8px; border:1px solid #ddd;">21</td></tr>
-            </tbody>
-        </table>
-        <p style="font-size:13px; color:#888;">قياس الخواتم: ضعي خاتماً مناسباً على يدك وقيسي القطر الداخلي.</p>
-        <div class="size-img-placeholder" style="background:#f9f9f9; border-radius:16px; padding:15px; text-align:center; margin-top:15px; border:1px dashed #ccc;">
-            <i class="fas fa-gem" style="font-size:48px; color:#D4AF37; margin-bottom:10px; display:block;"></i>
-            <img src="images/ring-guide1.jpg" alt="دليل قياس الخواتم" style="max-width:100%; border-radius:12px; margin-top:10px;">
-        </div>
-    `,
-    'bracelets': `
-        <h4>📏 دليل قياس الغوايش والأساور</h4>
-        <p><strong>الطريقة الأولى (القطر الداخلي):</strong> ضعي غويشة مناسبة على يدك، ثم قيسي المسافة من الداخل باستخدام مسطرة.</p>
-        <table class="size-guide-table" style="width:100%; border-collapse:collapse; margin:10px 0;">
-            <thead><tr style="background:#111; color:#fff;"><th style="padding:10px; border:1px solid #ddd;">المقاس</th><th style="padding:10px; border:1px solid #ddd;">القطر الداخلي (سم)</th></tr></thead>
-            <tbody>
-                <tr><td style="padding:8px; border:1px solid #ddd;">60</td><td style="padding:8px; border:1px solid #ddd;">6.0 سم</td></tr>
-                <tr><td style="padding:8px; border:1px solid #ddd;">65</td><td style="padding:8px; border:1px solid #ddd;">6.5 سم</td></tr>
-                <tr><td style="padding:8px; border:1px solid #ddd;">70</td><td style="padding:8px; border:1px solid #ddd;">7.0 سم</td></tr>
-            </tbody>
-        </table>
-        <p style="font-size:13px; color:#888;">قياس الغوايش: ضعي غويشة مناسبة على يدك وقيسي القطر الداخلي.</p>
-        <div class="size-img-placeholder" style="background:#f9f9f9; border-radius:16px; padding:15px; text-align:center; margin-top:15px; border:1px dashed #ccc;">
-            <i class="fas fa-hand-peace" style="font-size:48px; color:#D4AF37; margin-bottom:10px; display:block;"></i>
-            <img src="images/ring-guide2.jpg" alt="دليل قياس الغوايش" style="max-width:100%; border-radius:12px; margin-top:10px;">
-        </div>
-    `,
-    'necklaces': `
-        <h4>📏 دليل قياس السلاسل</h4>
-        <p>استخدم خيطاً لقياس محيط رقبتك، ثم اختر الطول المناسب حسب الجدول التالي:</p>
-        <table class="size-guide-table" style="width:100%; border-collapse:collapse; margin:10px 0;">
-            <thead><tr style="background:#111; color:#fff;"><th style="padding:10px; border:1px solid #ddd;">طول السلسلة (سم)</th><th style="padding:10px; border:1px solid #ddd;">المناسبة</th></tr></thead>
-            <tbody>
-                <tr><td style="padding:8px; border:1px solid #ddd;">45 سم</td><td style="padding:8px; border:1px solid #ddd;">تشغيل حول الرقبة (Choker)</td></tr>
-                <tr><td style="padding:8px; border:1px solid #ddd;">50 سم</td><td style="padding:8px; border:1px solid #ddd;">عظمة الترقوة</td></tr>
-                <tr><td style="padding:8px; border:1px solid #ddd;">55 سم</td><td style="padding:8px; border:1px solid #ddd;">أسفل الترقوة</td></tr>
-                <tr><td style="padding:8px; border:1px solid #ddd;">60 سم</td><td style="padding:8px; border:1px solid #ddd;">على الصدر</td></tr>
-                <tr><td style="padding:8px; border:1px solid #ddd;">70 سم</td><td style="padding:8px; border:1px solid #ddd;">سلسلة طويلة (أوبرا)</td></tr>
-            </tbody>
-        </table>
-        <p style="font-size:13px; color:#888;">قياس السلاسل: استخدم خيطاً لقياس محيط رقبتك.</p>
-        <div class="size-img-placeholder" style="background:#f9f9f9; border-radius:16px; padding:15px; text-align:center; margin-top:15px; border:1px dashed #ccc;">
-            <i class="fas fa-female" style="font-size:48px; color:#D4AF37; margin-bottom:10px; display:block;"></i>
-            <img src="images/ring-guide3.jpg" alt="دليل قياس السلاسل" style="max-width:100%; border-radius:12px; margin-top:10px;">
-        </div>
-    `
-};
+        const sizeGuides = {
+            'rings': `
+                <h4>📏 دليل قياس الخواتم</h4>
+                <p><strong>الطريقة الأولى (القطر الداخلي):</strong> ضعي خاتم مناسب على يدك، ثم قيسي المسافة من الداخل باستخدام مسطرة.</p>
+                <table class="size-guide-table" style="width:100%; border-collapse:collapse; margin:10px 0;">
+                    <thead><tr style="background:#111; color:#fff;"><th style="padding:10px; border:1px solid #ddd;">القطر (مم)</th><th style="padding:10px; border:1px solid #ddd;">المقاس</th></tr></thead>
+                    <tbody>
+                        <tr><td style="padding:8px; border:1px solid #ddd;">16</td><td style="padding:8px; border:1px solid #ddd;">16</td></tr>
+                        <tr><td style="padding:8px; border:1px solid #ddd;">17</td><td style="padding:8px; border:1px solid #ddd;">17</td></tr>
+                        <tr><td style="padding:8px; border:1px solid #ddd;">18</td><td style="padding:8px; border:1px solid #ddd;">18</td></tr>
+                        <tr><td style="padding:8px; border:1px solid #ddd;">19</td><td style="padding:8px; border:1px solid #ddd;">19</td></tr>
+                        <tr><td style="padding:8px; border:1px solid #ddd;">20</td><td style="padding:8px; border:1px solid #ddd;">20</td></tr>
+                        <tr><td style="padding:8px; border:1px solid #ddd;">21</td><td style="padding:8px; border:1px solid #ddd;">21</td></tr>
+                    </tbody>
+                </table>
+                <p style="font-size:13px; color:#888;">قياس الخواتم: ضعي خاتماً مناسباً على يدك وقيسي القطر الداخلي.</p>
+                <div class="size-img-placeholder" style="background:#f9f9f9; border-radius:16px; padding:15px; text-align:center; margin-top:15px; border:1px dashed #ccc;">
+                    <i class="fas fa-gem" style="font-size:48px; color:#D4AF37; margin-bottom:10px; display:block;"></i>
+                    <img src="images/ring-guide1.jpg" alt="دليل قياس الخواتم" style="max-width:100%; border-radius:12px; margin-top:10px;">
+                </div>
+            `,
+            'bracelets': `
+                <h4>📏 دليل قياس الغوايش والأساور</h4>
+                <p><strong>الطريقة الأولى (القطر الداخلي):</strong> ضعي غويشة مناسبة على يدك، ثم قيسي المسافة من الداخل باستخدام مسطرة.</p>
+                <table class="size-guide-table" style="width:100%; border-collapse:collapse; margin:10px 0;">
+                    <thead><tr style="background:#111; color:#fff;"><th style="padding:10px; border:1px solid #ddd;">المقاس</th><th style="padding:10px; border:1px solid #ddd;">القطر الداخلي (سم)</th></tr></thead>
+                    <tbody>
+                        <tr><td style="padding:8px; border:1px solid #ddd;">60</td><td style="padding:8px; border:1px solid #ddd;">6.0 سم</td></tr>
+                        <tr><td style="padding:8px; border:1px solid #ddd;">65</td><td style="padding:8px; border:1px solid #ddd;">6.5 سم</td></tr>
+                        <tr><td style="padding:8px; border:1px solid #ddd;">70</td><td style="padding:8px; border:1px solid #ddd;">7.0 سم</td></tr>
+                    </tbody>
+                </table>
+                <p style="font-size:13px; color:#888;">قياس الغوايش: ضعي غويشة مناسبة على يدك وقيسي القطر الداخلي.</p>
+                <div class="size-img-placeholder" style="background:#f9f9f9; border-radius:16px; padding:15px; text-align:center; margin-top:15px; border:1px dashed #ccc;">
+                    <i class="fas fa-hand-peace" style="font-size:48px; color:#D4AF37; margin-bottom:10px; display:block;"></i>
+                    <img src="images/ring-guide2.jpg" alt="دليل قياس الغوايش" style="max-width:100%; border-radius:12px; margin-top:10px;">
+                </div>
+            `,
+            'necklaces': `
+                <h4>📏 دليل قياس السلاسل</h4>
+                <p>استخدم خيطاً لقياس محيط رقبتك، ثم اختر الطول المناسب حسب الجدول التالي:</p>
+                <table class="size-guide-table" style="width:100%; border-collapse:collapse; margin:10px 0;">
+                    <thead><tr style="background:#111; color:#fff;"><th style="padding:10px; border:1px solid #ddd;">طول السلسلة (سم)</th><th style="padding:10px; border:1px solid #ddd;">المناسبة</th></tr></thead>
+                    <tbody>
+                        <tr><td style="padding:8px; border:1px solid #ddd;">45 سم</td><td style="padding:8px; border:1px solid #ddd;">تشغيل حول الرقبة (Choker)</td></tr>
+                        <tr><td style="padding:8px; border:1px solid #ddd;">50 سم</td><td style="padding:8px; border:1px solid #ddd;">عظمة الترقوة</td></tr>
+                        <tr><td style="padding:8px; border:1px solid #ddd;">55 سم</td><td style="padding:8px; border:1px solid #ddd;">أسفل الترقوة</td></tr>
+                        <tr><td style="padding:8px; border:1px solid #ddd;">60 سم</td><td style="padding:8px; border:1px solid #ddd;">على الصدر</td></tr>
+                        <tr><td style="padding:8px; border:1px solid #ddd;">70 سم</td><td style="padding:8px; border:1px solid #ddd;">سلسلة طويلة (أوبرا)</td></tr>
+                    </tbody>
+                </table>
+                <p style="font-size:13px; color:#888;">قياس السلاسل: استخدم خيطاً لقياس محيط رقبتك.</p>
+                <div class="size-img-placeholder" style="background:#f9f9f9; border-radius:16px; padding:15px; text-align:center; margin-top:15px; border:1px dashed #ccc;">
+                    <i class="fas fa-female" style="font-size:48px; color:#D4AF37; margin-bottom:10px; display:block;"></i>
+                    <img src="images/ring-guide3.jpg" alt="دليل قياس السلاسل" style="max-width:100%; border-radius:12px; margin-top:10px;">
+                </div>
+            `
+        };
 
-// ✅ إذا كان المنتج من نوع معين، نعرض الدليل المناسب
-if (sizeGuideContent && sizeGuides[category]) {
-    sizeGuideContent.innerHTML = sizeGuides[category];
-    if (sizeGuideContainer) sizeGuideContainer.style.display = 'block';
-} else if (sizeGuideContent) {
-    // إذا كان المنتج ليس له دليل مقاسات (مثل حلقان، أطقم، خلخال)
-    sizeGuideContent.innerHTML = '';
-    if (sizeGuideContainer) sizeGuideContainer.style.display = 'none';
-}
+        // ✅ عرض دليل المقاسات المناسب
+        if (sizeGuideContent && sizeGuides[category]) {
+            sizeGuideContent.innerHTML = sizeGuides[category];
+            if (sizeGuideContainer) sizeGuideContainer.style.display = 'block';
+        } else if (sizeGuideContent) {
+            sizeGuideContent.innerHTML = '';
+            if (sizeGuideContainer) sizeGuideContainer.style.display = 'none';
+        }
 
         // ===== المنتجات المشابهة والأكثر مبيعاً =====
         loadSimilarProducts(product.category, product.id, db);
         loadBestSellers(product.id, db);
 
+        // ===== تفعيل التبويبات =====
+        activateTabs();
+
     } catch (error) {
         console.error('خطأ في تحميل المنتج:', error);
         showToast('❌ حدث خطأ أثناء تحميل المنتج', 'error');
     }
+}
+
+// ========== دالة تفعيل التبويبات ==========
+function activateTabs() {
+    const tabs = document.querySelectorAll('.tabs-header button');
+    const panes = {
+        sizes: document.getElementById('tab-sizes'),
+        shipping: document.getElementById('tab-shipping'),
+        reviews: document.getElementById('tab-reviews')
+    };
+    const sizeTip = document.querySelector('.size-tip');
+
+    if (!tabs.length || !panes.sizes || !panes.shipping || !panes.reviews) {
+        console.warn('⚠️ بعض عناصر التبويبات غير موجودة');
+        return;
+    }
+
+    function toggleSizeTip(show) {
+        if (sizeTip) {
+            sizeTip.style.display = show ? 'block' : 'none';
+        }
+    }
+
+    // إخفاء جميع المحتويات مبدئياً
+    Object.values(panes).forEach(p => p.classList.remove('active'));
+    panes.sizes.classList.add('active');
+    toggleSizeTip(true);
+
+    tabs.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+
+            tabs.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+
+            Object.values(panes).forEach(p => p.classList.remove('active'));
+
+            const tabId = this.dataset.tab;
+            const target = panes[tabId];
+            if (target) {
+                target.classList.add('active');
+                if (tabId === 'sizes') {
+                    toggleSizeTip(true);
+                } else {
+                    toggleSizeTip(false);
+                }
+            }
+        });
+    });
 }
 
 // ========== تحديث عرض المخزون ==========
@@ -2232,54 +2276,6 @@ window.shareProduct = function() {
         });
     }
 };
-
-// ========== تبويبات المنتج ==========
-document.addEventListener('DOMContentLoaded', function() {
-    const tabs = document.querySelectorAll('.tabs-header button');
-    const panes = {
-        sizes: document.getElementById('tab-sizes'),
-        shipping: document.getElementById('tab-shipping'),
-        reviews: document.getElementById('tab-reviews')
-    };
-    const sizeTip = document.querySelector('.size-tip');
-
-    if (!tabs.length || !panes.sizes || !panes.shipping || !panes.reviews) {
-        console.warn('⚠️ بعض عناصر التبويبات غير موجودة');
-        return;
-    }
-
-    function toggleSizeTip(show) {
-        if (sizeTip) {
-            sizeTip.style.display = show ? 'block' : 'none';
-        }
-    }
-
-    Object.values(panes).forEach(p => p.classList.remove('active'));
-    panes.sizes.classList.add('active');
-    toggleSizeTip(true);
-
-    tabs.forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.preventDefault();
-
-            tabs.forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-
-            Object.values(panes).forEach(p => p.classList.remove('active'));
-
-            const tabId = this.dataset.tab;
-            const target = panes[tabId];
-            if (target) {
-                target.classList.add('active');
-                if (tabId === 'sizes') {
-                    toggleSizeTip(true);
-                } else {
-                    toggleSizeTip(false);
-                }
-            }
-        });
-    });
-});
 
 // ========== تحميل الصفحة ==========
 document.addEventListener('DOMContentLoaded', loadProduct);
