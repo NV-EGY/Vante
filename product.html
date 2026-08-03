@@ -806,15 +806,7 @@ if (!productId) {
 // ========== عرض المنتج ==========
 async function loadProduct() {
     try {
-      // ========== جلب بيانات المنتج من الرابط ==========
-const params = new URLSearchParams(window.location.search);
-const productId = params.get('id');
-
-if (!productId) {
-    window.location.href = 'index.html';
-}
-
-// ✅ تحديد مصدر الدخول: إذا كان من رابط مباشر
+// ✅ تحديد مصدر الدخول (تم تعريف productId بالفعل في أعلى الملف)
 const isDirectLink = document.referrer === '' || 
                      !document.referrer.includes(window.location.origin) ||
                      document.referrer.includes('Product.html');
