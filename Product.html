@@ -1325,10 +1325,10 @@
 ============================================ -->
 <section class="product-tabs">
     <div class="tabs-header">
-        <button class="active" data-tab="sizes">📏 المقاسات</button>
-        <button data-tab="shipping">🚚 الشحن والإرجاع</button>
-        <button data-tab="reviews">⭐ التقييمات</button>
-    </div>
+    <button class="active" data-tab="sizes">📏 المقاسات</button>
+    <button data-tab="shipping">🚚 الشحن والإرجاع</button>
+    <button data-tab="reviews">⭐ التقييمات</button>
+</div>
     <div class="tab-content">
         <div class="tab-pane active" id="tab-sizes">
             <h4>📏 دليل المقاسات</h4>
@@ -1341,7 +1341,8 @@
         <div class="tab-pane" id="tab-shipping">
     <h4>📦 سياسة الشحن</h4>
     <p>نشحن إلى جميع محافظات مصر عبر شركات شحن موثوقة. مدة التوصيل من 3 إلى 7 أيام عمل حسب المحافظة.</p>
-    <p style="margin-top: 12px;"><strong>تكلفة الشحن:</strong> مجاني للطلبات فوق 1000 جنيه (70 جنيه للطلبات الأقل).</p>
+    <p style="margin-top: 12px;"><strong>تكلفة الشحن: (مجاني للطلبات فوق 1000 جنيه).</p>
+
     
     <h4 style="margin-top: 25px;">🔄 سياسة الإرجاع والاستبدال</h4>
     <p>يحق لك استبدال أو إرجاع المنتج خلال 14 يومًا من تاريخ الاستلام بشرط أن يكون بحالته الأصلية والتغليف سليم.</p>
@@ -2189,10 +2190,15 @@ window.shareProduct = function() {
 // ========== تبويبات المنتج ==========
 document.querySelectorAll('.tabs-header button').forEach(btn => {
     btn.addEventListener('click', function() {
+        // إزالة active من جميع الأزرار
         document.querySelectorAll('.tabs-header button').forEach(b => b.classList.remove('active'));
         this.classList.add('active');
+        
+        // إخفاء جميع المحتويات
         const tabId = this.dataset.tab;
         document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+        
+        // إظهار المحتوى المطلوب
         const target = document.getElementById(`tab-${tabId}`);
         if (target) target.classList.add('active');
     });
