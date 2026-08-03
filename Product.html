@@ -41,7 +41,6 @@
             bottom: 30px;
             right: 20px;
             left: auto;
-            transform: none;
             background: #111;
             color: #fff;
             padding: 12px 20px;
@@ -52,25 +51,15 @@
             box-shadow: 0 10px 25px rgba(0,0,0,0.2);
             border: 1px solid #D4AF37;
             backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
             transition: all 0.3s ease;
             max-width: 350px;
             width: auto;
             direction: rtl;
             text-align: right;
         }
-        .vante-toast.success {
-            background: rgba(0,0,0,0.85);
-            border-color: #D4AF37;
-        }
-        .vante-toast.error {
-            background: rgba(60,0,0,0.9);
-            border-color: #e74c3c;
-        }
-        .vante-toast.info {
-            background: rgba(0,0,0,0.85);
-            border-color: #3498db;
-        }
+        .vante-toast.success { background: rgba(0,0,0,0.85); border-color: #D4AF37; }
+        .vante-toast.error { background: rgba(60,0,0,0.9); border-color: #e74c3c; }
+        .vante-toast.info { background: rgba(0,0,0,0.85); border-color: #3498db; }
         .toast-close-btn {
             background: rgba(255,255,255,0.2);
             border-radius: 50%;
@@ -85,10 +74,7 @@
             cursor: pointer;
             font-size: 16px;
         }
-        .toast-close-btn:hover {
-            background: #D4AF37;
-            color: #000;
-        }
+        .toast-close-btn:hover { background: #D4AF37; color: #000; }
         @media (max-width: 480px) {
             .vante-toast {
                 left: 10px;
@@ -101,7 +87,7 @@
         }
 
         /* ============================================
-           NAVBAR
+           NAVBAR (مختصر)
            ============================================ */
         .nav-bar {
             background: #fff;
@@ -171,11 +157,7 @@
             transition: .3s;
             position: relative;
         }
-        .icons button:hover {
-            background: #D4AF37;
-            color: #000;
-            transform: translateY(-2px);
-        }
+        .icons button:hover { background: #D4AF37; color: #000; transform: translateY(-2px); }
         .icons i { font-size: 16px; }
         .cart-count {
             position: absolute;
@@ -193,69 +175,35 @@
             font-weight: 900;
             border: 2px solid #fff;
         }
-        
-        /* ============================================
-           MOBILE RESPONSIVE NAVBAR
-           ============================================ */
         .mobile-actions { display: none; }
         .mobile-menu { display: none; }
         #menuOverlay { display: none; }
-        
         @media (max-width: 768px) {
-            .nav-bar {
-                padding: 15px 18px;
-            }
-            .mobile-actions {
-                display: block;
-                order: 1;
-            }
-            .logo {
-                order: 2;
-                font-size: 28px;
-                margin: 0 auto;
-            }
-            .icons {
-                order: 3;
-                display: flex;
-                align-items: center;
-                gap: 0;
-            }
+            .nav-bar { padding: 15px 18px; }
+            .mobile-actions { display: block; order: 1; }
+            .logo { order: 2; font-size: 28px; margin: 0 auto; }
+            .icons { order: 3; display: flex; align-items: center; gap: 0; }
             .menu { display: none !important; }
             .icons button:not(:last-child) { display: none; }
-            
             .mobile-btn {
-                width: 46px;
-                height: 46px;
-                border: none;
-                border-radius: 50%;
-                background: #111;
-                color: #fff;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                cursor: pointer;
-                font-size: 18px;
+                width: 46px; height: 46px;
+                border: none; border-radius: 50%;
+                background: #111; color: #fff;
+                display: flex; align-items: center; justify-content: center;
+                cursor: pointer; font-size: 18px;
             }
-            
             .mobile-menu {
                 display: flex;
                 flex-direction: column;
                 position: fixed;
-                top: 0;
-                left: -100%;
-                right: auto;
-                width: 320px;
-                max-width: 85%;
-                height: 100vh;
-                background: #fff;
-                padding: 25px;
-                z-index: 5000;
+                top: 0; left: -100%; right: auto;
+                width: 320px; max-width: 85%;
+                height: 100vh; background: #fff;
+                padding: 25px; z-index: 5000;
                 box-shadow: -10px 0 40px rgba(0,0,0,.25);
-                transition: .4s ease;
-                overflow-y: auto;
+                transition: .4s ease; overflow-y: auto;
             }
             .mobile-menu.active { left: 0; }
-            
             .mobile-menu-header {
                 display: flex;
                 align-items: center;
@@ -264,91 +212,53 @@
                 padding-bottom: 20px;
                 border-bottom: 1px solid #eee;
             }
-            .mobile-icons-row {
-                display: flex;
-                gap: 12px;
-            }
+            .mobile-icons-row { display: flex; gap: 12px; }
             .mobile-icon {
-                width: 48px;
-                height: 48px;
-                border: none;
-                border-radius: 50%;
-                background: #111;
-                color: #fff;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 18px;
-                cursor: pointer;
+                width: 48px; height: 48px;
+                border: none; border-radius: 50%;
+                background: #111; color: #fff;
+                display: flex; align-items: center; justify-content: center;
+                font-size: 18px; cursor: pointer;
             }
-            .mobile-icon:hover {
-                background: #D4AF37;
-                color: #000;
-            }
+            .mobile-icon:hover { background: #D4AF37; color: #000; }
             .close-menu {
-                width: 46px;
-                height: 46px;
-                border: none;
-                border-radius: 50%;
-                background: #f5f5f5;
-                color: #111;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                cursor: pointer;
-                font-size: 18px;
+                width: 46px; height: 46px;
+                border: none; border-radius: 50%;
+                background: #f5f5f5; color: #111;
+                display: flex; align-items: center; justify-content: center;
+                cursor: pointer; font-size: 18px;
             }
             .mobile-menu a {
                 padding: 18px 0;
                 border-bottom: 1px solid #f2f2f2;
-                color: #111;
-                font-size: 18px;
-                font-weight: 700;
+                color: #111; font-size: 18px; font-weight: 700;
                 transition: .3s;
             }
-            .mobile-menu a:hover {
-                color: #D4AF37;
-                padding-right: 12px;
-            }
+            .mobile-menu a:hover { color: #D4AF37; padding-right: 12px; }
             #menuOverlay {
-                position: fixed;
-                inset: 0;
-                background: rgba(0,0,0,0.4);
-                z-index: 4000;
-                opacity: 0;
-                visibility: hidden;
-                transition: .3s;
+                position: fixed; inset: 0;
+                background: rgba(0,0,0,0.4); z-index: 4000;
+                opacity: 0; visibility: hidden; transition: .3s;
             }
-            #menuOverlay.active {
-                opacity: 1;
-                visibility: visible;
-            }
+            #menuOverlay.active { opacity: 1; visibility: visible; }
         }
 
         /* ============================================
            BREADCRUMB
            ============================================ */
         .breadcrumb {
-            max-width: 1200px;
-            margin: 20px auto 0;
-            padding: 0 20px;
-            font-size: 13px;
-            color: #888;
+            max-width: 1200px; margin: 20px auto 0; padding: 0 20px;
+            font-size: 13px; color: #888;
         }
-        .breadcrumb a {
-            color: #D4AF37;
-            transition: 0.3s;
-        }
+        .breadcrumb a { color: #D4AF37; transition: 0.3s; }
         .breadcrumb a:hover { color: #B8860B; }
         .breadcrumb span { color: #555; }
 
         /* ============================================
-           PRODUCT PAGE - MAIN
+           PRODUCT PAGE
            ============================================ */
         .product-page {
-            max-width: 1200px;
-            margin: 20px auto 40px;
-            padding: 0 20px;
+            max-width: 1200px; margin: 20px auto 40px; padding: 0 20px;
         }
         .product-container {
             display: grid;
@@ -366,522 +276,387 @@
             position: relative;
         }
         .product-gallery-page .main-image {
-            width: 100%;
-            height: 480px;
-            border-radius: 18px;
-            overflow: hidden;
-            background: #f5f5f5;
-            position: relative;
+            width: 100%; height: 480px;
+            border-radius: 18px; overflow: hidden;
+            background: #f5f5f5; position: relative;
             cursor: zoom-in;
         }
         .product-gallery-page .main-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform 0.6s ease;
+            width: 100%; height: 100%;
+            object-fit: cover; transition: transform 0.6s ease;
         }
-        .product-gallery-page .main-image:hover img {
-            transform: scale(1.03);
-        }
+        .product-gallery-page .main-image:hover img { transform: scale(1.03); }
         
-        /* أزرار التنقل في الجاليري */
         .gallery-nav-btn {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 42px;
-            height: 42px;
-            border-radius: 50%;
+            position: absolute; top: 50%; transform: translateY(-50%);
+            width: 42px; height: 42px; border-radius: 50%;
             background: rgba(255,255,255,0.92);
             border: 1px solid rgba(0,0,0,0.06);
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            cursor: pointer;
-            font-size: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-            z-index: 5;
-            color: #111;
-            backdrop-filter: blur(6px);
+            cursor: pointer; font-size: 18px;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.3s ease; z-index: 5;
+            color: #111; backdrop-filter: blur(6px);
         }
-        .gallery-nav-btn:hover {
-            background: #D4AF37;
-            color: #000;
-            transform: translateY(-50%) scale(1.08);
-            box-shadow: 0 6px 20px rgba(212,175,55,0.3);
-        }
+        .gallery-nav-btn:hover { background: #D4AF37; color: #000; transform: translateY(-50%) scale(1.08); }
         .gallery-nav-btn.prev { right: 12px; }
         .gallery-nav-btn.next { left: 12px; }
         
-        /* ===== المصغرات - الحل المعدل ===== */
         .thumbnails {
-            display: flex;
-            gap: 12px;
-            margin-top: 18px;
-            overflow-x: auto;
-            padding: 4px 2px 8px 2px;
-            scrollbar-width: thin;
-            scroll-behavior: smooth;
+            display: flex; gap: 12px; margin-top: 18px;
+            overflow-x: auto; padding: 4px 2px 8px 2px;
+            scrollbar-width: thin; scroll-behavior: smooth;
         }
-        .thumbnails::-webkit-scrollbar {
-            height: 4px;
-        }
-        .thumbnails::-webkit-scrollbar-thumb {
-            background: #D4AF37;
-            border-radius: 10px;
-        }
-
-        /* ✅ الإطار الذهبي حول حاوية الصورة المصغرة */
+        .thumbnails::-webkit-scrollbar { height: 4px; }
+        .thumbnails::-webkit-scrollbar-thumb { background: #D4AF37; border-radius: 10px; }
+        
         .thumbnail-wrapper {
-            flex-shrink: 0;
-            width: 84px;
-            height: 84px;
-            border-radius: 14px;
-            border: 3px solid transparent;
-            transition: all 0.3s ease;
-            overflow: hidden;
-            cursor: pointer;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-            padding: 2px; /* مسافة داخلية لتظهر الحافة الذهبية بالكامل */
-            background: #fff;
+            flex-shrink: 0; width: 84px; height: 84px;
+            border-radius: 14px; border: 3px solid transparent;
+            transition: all 0.3s ease; overflow: hidden;
+            cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            padding: 2px; background: #fff;
         }
-
         .thumbnail-wrapper.active {
             border-color: #D4AF37;
             box-shadow: 0 6px 18px rgba(212,175,55,0.25);
             transform: translateY(-3px);
         }
-
         .thumbnail-wrapper:hover {
             border-color: #D4AF37;
             transform: translateY(-3px);
             box-shadow: 0 6px 18px rgba(212,175,55,0.15);
         }
-
         .thumbnail-wrapper img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 11px;
-            display: block;
-            transition: transform 0.3s ease;
+            width: 100%; height: 100%;
+            object-fit: cover; border-radius: 11px;
+            display: block; transition: transform 0.3s ease;
         }
-
-        .thumbnail-wrapper:hover img {
-            transform: scale(1.05);
-        }
+        .thumbnail-wrapper:hover img { transform: scale(1.05); }
 
         /* ===== PRODUCT INFO ===== */
         .product-info-page {
-            display: flex;
-            flex-direction: column;
+            display: flex; flex-direction: column;
         }
         .product-info-page .product-category {
-            font-size: 13px;
-            color: #D4AF37;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 6px;
+            font-size: 13px; color: #D4AF37;
+            font-weight: 700; text-transform: uppercase;
+            letter-spacing: 1px; margin-bottom: 6px;
         }
         .product-info-page h1 {
-            font-size: 30px;
-            font-weight: 900;
-            margin-bottom: 8px;
-            color: #111;
-            line-height: 1.3;
+            font-size: 30px; font-weight: 900;
+            margin-bottom: 8px; color: #111; line-height: 1.3;
         }
         .product-rating {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 16px;
-            flex-wrap: wrap;
+            display: flex; align-items: center;
+            gap: 10px; margin-bottom: 16px; flex-wrap: wrap;
         }
         .product-rating .stars {
-            display: flex;
-            gap: 3px;
-            direction: ltr;
+            display: flex; gap: 3px; direction: ltr;
         }
         .product-rating .stars i {
-            font-size: 18px;
-            color: #ddd;
+            font-size: 18px; color: #ddd;
         }
-        .product-rating .stars i.filled {
-            color: #FFD700;
-        }
+        .product-rating .stars i.filled { color: #FFD700; }
         .product-rating .review-count {
-            font-size: 14px;
-            color: #888;
+            font-size: 14px; color: #888;
         }
         .product-price {
-            display: flex;
-            align-items: center;
-            gap: 18px;
-            flex-wrap: wrap;
-            margin-bottom: 12px;
+            display: flex; align-items: center;
+            gap: 18px; flex-wrap: wrap; margin-bottom: 12px;
         }
         .product-price .current {
-            font-size: 34px;
-            font-weight: 900;
-            color: #D4AF37;
+            font-size: 34px; font-weight: 900; color: #D4AF37;
         }
         .product-price .old {
-            font-size: 20px;
-            color: #999;
-            text-decoration: line-through;
+            font-size: 20px; color: #999; text-decoration: line-through;
             font-weight: 400;
         }
         .product-price .discount-badge {
             background: linear-gradient(135deg, #D4AF37, #FFD700);
-            color: #1a1a00;
-            padding: 4px 12px;
-            border-radius: 30px;
-            font-size: 13px;
-            font-weight: 800;
+            color: #1a1a00; padding: 4px 12px; border-radius: 30px;
+            font-size: 13px; font-weight: 800;
         }
         .stock-info {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 16px;
-            border-radius: 30px;
-            font-size: 14px;
-            font-weight: 600;
-            margin: 8px 0 16px;
-            width: fit-content;
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 8px 16px; border-radius: 30px;
+            font-size: 14px; font-weight: 600;
+            margin: 8px 0 16px; width: fit-content;
         }
-        .stock-info.in-stock {
-            background: #e8f5e9;
-            color: #27ae60;
-        }
-        .stock-info.out-of-stock {
-            background: #fde8e8;
-            color: #c0392b;
-        }
-        .stock-info.low-stock {
-            background: #fff3e0;
-            color: #e67e22;
-        }
+        .stock-info.in-stock { background: #e8f5e9; color: #27ae60; }
+        .stock-info.out-of-stock { background: #fde8e8; color: #c0392b; }
+        .stock-info.low-stock { background: #fff3e0; color: #e67e22; }
+        
         .product-description {
-            color: #555;
-            line-height: 1.9;
-            margin: 16px 0 22px;
-            font-size: 15px;
-            padding: 18px 20px;
-            background: #faf9f7;
-            border-radius: 16px;
-            border-right: 3px solid #D4AF37;
+            color: #555; line-height: 1.9;
+            margin: 16px 0 22px; font-size: 15px;
+            padding: 18px 20px; background: #faf9f7;
+            border-radius: 16px; border-right: 3px solid #D4AF37;
         }
-        .size-selector {
-            margin: 12px 0 20px;
-        }
+        .size-selector { margin: 12px 0 20px; }
         .size-selector label {
-            font-weight: 800;
-            display: block;
-            margin-bottom: 10px;
-            color: #111;
-            font-size: 15px;
+            font-weight: 800; display: block;
+            margin-bottom: 10px; color: #111; font-size: 15px;
         }
         .size-selector .size-options {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
+            display: flex; gap: 10px; flex-wrap: wrap;
         }
         .size-selector .size-options button {
-            min-width: 48px;
-            height: 48px;
-            padding: 0 14px;
-            border: 2px solid #e5e5e5;
-            border-radius: 12px;
-            background: #fff;
-            font-size: 14px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-family: 'Cairo', sans-serif;
-            color: #555;
+            min-width: 48px; height: 48px; padding: 0 14px;
+            border: 2px solid #e5e5e5; border-radius: 12px;
+            background: #fff; font-size: 14px; font-weight: 700;
+            cursor: pointer; transition: all 0.3s ease;
+            font-family: 'Cairo', sans-serif; color: #555;
         }
         .size-selector .size-options button:hover {
-            border-color: #D4AF37;
-            color: #D4AF37;
-            transform: translateY(-2px);
+            border-color: #D4AF37; color: #D4AF37; transform: translateY(-2px);
         }
         .size-selector .size-options button.active {
-            border-color: #D4AF37;
-            background: #D4AF37;
-            color: #000;
+            border-color: #D4AF37; background: #D4AF37; color: #000;
             box-shadow: 0 4px 15px rgba(212,175,55,0.25);
         }
         .size-selector .size-options button:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-            transform: none !important;
+            opacity: 0.4; cursor: not-allowed; transform: none !important;
         }
         
-        /* أزرار الإجراءات */
         .action-buttons {
-            display: flex;
-            gap: 12px;
-            margin-top: 10px;
-            flex-wrap: wrap;
+            display: flex; gap: 12px; margin-top: 10px; flex-wrap: wrap;
         }
         .btn-primary {
-            flex: 1;
-            padding: 16px 28px;
-            border: none;
-            border-radius: 16px;
-            background: #111;
-            color: #fff;
-            font-size: 16px;
-            font-weight: 800;
-            cursor: pointer;
+            flex: 1; padding: 16px 28px; border: none;
+            border-radius: 16px; background: #111; color: #fff;
+            font-size: 16px; font-weight: 800; cursor: pointer;
             transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            min-width: 160px;
+            display: flex; align-items: center; justify-content: center;
+            gap: 10px; min-width: 160px;
         }
         .btn-primary:hover {
-            background: #D4AF37;
-            color: #000;
+            background: #D4AF37; color: #000;
             transform: translateY(-3px);
             box-shadow: 0 12px 30px rgba(212,175,55,0.3);
         }
         .btn-primary:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none !important;
+            opacity: 0.5; cursor: not-allowed; transform: none !important;
             box-shadow: none !important;
         }
         .btn-secondary {
-            padding: 16px 24px;
-            border: 2px solid #e5e5e5;
-            border-radius: 16px;
-            background: #fff;
-            color: #111;
-            font-size: 16px;
-            font-weight: 700;
-            cursor: pointer;
+            padding: 16px 24px; border: 2px solid #e5e5e5;
+            border-radius: 16px; background: #fff; color: #111;
+            font-size: 16px; font-weight: 700; cursor: pointer;
             transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            display: flex; align-items: center; justify-content: center;
             gap: 10px;
         }
         .btn-secondary:hover {
-            border-color: #D4AF37;
-            color: #D4AF37;
+            border-color: #D4AF37; color: #D4AF37;
             transform: translateY(-3px);
             box-shadow: 0 8px 20px rgba(0,0,0,0.06);
         }
-        .btn-secondary.share-btn {
-            min-width: 60px;
-            padding: 16px 20px;
+        .btn-secondary.share-btn { min-width: 60px; padding: 16px 20px; }
+
+        /* ============================================
+           STARS INTERACTIVE
+           ============================================ */
+        #starsContainer span {
+            font-size: 32px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: #ddd;
+            line-height: 1.2;
+        }
+        #starsContainer span:hover { transform: scale(1.2); }
+        #starsContainer span.active { color: #FFD700; text-shadow: 0 0 8px rgba(255,215,0,0.6); }
+        #ratingHint { font-size: 14px; color: #888; text-align: center; margin-top: 5px; }
+        #reviewInputArea {
+            margin-top: 12px;
+            display: none;
+        }
+        #reviewInputArea textarea {
+            width: 100%; min-height: 80px;
+            padding: 12px; border-radius: 12px;
+            border: 1px solid #eee; font-family: inherit;
+            resize: vertical; transition: border 0.3s;
+        }
+        #reviewInputArea textarea:focus {
+            border-color: #D4AF37;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(212,175,55,0.1);
         }
 
         /* ============================================
-           PRODUCT DETAILS TABS
+           PRODUCT TABS
            ============================================ */
         .product-tabs {
-            max-width: 1200px;
-            margin: 40px auto;
-            padding: 0 20px;
+            max-width: 1200px; margin: 40px auto; padding: 0 20px;
         }
         .product-tabs .tabs-header {
-            display: flex;
-            gap: 4px;
+            display: flex; gap: 4px;
             border-bottom: 2px solid #eee;
-            margin-bottom: 25px;
-            background: #fff;
+            margin-bottom: 25px; background: #fff;
             border-radius: 16px 16px 0 0;
-            padding: 0 10px;
-            overflow-x: auto;
+            padding: 0 10px; overflow-x: auto;
         }
         .product-tabs .tabs-header button {
-            padding: 16px 28px;
-            border: none;
-            background: transparent;
-            font-size: 15px;
-            font-weight: 700;
-            color: #888;
-            cursor: pointer;
+            padding: 16px 28px; border: none;
+            background: transparent; font-size: 15px;
+            font-weight: 700; color: #888; cursor: pointer;
             transition: all 0.3s ease;
             font-family: 'Cairo', sans-serif;
-            position: relative;
-            white-space: nowrap;
+            position: relative; white-space: nowrap;
         }
         .product-tabs .tabs-header button::after {
             content: '';
-            position: absolute;
-            bottom: -2px;
-            right: 0;
-            width: 0;
-            height: 3px;
-            background: #D4AF37;
+            position: absolute; bottom: -2px; right: 0;
+            width: 0; height: 3px; background: #D4AF37;
             transition: 0.3s;
         }
-        .product-tabs .tabs-header button.active {
-            color: #111;
-        }
-        .product-tabs .tabs-header button.active::after {
-            width: 100%;
-        }
-        .product-tabs .tabs-header button:hover {
-            color: #D4AF37;
-        }
+        .product-tabs .tabs-header button.active { color: #111; }
+        .product-tabs .tabs-header button.active::after { width: 100%; }
+        .product-tabs .tabs-header button:hover { color: #D4AF37; }
         .product-tabs .tab-content {
-            background: #fff;
-            border-radius: 0 0 16px 16px;
+            background: #fff; border-radius: 0 0 16px 16px;
             padding: 30px 35px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.02);
-            border: 1px solid #f0f0f0;
-            border-top: none;
+            border: 1px solid #f0f0f0; border-top: none;
             min-height: 200px;
         }
         .product-tabs .tab-pane {
-            display: none;
-            animation: fadeUp 0.4s ease;
+            display: none; animation: fadeUp 0.4s ease;
         }
-        .product-tabs .tab-pane.active {
-            display: block;
-        }
+        .product-tabs .tab-pane.active { display: block; }
         @keyframes fadeUp {
             from { opacity: 0; transform: translateY(12px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        .tab-pane ul {
-            padding-right: 25px;
-            margin: 12px 0;
-        }
-        .tab-pane ul li {
-            margin-bottom: 8px;
-            color: #555;
-            line-height: 1.7;
-        }
-        .tab-pane h4 {
-            color: #D4AF37;
-            font-size: 18px;
-            margin-bottom: 12px;
-        }
-        .tab-pane p {
-            color: #555;
-            line-height: 1.8;
-        }
+        .tab-pane ul { padding-right: 25px; margin: 12px 0; }
+        .tab-pane ul li { margin-bottom: 8px; color: #555; line-height: 1.7; }
+        .tab-pane h4 { color: #D4AF37; font-size: 18px; margin-bottom: 12px; }
+        .tab-pane p { color: #555; line-height: 1.8; }
 
         /* ============================================
-           MODAL للتكبير (اضافة جديدة)
+           IMAGE MODAL
            ============================================ */
         .image-modal {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.92);
-            z-index: 10000;
-            justify-content: center;
-            align-items: center;
-            padding: 30px;
-            cursor: zoom-out;
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.92); z-index: 10000;
+            justify-content: center; align-items: center;
+            padding: 30px; cursor: zoom-out;
             animation: fadeInModal 0.3s ease;
         }
-        .image-modal.active {
-            display: flex;
-        }
+        .image-modal.active { display: flex; }
         .image-modal img {
-            max-width: 90%;
-            max-height: 85vh;
-            object-fit: contain;
-            border-radius: 12px;
+            max-width: 95%; max-height: 90vh;
+            object-fit: contain; border-radius: 12px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.6);
-            border: 2px solid #D4AF37;
+            border: 2px solid #D4AF37; cursor: default;
         }
         .image-modal .close-modal {
-            position: absolute;
-            top: 25px;
-            left: 25px;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
+            position: absolute; top: 25px; left: 25px;
+            width: 50px; height: 50px; border-radius: 50%;
             background: rgba(255,255,255,0.12);
-            border: 2px solid #D4AF37;
-            color: #fff;
-            font-size: 28px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: 0.3s;
-            backdrop-filter: blur(4px);
+            border: 2px solid #D4AF37; color: #fff;
+            font-size: 28px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: 0.3s; backdrop-filter: blur(4px);
         }
         .image-modal .close-modal:hover {
-            background: #D4AF37;
-            color: #000;
-            transform: rotate(90deg);
+            background: #D4AF37; color: #000; transform: rotate(90deg);
         }
         @keyframes fadeInModal {
             from { opacity: 0; transform: scale(0.95); }
             to { opacity: 1; transform: scale(1); }
         }
         .image-modal .modal-counter {
-            position: absolute;
-            bottom: 30px;
-            left: 50%;
+            position: absolute; bottom: 30px; left: 50%;
             transform: translateX(-50%);
-            background: rgba(0,0,0,0.6);
-            color: #fff;
-            padding: 8px 20px;
-            border-radius: 30px;
-            font-size: 14px;
-            backdrop-filter: blur(4px);
+            background: rgba(0,0,0,0.6); color: #fff;
+            padding: 8px 20px; border-radius: 30px;
+            font-size: 14px; backdrop-filter: blur(4px);
             border: 1px solid rgba(212,175,55,0.3);
         }
         .image-modal .nav-modal {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
+            position: absolute; top: 50%; transform: translateY(-50%);
+            width: 50px; height: 50px; border-radius: 50%;
             background: rgba(255,255,255,0.1);
-            border: 2px solid rgba(212,175,55,0.4);
-            color: #fff;
-            font-size: 24px;
-            cursor: pointer;
-            transition: 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            border: 2px solid rgba(212,175,55,0.4); color: #fff;
+            font-size: 24px; cursor: pointer; transition: 0.3s;
+            display: flex; align-items: center; justify-content: center;
             backdrop-filter: blur(4px);
         }
-        .image-modal .nav-modal:hover {
-            background: #D4AF37;
-            color: #000;
-        }
+        .image-modal .nav-modal:hover { background: #D4AF37; color: #000; }
         .image-modal .nav-modal.prev-modal { left: 25px; }
         .image-modal .nav-modal.next-modal { right: 25px; }
 
         /* ============================================
-           RELATED PRODUCTS & BEST SELLERS
+           RATING MODAL
+           ============================================ */
+        .rating-modal {
+            position: fixed; top: 50%; left: 50%;
+            transform: translate(-50%, -50%) scale(0.95);
+            width: 90%; max-width: 420px;
+            background: #fff; border-radius: 24px;
+            z-index: 100001; box-shadow: 0 30px 60px rgba(0,0,0,0.25);
+            opacity: 0; visibility: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .rating-modal.active {
+            opacity: 1; visibility: visible;
+            transform: translate(-50%, -50%) scale(1);
+        }
+        .rating-header {
+            background: #111; padding: 20px 24px;
+            display: flex; justify-content: space-between; align-items: center;
+            border-radius: 24px 24px 0 0;
+        }
+        .rating-header h3 { color: #D4AF37; margin: 0; font-weight: 800; }
+        .rating-header .close-rating {
+            background: none; border: none; color: #fff;
+            font-size: 24px; cursor: pointer; transition: 0.3s;
+        }
+        .rating-header .close-rating:hover { color: #D4AF37; transform: rotate(90deg); }
+        .rating-body {
+            padding: 24px 24px 30px;
+        }
+        .input-field {
+            margin-bottom: 18px;
+        }
+        .input-field label {
+            display: block; font-weight: 700;
+            margin-bottom: 6px; color: #111; font-size: 14px;
+        }
+        .input-field input {
+            width: 100%; padding: 12px 15px;
+            border: 1.5px solid #eee; border-radius: 12px;
+            font-size: 15px; transition: 0.3s;
+            font-family: 'Cairo', sans-serif;
+        }
+        .input-field input:focus {
+            border-color: #D4AF37; outline: none;
+            box-shadow: 0 0 0 3px rgba(212,175,55,0.1);
+        }
+        .error-msg { color: #e74c3c; font-size: 12px; margin-top: 4px; }
+        .rating-submit-btn {
+            width: 100%; padding: 14px; border: none;
+            border-radius: 14px; background: #111; color: #fff;
+            font-weight: 800; font-size: 16px; cursor: pointer;
+            transition: 0.3s; margin-top: 8px;
+        }
+        .rating-submit-btn:hover { background: #D4AF37; color: #000; transform: translateY(-2px); }
+        .rating-submit-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none !important; }
+
+        /* ============================================
+           RELATED & BEST SELLERS
            ============================================ */
         .related-section {
-            max-width: 1200px;
-            margin: 50px auto;
-            padding: 0 20px;
+            max-width: 1200px; margin: 50px auto; padding: 0 20px;
         }
         .flame-title {
-            font-size: 32px;
-            font-weight: 900;
-            text-align: center;
+            font-size: 32px; font-weight: 900; text-align: center;
             margin-bottom: 30px;
-            color: #B8860B;
             background: linear-gradient(90deg, #B8860B, #D4AF37, #FFF8DC, #D4AF37, #B8860B);
             background-size: 200% auto;
-            -webkit-background-clip: text;
-            background-clip: text;
+            -webkit-background-clip: text; background-clip: text;
             -webkit-text-fill-color: transparent;
-            filter: drop-shadow(0 2px 4px rgba(180,130,0,0.2));
             animation: shimmerClear 4s ease-in-out infinite;
         }
         @keyframes shimmerClear {
@@ -889,17 +664,13 @@
             50% { background-position: 0% center; }
         }
         .products-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            display: grid; grid-template-columns: repeat(4, 1fr);
             gap: 24px;
         }
         .product-card {
-            background: #fff;
-            border-radius: 20px;
-            padding: 18px 14px 16px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1.2);
+            background: #fff; border-radius: 20px;
+            padding: 18px 14px 16px; text-align: center;
+            cursor: pointer; transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1.2);
             box-shadow: 0 8px 25px rgba(0,0,0,0.04);
             border: 1px solid #f5f5f5;
         }
@@ -909,33 +680,20 @@
             border-color: #D4AF37;
         }
         .product-card img {
-            width: 100%;
-            height: 190px;
-            object-fit: cover;
-            border-radius: 14px;
-            margin-bottom: 12px;
+            width: 100%; height: 190px; object-fit: cover;
+            border-radius: 14px; margin-bottom: 12px;
             background: #f5f5f5;
         }
         .product-card h3 {
-            font-size: 15px;
-            font-weight: 700;
-            margin: 8px 0 4px;
-            color: #111;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
+            font-size: 15px; font-weight: 700;
+            margin: 8px 0 4px; color: #111;
+            display: -webkit-box; -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical; overflow: hidden;
         }
-        .product-card .price {
-            color: #D4AF37;
-            font-weight: 900;
-            font-size: 17px;
-        }
+        .product-card .price { color: #D4AF37; font-weight: 900; font-size: 17px; }
         .product-card .old-price {
-            font-size: 13px;
-            color: #999;
-            text-decoration: line-through;
-            margin-left: 8px;
+            font-size: 13px; color: #999;
+            text-decoration: line-through; margin-left: 8px;
             font-weight: 400;
         }
 
@@ -943,101 +701,58 @@
            FOOTER
            ============================================ */
         .vante-footer {
-            background: #111;
-            color: #fff;
-            margin-top: 30px;
-            padding: 50px 20px 20px;
-            direction: rtl;
+            background: #111; color: #fff; margin-top: 30px;
+            padding: 50px 20px 20px; direction: rtl;
         }
         .footer-container {
-            max-width: 1200px;
-            margin: 0 auto;
+            max-width: 1200px; margin: 0 auto;
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 40px;
-            margin-bottom: 30px;
+            gap: 40px; margin-bottom: 30px;
         }
         .footer-column h3 {
-            color: #D4AF37;
-            font-size: 18px;
-            margin-bottom: 20px;
-            position: relative;
-            display: inline-block;
+            color: #D4AF37; font-size: 18px; margin-bottom: 20px;
+            position: relative; display: inline-block;
         }
         .footer-column h3::after {
-            content: '';
-            position: absolute;
-            bottom: -8px;
-            right: 0;
-            width: 40px;
-            height: 2px;
-            background: #D4AF37;
+            content: ''; position: absolute;
+            bottom: -8px; right: 0;
+            width: 40px; height: 2px; background: #D4AF37;
         }
         .footer-column p { color: #aaa; line-height: 1.8; font-size: 14px; }
         .footer-column ul { list-style: none; padding: 0; }
         .footer-column ul li { margin-bottom: 12px; }
         .footer-column ul li a {
-            color: #ccc;
-            text-decoration: none;
-            transition: 0.3s;
-            font-size: 14px;
+            color: #ccc; text-decoration: none;
+            transition: 0.3s; font-size: 14px;
         }
         .footer-column ul li a:hover { color: #D4AF37; padding-right: 5px; }
         .contact-info li {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            color: #ccc;
-            font-size: 14px;
+            display: flex; align-items: center;
+            gap: 12px; color: #ccc; font-size: 14px;
         }
         .contact-info li i { color: #D4AF37; width: 24px; }
         .footer-bottom {
-            text-align: center;
-            padding-top: 25px;
+            text-align: center; padding-top: 25px;
             border-top: 1px solid rgba(255,255,255,0.1);
-            color: #777;
-            font-size: 13px;
+            color: #777; font-size: 13px;
         }
         .footer-social {
-            display: flex;
-            gap: 15px;
-            margin-top: 20px;
+            display: flex; gap: 15px; margin-top: 20px;
         }
         .footer-social a {
-            width: 38px;
-            height: 38px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #fff;
-            transition: 0.3s;
+            width: 38px; height: 38px;
+            background: rgba(255,255,255,0.1); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            color: #fff; transition: 0.3s;
         }
-        .footer-social a:hover {
-            background: #D4AF37;
-            color: #000;
-            transform: translateY(-3px);
-        }
-        @media (max-width: 768px) {
-            .footer-container { grid-template-columns: repeat(2, 1fr); gap: 30px; }
-        }
-        @media (max-width: 480px) {
-            .footer-container { grid-template-columns: 1fr; text-align: center; }
-            .footer-column h3::after { right: 50%; transform: translateX(50%); }
-            .footer-social { justify-content: center; }
-            .contact-info li { justify-content: center; }
-        }
+        .footer-social a:hover { background: #D4AF37; color: #000; transform: translateY(-3px); }
 
         /* ============================================
            RESPONSIVE
            ============================================ */
         @media (max-width: 992px) {
-            .product-container {
-                grid-template-columns: 1fr;
-                gap: 30px;
-                padding: 24px;
-            }
+            .product-container { grid-template-columns: 1fr; gap: 30px; padding: 24px; }
             .product-gallery-page .main-image { height: 380px; }
             .products-grid { grid-template-columns: repeat(3, 1fr); gap: 18px; }
             .product-info-page h1 { font-size: 26px; }
@@ -1060,6 +775,7 @@
             .image-modal .nav-modal.prev-modal { left: 10px; }
             .image-modal .nav-modal.next-modal { right: 10px; }
             .image-modal .close-modal { width: 44px; height: 44px; font-size: 22px; top: 15px; left: 15px; }
+            #starsContainer span { font-size: 28px; }
         }
         @media (max-width: 480px) {
             .products-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -1071,16 +787,8 @@
             .gallery-nav-btn { width: 34px; height: 34px; font-size: 14px; }
             .product-price .current { font-size: 20px; }
             .image-modal img { max-width: 95%; }
+            #starsContainer span { font-size: 24px; }
         }
-        .image-modal img {
-    max-width: 95%;
-    max-height: 90vh;
-    object-fit: contain;
-    border-radius: 12px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
-    border: 2px solid #D4AF37;
-    cursor: default;
-}
     </style>
 </head>
 <body>
@@ -1160,6 +868,25 @@
             <div class="product-category" id="productCategory">المنتج</div>
             <h1 id="productName">اسم المنتج</h1>
             
+            <!-- ====== النجوم التفاعلية ====== -->
+            <div id="ratingSection" style="margin-top: 5px;">
+                <div style="display:flex; justify-content:center; gap:6px; direction:ltr;" id="starsContainer">
+                    <span data-rate="1" onclick="selectStar(1)">☆</span>
+                    <span data-rate="2" onclick="selectStar(2)">☆</span>
+                    <span data-rate="3" onclick="selectStar(3)">☆</span>
+                    <span data-rate="4" onclick="selectStar(4)">☆</span>
+                    <span data-rate="5" onclick="selectStar(5)">☆</span>
+                </div>
+                <div id="ratingHint" style="font-size:13px; color:#888; text-align:center; margin-top:4px;">اضغط على النجوم لتقييم المنتج</div>
+                <div id="reviewInputArea" style="display:none; margin-top:10px;">
+                    <textarea id="reviewText" placeholder="اكتب رأيك في المنتج..." style="width:100%; min-height:70px; padding:10px; border-radius:10px; border:1px solid #eee; font-family:inherit;"></textarea>
+                    <button class="btn-primary" onclick="openRatingModal()" style="margin-top:8px; width:100%;">
+                        <i class="fas fa-paper-plane"></i> إرسال التقييم
+                    </button>
+                </div>
+            </div>
+            
+            <!-- ====== التقييم الحالي (المتوسط) ====== -->
             <div class="product-rating">
                 <div class="stars" id="productStars"></div>
                 <span class="review-count" id="reviewCountText">(0 تقييم)</span>
@@ -1203,7 +930,7 @@
 </section>
 
 <!-- ============================================
-     MODAL لتكبير الصور (إضافة جديدة)
+     MODAL لتكبير الصور
 ============================================ -->
 <div class="image-modal" id="imageModal" onclick="closeImageModal(event)">
     <button class="close-modal" onclick="closeImageModal()"><i class="fas fa-times"></i></button>
@@ -1214,43 +941,68 @@
 </div>
 
 <!-- ============================================
-     PRODUCT TABS (الوصف / المقاسات / الشحن)
+     RATING MODAL (بيانات المستخدم)
+============================================ -->
+<div id="ratingModal" class="rating-modal">
+    <div class="rating-header">
+        <h3>✍️ تقييم المنتج</h3>
+        <button class="close-rating" onclick="closeRatingModal()">&times;</button>
+    </div>
+    <div class="rating-body">
+        <div class="input-field">
+            <label>الاسم كامل</label>
+            <input type="text" id="reviewerName" placeholder="أدخل اسمك الكامل">
+            <div id="nameError" class="error-msg"></div>
+        </div>
+        <div class="input-field">
+            <label>رقم الهاتف</label>
+            <input type="tel" id="reviewerPhone" placeholder="01XXXXXXXXX">
+            <div id="phoneError" class="error-msg"></div>
+        </div>
+        <button class="rating-submit-btn" onclick="submitRating()">
+            <i class="fas fa-paper-plane"></i> إرسال التقييم
+        </button>
+    </div>
+</div>
+
+<!-- ============================================
+     PRODUCT TABS (المقاسات، الشحن، التقييمات)
 ============================================ -->
 <section class="product-tabs">
     <div class="tabs-header">
-    <button class="active" data-tab="sizes">📏 المقاسات</button>
-    <button data-tab="shipping">🚚 الشحن والإرجاع</button>
-    <button data-tab="reviews">⭐ التقييمات</button>
-</div>
+        <button class="active" data-tab="sizes">📏 المقاسات</button>
+        <button data-tab="shipping">🚚 الشحن والإرجاع</button>
+        <button data-tab="reviews">⭐ التقييمات</button>
+    </div>
     <div class="tab-content">
-    <div class="tab-pane active" id="tab-sizes">
-        <h4>📏 دليل المقاسات</h4>
-        <p>اختر المقاس المناسب حسب الجدول التالي:</p>
-        <div id="sizeGuideContent"></div>
-        <div style="margin-top: 16px; padding: 14px 18px; background: #f9f8f6; border-radius: 12px; border-right: 3px solid #D4AF37;">
-            <p style="font-size: 14px; color: #555;"><strong>💡 نصيحة:</strong> إذا كنت بين مقاسين، اختر المقاس الأكبر للحصول على راحة أفضل.</p>
+        <div class="tab-pane active" id="tab-sizes">
+            <h4>📏 دليل المقاسات</h4>
+            <p>اختر المقاس المناسب حسب الجدول التالي:</p>
+            <div id="sizeGuideContent"></div>
+            <div style="margin-top: 16px; padding: 14px 18px; background: #f9f8f6; border-radius: 12px; border-right: 3px solid #D4AF37;">
+                <p style="font-size: 14px; color: #555;"><strong>💡 نصيحة:</strong> إذا كنت بين مقاسين، اختر المقاس الأكبر للحصول على راحة أفضل.</p>
+            </div>
         </div>
-    </div>
-    <div class="tab-pane" id="tab-shipping">
-        <h4>🚚 سياسة الشحن والإرجاع</h4>
-        <p>نشحن إلى جميع محافظات مصر عبر شركات شحن موثوقة. مدة التوصيل من 3 إلى 7 أيام عمل حسب المحافظة.</p>
-        <p style="margin-top: 12px;"><strong>تكلفة الشحن:</strong> 70 جنيه (مجاني للطلبات فوق 1000 جنيه).</p>
-        <h4 style="margin-top: 20px;">🔄 سياسة الإرجاع والاستبدال</h4>
-        <p>يحق لك استبدال أو إرجاع المنتج خلال 14 يومًا من تاريخ الاستلام بشرط أن يكون بحالته الأصلية والتغليف سليم.</p>
-        <p>لبدء عملية الإرجاع، يرجى التواصل مع خدمة العملاء عبر رقم الواتساب.</p>
-        <p style="margin-top: 8px; color: #888; font-size: 14px;">ملاحظة: تكاليف الشحن للإرجاع يتحملها العميل إلا في حالة وجود عيب صناعي.</p>
-    </div>
-    <div class="tab-pane" id="tab-reviews">
-        <h4>⭐ تقييمات العملاء</h4>
-        <div id="productReviewsContainer">
-            <div style="text-align:center; padding:30px 20px; color:#888;">
-                <i class="fas fa-star" style="font-size: 40px; color: #ddd; margin-bottom: 12px; display:block;"></i>
-                <p>لا توجد تقييمات لهذا المنتج بعد</p>
-                <button class="btn-secondary" style="margin-top:12px; padding:10px 24px; border-radius:30px; font-size:13px;" onclick="scrollToReview()">كن أول من يقيم</button>
+        <div class="tab-pane" id="tab-shipping">
+            <h4>🚚 سياسة الشحن والإرجاع</h4>
+            <p>نشحن إلى جميع محافظات مصر عبر شركات شحن موثوقة. مدة التوصيل من 3 إلى 7 أيام عمل حسب المحافظة.</p>
+            <p style="margin-top: 12px;"><strong>تكلفة الشحن:</strong> 70 جنيه (مجاني للطلبات فوق 1000 جنيه).</p>
+            <h4 style="margin-top: 20px;">🔄 سياسة الإرجاع والاستبدال</h4>
+            <p>يحق لك استبدال أو إرجاع المنتج خلال 14 يومًا من تاريخ الاستلام بشرط أن يكون بحالته الأصلية والتغليف سليم.</p>
+            <p>لبدء عملية الإرجاع، يرجى التواصل مع خدمة العملاء عبر رقم الواتساب.</p>
+            <p style="margin-top: 8px; color: #888; font-size: 14px;">ملاحظة: تكاليف الشحن للإرجاع يتحملها العميل إلا في حالة وجود عيب صناعي.</p>
+        </div>
+        <div class="tab-pane" id="tab-reviews">
+            <h4 style="text-align:center; color:#D4AF37;">⭐ تقييمات العملاء</h4>
+            <div id="productReviewsContainer">
+                <div style="text-align:center; padding:30px 20px; color:#888;">
+                    <i class="fas fa-star" style="font-size: 40px; color: #ddd; margin-bottom: 12px; display:block;"></i>
+                    <p>لا توجد تقييمات لهذا المنتج بعد</p>
+                    <button class="btn-secondary" style="margin-top:12px; padding:10px 24px; border-radius:30px; font-size:13px;" onclick="scrollToStars()">كن أول من يقيم</button>
+                </div>
             </div>
         </div>
     </div>
-</div>
 </section>
 
 <!-- ============================================
@@ -1318,10 +1070,10 @@
 </footer>
 
 <!-- ============================================
-     JAVASCRIPT
+     JAVASCRIPT (مدمج بالكامل)
 ============================================ -->
 <script>
-// ========== MOBILE MENU ==========
+// ========== UTILITIES ==========
 function toggleMobileMenu(e) {
     if (e) e.preventDefault();
     const menu = document.getElementById("mobileMenu");
@@ -1336,18 +1088,16 @@ function closeMobileMenu() {
     document.body.style.overflow = "";
 }
 
-// ========== TOAST SYSTEM ==========
 function showToast(message, type = 'success') {
-    const existingToast = document.querySelector('.vante-toast');
-    if (existingToast) existingToast.remove();
-    
+    const existing = document.querySelector('.vante-toast');
+    if (existing) existing.remove();
     const toast = document.createElement('div');
     toast.className = `vante-toast ${type}`;
     const icon = type === 'error' ? 'fa-exclamation-circle' : type === 'info' ? 'fa-info-circle' : 'fa-check-circle';
     toast.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 12px;">
+        <div style="display:flex; align-items:center; gap:12px;">
             <i class="fas ${icon}"></i>
-            <span style="flex: 1;">${message}</span>
+            <span style="flex:1;">${message}</span>
             <button class="toast-close-btn" onclick="this.closest('.vante-toast').remove()">&times;</button>
         </div>
     `;
@@ -1361,7 +1111,6 @@ function showToast(message, type = 'success') {
 }
 window.showToast = showToast;
 
-// ========== سلة التسوق ==========
 function updateCartCount() {
     const cart = JSON.parse(localStorage.getItem('vante_cart') || '[]');
     const count = cart.reduce((sum, item) => sum + (item.qty || 1), 0);
@@ -1370,14 +1119,152 @@ function updateCartCount() {
 }
 updateCartCount();
 
-// ========== متغيرات المنتج ==========
+// ========== PRODUCT VARIABLES ==========
 let currentProduct = null;
 let currentImages = [];
 let currentImageIndex = 0;
 let selectedSize = null;
 let modalImageIndex = 0;
 
-// ========== عرض النجوم ==========
+// ========== RATING SYSTEM ==========
+let selectedRating = 0;
+
+// اختيار نجمة
+window.selectStar = function(rating) {
+    selectedRating = rating;
+    const stars = document.querySelectorAll('#starsContainer span');
+    stars.forEach((star, index) => {
+        if (index < rating) {
+            star.textContent = '★';
+            star.style.color = '#FFD700';
+        } else {
+            star.textContent = '☆';
+            star.style.color = '#ddd';
+        }
+    });
+    document.getElementById('reviewInputArea').style.display = 'block';
+    document.getElementById('ratingHint').textContent = `⭐ تقييمك: ${rating} من 5`;
+    document.getElementById('reviewText').focus();
+};
+
+// فتح مودال البيانات
+window.openRatingModal = function() {
+    const reviewText = document.getElementById('reviewText').value.trim();
+    if (reviewText === '') {
+        const ta = document.getElementById('reviewText');
+        ta.style.borderColor = '#e74c3c';
+        ta.focus();
+        setTimeout(() => ta.style.borderColor = '', 2000);
+        return;
+    }
+    if (selectedRating === 0) {
+        document.getElementById('ratingHint').textContent = '⚠️ يرجى اختيار تقييم بالنجوم أولاً';
+        document.getElementById('ratingHint').style.color = '#e74c3c';
+        return;
+    }
+    document.getElementById('ratingModal').classList.add('active');
+    document.getElementById('overlay').classList.add('active');
+    document.body.style.overflow = 'hidden';
+    document.getElementById('nameError').innerText = '';
+    document.getElementById('phoneError').innerText = '';
+};
+
+// إغلاق مودال البيانات
+window.closeRatingModal = function() {
+    document.getElementById('ratingModal').classList.remove('active');
+    document.getElementById('overlay').classList.remove('active');
+    document.body.style.overflow = '';
+};
+
+// إرسال التقييم
+window.submitRating = async function() {
+    const name = document.getElementById('reviewerName').value.trim();
+    const phone = document.getElementById('reviewerPhone').value.trim();
+    const reviewText = document.getElementById('reviewText').value.trim();
+
+    // Validate name
+    if (name.length < 3) {
+        document.getElementById('nameError').innerText = 'الاسم يجب أن لا يقل عن 3 أحرف';
+        return;
+    }
+    document.getElementById('nameError').innerText = '';
+
+    // Validate phone (Egyptian)
+    const phoneRegex = /^01[0125][0-9]{8}$/;
+    if (!phoneRegex.test(phone)) {
+        document.getElementById('phoneError').innerText = 'رقم هاتف مصري صحيح (مثال: 01012345678)';
+        return;
+    }
+    document.getElementById('phoneError').innerText = '';
+
+    if (!window.currentProduct) {
+        showToast('❌ لم يتم تحديد المنتج', 'error');
+        return;
+    }
+
+    const btn = document.querySelector('.rating-submit-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الإرسال...';
+
+    try {
+        await addDoc(collection(window.db, "reviews"), {
+            productId: window.currentProduct.id,
+            productName: window.currentProduct.name,
+            rating: selectedRating,
+            text: reviewText || "لا يوجد تعليق",
+            userName: name,
+            userPhone: phone,
+            approved: false,
+            createdAt: serverTimestamp()
+        });
+
+        showToast('✅ تم إرسال تقييمك بنجاح! سيظهر بعد المراجعة.', 'success');
+
+        // إعادة تعيين
+        selectedRating = 0;
+        document.getElementById('reviewText').value = '';
+        document.getElementById('reviewInputArea').style.display = 'none';
+        document.getElementById('ratingHint').textContent = 'اضغط على النجوم لتقييم المنتج';
+        document.getElementById('ratingHint').style.color = '#888';
+        document.querySelectorAll('#starsContainer span').forEach(star => {
+            star.textContent = '☆';
+            star.style.color = '#ddd';
+        });
+        closeRatingModal();
+
+        // إعادة تحميل التقييمات (لتحديث القائمة فوراً)
+        if (window.currentProduct) {
+            loadProductReviews(window.currentProduct.id);
+        }
+
+    } catch (error) {
+        console.error(error);
+        showToast('❌ حدث خطأ أثناء الإرسال، حاول مرة أخرى.', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-paper-plane"></i> إرسال التقييم';
+    }
+};
+
+// التمرير إلى النجوم
+window.scrollToStars = function() {
+    selectedRating = 5;
+    document.querySelectorAll('#starsContainer span').forEach((star, index) => {
+        if (index < 5) {
+            star.textContent = '★';
+            star.style.color = '#FFD700';
+        } else {
+            star.textContent = '☆';
+            star.style.color = '#ddd';
+        }
+    });
+    document.getElementById('reviewInputArea').style.display = 'block';
+    document.getElementById('ratingHint').textContent = '⭐ تقييمك: 5 من 5';
+    document.getElementById('reviewText').focus();
+    document.getElementById('reviewText').scrollIntoView({ behavior: 'smooth', block: 'center' });
+};
+
+// ========== RENDER STARS (for average) ==========
 function renderStars(rating) {
     const full = Math.floor(rating);
     const half = rating - full;
@@ -1390,7 +1277,7 @@ function renderStars(rating) {
     return html;
 }
 
-// ========== التنقل في الجاليري الرئيسي ==========
+// ========== GALLERY ==========
 function navigateGallery(dir) {
     if (!currentImages.length) return;
     currentImageIndex = (currentImageIndex + dir + currentImages.length) % currentImages.length;
@@ -1406,13 +1293,9 @@ function updateGalleryImage() {
         img.src = currentImages[currentImageIndex];
         img.style.opacity = '1';
     }, 150);
-    
-    // تحديث حالة المصغرات
     document.querySelectorAll('.thumbnail-wrapper').forEach((wrapper, i) => {
         wrapper.classList.toggle('active', i === currentImageIndex);
     });
-    
-    // تمرير المصغرة النشطة إلى view
     const activeWrapper = document.querySelector('.thumbnail-wrapper.active');
     if (activeWrapper) {
         activeWrapper.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
@@ -1420,7 +1303,6 @@ function updateGalleryImage() {
 }
 window.updateGalleryImage = updateGalleryImage;
 
-// ========== تغيير الصورة الرئيسية عند النقر على المصغرة ==========
 function changeMainImage(src, wrapperElement, index) {
     const img = document.getElementById('productImage');
     if (!img) return;
@@ -1429,19 +1311,14 @@ function changeMainImage(src, wrapperElement, index) {
         img.src = src;
         img.style.opacity = '1';
     }, 150);
-    
-    // تحديث حالة المصغرات
     document.querySelectorAll('.thumbnail-wrapper').forEach(w => w.classList.remove('active'));
-    if (wrapperElement) {
-        wrapperElement.classList.add('active');
-    }
+    if (wrapperElement) wrapperElement.classList.add('active');
     currentImageIndex = index;
-    // تحديث الصورة في المودال أيضاً
     modalImageIndex = index;
 }
 window.changeMainImage = changeMainImage;
 
-// ========== MODAL لتكبير الصور ==========
+// ========== IMAGE MODAL ==========
 function openImageModal(index) {
     if (!currentImages.length) return;
     const modal = document.getElementById('imageModal');
@@ -1456,8 +1333,7 @@ window.openImageModal = openImageModal;
 
 function closeImageModal(e) {
     if (e && e.target !== e.currentTarget) return;
-    const modal = document.getElementById('imageModal');
-    modal.classList.remove('active');
+    document.getElementById('imageModal').classList.remove('active');
     document.body.style.overflow = '';
 }
 window.closeImageModal = closeImageModal;
@@ -1475,30 +1351,61 @@ function navigateModal(dir) {
 }
 window.navigateModal = navigateModal;
 
-// إغلاق المودال بالضغط على ESC
 document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-        closeImageModal();
-    }
-    if (e.key === 'ArrowRight' && document.getElementById('imageModal').classList.contains('active')) {
-        navigateModal(1);
-    }
-    if (e.key === 'ArrowLeft' && document.getElementById('imageModal').classList.contains('active')) {
-        navigateModal(-1);
-    }
+    if (e.key === 'Escape') closeImageModal();
+    if (e.key === 'ArrowRight' && document.getElementById('imageModal').classList.contains('active')) navigateModal(1);
+    if (e.key === 'ArrowLeft' && document.getElementById('imageModal').classList.contains('active')) navigateModal(-1);
 });
 
-// ========== scroll to review ==========
-function scrollToReview() {
-    const reviewsTab = document.querySelector('[data-tab="reviews"]');
-    if (reviewsTab) {
-        reviewsTab.click();
-        document.querySelector('.product-tabs').scrollIntoView({ behavior: 'smooth', block: 'start' });
+// ========== LOAD PRODUCT REVIEWS ==========
+async function loadProductReviews(productId) {
+    try {
+        const reviewsRef = collection(window.db, "reviews");
+        const q = query(reviewsRef, where("productId", "==", productId), where("approved", "==", true));
+        const snapshot = await getDocs(q);
+        const reviews = snapshot.docs.map(doc => doc.data());
+
+        // Update average stars
+        const avg = reviews.length > 0 ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length) : 0;
+        document.getElementById('productStars').innerHTML = renderStars(avg);
+        document.getElementById('reviewCountText').textContent = `(${reviews.length} تقييم)`;
+
+        // Display reviews in tab
+        const container = document.getElementById('productReviewsContainer');
+        if (reviews.length === 0) {
+            container.innerHTML = `
+                <div style="text-align:center; padding:30px 20px; color:#888;">
+                    <i class="fas fa-star" style="font-size:40px; color:#ddd; margin-bottom:12px; display:block;"></i>
+                    <p>لا توجد تقييمات لهذا المنتج بعد</p>
+                    <button class="btn-secondary" style="margin-top:12px; padding:10px 24px; border-radius:30px; font-size:13px;" onclick="scrollToStars()">كن أول من يقيم</button>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = reviews.map(r => `
+            <div style="padding:14px 0; border-bottom:1px solid #f0f0f0;">
+                <div style="display:flex; align-items:center; gap:12px; margin-bottom:6px;">
+                    <div style="width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg,#2c3e50,#1a1a2e); display:flex; align-items:center; justify-content:center; color:#D4AF37; font-weight:800; font-size:16px;">
+                        ${(r.userName?.charAt(0) || '?').toUpperCase()}
+                    </div>
+                    <div>
+                        <div style="font-weight:700; font-size:14px;">${r.userName || 'مستخدم'}</div>
+                        <div style="display:flex; gap:2px; direction:ltr; font-size:14px;">
+                            ${Array(5).fill().map((_, i) => `<i class="fas fa-star" style="color:${i < r.rating ? '#FFD700' : '#ddd'};"></i>`).join('')}
+                        </div>
+                    </div>
+                </div>
+                <p style="color:#555; font-size:14px; line-height:1.7; margin:6px 0;">${r.text || 'لا يوجد تعليق'}</p>
+                <span style="font-size:11px; color:#999;">${r.createdAt?.toDate ? new Date(r.createdAt.toDate()).toLocaleDateString('ar-EG') : ''}</span>
+            </div>
+        `).join('');
+    } catch (error) {
+        console.error('خطأ في تحميل التقييمات:', error);
     }
 }
-window.scrollToReview = scrollToReview;
 
-// ========== تحميل المنتج ==========
+// ========== LOAD PRODUCT ==========
 async function loadProduct() {
     const params = new URLSearchParams(window.location.search);
     const productId = params.get('id');
@@ -1508,8 +1415,9 @@ async function loadProduct() {
     }
 
     try {
+        // Import Firebase
         const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js");
-        const { getFirestore, doc, getDoc, collection, query, where, getDocs, orderBy, limit } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+        const { getFirestore, doc, getDoc, collection, query, where, getDocs, orderBy, limit, addDoc, serverTimestamp } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
 
         const firebaseConfig = {
             apiKey: "AIzaSyCotT8EP2uy_HsgHknxeGBorKoEUORPtmU",
@@ -1522,6 +1430,10 @@ async function loadProduct() {
         };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        window.db = db;
+        window.collection = collection;
+        window.addDoc = addDoc;
+        window.serverTimestamp = serverTimestamp;
 
         const productRef = doc(db, "products", productId);
         const productSnap = await getDoc(productRef);
@@ -1531,13 +1443,14 @@ async function loadProduct() {
         }
         const product = { id: productSnap.id, ...productSnap.data() };
         currentProduct = product;
+        window.currentProduct = product;
 
-        // تحديث العنوان
+        // Update title & breadcrumb
         document.title = `VANTÉ - ${product.name}`;
         document.getElementById('productTitle').textContent = `VANTÉ - ${product.name}`;
         document.getElementById('breadcrumbName').textContent = product.name;
 
-        // ===== الصور =====
+        // ===== Images =====
         const allImages = [product.image, ...(product.additionalImages || [])].filter(Boolean);
         currentImages = allImages;
         currentImageIndex = 0;
@@ -1546,7 +1459,6 @@ async function loadProduct() {
         const mainImg = document.getElementById('productImage');
         if (mainImg && allImages.length) mainImg.src = allImages[0];
 
-        // ===== عرض المصغرات مع الإطار الذهبي =====
         const thumbsContainer = document.getElementById('thumbnails');
         thumbsContainer.innerHTML = allImages.map((img, idx) => `
             <div class="thumbnail-wrapper ${idx === 0 ? 'active' : ''}" 
@@ -1555,12 +1467,11 @@ async function loadProduct() {
             </div>
         `).join('');
 
-        // ===== المعلومات =====
+        // ===== Product Info =====
         document.getElementById('productCategory').textContent = product.category || 'منتج فاخر';
         document.getElementById('productName').textContent = product.name;
         document.getElementById('productPrice').textContent = `${product.price} جنيه`;
-        
-        // السعر القديم والخصم
+
         const oldPriceEl = document.getElementById('productOldPrice');
         const discountBadge = document.getElementById('discountBadge');
         if (product.comparePrice && product.comparePrice > product.price) {
@@ -1574,14 +1485,13 @@ async function loadProduct() {
             discountBadge.style.display = 'none';
         }
 
-        // الوصف
         const desc = product.description || 'منتج فاخر من VANTÉ';
         document.getElementById('productDescription').innerHTML = desc;
 
-        // ===== التقييمات =====
-        await loadReviews(product.id, db);
+        // ===== Load Reviews =====
+        await loadProductReviews(product.id);
 
-        // ===== المقاسات =====
+        // ===== Sizes =====
         const sizes = product.sizes || ['7', '8', '9'];
         const stockBySize = product.stockBySize || {};
         const sizeContainer = document.getElementById('sizeOptions');
@@ -1598,10 +1508,10 @@ async function loadProduct() {
             </button>`;
         }).join('');
 
-        // ===== المخزون =====
+        // ===== Stock =====
         updateStockDisplay(product);
 
-        // ===== دليل المقاسات =====
+        // ===== Size Guide =====
         const sizeGuideMap = {
             'rings': `
                 <table class="size-guide-table" style="width:100%; border-collapse:collapse; margin:10px 0;">
@@ -1645,12 +1555,9 @@ async function loadProduct() {
         const guideHtml = sizeGuideMap[categoryKey] || sizeGuideMap['rings'];
         document.getElementById('sizeGuideContent').innerHTML = guideHtml;
 
-        // ===== المنتجات المشابهة والأكثر مبيعاً =====
+        // ===== Similar & Best Sellers =====
         loadSimilarProducts(product.category, product.id, db);
         loadBestSellers(product.id, db);
-
-        // تخزين في window
-        window.currentProduct = product;
 
     } catch (error) {
         console.error('خطأ في تحميل المنتج:', error);
@@ -1658,7 +1565,7 @@ async function loadProduct() {
     }
 }
 
-// ========== تحديث عرض المخزون ==========
+// ========== UPDATE STOCK DISPLAY ==========
 function updateStockDisplay(product) {
     const stockBySize = product.stockBySize || {};
     const totalStock = Object.values(stockBySize).reduce((sum, qty) => {
@@ -1683,7 +1590,7 @@ function updateStockDisplay(product) {
     }
 }
 
-// ========== اختيار المقاس ==========
+// ========== SELECT SIZE ==========
 function selectSize(size) {
     selectedSize = size;
     document.querySelectorAll('.size-options button').forEach(btn => {
@@ -1692,67 +1599,13 @@ function selectSize(size) {
 }
 window.selectSize = selectSize;
 
-// ========== تحميل التقييمات ==========
-async function loadReviews(productId, db) {
-    try {
-        const { collection, query, where, getDocs } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
-        const reviewsRef = collection(db, "reviews");
-        const q = query(reviewsRef, where("productId", "==", productId), where("approved", "==", true));
-        const snapshot = await getDocs(q);
-        const reviews = snapshot.docs.map(doc => doc.data());
-        
-        const avg = reviews.length > 0 
-            ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length)
-            : 0;
-        
-        document.getElementById('productStars').innerHTML = renderStars(avg);
-        document.getElementById('reviewCountText').textContent = `(${reviews.length} تقييم)`;
-        
-        // عرض التقييمات في التبويب
-        const container = document.getElementById('productReviewsContainer');
-        if (reviews.length === 0) {
-            container.innerHTML = `
-                <div style="text-align:center; padding:30px 20px; color:#888;">
-                    <i class="fas fa-star" style="font-size: 40px; color: #ddd; margin-bottom: 12px; display:block;"></i>
-                    <p>لا توجد تقييمات لهذا المنتج بعد</p>
-                    <button class="btn-secondary" style="margin-top:12px; padding:10px 24px; border-radius:30px; font-size:13px;" onclick="scrollToReview()">كن أول من يقيم</button>
-                </div>
-            `;
-            return;
-        }
-        
-        container.innerHTML = reviews.map(r => `
-            <div style="padding:16px 0; border-bottom:1px solid #f0f0f0;">
-                <div style="display:flex; align-items:center; gap:12px; margin-bottom:6px;">
-                    <div style="width:40px; height:40px; border-radius:50%; background:linear-gradient(135deg,#2c3e50,#1a1a2e); display:flex; align-items:center; justify-content:center; color:#D4AF37; font-weight:800; font-size:18px;">
-                        ${(r.userName?.charAt(0) || '?').toUpperCase()}
-                    </div>
-                    <div>
-                        <div style="font-weight:700; font-size:15px;">${r.userName || 'مستخدم'}</div>
-                        <div style="display:flex; gap:3px; direction:ltr; font-size:14px;">
-                            ${Array(5).fill().map((_, i) => `<i class="fas fa-star" style="color:${i < r.rating ? '#FFD700' : '#ddd'};"></i>`).join('')}
-                        </div>
-                    </div>
-                </div>
-                <p style="color:#555; font-size:14px; line-height:1.7; margin:6px 0;">${r.text || 'لا يوجد تعليق'}</p>
-                <span style="font-size:12px; color:#999;">${r.createdAt?.toDate ? new Date(r.createdAt.toDate()).toLocaleDateString('ar-EG') : 'تاريخ غير محدد'}</span>
-            </div>
-        `).join('');
-        
-    } catch (error) {
-        console.error('خطأ في تحميل التقييمات:', error);
-    }
-}
-
-// ========== تحميل المنتجات المشابهة ==========
+// ========== LOAD SIMILAR & BEST SELLERS ==========
 async function loadSimilarProducts(category, excludeId, db) {
     try {
-        const { collection, query, where, getDocs, limit } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
         const productsRef = collection(db, "products");
         const q = query(productsRef, where("category", "==", category), limit(8));
         const snapshot = await getDocs(q);
         const products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })).filter(p => p.id !== excludeId);
-        
         const container = document.getElementById('similarProducts');
         if (products.length === 0) {
             container.innerHTML = '<p style="text-align:center; color:#888; grid-column:1/-1;">لا توجد منتجات مشابهة</p>';
@@ -1773,15 +1626,12 @@ async function loadSimilarProducts(category, excludeId, db) {
     }
 }
 
-// ========== تحميل الأكثر مبيعاً ==========
 async function loadBestSellers(excludeId, db) {
     try {
-        const { collection, query, orderBy, getDocs, limit } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
         const productsRef = collection(db, "products");
         const q = query(productsRef, orderBy("salesCount", "desc"), limit(6));
         const snapshot = await getDocs(q);
         const products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })).filter(p => p.id !== excludeId);
-        
         const container = document.getElementById('bestSellers');
         if (products.length === 0) {
             container.innerHTML = '<p style="text-align:center; color:#888; grid-column:1/-1;">لا توجد منتجات</p>';
@@ -1802,15 +1652,13 @@ async function loadBestSellers(excludeId, db) {
     }
 }
 
-// ========== إضافة للسلة من صفحة المنتج ==========
+// ========== ADD TO CART ==========
 window.addToCartFromPage = function() {
     const product = window.currentProduct;
     if (!product) {
         showToast('❌ المنتج غير موجود', 'error');
         return;
     }
-    
-    // التحقق من المخزون
     const stockBySize = product.stockBySize || {};
     const sizes = product.sizes || ['7', '8', '9'];
     let hasStock = false;
@@ -1822,15 +1670,11 @@ window.addToCartFromPage = function() {
         showToast('❌ عذراً، المنتج نفد من المخزون', 'error');
         return;
     }
-    
-    // إذا كان هناك مقاسات والمستخدم لم يختر
     if (sizes.length > 0 && !selectedSize) {
         showToast('⚠️ يرجى اختيار المقاس أولاً', 'info');
         document.querySelector('.size-selector').scrollIntoView({ behavior: 'smooth', block: 'center' });
         return;
     }
-    
-    // إذا اختار مقاس معين ولكن المخزون صفر
     if (selectedSize) {
         const qty = stockBySize[selectedSize];
         if (qty === 0) {
@@ -1838,10 +1682,8 @@ window.addToCartFromPage = function() {
             return;
         }
     }
-    
     const size = selectedSize || sizes[0] || '7';
     let cart = JSON.parse(localStorage.getItem('vante_cart') || '[]');
-    
     const existing = cart.find(item => item.id === product.id && item.size === size);
     if (existing) {
         const currentQty = stockBySize[size];
@@ -1861,12 +1703,9 @@ window.addToCartFromPage = function() {
             sku: product.sku || null
         });
     }
-    
     localStorage.setItem('vante_cart', JSON.stringify(cart));
     updateCartCount();
     showToast(`✅ تم إضافة ${product.name} إلى السلة`, 'success');
-    
-    // تهتز السلة
     const cartIcon = document.querySelector('.icons button:last-child');
     if (cartIcon) {
         cartIcon.style.animation = 'none';
@@ -1874,7 +1713,7 @@ window.addToCartFromPage = function() {
     }
 };
 
-// ========== مشاركة المنتج ==========
+// ========== SHARE PRODUCT ==========
 window.shareProduct = function() {
     const product = window.currentProduct;
     if (!product) return;
@@ -1889,7 +1728,7 @@ window.shareProduct = function() {
     }
 };
 
-// ========== تبويبات المنتج ==========
+// ========== TABS ==========
 document.querySelectorAll('.tabs-header button').forEach(btn => {
     btn.addEventListener('click', function() {
         document.querySelectorAll('.tabs-header button').forEach(b => b.classList.remove('active'));
@@ -1901,15 +1740,13 @@ document.querySelectorAll('.tabs-header button').forEach(btn => {
     });
 });
 
-// ========== تحميل الصفحة ==========
+// ========== INIT ==========
 document.addEventListener('DOMContentLoaded', loadProduct);
-
-// ========== تحديث السلة عند العودة للصفحة ==========
 document.addEventListener('visibilitychange', () => {
     if (!document.hidden) updateCartCount();
 });
 
-// ========== إضافة تأثير shake للكارت ==========
+// Shake animation for cart
 const styleShake = document.createElement('style');
 styleShake.innerHTML = `
     @keyframes shake {
@@ -1922,7 +1759,7 @@ styleShake.innerHTML = `
 `;
 document.head.appendChild(styleShake);
 
-console.log('✅ VANTÉ Product Page loaded successfully');
+console.log('✅ VANTÉ Product Page loaded successfully (updated)');
 </script>
 
 </body>
