@@ -1999,7 +1999,7 @@ async function loadProduct() {
 const category = product.category || 'rings';
 const sizeGuideContent = document.getElementById('sizeGuideContent');
 
-// دليل المقاسات مع النصيحة داخله
+// تعريف أدلة المقاسات حسب الفئة
 const sizeGuides = {
     'rings': `
         <h4>📏 دليل قياس الخواتم</h4>
@@ -2074,30 +2074,16 @@ const sizeGuides = {
     `
 };
 
-// ✅ التحكم في ظهور تبويب المقاسات
-const tabsHeader = document.querySelector('.tabs-header');
-const sizesTabBtn = tabsHeader?.querySelector('[data-tab="sizes"]');
-const sizesTabPane = document.getElementById('tab-sizes');
-const allTabButtons = tabsHeader?.querySelectorAll('button');
-const shippingTabBtn = tabsHeader?.querySelector('[data-tab="shipping"]');
-const shippingTabPane = document.getElementById('tab-shipping');
-const reviewsTabBtn = tabsHeader?.querySelector('[data-tab="reviews"]');
+// تحديد التبويب الافتراضي
+let defaultTab = 'sizes';
 
-// دالة لإخفاء تبويب المقاسات
-function hideSizeTab() {
-    if (sizesTabBtn) {
-        sizesTabBtn.style.display = 'none';
-    }
-    if (sizesTabPane) {
-        sizesTabPane.style.display = 'none';
-    }
-    // إعادة توزيع العرض على الأزرار المتبقية
-    const visibleBtns = tabsHeader?.querySelectorAll('button:not([style*="display: none"])');
-    visibleBtns?.forEach(btn => btn.style.flex = '1');
-}
-
-// دالة لإظهار تبويب المقاسات
-function showSizeTab() {
+if (sizeGuideContent && sizeGuides[category]) {
+    // ✅ يوجد دليل مقاسات لهذه الفئة
+    sizeGuideContent.innerHTML = sizeGuides[category];
+    
+    // إظهار تبويب المقاسات
+    const sizesTabBtn = document.querySelector('[data-tab="sizes"]');
+    const sizesTabPane = document.getElementById('tab-sizes');
     if (sizesTabBtn) {
         sizesTabBtn.style.display = '';
         sizesTabBtn.style.flex = '1';
@@ -2105,37 +2091,30 @@ function showSizeTab() {
     if (sizesTabPane) {
         sizesTabPane.style.display = '';
     }
-    // إعادة توزيع العرض على الأزرار
-    allTabButtons?.forEach(btn => btn.style.flex = '1');
-}
-
-// التحقق من وجود دليل مقاسات لهذه الفئة
-if (sizeGuideContent && sizeGuides[category]) {
-    // ✅ يوجد دليل مقاسات
-    sizeGuideContent.innerHTML = sizeGuides[category];
-    showSizeTab();
-    
-    // تفعيل تبويب المقاسات
-    document.querySelectorAll('.tabs-header button').forEach(b => b.classList.remove('active'));
-    sizesTabBtn?.classList.add('active');
-    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-    sizesTabPane?.classList.add('active');
-    
+    defaultTab = 'sizes';
 } else {
-    // ❌ لا يوجد دليل مقاسات (مثل فئة السلاسل)
+    // ❌ لا يوجد دليل مقاسات (مثل السلاسل، الحلقان، الخلخال)
     if (sizeGuideContent) {
         sizeGuideContent.innerHTML = '';
     }
-    hideSizeTab();
     
-    // ✅ تفعيل تبويب الشحن والإرجاع تلقائياً
-    if (shippingTabBtn) {
-        document.querySelectorAll('.tabs-header button').forEach(b => b.classList.remove('active'));
-        shippingTabBtn.classList.add('active');
-        document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-        if (shippingTabPane) shippingTabPane.classList.add('active');
+    // إخفاء تبويب المقاسات
+    const sizesTabBtn = document.querySelector('[data-tab="sizes"]');
+    const sizesTabPane = document.getElementById('tab-sizes');
+    if (sizesTabBtn) {
+        sizesTabBtn.style.display = 'none';
     }
+    if (sizesTabPane) {
+        sizesTabPane.style.display = 'none';
+    }
+    defaultTab = 'shipping';
 }
+
+// إعادة توزيع العرض على الأزرار المتبقية (بعد الإخفاء)
+const tabsHeader = document.querySelector('.tabs-header');
+const visibleBtns = tabsHeader?.querySelectorAll('button:not([style*="display: none"])');
+visibleBtns?.forEach(btn => btn.style.flex = '1');
+
 
         // ===== المنتجات المشابهة والأكثر مبيعاً =====
         loadSimilarProducts(product.category, product.id, db);
@@ -2149,6 +2128,7 @@ if (sizeGuideContent && sizeGuides[category]) {
         showToast('❌ حدث خطأ أثناء تحميل المنتج', 'error');
     }
 }
+activateTabs(defaultTab);
 
 function activateTabs(defaultTab = 'sizes') {
     const tabs = document.querySelectorAll('.tabs-header button');
@@ -2157,17 +2137,12 @@ function activateTabs(defaultTab = 'sizes') {
         shipping: document.getElementById('tab-shipping'),
         reviews: document.getElementById('tab-reviews')
     };
-    const sizeTip = document.querySelector('.size-tip');
 
-    if (!tabs.length || !panes.sizes || !panes.shipping || !panes.reviews) {
-        console.warn('⚠️ بعض عناصر التبويبات غير موجودة');
-        return;
-    }
-
-    // دالة لإظهار/إخفاء دليل المقاسات
+    // التعديل: استخدام العنصر الصحيح
     function toggleSizeTip(show) {
-        if (sizeTip) {
-            sizeTip.style.display = show ? 'block' : 'none';
+        const guide = document.getElementById('sizeGuideContent');
+        if (guide) {
+            guide.style.display = show ? 'block' : 'none';
         }
     }
 
@@ -2185,36 +2160,31 @@ function activateTabs(defaultTab = 'sizes') {
         activePane.classList.add('active');
     }
 
-    // التحكم في ظهور دليل المقاسات حسب التبويب النشط
+    // التحكم في ظهور دليل المقاسات
     toggleSizeTip(defaultTab === 'sizes');
 
-    // إضافة مستمعات الأحداث (مرة واحدة فقط)
-    tabs.forEach(btn => {
-        // نزيل المستمعات القديمة لتجنب التكرار
-        btn.removeEventListener('click', handleTabClick);
-        btn.addEventListener('click', handleTabClick);
-    });
-
+    // إضافة مستمعات الأحداث (مرة واحدة)
     function handleTabClick(e) {
         e.preventDefault();
-
         const tabId = this.dataset.tab;
         if (!tabId) return;
 
-        // تحديث الأزرار
         tabs.forEach(b => b.classList.remove('active'));
         this.classList.add('active');
 
-        // تحديث المحتويات
         Object.values(panes).forEach(p => p.classList.remove('active'));
         const targetPane = panes[tabId];
         if (targetPane) {
             targetPane.classList.add('active');
         }
 
-        // تحديث دليل المقاسات
         toggleSizeTip(tabId === 'sizes');
     }
+
+    tabs.forEach(btn => {
+        btn.removeEventListener('click', handleTabClick);
+        btn.addEventListener('click', handleTabClick);
+    });
 }
 
 // ========== تحديث عرض المخزون ==========
