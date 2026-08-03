@@ -1179,7 +1179,39 @@ button:active,
 .size-tip {
     display: block;
 }
+/* ✅ عند إخفاء تبويب المقاسات، جعل التبويبات المتبقية تملأ العرض */
+.tabs-header {
+    display: flex;
+    gap: 4px;
+    border-bottom: 2px solid #eee;
+    margin-bottom: 25px;
+    background: #fff;
+    border-radius: 16px 16px 0 0;
+    padding: 0 10px;
+    overflow-x: auto;
+}
 
+.tabs-header button {
+    flex: 1; /* ✅ يجعل الأزرار تأخذ مساحة متساوية */
+    text-align: center;
+    padding: 16px 28px;
+    border: none;
+    background: transparent;
+    font-size: 15px;
+    font-weight: 700;
+    color: #888;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'Cairo', sans-serif;
+    position: relative;
+    white-space: nowrap;
+}
+
+/* عندما يكون زر واحد فقط (بعد إخفاء المقاسات) */
+.tabs-header button:only-child {
+    flex: 1;
+    text-align: center;
+}
     </style>
 </head>
 <body>
@@ -2046,17 +2078,28 @@ const sizeGuides = {
 const tabsHeader = document.querySelector('.tabs-header');
 const sizesTabBtn = tabsHeader?.querySelector('[data-tab="sizes"]');
 const sizesTabPane = document.getElementById('tab-sizes');
+const allTabButtons = tabsHeader?.querySelectorAll('button');
 
 if (sizeGuideContent && sizeGuides[category]) {
     sizeGuideContent.innerHTML = sizeGuides[category];
     // إظهار تبويب المقاسات
     if (sizesTabBtn) sizesTabBtn.style.display = '';
     if (sizesTabPane) sizesTabPane.style.display = '';
+    // إعادة توزيع الأزرار بالتساوي
+    allTabButtons?.forEach(btn => btn.style.flex = '1');
 } else if (sizeGuideContent) {
     sizeGuideContent.innerHTML = '';
     // إخفاء تبويب المقاسات
-    if (sizesTabBtn) sizesTabBtn.style.display = 'none';
+    if (sizesTabBtn) {
+        sizesTabBtn.style.display = 'none';
+        // ✅ إزالة الفلركس من الزر المخفي
+        sizesTabBtn.style.flex = '0';
+    }
     if (sizesTabPane) sizesTabPane.style.display = 'none';
+    
+    // ✅ جعل الأزرار المتبقية تملأ العرض بالتساوي
+    const visibleButtons = tabsHeader?.querySelectorAll('button:not([style*="display: none"])');
+    visibleButtons?.forEach(btn => btn.style.flex = '1');
     
     // تفعيل أول تبويب ظاهر (الشحن)
     const firstVisibleTab = tabsHeader?.querySelector('button:not([style*="display: none"])');
