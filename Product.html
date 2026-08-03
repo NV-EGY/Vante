@@ -2121,14 +2121,13 @@ visibleBtns?.forEach(btn => btn.style.flex = '1');
         loadBestSellers(product.id, db);
 
         // ===== تفعيل التبويبات =====
-        activateTabs();
+        activateTabs(defaultTab);   // ← احذف هذا السطرactivateTabs();
 
     } catch (error) {
         console.error('خطأ في تحميل المنتج:', error);
         showToast('❌ حدث خطأ أثناء تحميل المنتج', 'error');
     }
 }
-activateTabs(defaultTab);
 
 function activateTabs(defaultTab = 'sizes') {
     const tabs = document.querySelectorAll('.tabs-header button');
