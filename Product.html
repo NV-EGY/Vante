@@ -2150,8 +2150,7 @@ if (sizeGuideContent && sizeGuides[category]) {
     }
 }
 
-// ========== دالة تفعيل التبويبات ==========
-function activateTabs() {
+function activateTabs(defaultTab = 'sizes') {
     const tabs = document.querySelectorAll('.tabs-header button');
     const panes = {
         sizes: document.getElementById('tab-sizes'),
@@ -2165,36 +2164,58 @@ function activateTabs() {
         return;
     }
 
+    // دالة لإظهار/إخفاء دليل المقاسات
     function toggleSizeTip(show) {
         if (sizeTip) {
             sizeTip.style.display = show ? 'block' : 'none';
         }
     }
 
-    // إخفاء جميع المحتويات مبدئياً
+    // إزالة الكلاس active من كل الأزرار والمحتويات
+    tabs.forEach(b => b.classList.remove('active'));
     Object.values(panes).forEach(p => p.classList.remove('active'));
-    panes.sizes.classList.add('active');
-    toggleSizeTip(true);
 
+    // تفعيل التبويب المطلوب
+    const activeTabBtn = document.querySelector(`.tabs-header button[data-tab="${defaultTab}"]`);
+    if (activeTabBtn) {
+        activeTabBtn.classList.add('active');
+    }
+    const activePane = panes[defaultTab];
+    if (activePane) {
+        activePane.classList.add('active');
+    }
+
+    // التحكم في ظهور دليل المقاسات حسب التبويب النشط
+    toggleSizeTip(defaultTab === 'sizes');
+
+    // إضافة مستمعات الأحداث (مرة واحدة فقط)
     tabs.forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.preventDefault();
+        // نزيل المستمعات القديمة لتجنب التكرار
+        btn.removeEventListener('click', handleTabClick);
+        btn.addEventListener('click', handleTabClick);
+    });
 
-            tabs.forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
+    function handleTabClick(e) {
+        e.preventDefault();
 
-            Object.values(panes).forEach(p => p.classList.remove('active'));
+        const tabId = this.dataset.tab;
+        if (!tabId) return;
 
-            const tabId = this.dataset.tab;
-            const target = panes[tabId];
-            if (target) {
-                target.classList.add('active');
-                if (tabId === 'sizes') {
-                    toggleSizeTip(true);
-                } else {
-                    toggleSizeTip(false);
-                }
-            }
+        // تحديث الأزرار
+        tabs.forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+
+        // تحديث المحتويات
+        Object.values(panes).forEach(p => p.classList.remove('active'));
+        const targetPane = panes[tabId];
+        if (targetPane) {
+            targetPane.classList.add('active');
+        }
+
+        // تحديث دليل المقاسات
+        toggleSizeTip(tabId === 'sizes');
+    }
+}
         });
     });
 }
