@@ -2000,8 +2000,6 @@ if (sizeGuideContent && sizeGuides[category]) {
     if (sizeGuideContainer) sizeGuideContainer.style.display = 'none';
 }
         const categoryKey = product.category || 'rings';
-        const guideHtml = sizeGuideMap[categoryKey] || sizeGuideMap['rings'];
-        document.getElementById('sizeGuideContent').innerHTML = guideHtml;
 
         // ===== المنتجات المشابهة والأكثر مبيعاً =====
         loadSimilarProducts(product.category, product.id, db);
