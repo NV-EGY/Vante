@@ -2079,20 +2079,28 @@ const tabsHeader = document.querySelector('.tabs-header');
 const sizesTabBtn = tabsHeader?.querySelector('[data-tab="sizes"]');
 const sizesTabPane = document.getElementById('tab-sizes');
 const allTabButtons = tabsHeader?.querySelectorAll('button');
+const shippingTabBtn = tabsHeader?.querySelector('[data-tab="shipping"]');
+const shippingTabPane = document.getElementById('tab-shipping');
 
 if (sizeGuideContent && sizeGuides[category]) {
     sizeGuideContent.innerHTML = sizeGuides[category];
     // إظهار تبويب المقاسات
-    if (sizesTabBtn) sizesTabBtn.style.display = '';
+    if (sizesTabBtn) {
+        sizesTabBtn.style.display = '';
+        sizesTabBtn.style.flex = '1';
+    }
     if (sizesTabPane) sizesTabPane.style.display = '';
-    // إعادة توزيع الأزرار بالتساوي
+    // تفعيل المقاسات
+    document.querySelectorAll('.tabs-header button').forEach(b => b.classList.remove('active'));
+    sizesTabBtn?.classList.add('active');
+    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+    sizesTabPane?.classList.add('active');
     allTabButtons?.forEach(btn => btn.style.flex = '1');
 } else if (sizeGuideContent) {
     sizeGuideContent.innerHTML = '';
     // إخفاء تبويب المقاسات
     if (sizesTabBtn) {
         sizesTabBtn.style.display = 'none';
-        // ✅ إزالة الفلركس من الزر المخفي
         sizesTabBtn.style.flex = '0';
     }
     if (sizesTabPane) sizesTabPane.style.display = 'none';
@@ -2101,14 +2109,12 @@ if (sizeGuideContent && sizeGuides[category]) {
     const visibleButtons = tabsHeader?.querySelectorAll('button:not([style*="display: none"])');
     visibleButtons?.forEach(btn => btn.style.flex = '1');
     
-    // تفعيل أول تبويب ظاهر (الشحن)
-    const firstVisibleTab = tabsHeader?.querySelector('button:not([style*="display: none"])');
-    if (firstVisibleTab) {
+    // ✅ تفعيل تبويب الشحن (بدلاً من المقاسات)
+    if (shippingTabBtn) {
         document.querySelectorAll('.tabs-header button').forEach(b => b.classList.remove('active'));
-        firstVisibleTab.classList.add('active');
+        shippingTabBtn.classList.add('active');
         document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-        const firstVisiblePane = document.getElementById(`tab-${firstVisibleTab.dataset.tab}`);
-        if (firstVisiblePane) firstVisiblePane.classList.add('active');
+        if (shippingTabPane) shippingTabPane.classList.add('active');
     }
 }
 
