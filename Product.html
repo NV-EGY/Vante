@@ -1174,10 +1174,7 @@ button:active,
     -webkit-user-select: none !important;
     user-select: none !important;
 }
-/* إخفاء size-tip عندما يكون tab-sizes غير نشط */
-#tab-sizes:not(.active) .size-tip {
-    display: none !important;
-}
+
     </style>
 </head>
 <body>
@@ -1366,48 +1363,36 @@ button:active,
         <button data-tab="reviews">⭐ التقييمات</button>
     </div>
     <div class="tab-content">
-        <!-- ===== تبويب المقاسات ===== -->
+        <!-- المقاسات -->
         <div class="tab-pane active" id="tab-sizes">
-            <div id="sizeGuideContent">
-                <!-- المحتوى سيتغير حسب نوع المنتج -->
-            </div>
-            <div class="size-tip" style="margin-top: 16px; padding: 14px 18px; background: #f9f8f6; border-radius: 12px; border-right: 3px solid #D4AF37;">
-                <p style="font-size: 14px; color: #555;">
+            <div id="sizeGuideContent"></div>
+            <div class="size-tip" style="margin-top:16px; padding:14px 18px; background:#f9f8f6; border-radius:12px; border-right:3px solid #D4AF37;">
+                <p style="font-size:14px; color:#555;">
                     <strong>💡 نصيحة:</strong> إذا كنت بين مقاسين، اختر المقاس الأكبر للحصول على راحة أفضل.
                 </p>
             </div>
         </div>
 
-        <!-- ===== تبويب الشحن والإرجاع ===== -->
+        <!-- الشحن والإرجاع -->
         <div class="tab-pane" id="tab-shipping">
-            <h4 style="color: #D4AF37; font-size: 18px; margin-bottom: 12px;">📦 سياسة الشحن</h4>
-            <p style="color: #555; line-height: 1.8;">
-                نشحن إلى جميع محافظات مصر عبر شركات شحن موثوقة. مدة التوصيل من 3 إلى 7 أيام عمل حسب المحافظة.
-            </p>
-            <p style="margin-top: 12px; color: #555; line-height: 1.8;">
-                <strong>تكلفة الشحن:</strong> (مجاني للطلبات فوق 1000 جنيه).
-            </p>
+            <h4 style="color:#D4AF37; font-size:18px; margin-bottom:12px;">📦 سياسة الشحن</h4>
+            <p style="color:#555; line-height:1.8;">نشحن إلى جميع محافظات مصر عبر شركات شحن موثوقة. مدة التوصيل من 3 إلى 7 أيام عمل حسب المحافظة.</p>
+            <p style="margin-top:12px; color:#555; line-height:1.8;"><strong>تكلفة الشحن:</strong> (مجاني للطلبات فوق 1000 جنيه).</p>
             
-            <h4 style="color: #D4AF37; font-size: 18px; margin-top: 25px; margin-bottom: 12px;">🔄 سياسة الإرجاع والاستبدال</h4>
-            <p style="color: #555; line-height: 1.8;">
-                يحق لك استبدال أو إرجاع المنتج خلال 14 يومًا من تاريخ الاستلام بشرط أن يكون بحالته الأصلية والتغليف سليم.
-            </p>
-            <p style="margin-top: 8px; color: #555; line-height: 1.8;">
-                لبدء عملية الإرجاع، يرجى التواصل مع خدمة العملاء عبر رقم الواتساب او "تواصل مع المسئول".
-            </p>
-            <p style="margin-top: 8px; color: #888; font-size: 14px; line-height: 1.8;">
-                ملاحظة: تكاليف الشحن للإرجاع يتحملها العميل إلا في حالة وجود عيب صناعي.
-            </p>
+            <h4 style="color:#D4AF37; font-size:18px; margin-top:25px; margin-bottom:12px;">🔄 سياسة الإرجاع والاستبدال</h4>
+            <p style="color:#555; line-height:1.8;">يحق لك استبدال أو إرجاع المنتج خلال 14 يومًا من تاريخ الاستلام بشرط أن يكون بحالته الأصلية والتغليف سليم.</p>
+            <p style="margin-top:8px; color:#555; line-height:1.8;">لبدء عملية الإرجاع، يرجى التواصل مع خدمة العملاء عبر رقم الواتساب او "تواصل مع المسئول".</p>
+            <p style="margin-top:8px; color:#888; font-size:14px; line-height:1.8;">ملاحظة: تكاليف الشحن للإرجاع يتحملها العميل إلا في حالة وجود عيب صناعي.</p>
         </div>
 
-        <!-- ===== تبويب التقييمات ===== -->
+        <!-- التقييمات -->
         <div class="tab-pane" id="tab-reviews">
-            <h4 style="text-align: center; margin-bottom: 15px; color: #D4AF37; font-size: 18px;">⭐ تقييمات العملاء</h4>
+            <h4 style="text-align:center; margin-bottom:15px; color:#D4AF37; font-size:18px;">⭐ تقييمات العملاء</h4>
             <div id="productReviewsContainer">
-                <div style="text-align: center; padding: 30px 20px; color: #888;">
-                    <i class="fas fa-star" style="font-size: 40px; color: #ddd; margin-bottom: 12px; display: block;"></i>
-                    <p style="font-size: 16px;">لا توجد تقييمات لهذا المنتج بعد</p>
-                    <button class="btn-secondary" style="margin-top: 12px; padding: 10px 24px; border-radius: 30px; font-size: 13px; cursor: pointer; border: 1px solid #D4AF37; background: transparent; color: #D4AF37; transition: 0.3s;" 
+                <div style="text-align:center; padding:30px 20px; color:#888;">
+                    <i class="fas fa-star" style="font-size:40px; color:#ddd; margin-bottom:12px; display:block;"></i>
+                    <p style="font-size:16px;">لا توجد تقييمات لهذا المنتج بعد</p>
+                    <button class="btn-secondary" style="margin-top:12px; padding:10px 24px; border-radius:30px; font-size:13px; cursor:pointer; border:1px solid #D4AF37; background:transparent; color:#D4AF37; transition:0.3s;" 
                             onmouseover="this.style.background='#D4AF37'; this.style.color='#000';" 
                             onmouseout="this.style.background='transparent'; this.style.color='#D4AF37';"
                             onclick="scrollToStars()">
@@ -1876,54 +1861,6 @@ window.scrollToStars = function() {
     document.getElementById('reviewText').scrollIntoView({ behavior: 'smooth', block: 'center' });
 };
 
-// ========== تبويبات المنتج ==========
-document.addEventListener('DOMContentLoaded', function() {
-    // ننتظر حتى يتم تحميل العناصر
-    setTimeout(function() {
-        const tabs = document.querySelectorAll('.tabs-header button');
-        const panes = {
-            sizes: document.getElementById('tab-sizes'),
-            shipping: document.getElementById('tab-shipping'),
-            reviews: document.getElementById('tab-reviews')
-        };
-        
-        // التأكد من وجود العناصر
-        if (!tabs.length || !panes.sizes || !panes.shipping || !panes.reviews) {
-            console.warn('⚠️ بعض عناصر التبويبات غير موجودة');
-            return;
-        }
-        
-        // إخفاء جميع المحتويات مبدئياً
-        Object.values(panes).forEach(p => p.classList.remove('active'));
-        // إظهار التبويب النشط (المقاسات)
-        panes.sizes.classList.add('active');
-        
-        tabs.forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                // إزالة active من جميع الأزرار
-                tabs.forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-                
-                // إخفاء جميع المحتويات
-                Object.values(panes).forEach(p => p.classList.remove('active'));
-                
-                // إظهار المحتوى المطلوب
-                const tabId = this.dataset.tab;
-                const target = panes[tabId];
-                if (target) {
-                    target.classList.add('active');
-                    console.log(`✅ تم التبديل إلى: ${tabId}`);
-                }
-            });
-        });
-        
-        console.log('✅ تم تفعيل التبويبات بنجاح');
-    }, 300);
-});
-
 // ========== تحميل المنتج ==========
 async function loadProduct() {
     const params = new URLSearchParams(window.location.search);
@@ -2033,6 +1970,7 @@ updateReviewBadges(); // ✅ أضف هذا السطر
 
 // ===== دليل المقاسات الذكي =====
 const category = product.category || 'rings';
+const sizeGuideContent = document.getElementById('sizeGuideContent');
 const sizeGuideContainer = sizeGuideContent?.parentElement;
 
 // دليل المقاسات حسب النوع
@@ -2292,44 +2230,40 @@ window.shareProduct = function() {
 
 // ========== تبويبات المنتج ==========
 document.addEventListener('DOMContentLoaded', function() {
-    setTimeout(function() {
-        const tabs = document.querySelectorAll('.tabs-header button');
-        const panes = {
-            sizes: document.getElementById('tab-sizes'),
-            shipping: document.getElementById('tab-shipping'),
-            reviews: document.getElementById('tab-reviews')
-        };
-        
-        if (!tabs.length || !panes.sizes || !panes.shipping || !panes.reviews) {
-            console.warn('⚠️ بعض عناصر التبويبات غير موجودة');
-            return;
-        }
-        
-        // إخفاء جميع المحتويات مبدئياً
-        Object.values(panes).forEach(p => p.classList.remove('active'));
-        panes.sizes.classList.add('active');
-        
-        tabs.forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                tabs.forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-                
-                Object.values(panes).forEach(p => p.classList.remove('active'));
-                
-                const tabId = this.dataset.tab;
-                const target = panes[tabId];
-                if (target) {
-                    target.classList.add('active');
-                    console.log(`✅ تم التبديل إلى: ${tabId}`);
-                }
-            });
+    const tabs = document.querySelectorAll('.tabs-header button');
+    const panes = {
+        sizes: document.getElementById('tab-sizes'),
+        shipping: document.getElementById('tab-shipping'),
+        reviews: document.getElementById('tab-reviews')
+    };
+    
+    // التأكد من وجود العناصر
+    if (!tabs.length || !panes.sizes || !panes.shipping || !panes.reviews) {
+        console.warn('⚠️ بعض عناصر التبويبات غير موجودة');
+        return;
+    }
+    
+    // إخفاء جميع المحتويات مبدئياً
+    Object.values(panes).forEach(p => p.classList.remove('active'));
+    panes.sizes.classList.add('active');
+    
+    tabs.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // إزالة active من جميع الأزرار
+            tabs.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            // إخفاء جميع المحتويات
+            Object.values(panes).forEach(p => p.classList.remove('active'));
+            
+            // إظهار المحتوى المطلوب
+            const tabId = this.dataset.tab;
+            const target = panes[tabId];
+            if (target) target.classList.add('active');
         });
-        
-        console.log('✅ تم تفعيل التبويبات بنجاح');
-    }, 300);
+    });
 });
 
 // ========== تحميل الصفحة ==========
