@@ -6574,7 +6574,6 @@ document.querySelectorAll('.desktop-dropdown > a').forEach(link => {
     });
 });
 
-// ========== مشاركة المنتج ==========
 window.shareProduct = function() {
     if (!currentProduct) {
         customAlert("⚠️ لا يوجد منتج للمشاركة", 'warning');
@@ -6582,9 +6581,8 @@ window.shareProduct = function() {
     }
     const productId = currentProduct.id;
     const productName = currentProduct.name;
-    const baseUrl = window.location.origin + window.location.pathname;
-    // ✅ تغيير ?product= إلى ?id=
-    const shareUrl = baseUrl + '?id=' + encodeURIComponent(productId);
+    // ✅ الرابط المباشر لصفحة المنتج
+    const shareUrl = window.location.origin + '/Product.html?id=' + encodeURIComponent(productId);
     
     const shareText = `🛍️ ${productName} من VANTÉ\n${shareUrl}`;
 
