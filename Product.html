@@ -2831,7 +2831,7 @@ console.log('✅ VANTÉ Product Page loaded successfully');
 
 <script>
 // =====================================================
-//   SYSTEM: CART, CHECKOUT, COUPONS - النسخة المستقرة
+//   SYSTEM: CART, CHECKOUT, COUPONS - النسخة النهائية
 // =====================================================
 
 // ----- متغيرات عامة -----
@@ -3664,17 +3664,23 @@ document.addEventListener("DOMContentLoaded", function() {
         renderInfoTab('shipping');
     }
 
-    // ❌ لا تستدعي updateCart() هنا
-    // ✅ سيتم استدعاؤها من loadProduct بعد تحميل المنتجات
+    // ❌ لا تستدعي updateCart() هنا - سيتم استدعاؤها من loadProduct
 });
 
 // ✅ تعريف updateCart كدالة عامة
 window.updateCart = updateCart;
 
+// ✅ تأكد من أن cart و appliedCoupon و discountAmount متاحة عالمياً
+window.cart = cart;
+window.appliedCoupon = appliedCoupon;
+window.discountAmount = discountAmount;
+
 // لتجنب الأخطاء في حالة عدم وجود db
 if (typeof db === 'undefined') {
     var db = null;
 }
+
+console.log('✅ نظام السلة والكوبونات جاهز');
 </script>
 <!-- Custom Confirm Modal -->
 <div id="customConfirmModal" class="confirm-modal">
