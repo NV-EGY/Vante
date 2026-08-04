@@ -2907,7 +2907,13 @@ let discountAmount = 0;
 
 // ========== تحديث السلة (نسخة مستقلة تعتمد على localStorage فقط) ==========
 function updateCart() {
-    let cartData = JSON.parse(localStorage.getItem('vante_cart') || '[]');
+    // ✅ قراءة البيانات من localStorage مباشرة
+    const cartData = JSON.parse(localStorage.getItem('vante_cart') || '[]');
+    
+    // ✅ تحديث المتغير العام cart
+    window.cart = cartData;
+    cart = cartData; // المتغير المحلي
+    
     let total = 0, count = 0;
     
     // ✅ بناء واجهة السلة مباشرة من localStorage
@@ -2957,17 +2963,12 @@ function updateCart() {
     const cartItemsEl = document.getElementById("cartItems");
     if (cartItemsEl) cartItemsEl.innerHTML = html || "🛒 السلة فارغة";
     
-    const totalEl = document.getElementById("total");
-    if (totalEl) totalEl.innerText = total.toFixed(0);
+    // ✅ تحديث الإجمالي مع الخصومات
+    updateCartWithCoupon();
     
+    // تحديث العداد
     const countEl = document.getElementById("cartCount");
     if (countEl) countEl.innerText = count;
-    
-    // حفظ البيانات للتحديث القادم
-    localStorage.setItem('vante_cart', JSON.stringify(cartData));
-    
-    // تطبيق الكوبونات (إن وجدت)
-    updateCartWithCoupon();
     
     return cartData;
 }
@@ -2977,8 +2978,8 @@ window.updateCart = updateCart;
 
 // ========== تغيير الكمية ==========
 function changeQty(index, change) {
-    let cart = JSON.parse(localStorage.getItem('vante_cart') || '[]');
-    const item = cart[index];
+    let cartData = JSON.parse(localStorage.getItem('vante_cart') || '[]');
+    const item = cartData[index];
     if (!item) return;
     
     if (change > 0) {
@@ -2986,20 +2987,22 @@ function changeQty(index, change) {
         const product = window.allProducts ? window.allProducts.find(p => p.id === item.id) : null;
         if (product && product.stockBySize && product.stockBySize[item.size] !== undefined) {
             const stockValue = product.stockBySize[item.size];
-            if (stockValue !== null && stockValue !== undefined && item.qty + change > stockValue) {
+            if (stockValue !== null && stockValue !== undefined && (item.qty || 1) + change > stockValue) {
                 showToast(`❌ الكمية المتاحة لمقاس ${item.size} هي ${stockValue} قطعة فقط.`, 'error');
                 return;
             }
         }
     }
     
-    item.qty += change;
-    if (item.qty <= 0) {
-        cart.splice(index, 1);
+    const newQty = (item.qty || 1) + change;
+    if (newQty <= 0) {
+        cartData.splice(index, 1);
+    } else {
+        item.qty = newQty;
     }
     
     // حفظ التغييرات
-    localStorage.setItem('vante_cart', JSON.stringify(cart));
+    localStorage.setItem('vante_cart', JSON.stringify(cartData));
     
     // ✅ تحديث السلة فوراً
     updateCart();
@@ -3045,6 +3048,15 @@ window.closeCheckout = closeCheckout;
 
 // ----- تحديث السلة مع الكوبونات -----
 function updateCartWithCoupon() {
+    // ✅ استخدام window.cart بدلاً من cart
+    const cartData = window.cart || JSON.parse(localStorage.getItem('vante_cart') || '[]');
+    window.cart = cartData;
+    
+    // تحديث المتغير العام cart
+    if (typeof cart !== 'undefined') {
+        cart = cartData;
+    }
+    
     if (appliedCoupon) {
         const now = new Date();
         if (appliedCoupon.expiryDate?.toDate && appliedCoupon.expiryDate.toDate() < now) {
@@ -3060,10 +3072,10 @@ function updateCartWithCoupon() {
 
     let subtotal = 0;
     let subtotalDiscountable = 0;
-    cart.forEach(item => {
-        subtotal += item.price * item.qty;
+    cartData.forEach(item => {
+        subtotal += (item.price || 0) * (item.qty || 1);
         const product = window.allProducts ? window.allProducts.find(p => p.id === item.id) : null;
-        if (product && product.discountable !== false) subtotalDiscountable += item.price * item.qty;
+        if (product && product.discountable !== false) subtotalDiscountable += (item.price || 0) * (item.qty || 1);
     });
 
     let finalTotal = subtotal;
@@ -3084,7 +3096,7 @@ function updateCartWithCoupon() {
             }
             else if (appliedCoupon.appliesTo === "random") {
                 if (!appliedCoupon.randomProductId) {
-                    const eligibleItems = cart.filter(item => {
+                    const eligibleItems = cartData.filter(item => {
                         const product = window.allProducts ? window.allProducts.find(p => p.id === item.id) : null;
                         return item.id && product && product.discountable !== false;
                     });
@@ -3100,9 +3112,9 @@ function updateCartWithCoupon() {
                 }
                 if (appliedCoupon.randomProductId) {
                     let productUnitPrice = 0;
-                    for (let item of cart) {
+                    for (let item of cartData) {
                         if (item.id === appliedCoupon.randomProductId) {
-                            productUnitPrice = item.price;
+                            productUnitPrice = item.price || 0;
                             break;
                         }
                     }
@@ -3127,7 +3139,7 @@ function updateCartWithCoupon() {
 
     finalTotal = subtotal - discountAmount;
     const totalEl = document.getElementById("total");
-    if (totalEl) totalEl.innerText = finalTotal.toFixed(2);
+    if (totalEl) totalEl.innerText = finalTotal.toFixed(0);
 
     const couponMsg = document.getElementById("couponMessage");
     if (couponMsg) {
@@ -3135,9 +3147,9 @@ function updateCartWithCoupon() {
             if (appliedCoupon.appliesTo === "random" && appliedCoupon.randomProductId) {
                 const product = window.allProducts ? window.allProducts.find(p => p.id === appliedCoupon.randomProductId) : null;
                 const productName = product ? product.name : "منتج غير معروف";
-                couponMsg.innerHTML = `🎟️ كود "${appliedCoupon.code}" خصم ${discountAmount.toFixed(2)} جنيه على منتج عشوائي: ${productName} <button onclick="removeCoupon()" style="background:none; border:none; color:#c0392b; cursor:pointer;">❌</button>`;
+                couponMsg.innerHTML = `🎟️ كود "${appliedCoupon.code}" خصم ${discountAmount.toFixed(0)} جنيه على منتج عشوائي: ${productName} <button onclick="removeCoupon()" style="background:none; border:none; color:#c0392b; cursor:pointer;">❌</button>`;
             } else {
-                couponMsg.innerHTML = `🎟️ كود "${appliedCoupon.code}" خصم ${discountAmount.toFixed(2)} جنيه <button onclick="removeCoupon()" style="background:none; border:none; color:#c0392b; cursor:pointer;">❌</button>`;
+                couponMsg.innerHTML = `🎟️ كود "${appliedCoupon.code}" خصم ${discountAmount.toFixed(0)} جنيه <button onclick="removeCoupon()" style="background:none; border:none; color:#c0392b; cursor:pointer;">❌</button>`;
             }
         } else if (appliedCoupon && discountAmount === 0) {
             couponMsg.innerHTML = `⚠️ الكود غير صالح لهذه السلة (قد تكون المنتجات غير قابلة للخصم)`;
