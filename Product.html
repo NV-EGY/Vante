@@ -1631,9 +1631,8 @@ button:active,
     <nav class="mobile-menu" id="mobileMenu">
         <div class="mobile-menu-header">
             <div class="mobile-icons-row">
-                <button class="mobile-icon" onclick="window.location.href='index.html'"><i class="fas fa-home"></i></button>
-                <button class="mobile-icon" onclick="openSearch(); closeMobileMenu()"><i class="fas fa-search"></i></button>
-            </div>
+    <button class="mobile-icon" onclick="window.location.href='index.html'"><i class="fas fa-home"></i></button>
+</div>
             <button class="close-menu" onclick="closeMobileMenu()"><i class="fas fa-times"></i></button>
         </div>
 
@@ -1708,6 +1707,23 @@ button:active,
             
             <!-- ===== النجوم للتقييم (في الصفحة) ===== -->
             <div style="text-align:center; margin: 10px 0 5px;">
+              <!-- المقاسات وزر الإضافة (في الأعلى) -->
+<div class="size-selector">
+    <label>اختر المقاس</label>
+    <div class="size-options" id="sizeOptions"></div>
+</div>
+
+<div class="action-buttons">
+    <button class="btn-primary" id="addToCartBtn" onclick="addToCartFromPage()">
+        <i class="fas fa-shopping-bag"></i> أضف للسلة
+    </button>
+    <button class="btn-secondary share-btn" onclick="shareProduct()" title="مشاركة">
+        <i class="fas fa-share-alt"></i>
+    </button>
+    <button class="btn-secondary" onclick="window.location.href='index.html'" title="العودة للتسوق">
+        <i class="fas fa-arrow-right"></i>
+    </button>
+</div>
                 <div class="stars-container" id="starsContainer">
                     <span data-rate="1" onclick="selectStar(1)">☆</span>
                     <span data-rate="2" onclick="selectStar(2)">☆</span>
@@ -1735,23 +1751,6 @@ button:active,
             <div id="productStock" class="stock-info">جاري التحميل...</div>
             
             <div class="product-description" id="productDescription"></div>
-            
-            <div class="size-selector">
-                <label>اختر المقاس</label>
-                <div class="size-options" id="sizeOptions"></div>
-            </div>
-            
-            <div class="action-buttons">
-                <button class="btn-primary" id="addToCartBtn" onclick="addToCartFromPage()">
-                    <i class="fas fa-shopping-bag"></i> أضف للسلة
-                </button>
-                <button class="btn-secondary share-btn" onclick="shareProduct()" title="مشاركة">
-                    <i class="fas fa-share-alt"></i>
-                </button>
-                <button class="btn-secondary" onclick="window.location.href='index.html'" title="العودة للتسوق">
-                    <i class="fas fa-arrow-right"></i>
-                </button>
-            </div>
             
             <div style="margin-top: 18px; padding: 14px 18px; background: #faf9f7; border-radius: 14px; display: flex; gap: 20px; flex-wrap: wrap; font-size: 13px; color: #666; border: 1px solid #f0f0f0;">
                 <span><i class="fas fa-truck" style="color:#D4AF37;"></i> شحن سريع</span>
@@ -3500,10 +3499,6 @@ function closeMobileMenu() {
 }
 window.closeMobileMenu = closeMobileMenu;
 
-function openSearch() {
-    window.location.href = 'index.html';
-}
-window.openSearch = openSearch;
 
 // ========== دوال التواصل ودليل المتسوق ==========
 function openContactModal(e) {
@@ -3822,6 +3817,22 @@ async function sendContactMessage() {
     }
 }
 window.sendContactMessage = sendContactMessage;
+
+// ========== إغلاق السلة عند الضغط خارجها ==========
+document.addEventListener('click', function(e) {
+    const drawer = document.getElementById('cartDrawer');
+    const overlay = document.getElementById('overlay');
+    const cartBtn = document.querySelector('.icons button:first-child');
+    
+    if (drawer && drawer.classList.contains('active')) {
+        const isClickInside = drawer.contains(e.target);
+        const isClickOnCartBtn = cartBtn && cartBtn.contains(e.target);
+        
+        if (!isClickInside && !isClickOnCartBtn) {
+            closeCart();
+        }
+    }
+});
 
 // ========== المحافظات والمدن ==========
 const govData = {
