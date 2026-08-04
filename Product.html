@@ -2029,14 +2029,15 @@ function showToast(message, type = 'success') {
 window.showToast = showToast;
 window.customAlert = showToast;
 
-// ========== سلة التسوق ==========
+// ========== تحديث عداد السلة ==========
 function updateCartCount() {
     const cart = JSON.parse(localStorage.getItem('vante_cart') || '[]');
     const count = cart.reduce((sum, item) => sum + (item.qty || 1), 0);
     const el = document.getElementById('cartCount');
     if (el) el.textContent = count;
+    return count;
 }
-updateCartCount();
+window.updateCartCount = updateCartCount;
 
 // ========== متغيرات المنتج ==========
 let currentProduct = null;
@@ -2767,7 +2768,7 @@ async function loadBestSellers(excludeId, database) {
     }
 }
 
-// استبدال دالة addToCartFromPage بالكامل
+// ========== إضافة للسلة من صفحة المنتج ==========
 window.addToCartFromPage = function() {
     const product = window.currentProduct;
     if (!product) {
@@ -2777,6 +2778,8 @@ window.addToCartFromPage = function() {
     
     const stockBySize = product.stockBySize || {};
     const sizes = product.sizes || ['7', '8', '9'];
+    
+    // التحقق من وجود مخزون
     let hasStock = false;
     for (const s of sizes) {
         const qty = stockBySize[s];
@@ -2787,12 +2790,16 @@ window.addToCartFromPage = function() {
         return;
     }
     
+    // التحقق من اختيار المقاس
     if (sizes.length > 0 && !selectedSize) {
         showToast('⚠️ يرجى اختيار المقاس أولاً', 'info');
         document.querySelector('.size-selector')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         return;
     }
     
+    const size = selectedSize || sizes[0] || '7';
+    
+    // التحقق من المخزون للمقاس المختار
     if (selectedSize) {
         const qty = stockBySize[selectedSize];
         if (qty === 0) {
@@ -2801,11 +2808,14 @@ window.addToCartFromPage = function() {
         }
     }
     
-    const size = selectedSize || sizes[0] || '7';
+    // جلب السلة من localStorage
     let cart = JSON.parse(localStorage.getItem('vante_cart') || '[]');
     
+    // البحث عن المنتج بنفس المعرف والمقاس
     const existing = cart.find(item => item.id === product.id && item.size === size);
+    
     if (existing) {
+        // التحقق من المخزون للكمية الجديدة
         const currentQty = stockBySize[size];
         if (currentQty !== null && currentQty !== undefined && existing.qty + 1 > currentQty) {
             showToast(`❌ الكمية المتاحة لمقاس ${size} هي ${currentQty} قطعة فقط`, 'error');
@@ -2813,63 +2823,32 @@ window.addToCartFromPage = function() {
         }
         existing.qty += 1;
     } else {
+        // إضافة منتج جديد
         cart.push({
             id: product.id,
             name: product.name,
             price: product.price,
             size: size,
-            image: product.image,
+            image: product.image || '',
             qty: 1,
-            sku: product.sku || null
+            sku: product.sku || null,
+            comparePrice: product.comparePrice || null
         });
     }
     
+    // حفظ في localStorage
     localStorage.setItem('vante_cart', JSON.stringify(cart));
     
-    // ✅ تحديث العداد أولاً
+    // ✅ تحديث السلة فوراً (الدالة الجديدة تعتمد على localStorage فقط)
+    updateCart();
+    
+    // ✅ تحديث العداد
     updateCartCount();
     
-    // ✅ تحديث السلة مع التأكد من تحميل المنتجات
-    if (window.allProducts && window.allProducts.length > 0) {
-        updateCart();
-    } else {
-        // في حال لم تكن المنتجات محملة بعد، نعيد المحاولة بعد فترة قصيرة
-        setTimeout(() => {
-            if (window.allProducts && window.allProducts.length > 0) {
-                updateCart();
-            } else {
-                // تحديث يدوي للسلة من localStorage
-                const cartData = JSON.parse(localStorage.getItem('vante_cart') || '[]');
-                let total = 0, count = 0;
-                const html = cartData.map((item, index) => {
-                    total += item.price * item.qty;
-                    count += item.qty;
-                    return `<div class="cart-item">
-                        <div class="cart-item-details">
-                            <strong>${item.name}</strong>
-                            <small>المقاس: ${item.size}</small>
-                        </div>
-                        <div class="qty-controls">
-                            <button class="qty-btn" onclick="changeQty(${index},-1)">−</button>
-                            <span class="qty-value">${item.qty}</span>
-                            <button class="qty-btn" onclick="changeQty(${index},1)">+</button>
-                        </div>
-                        <div class="cart-item-price">${item.price * item.qty} EGP</div>
-                    </div>`;
-                }).join("");
-                
-                const cartItems = document.getElementById("cartItems");
-                if (cartItems) cartItems.innerHTML = html || "السلة فارغة";
-                const totalEl = document.getElementById("total");
-                if (totalEl) totalEl.innerText = total;
-                const countEl = document.getElementById("cartCount");
-                if (countEl) countEl.innerText = count;
-            }
-        }, 300);
-    }
-    
+    // رسالة نجاح
     showToast(`✅ تم إضافة ${product.name} إلى السلة`, 'success');
     
+    // تأثير الاهتزاز على أيقونة السلة
     const cartIcon = document.querySelector('.icons button:last-child');
     if (cartIcon) {
         cartIcon.style.animation = 'none';
@@ -2926,19 +2905,18 @@ let cart = JSON.parse(localStorage.getItem('vante_cart') || '[]');
 let appliedCoupon = null;
 let discountAmount = 0;
 
-// ----- تحديث السلة وعناصر الواجهة (مع التحقق) -----
+// ========== تحديث السلة (نسخة مستقلة تعتمد على localStorage فقط) ==========
 function updateCart() {
-    // ✅ التحقق من وجود المنتجات قبل التحديث
-    if (!window.allProducts || window.allProducts.length === 0) {
-        console.log('⏳ المنتجات لم تكتمل تحميلها بعد، تأجيل تحديث السلة');
-        return;
-    }
-    
+    let cartData = JSON.parse(localStorage.getItem('vante_cart') || '[]');
     let total = 0, count = 0;
-    const html = cart.map((item, index) => {
-        total += item.price * item.qty;
-        count += item.qty;
-        const product = window.allProducts.find(p => p.id === item.id);
+    
+    // ✅ بناء واجهة السلة مباشرة من localStorage
+    const html = cartData.map((item, index) => {
+        total += (item.price || 0) * (item.qty || 1);
+        count += (item.qty || 1);
+        
+        // جلب بيانات المنتج إن وجدت (للمخزون والخصم)
+        const product = window.allProducts ? window.allProducts.find(p => p.id === item.id) : null;
         let maxStock = -1;
         if (product && product.stockBySize && item.size) {
             const stockValue = product.stockBySize[item.size];
@@ -2946,43 +2924,65 @@ function updateCart() {
         }
         const isUnlimited = (maxStock === -1);
         const maxedOut = (!isUnlimited && item.qty >= maxStock);
-
+        
+        // التحقق من وجود خصم على المنتج
+        const hasDiscount = product && product.comparePrice && product.comparePrice > product.price;
+        const discountPercent = hasDiscount ? Math.round((1 - product.price / product.comparePrice) * 100) : 0;
+        
         return `<div class="cart-item">
             <div class="cart-item-details">
-                <strong>${item.name}</strong>
-                <small>المقاس: ${item.size} ${isUnlimited ? '<span style="color:#800080;"> (كمية غير محدودة)</span>' : ''}</small>
+                <strong>${item.name || 'منتج'}</strong>
+                <small>المقاس: ${item.size || 'غير محدد'} ${isUnlimited ? ' <span style="color:#800080;">(كمية غير محدودة)</span>' : ''}</small>
             </div>
             <div class="qty-controls">
                 <button class="qty-btn" onclick="changeQty(${index},-1)">−</button>
-                <span class="qty-value">${item.qty}</span>
+                <span class="qty-value">${item.qty || 1}</span>
                 <button class="qty-btn" onclick="changeQty(${index},1)" ${maxedOut ? 'disabled style="opacity:0.4; cursor:not-allowed; background:#eee; color:#999;"' : ''}>+</button>
             </div>
-            <div class="cart-item-price" style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
-                ${(item.comparePrice && item.comparePrice > item.price) ? `
-                    <span style="color:#D4AF37; font-weight:900; font-size: 18px;">${item.price * item.qty} EGP</span>
-                    <div style="display: flex; align-items: center; gap: 6px;">
-                        <span style="text-decoration:line-through; color:#999; font-size: 12px;">${item.comparePrice * item.qty} EGP</span>
-                        <span style="background:#D4AF37; padding: 2px 6px; border-radius: 12px; font-size: 10px; color:#000;">-${Math.round((1 - item.price / item.comparePrice) * 100)}%</span>
+            <div class="cart-item-price" style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px;">
+                ${hasDiscount ? `
+                    <span style="color:#D4AF37; font-weight:900; font-size:16px;">${(item.price * item.qty).toFixed(0)} EGP</span>
+                    <div style="display: flex; align-items: center; gap: 4px;">
+                        <span style="text-decoration:line-through; color:#999; font-size:11px;">${(product.comparePrice * item.qty).toFixed(0)} EGP</span>
+                        <span style="background:#D4AF37; padding:0 6px; border-radius:12px; font-size:9px; color:#000;">-${discountPercent}%</span>
                     </div>
                 ` : `
-                    <span style="color:#D4AF37; font-weight:900; font-size: 18px;">${item.price * item.qty} EGP</span>
+                    <span style="color:#D4AF37; font-weight:900; font-size:16px;">${(item.price * item.qty).toFixed(0)} EGP</span>
                 `}
             </div>
         </div>`;
-    }).join("");
-
-    document.getElementById("cartItems").innerHTML = html || "السلة فارغة";
-    document.getElementById("total").innerText = total;
-    document.getElementById("cartCount").innerText = count;
-    localStorage.setItem('vante_cart', JSON.stringify(cart));
+    }).join('');
+    
+    // تحديث عناصر الواجهة
+    const cartItemsEl = document.getElementById("cartItems");
+    if (cartItemsEl) cartItemsEl.innerHTML = html || "🛒 السلة فارغة";
+    
+    const totalEl = document.getElementById("total");
+    if (totalEl) totalEl.innerText = total.toFixed(0);
+    
+    const countEl = document.getElementById("cartCount");
+    if (countEl) countEl.innerText = count;
+    
+    // حفظ البيانات للتحديث القادم
+    localStorage.setItem('vante_cart', JSON.stringify(cartData));
+    
+    // تطبيق الكوبونات (إن وجدت)
     updateCartWithCoupon();
+    
+    return cartData;
 }
 
-// ----- تغيير الكمية -----
+// ✅ تعيين الدالة كدالة عامة
+window.updateCart = updateCart;
+
+// ========== تغيير الكمية ==========
 function changeQty(index, change) {
+    let cart = JSON.parse(localStorage.getItem('vante_cart') || '[]');
     const item = cart[index];
     if (!item) return;
+    
     if (change > 0) {
+        // التحقق من المخزون
         const product = window.allProducts ? window.allProducts.find(p => p.id === item.id) : null;
         if (product && product.stockBySize && product.stockBySize[item.size] !== undefined) {
             const stockValue = product.stockBySize[item.size];
@@ -2992,10 +2992,20 @@ function changeQty(index, change) {
             }
         }
     }
+    
     item.qty += change;
-    if (item.qty <= 0) cart.splice(index, 1);
+    if (item.qty <= 0) {
+        cart.splice(index, 1);
+    }
+    
+    // حفظ التغييرات
+    localStorage.setItem('vante_cart', JSON.stringify(cart));
+    
+    // ✅ تحديث السلة فوراً
     updateCart();
+    updateCartCount();
 }
+window.changeQty = changeQty;
 
 // ----- فتح/إغلاق السلة -----
 function openCart() {
