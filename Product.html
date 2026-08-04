@@ -2852,13 +2852,12 @@ window.addToCartFromPage = function() {
     // رسالة نجاح
     showToast(`✅ تم إضافة ${product.name} إلى السلة`, 'success');
     
-    // تأثير الاهتزاز على أيقونة السلة
-    const cartIcon = document.querySelector('.icons button:last-child');
-    if (cartIcon) {
-        cartIcon.style.animation = 'none';
-        setTimeout(() => cartIcon.style.animation = 'shake 0.5s ease', 10);
-    }
-};
+// تأثير الاهتزاز على أيقونة السلة
+const cartIcon = document.querySelector('.icons button:first-child');
+if (cartIcon) {
+    cartIcon.style.animation = 'none';
+    setTimeout(() => cartIcon.style.animation = 'shake 0.5s ease', 10);
+}
 
 // ========== مشاركة المنتج ==========
 window.shareProduct = function() {
