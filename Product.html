@@ -3668,6 +3668,9 @@ document.addEventListener("DOMContentLoaded", function() {
     // ✅ سيتم استدعاؤها من loadProduct بعد تحميل المنتجات
 });
 
+// ✅ تعريف updateCart كدالة عامة
+window.updateCart = updateCart;
+
 // لتجنب الأخطاء في حالة عدم وجود db
 if (typeof db === 'undefined') {
     var db = null;
