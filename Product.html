@@ -3827,9 +3827,27 @@ document.addEventListener('click', function(e) {
     if (drawer && drawer.classList.contains('active')) {
         const isClickInside = drawer.contains(e.target);
         const isClickOnCartBtn = cartBtn && cartBtn.contains(e.target);
+        const isClickOnOverlay = overlay && overlay.contains(e.target);
         
-        if (!isClickInside && !isClickOnCartBtn) {
+        if (isClickOnOverlay || (!isClickInside && !isClickOnCartBtn)) {
             closeCart();
+        }
+    }
+});
+
+// ========== إغلاق القائمة عند الضغط خارجها ==========
+document.addEventListener('click', function(e) {
+    const menu = document.getElementById('mobileMenu');
+    const menuBtn = document.querySelector('.mobile-btn');
+    const overlay = document.getElementById('menuOverlay');
+    
+    if (menu && menu.classList.contains('active')) {
+        const isClickInside = menu.contains(e.target);
+        const isClickOnMenuBtn = menuBtn && menuBtn.contains(e.target);
+        const isClickOnOverlay = overlay && overlay.contains(e.target);
+        
+        if (isClickOnOverlay || (!isClickInside && !isClickOnMenuBtn)) {
+            closeMobileMenu();
         }
     }
 });
