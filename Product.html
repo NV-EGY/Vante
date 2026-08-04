@@ -2767,7 +2767,7 @@ async function loadBestSellers(excludeId, database) {
     }
 }
 
-// ========== إضافة للسلة من صفحة المنتج ==========
+// استبدال دالة addToCartFromPage بالكامل
 window.addToCartFromPage = function() {
     const product = window.currentProduct;
     if (!product) {
@@ -2789,7 +2789,7 @@ window.addToCartFromPage = function() {
     
     if (sizes.length > 0 && !selectedSize) {
         showToast('⚠️ يرجى اختيار المقاس أولاً', 'info');
-        document.querySelector('.size-selector').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        document.querySelector('.size-selector')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         return;
     }
     
@@ -2825,7 +2825,49 @@ window.addToCartFromPage = function() {
     }
     
     localStorage.setItem('vante_cart', JSON.stringify(cart));
+    
+    // ✅ تحديث العداد أولاً
     updateCartCount();
+    
+    // ✅ تحديث السلة مع التأكد من تحميل المنتجات
+    if (window.allProducts && window.allProducts.length > 0) {
+        updateCart();
+    } else {
+        // في حال لم تكن المنتجات محملة بعد، نعيد المحاولة بعد فترة قصيرة
+        setTimeout(() => {
+            if (window.allProducts && window.allProducts.length > 0) {
+                updateCart();
+            } else {
+                // تحديث يدوي للسلة من localStorage
+                const cartData = JSON.parse(localStorage.getItem('vante_cart') || '[]');
+                let total = 0, count = 0;
+                const html = cartData.map((item, index) => {
+                    total += item.price * item.qty;
+                    count += item.qty;
+                    return `<div class="cart-item">
+                        <div class="cart-item-details">
+                            <strong>${item.name}</strong>
+                            <small>المقاس: ${item.size}</small>
+                        </div>
+                        <div class="qty-controls">
+                            <button class="qty-btn" onclick="changeQty(${index},-1)">−</button>
+                            <span class="qty-value">${item.qty}</span>
+                            <button class="qty-btn" onclick="changeQty(${index},1)">+</button>
+                        </div>
+                        <div class="cart-item-price">${item.price * item.qty} EGP</div>
+                    </div>`;
+                }).join("");
+                
+                const cartItems = document.getElementById("cartItems");
+                if (cartItems) cartItems.innerHTML = html || "السلة فارغة";
+                const totalEl = document.getElementById("total");
+                if (totalEl) totalEl.innerText = total;
+                const countEl = document.getElementById("cartCount");
+                if (countEl) countEl.innerText = count;
+            }
+        }, 300);
+    }
+    
     showToast(`✅ تم إضافة ${product.name} إلى السلة`, 'success');
     
     const cartIcon = document.querySelector('.icons button:last-child');
@@ -3645,6 +3687,7 @@ const infoContent = {
 
 let currentTab = 'shipping';
 
+// استبدال دالة renderInfoTab بالكامل
 function renderInfoTab(tabId) {
     const body = document.getElementById('infoBody');
     if (!body) {
@@ -3671,8 +3714,29 @@ function renderInfoTab(tabId) {
             });
         });
     }
+    
+    // ✅ إضافة ربط أحداث التبويبات الفرعية للمقاسات
+    if (tabId === 'size') {
+        setTimeout(() => {
+            const sizeSubTabs = document.querySelectorAll('.size-subtab');
+            sizeSubTabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    // إزالة active من كل التبويبات
+                    document.querySelectorAll('.size-subtab').forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // إخفاء كل المحتويات
+                    document.querySelectorAll('.size-subcontent').forEach(c => c.classList.remove('active'));
+                    
+                    // إظهار المحتوى المطابق
+                    const targetId = this.dataset.subtab + 'Tab';
+                    const targetContent = document.getElementById(targetId);
+                    if (targetContent) targetContent.classList.add('active');
+                });
+            });
+        }, 50);
+    }
 }
-window.renderInfoTab = renderInfoTab;
 
 // ========== إرسال رسالة التواصل ==========
 async function sendContactMessage() {
