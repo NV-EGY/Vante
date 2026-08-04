@@ -3818,25 +3818,8 @@ async function sendContactMessage() {
 }
 window.sendContactMessage = sendContactMessage;
 
-// ========== إغلاق السلة عند الضغط خارجها ==========
-document.addEventListener('click', function(e) {
-    const drawer = document.getElementById('cartDrawer');
-    const overlay = document.getElementById('overlay');
-    const cartBtn = document.querySelector('.icons button:first-child');
-    
-    if (drawer && drawer.classList.contains('active')) {
-        const isClickInside = drawer.contains(e.target);
-        const isClickOnCartBtn = cartBtn && cartBtn.contains(e.target);
-        const isClickOnOverlay = overlay && overlay.contains(e.target);
-        
-        if (isClickOnOverlay || (!isClickInside && !isClickOnCartBtn)) {
-            closeCart();
-        }
-    }
-});
-
 // ========== إغلاق القائمة عند الضغط خارجها ==========
-document.addEventListener('click', function(e) {
+document.addEventListener('clik', function(e) {
     const menu = document.getElementById('mobileMenu');
     const menuBtn = document.querySelector('.mobile-btn');
     const overlay = document.getElementById('menuOverlay');
