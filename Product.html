@@ -1272,6 +1272,265 @@ button:active,
 .desktop-dropdown:hover .desktop-sub { display:flex; }
 .collections-sub { max-height:0; overflow:hidden; display:flex; flex-direction:column; transition:all .45s cubic-bezier(.4,0,.2,1); opacity:0; transform:translateY(-8px); padding-right:10px; }
 .collections-sub.active { max-height:500px; opacity:1; transform:translateY(0); }
+/* ===== مودال التواصل ===== */
+.contact-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(8px);
+    z-index: 100000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+.contact-modal.active {
+    opacity: 1;
+    visibility: visible;
+}
+.contact-modal-content {
+    background: #fff;
+    width: 90%;
+    max-width: 480px;
+    border-radius: 32px;
+    overflow: hidden;
+    box-shadow: 0 30px 50px rgba(0,0,0,0.3);
+    transform: scale(0.9);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    direction: rtl;
+}
+.contact-modal.active .contact-modal-content {
+    transform: scale(1);
+}
+.contact-modal-header {
+    background: #111;
+    padding: 20px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.contact-modal-header h3 {
+    color: #D4AF37;
+    margin: 0;
+    font-size: 20px;
+    font-weight: 800;
+}
+.close-contact-modal {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 28px;
+    cursor: pointer;
+    transition: 0.3s;
+    line-height: 1;
+}
+.close-contact-modal:hover {
+    color: #D4AF37;
+    transform: rotate(90deg);
+}
+.contact-modal-body {
+    padding: 28px 24px;
+}
+.contact-modal-body .input-group {
+    margin-bottom: 20px;
+}
+.contact-modal-body .input-icon {
+    position: relative;
+}
+.contact-modal-body .input-icon i {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #888;
+    font-size: 16px;
+}
+.contact-modal-body input,
+.contact-modal-body textarea {
+    width: 100%;
+    padding: 14px 45px 14px 15px;
+    border: 1.5px solid #eee;
+    border-radius: 16px;
+    font-size: 14px;
+    font-family: 'Cairo', sans-serif;
+    transition: 0.3s;
+    resize: vertical;
+}
+.contact-modal-body input:focus,
+.contact-modal-body textarea:focus {
+    border-color: #D4AF37;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(212,175,55,0.1);
+}
+.contact-modal-body .error-msg {
+    color: #e74c3c;
+    font-size: 12px;
+    margin-top: 5px;
+    text-align: right;
+}
+.contact-submit {
+    width: 100%;
+    margin-top: 15px;
+    background: #111;
+    border: none;
+    border-radius: 16px;
+    padding: 14px;
+    font-size: 16px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: 0.3s;
+    color: #fff;
+}
+.contact-submit:hover {
+    background: #D4AF37;
+    color: #000;
+    transform: translateY(-2px);
+}
+
+/* ===== مودال دليل المتسوق ===== */
+.info-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(8px);
+    z-index: 100000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+.info-modal.active {
+    opacity: 1;
+    visibility: visible;
+}
+.info-modal-content {
+    background: #fff;
+    width: 90%;
+    max-width: 800px;
+    max-height: 85vh;
+    border-radius: 32px;
+    overflow: hidden;
+    box-shadow: 0 30px 50px rgba(0,0,0,0.3);
+    transform: scale(0.9);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+}
+.info-modal.active .info-modal-content {
+    transform: scale(1);
+}
+.info-modal-header {
+    background: #111;
+    padding: 18px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.info-modal-header h3 {
+    color: #D4AF37;
+    margin: 0;
+    font-size: 22px;
+    font-weight: 800;
+}
+.close-info-modal {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 28px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+.close-info-modal:hover {
+    color: #D4AF37;
+    transform: rotate(90deg);
+}
+.info-tabs {
+    display: flex;
+    background: #f8f8f8;
+    border-bottom: 1px solid #eee;
+    overflow-x: auto;
+    scrollbar-width: thin;
+}
+.info-tab {
+    flex: 1;
+    padding: 14px 16px;
+    text-align: center;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    transition: 0.3s;
+    color: #555;
+    border-bottom: 3px solid transparent;
+    white-space: nowrap;
+}
+.info-tab.active {
+    color: #D4AF37;
+    border-bottom-color: #D4AF37;
+    background: #fff;
+}
+.info-tab:hover:not(.active) {
+    background: #efefef;
+}
+.info-body {
+    padding: 28px 30px;
+    overflow-y: auto;
+    max-height: 60vh;
+    line-height: 1.8;
+    font-size: 15px;
+    color: #333;
+}
+.info-body h4 {
+    color: #D4AF37;
+    margin-bottom: 12px;
+    font-size: 18px;
+}
+.info-body p, .info-body ul {
+    margin-bottom: 16px;
+}
+.info-body ul {
+    padding-right: 20px;
+}
+.faq-item {
+    margin-bottom: 20px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 12px;
+}
+.faq-question {
+    font-weight: 800;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.faq-question i {
+    transition: 0.3s;
+}
+.faq-answer {
+    display: none;
+    margin-top: 10px;
+    color: #666;
+    padding-right: 15px;
+}
+.faq-item.open .faq-answer {
+    display: block;
+}
+.faq-item.open .faq-question i {
+    transform: rotate(180deg);
+}
+@media (max-width: 600px) {
+    .info-tab { font-size: 12px; padding: 12px 8px; }
+    .info-body { padding: 20px; }
+}
     </style>
 </head>
 <body>
@@ -1312,7 +1571,7 @@ button:active,
     </div>
 
     <a href="#" onclick="openContactModal(event); closeMobileMenu(); return false;">تواصل مع المسئول</a>
-    <a href="#" onclick="openInfoModal(); closeMobileMenu(); return false;">دليل المتسوق</a>
+<a href="#" onclick="openInfoModal(); closeMobileMenu(); return false;">دليل المتسوق</a>
     
     <div style="background: #faf7f0; border-radius: 16px; padding: 12px; margin: 15px 0 5px; border-right: 3px solid #D4AF37;">
         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
@@ -1346,7 +1605,7 @@ button:active,
         </div>
     </div>
     <a href="#" onclick="openContactModal(event)">تواصل مع المسئول</a>
-    <a href="#" onclick="openInfoModal()">دليل المتسوق</a>
+<a href="#" onclick="openInfoModal()">دليل المتسوق</a>
     <a href="https://taswekshope-gif.github.io/DAHAP/" target="_blank" rel="noopener noreferrer" class="marketing-link" style="position: relative;">
         <i class="fas fa-crown"></i> سلاسل بالأسماء
         <span style="position: absolute; top: -8px; left: -5px; background: #e74c3c; color: #fff; font-size: 9px; padding: 2px 6px; border-radius: 20px; white-space: nowrap;">
@@ -3094,17 +3353,6 @@ async function executeCheckout() {
     }
 }
 
-// ----- دوال مساعدة (مودال تأكيد، تواصل، دليل) -----
-// (يجب أن تكون موجودة بالفعل من القائمة الجديدة، لكن نضيفها للاحتياط)
-function openContactModal(e) {
-    if (e) e.preventDefault();
-    // سيتم استدعاؤها من القائمة، لكن لا يوجد مودال تواصل في Product.html
-    // يمكنك إضافته إذا أردت، أو توجيه المستخدم إلى الصفحة الرئيسية
-    window.location.href = 'index.html';
-}
-function openInfoModal() {
-    window.location.href = 'index.html';
-}
 function toggleCollections(e) {
     if (e) e.preventDefault();
     const mobileSub = document.getElementById("collectionsSub");
@@ -3137,13 +3385,145 @@ function openInfoModal() {
     document.getElementById('infoModal').classList.add('active');
     document.getElementById('overlay').classList.add('active');
     document.body.style.overflow = 'hidden';
-    // يمكنك ملء المحتوى هنا إذا أردت
+    // تعبئة المحتوى
+    renderInfoTab('shipping');
 }
 function closeInfoModal() {
     document.getElementById('infoModal').classList.remove('active');
     document.getElementById('overlay').classList.remove('active');
     document.body.style.overflow = '';
 }
+
+// محتوى دليل المتسوق
+const infoContent = {
+    shipping: `
+        <h4>📦 سياسة الشحن</h4>
+        <p>نشحن إلى جميع محافظات مصر عبر شركات شحن موثوقة. مدة التوصيل من 3 إلى 7 أيام عمل حسب المحافظة.</p>
+        <p>تكلفة الشحن: (مجاني للطلبات فوق 1000 جنيه).</p>
+        <h4>🔄 سياسة الإرجاع والاستبدال</h4>
+        <p>يحق لك استبدال أو إرجاع المنتج خلال 14 يومًا من تاريخ الاستلام بشرط أن يكون بحالته الأصلية والتغليف سليم.</p>
+        <p>لبدء عملية الإرجاع، يرجى التواصل مع خدمة العملاء عبر رقم الواتساب او "تواصل مع المسئول".</p>
+        <p>ملاحظة: تكاليف الشحن للإرجاع يتحملها العميل إلا في حالة وجود عيب صناعي.</p>
+    `,
+    size: `
+        <h4>📏 دليل المقاسات</h4>
+        <p>يمكنك الاطلاع على دليل المقاسات في تبويب "المقاسات" أسفل المنتج.</p>
+    `,
+    packaging: `
+        <h4>🎁 تغليف فاخر</h4>
+        <p>نحرص على تقديم تجربة فاخرة منذ لحظة استلامك للطلب:</p>
+        <ul>
+            <li>✨ <strong>علبة فاخرة بملمس مخملي</strong> تمنح إحساسًا بالترف الحقيقي.</li>
+            <li>🎨 <strong>تصميم داخلي أنيق</strong> يثبت القطعة بأمان ويبرز جمالها.</li>
+            <li>🛡️ <strong>خامات قوية عالية الجودة</strong> لحماية المجوهرات من الخدوش.</li>
+        </ul>
+    `,
+    faq: `
+        <div class="faq-item">
+            <div class="faq-question">❓ هل المنتجات أصلية؟ <i class="fas fa-chevron-down"></i></div>
+            <div class="faq-answer">نعم، جميع منتجاتنا مصنوعة من معادن ثمينة (ستانلس ستيل بيور) ومضمونة 100% أصلية.</div>
+        </div>
+        <div class="faq-item">
+            <div class="faq-question">❓ كيف أتابع طلبي بعد الشراء؟ <i class="fas fa-chevron-down"></i></div>
+            <div class="faq-answer">سنرسل لك تأكيد الطلب عبر واتساب يمكنك تتبع حاله الطلب من خلاله مع احد ممثلي خدمة العملاء.</div>
+        </div>
+        <div class="faq-item">
+            <div class="faq-question">❓ ما هي طرق الدفع المتاحة؟ <i class="fas fa-chevron-down"></i></div>
+            <div class="faq-answer">الدفع عند الاستلام (كاش) لجميع المحافظات، أو تحويل محفظة الكترونيه او تحويل انستا باي حسب الاتفاق.</div>
+        </div>
+        <div class="faq-item">
+            <div class="faq-question">❓ مدة التوصيل؟ <i class="fas fa-chevron-down"></i></div>
+            <div class="faq-answer">تتراوح بين 3-7 أيام حسب محافظتك، نضمن التوصيل خلال أسبوع كحد أقصى.</div>
+        </div>
+        <div class="faq-item">
+            <div class="faq-question">❓ هل يمكن تغيير المقاس بعد الشراء؟ <i class="fas fa-chevron-down"></i></div>
+            <div class="faq-answer">نعم، يمكنك استبدال المقاس خلال 14 يومًا من الاستلام بشرط أن يكون المنتج غير مستخدم، مع تحمل مصاريف الشحن.</div>
+        </div>
+    `
+};
+
+let currentTab = 'shipping';
+function renderInfoTab(tabId) {
+    document.getElementById('infoBody').innerHTML = infoContent[tabId] || infoContent.shipping;
+    if (tabId === 'faq') {
+        document.querySelectorAll('.faq-question').forEach(q => {
+            q.addEventListener('click', function() {
+                this.parentElement.classList.toggle('open');
+            });
+        });
+    }
+}
+
+// ربط التبويبات
+document.addEventListener("DOMContentLoaded", function() {
+    document.querySelectorAll('.info-tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            document.querySelectorAll('.info-tab').forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            currentTab = this.dataset.tab;
+            renderInfoTab(currentTab);
+        });
+    });
+    // تعبئة المحتوى الافتراضي
+    if (document.getElementById('infoBody')) {
+        renderInfoTab('shipping');
+    }
+});
+window.sendContactMessage = async function() {
+    const name = document.getElementById('contactName').value.trim();
+    const phone = document.getElementById('contactPhone').value.trim();
+    const message = document.getElementById('contactMessage').value.trim();
+    
+    let isValid = true;
+    
+    if (name.length < 3) {
+        document.getElementById('contactNameError').innerText = 'الاسم يجب أن لا يقل عن 3 أحرف';
+        isValid = false;
+    } else {
+        document.getElementById('contactNameError').innerText = '';
+    }
+    
+    const phoneRegex = /^01[0125][0-9]{8}$/;
+    if (!phoneRegex.test(phone)) {
+        document.getElementById('contactPhoneError').innerText = 'رقم الهاتف غير صحيح (مثال: 01012345678)';
+        isValid = false;
+    } else {
+        document.getElementById('contactPhoneError').innerText = '';
+    }
+    
+    if (message === '') {
+        document.getElementById('contactMsgError').innerText = 'الرجاء كتابة رسالتك';
+        isValid = false;
+    } else {
+        document.getElementById('contactMsgError').innerText = '';
+    }
+    
+    if (!isValid) return;
+    
+    const btn = document.querySelector('.contact-submit');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الإرسال...';
+    
+    try {
+        const { addDoc, collection, serverTimestamp } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+        await addDoc(collection(db, "messages"), {
+            name: name,
+            phone: phone,
+            message: message,
+            status: "new",
+            createdAt: serverTimestamp()
+        });
+        
+        showToast("✅ تم إرسال رسالتك بنجاح! سنتواصل معك قريباً.", "success");
+        closeContactModal();
+    } catch (error) {
+        console.error("خطأ في الإرسال:", error);
+        showToast("❌ حدث خطأ أثناء الإرسال، حاول مرة أخرى.", "error");
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-paper-plane"></i> إرسال الرسالة';
+    }
+};
 
 // ----- استدعاء updateCart عند التحميل -----
 document.addEventListener("DOMContentLoaded", function() {
@@ -3302,124 +3682,6 @@ if (typeof db === 'undefined') {
         </div>
     </div>
 </div>
-<script>
-// ============================================================
-//   FIX: جعل جميع الدوال في النطاق العام وتوحيدها
-// ============================================================
-
-// إعادة تعريف دوال السلة
-window.openCart = function() {
-    const drawer = document.getElementById("cartDrawer");
-    const overlay = document.getElementById("overlay");
-    if (drawer) drawer.classList.add("active");
-    if (overlay) overlay.classList.add("active");
-    document.body.style.overflow = 'hidden';
-};
-
-window.closeCart = function() {
-    const drawer = document.getElementById("cartDrawer");
-    const overlay = document.getElementById("overlay");
-    if (drawer) drawer.classList.remove("active");
-    if (overlay) overlay.classList.remove("active");
-    document.body.style.overflow = '';
-};
-
-window.openCheckout = function() {
-    const modal = document.getElementById("checkoutModal");
-    const overlay = document.getElementById("overlay");
-    if (modal) modal.classList.add("active");
-    if (overlay) overlay.classList.add("active");
-};
-
-window.closeCheckout = function() {
-    const modal = document.getElementById("checkoutModal");
-    const overlay = document.getElementById("overlay");
-    if (modal) modal.classList.remove("active");
-    if (overlay) overlay.classList.remove("active");
-};
-
-// دوال التواصل ودليل المتسوق (باستخدام المودالات المضافة)
-window.openContactModal = function(e) {
-    if (e) e.preventDefault();
-    const modal = document.getElementById('contactModal');
-    const overlay = document.getElementById('overlay');
-    if (!modal) {
-        // إذا لم يكن المودال موجوداً، نوجه إلى index.html
-        window.location.href = 'index.html';
-        return;
-    }
-    modal.classList.add('active');
-    if (overlay) overlay.classList.add('active');
-    document.body.style.overflow = 'hidden';
-};
-
-window.closeContactModal = function() {
-    const modal = document.getElementById('contactModal');
-    const overlay = document.getElementById('overlay');
-    if (modal) modal.classList.remove('active');
-    if (overlay) overlay.classList.remove('active');
-    document.body.style.overflow = '';
-};
-
-window.openInfoModal = function() {
-    const modal = document.getElementById('infoModal');
-    const overlay = document.getElementById('overlay');
-    if (!modal) {
-        window.location.href = 'index.html';
-        return;
-    }
-    modal.classList.add('active');
-    if (overlay) overlay.classList.add('active');
-    document.body.style.overflow = 'hidden';
-    // يمكنك ملء المحتوى هنا إذا أردت
-};
-
-window.closeInfoModal = function() {
-    const modal = document.getElementById('infoModal');
-    const overlay = document.getElementById('overlay');
-    if (modal) modal.classList.remove('active');
-    if (overlay) overlay.classList.remove('active');
-    document.body.style.overflow = '';
-};
-
-// دوال القائمة المنسدلة
-window.toggleCollections = function(e) {
-    if (e) e.preventDefault();
-    const mobileSub = document.getElementById("collectionsSub");
-    const desktopSub = document.getElementById("collectionsSubDesktop");
-    if (mobileSub) mobileSub.classList.toggle("active");
-    if (desktopSub) desktopSub.classList.toggle("active");
-};
-
-window.closeMobileMenu = function() {
-    const menu = document.getElementById("mobileMenu");
-    const overlay = document.getElementById("menuOverlay");
-    if (menu) menu.classList.remove("active");
-    if (overlay) overlay.classList.remove("active");
-    document.body.style.overflow = "";
-};
-
-window.openSearch = function() {
-    // توجيه إلى الصفحة الرئيسية مع تفعيل البحث
-    window.location.href = 'index.html';
-};
-
-// ربط دوال السلة والكوبونات إذا كانت معرفة
-if (typeof changeQty !== 'undefined') window.changeQty = changeQty;
-if (typeof updateCart !== 'undefined') window.updateCart = updateCart;
-if (typeof applyCoupon !== 'undefined') window.applyCoupon = applyCoupon;
-if (typeof removeCoupon !== 'undefined') window.removeCoupon = removeCoupon;
-
-// تأكد من أن دالة updateCartCount تعمل
-window.updateCartCount = function() {
-    const cart = JSON.parse(localStorage.getItem('vante_cart') || '[]');
-    const count = cart.reduce((sum, item) => sum + (item.qty || 1), 0);
-    const el = document.getElementById('cartCount');
-    if (el) el.textContent = count;
-};
-
-console.log('✅ تم إصلاح جميع الدوال في Product.html');
-</script>
 
 </body>
 </html>
