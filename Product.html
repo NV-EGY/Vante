@@ -3675,12 +3675,6 @@ window.cart = cart;
 window.appliedCoupon = appliedCoupon;
 window.discountAmount = discountAmount;
 
-// لتجنب الأخطاء في حالة عدم وجود db
-if (typeof db === 'undefined') {
-    var db = null;
-}
-
-console.log('✅ نظام السلة والكوبونات جاهز');
 </script>
 <!-- Custom Confirm Modal -->
 <div id="customConfirmModal" class="confirm-modal">
