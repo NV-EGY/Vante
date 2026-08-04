@@ -1212,6 +1212,66 @@ button:active,
     flex: 1;
     text-align: center;
 }
+/* ===== عناصر السلة والدراور ===== */
+.drawer { position:fixed; top:0; right:-100%; width:380px; max-width:100%; height:100%; background:#fff; box-shadow:-10px 0 40px rgba(0,0,0,.2); padding:25px; transition:.35s ease; z-index:2000; overflow-y:auto; }
+.drawer.active { right:0; }
+.cart-item { display:flex; align-items:center; justify-content:space-between; padding:18px 0; border-bottom:1px solid #f0f0f0; gap:12px; }
+.cart-item:last-child { border-bottom:none; }
+.cart-item-details { flex:1; }
+.cart-item-details strong { display:block; font-size:15px; margin-bottom:4px; }
+.cart-item-details small { color:#888; font-size:13px; }
+.cart-item-price { font-weight:800; font-size:16px; color:#D4AF37; min-width:70px; text-align:left; }
+.qty-controls { display:flex; align-items:center; gap:8px; background:#f8f8f8; padding:4px 10px; border-radius:30px; border:1px solid #eee; }
+.qty-btn { width:28px; height:28px; border-radius:50%; border:none; background:#fff; color:#111; font-size:18px; font-weight:600; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:0.3s; box-shadow:0 2px 8px rgba(0,0,0,0.06); }
+.qty-btn:hover { background:#111; color:#fff; transform:scale(1.05); }
+.qty-value { font-weight:700; font-size:16px; min-width:24px; text-align:center; color:#111; user-select:none; }
+
+/* ===== مودال الدفع ===== */
+.checkout-modal { position:fixed; top:50%; left:50%; transform:translate(-50%, -50%) scale(0.95) translateY(20px); width:92%; max-width:400px; background:#fff; border-radius:24px; box-shadow:0 30px 60px rgba(0,0,0,0.15); z-index:99999; opacity:0; visibility:hidden; transition:all 0.4s cubic-bezier(0.4, 0, 0.2, 1); overflow:hidden; }
+.checkout-modal.active { opacity:1; visibility:visible; transform:translate(-50%, -50%) scale(1) translateY(0); }
+.checkout-header { display:flex; justify-content:space-between; align-items:center; padding:20px 24px; border-bottom:1px solid #f0f0f0; }
+.checkout-header h2 { font-size:22px; font-weight:800; margin:0; }
+.close-modal { width:38px; height:38px; border-radius:50%; border:none; background:#f5f5f5; font-size:20px; cursor:pointer; transition:0.3s; display:flex; align-items:center; justify-content:center; }
+.close-modal:hover { background:#111; color:#fff; }
+.checkout-body { padding:24px; }
+.input-group { margin-bottom:16px; }
+.input-group label { display:block; margin-bottom:6px; font-size:13px; font-weight:700; color:#222; }
+.input-icon { position:relative; display:flex; align-items:center; }
+.input-icon i { position:absolute; right:15px; color:#888; font-size:14px; pointer-events:none; }
+.input-icon input, .input-icon select { width:100%; height:48px; padding:0 45px 0 15px; border:1.5px solid #e5e5e5; border-radius:14px; font-size:14px; background:#fff; outline:none; transition:0.3s; font-family:'Cairo',sans-serif; }
+.input-icon input:focus, .input-icon select:focus { border-color:#D4AF37; box-shadow:0 0 0 3px rgba(212,175,55,0.1); }
+.checkout-btn { width:100%; height:48px; border:none; border-radius:14px; font-size:15px; font-weight:700; cursor:pointer; transition:0.3s; display:flex; align-items:center; justify-content:center; gap:8px; }
+.btn-primary.checkout-btn { background:#111; color:#fff; margin-bottom:12px; }
+.btn-primary.checkout-btn:hover { background:#D4AF37; transform:translateY(-2px); }
+.btn-secondary.checkout-btn { background:#f5f5f5; color:#111; }
+.btn-secondary.checkout-btn:hover { background:#e0e0e0; }
+
+/* ===== مودال التأكيد ===== */
+.confirm-modal { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.75); backdrop-filter:blur(8px); z-index:1000000; display:flex; align-items:center; justify-content:center; opacity:0; visibility:hidden; transition:all 0.3s ease; }
+.confirm-modal.active { opacity:1; visibility:visible; }
+.confirm-modal-content { background:#fff; width:90%; max-width:420px; border-radius:28px; overflow:hidden; box-shadow:0 30px 50px rgba(0,0,0,0.3); transform:scale(0.9); transition:transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); direction:rtl; text-align:center; }
+.confirm-modal.active .confirm-modal-content { transform:scale(1); }
+.confirm-modal-header { background:linear-gradient(135deg, #0a0a0a, #1a1a1a); padding:25px 20px; position:relative; }
+.confirm-modal-header .icon-circle { width:70px; height:70px; background:linear-gradient(135deg, #D4AF37, #FFD700); border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 15px; box-shadow:0 8px 20px rgba(212,175,55,0.3); }
+.confirm-modal-header .icon-circle i { font-size:32px; color:#000; }
+.confirm-modal-header h3 { color:#D4AF37; font-size:22px; margin:0; font-weight:800; }
+.confirm-modal-body { padding:25px 25px 15px; }
+.confirm-modal-body p { color:#333; font-size:16px; line-height:1.7; margin-bottom:10px; }
+.confirm-modal-body .whatsapp-note { background:#f0f9f0; border-right:3px solid #25D366; padding:12px; border-radius:12px; margin:15px 0; font-size:13px; color:#2d6a2d; display:flex; align-items:center; gap:10px; text-align:right; }
+.confirm-modal-body .whatsapp-note i { font-size:20px; color:#25D366; }
+.confirm-modal-buttons { display:flex; gap:12px; margin-top:20px; }
+.confirm-modal-buttons button { flex:1; padding:14px; border:none; border-radius:40px; font-weight:700; font-size:15px; cursor:pointer; transition:all 0.3s ease; }
+.confirm-btn-confirm { background:#111; color:#fff; }
+.confirm-btn-confirm:hover { background:#D4AF37; color:#000; transform:translateY(-2px); }
+.confirm-btn-cancel { background:#f5f5f5; color:#333; }
+.confirm-btn-cancel:hover { background:#e0e0e0; transform:translateY(-2px); }
+
+/* ===== القائمة المنسدلة للأقسام ===== */
+.menu-item { position:relative; }
+.desktop-sub { display:none; position:absolute; top:100%; right:0; background:#fff; border-radius:12px; padding:10px 15px; box-shadow:0 10px 30px rgba(0,0,0,0.1); flex-direction:column; min-width:180px; }
+.desktop-dropdown:hover .desktop-sub { display:flex; }
+.collections-sub { max-height:0; overflow:hidden; display:flex; flex-direction:column; transition:all .45s cubic-bezier(.4,0,.2,1); opacity:0; transform:translateY(-8px); padding-right:10px; }
+.collections-sub.active { max-height:500px; opacity:1; transform:translateY(0); }
     </style>
 </head>
 <body>
@@ -1228,39 +1288,79 @@ button:active,
     <div id="menuOverlay" onclick="toggleMobileMenu(event)"></div>
 
     <nav class="mobile-menu" id="mobileMenu">
-        <div class="mobile-menu-header">
-            <div class="mobile-icons-row">
-                <button class="mobile-icon" onclick="window.location.href='index.html'"><i class="fas fa-home"></i></button>
-            </div>
-            <button class="close-menu" onclick="closeMobileMenu()"><i class="fas fa-times"></i></button>
+    <div class="mobile-menu-header">
+        <div class="mobile-icons-row">
+            <button class="mobile-icon" onclick="window.location.href='index.html'"><i class="fas fa-home"></i></button>
+            <button class="mobile-icon" onclick="openSearch(); closeMobileMenu()"><i class="fas fa-search"></i></button>
         </div>
-        <a href="index.html">الرئيسية</a>
-        <a href="index.html?category=all">جميع المنتجات</a>
-        <a href="index.html?category=necklaces">سلاسل &amp; كوليهات</a>
-        <a href="index.html?category=bracelets">أساور &amp; غوايش</a>
-        <a href="index.html?category=rings">دبل &amp; خواتم</a>
-        <a href="index.html?category=earrings">حلقان</a>
-        <a href="index.html?category=sets">أطقم</a>
-        <a href="index.html?category=anklets">خلخال</a>
-    </nav>
+        <button class="close-menu" onclick="closeMobileMenu()"><i class="fas fa-times"></i></button>
+    </div>
+
+    <a href="index.html?category=all" data-category="all" onclick="event.preventDefault(); closeMobileMenu(); window.location.href='index.html?category=all';">الصفحة الرئيسية</a>
+
+    <div class="menu-item">
+        <a href="#" class="collection-toggle" onclick="toggleCollections(event)">الأقسام <i class="fas fa-chevron-down"></i></a>
+        <div id="collectionsSub" class="collections-sub">
+            <a href="index.html?category=all" data-category="all" onclick="event.preventDefault(); closeMobileMenu(); window.location.href='index.html?category=all';">كل الأقسام</a>
+            <a href="index.html?category=necklaces" data-category="necklaces" onclick="event.preventDefault(); closeMobileMenu(); window.location.href='index.html?category=necklaces';">سلاسل & كوليهات</a>
+            <a href="index.html?category=bracelets" data-category="bracelets" onclick="event.preventDefault(); closeMobileMenu(); window.location.href='index.html?category=bracelets';">أساور & غوايش</a>
+            <a href="index.html?category=rings" data-category="rings" onclick="event.preventDefault(); closeMobileMenu(); window.location.href='index.html?category=rings';">دبل & خواتم</a>
+            <a href="index.html?category=earrings" data-category="earrings" onclick="event.preventDefault(); closeMobileMenu(); window.location.href='index.html?category=earrings';">حلقان</a>
+            <a href="index.html?category=sets" data-category="sets" onclick="event.preventDefault(); closeMobileMenu(); window.location.href='index.html?category=sets';">اطقم</a>
+            <a href="index.html?category=anklets" data-category="anklets" onclick="event.preventDefault(); closeMobileMenu(); window.location.href='index.html?category=anklets';">خلخال</a>
+        </div>
+    </div>
+
+    <a href="#" onclick="openContactModal(event); closeMobileMenu(); return false;">تواصل مع المسئول</a>
+    <a href="#" onclick="openInfoModal(); closeMobileMenu(); return false;">دليل المتسوق</a>
+    
+    <div style="background: #faf7f0; border-radius: 16px; padding: 12px; margin: 15px 0 5px; border-right: 3px solid #D4AF37;">
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+            <div style="background: linear-gradient(135deg, #D4AF37, #B8860B); width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                <i class="fas fa-crown" style="color: #000; font-size: 16px;"></i>
+            </div>
+            <div>
+                <div style="font-weight: 800; color: #B8860B; font-size: 14px;">سلاسل بالأسماء</div>
+                <div style="font-size: 11px; color: #888;">صناعة يدوية حسب الطلب</div>
+            </div>
+        </div>
+        <a href="https://taswekshope-gif.github.io/DAHAP/" target="_blank" rel="noopener noreferrer" onclick="closeMobileMenu()" style="background: linear-gradient(135deg, #D4AF37, #B8860B); color: #000; border-radius: 40px; text-align: center; padding: 8px 12px; display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 700; font-size: 13px; text-decoration: none; width: 100%;">
+            <i class="fas fa-eye"></i> تصفح التصاميم
+            <i class="fas fa-arrow-left"></i>
+        </a>
+    </div>
+</nav>
 
     <nav class="menu">
-        <a href="index.html">الرئيسية</a>
-        <a href="index.html?category=all">جميع المنتجات</a>
-        <a href="index.html?category=necklaces">سلاسل</a>
-        <a href="index.html?category=bracelets">أساور</a>
-        <a href="index.html?category=rings">خواتم</a>
-        <a href="index.html?category=earrings">حلقان</a>
-        <a href="index.html?category=sets">أطقم</a>
-        <a href="index.html?category=anklets">خلخال</a>
-    </nav>
+    <a href="index.html?category=all" data-category="all">كل الأقسام</a>
+    <div class="menu-item desktop-dropdown">
+        <a href="#" onclick="event.preventDefault(); toggleCollections(event)">الأقسام <i class="fas fa-chevron-down"></i></a>
+        <div id="collectionsSubDesktop" class="collections-sub desktop-sub">
+            <a href="index.html?category=all" data-category="all">الأقسام</a>
+            <a href="index.html?category=necklaces" data-category="necklaces">سلاسل & كوليهات</a>
+            <a href="index.html?category=bracelets" data-category="bracelets">أساور & غوايش</a>
+            <a href="index.html?category=rings" data-category="rings">دبل & خواتم</a>
+            <a href="index.html?category=earrings" data-category="earrings">حلقان</a>
+            <a href="index.html?category=sets" data-category="sets">اطقم</a>
+            <a href="index.html?category=anklets" data-category="anklets">خلخال</a>
+        </div>
+    </div>
+    <a href="#" onclick="openContactModal(event)">تواصل مع المسئول</a>
+    <a href="#" onclick="openInfoModal()">دليل المتسوق</a>
+    <a href="https://taswekshope-gif.github.io/DAHAP/" target="_blank" rel="noopener noreferrer" class="marketing-link" style="position: relative;">
+        <i class="fas fa-crown"></i> سلاسل بالأسماء
+        <span style="position: absolute; top: -8px; left: -5px; background: #e74c3c; color: #fff; font-size: 9px; padding: 2px 6px; border-radius: 20px; white-space: nowrap;">
+            حسب الطلب
+        </span>
+    </a>
+</nav>
 
     <div class="icons">
         <button onclick="window.location.href='index.html'"><i class="fas fa-home"></i></button>
-        <button onclick="window.location.href='index.html'">
-            <i class="fas fa-shopping-bag"></i>
-            <span class="cart-count" id="cartCount">0</span>
-        </button>
+        <button onclick="openCart()">
+    <i class="fas fa-shopping-bag"></i>
+    <span class="cart-count" id="cartCount">0</span>
+</button>
     </div>
 </header>
 
@@ -1452,6 +1552,85 @@ button:active,
     <h2 class="flame-title">✨ الأكثر مبيعاً</h2>
     <div class="products-grid" id="bestSellers"></div>
 </section>
+
+<!-- Cart Drawer -->
+<div id="cartDrawer" class="drawer">
+    <h2>🛒 سلة التسوق</h2>
+    <div id="cartItems">السلة فارغة</div>
+    <div class="total">الإجمالي: <span id="total">0</span> جنيه</div>
+    <!-- كوبون الخصم -->
+    <div style="margin: 15px 0;">
+        <div style="display: flex; gap: 10px; align-items: center; justify-content: space-between; background: #f5f5f5; padding: 8px; border-radius: 40px;">
+            <input type="text" id="couponInput" placeholder="أدخل كود الخصم" style="flex: 1; background: transparent; border: none; padding: 12px; outline: none;">
+            <button id="applyCouponBtn" style="background: #D4AF37; border: none; border-radius: 30px; padding: 8px 16px; font-weight: bold; cursor: pointer;">تطبيق</button>
+        </div>
+        <button onclick="removeCoupon()" style="background: none; border: none; color: #c0392b; font-size: 12px;">إلغاء الخصم</button>
+        <div id="couponMessage" style="font-size: 12px; margin-top: 6px; color: #D4AF37;"></div>
+    </div>
+    <button class="btn-primary" onclick="openCheckout()">تأكيد الطلب</button>
+    <button class="btn-secondary" onclick="closeCart()">إغلاق</button>
+</div>
+
+<!-- Overlay -->
+<div id="overlay" onclick="closeCart()"></div>
+
+<!-- Checkout Modal -->
+<div id="checkoutModal" class="checkout-modal">
+    <div class="checkout-header">
+        <h2>إتمام الطلب</h2>
+        <button class="close-modal" onclick="closeCheckout()">&times;</button>
+    </div>
+    <div class="checkout-body">
+        <div class="input-group">
+            <label>الاسم كامل</label>
+            <div class="input-icon">
+                <i class="fas fa-user"></i>
+                <input id="name" type="text" placeholder="أدخل اسمك الكامل">
+            </div>
+        </div>
+        <div class="input-group">
+            <label>رقم الهاتف</label>
+            <div class="input-icon">
+                <i class="fas fa-phone"></i>
+                <input id="phone" type="tel" placeholder="01XXXXXXXXX">
+            </div>
+        </div>
+        <div class="input-group">
+            <label>المحافظة</label>
+            <div class="input-icon">
+                <i class="fas fa-map-marker-alt"></i>
+                <select id="governorate" required>
+                    <option value="" selected disabled>اختر المحافظة</option>
+                </select>
+            </div>
+        </div>
+        <div class="input-group">
+            <label>المدينة</label>
+            <div class="input-icon">
+                <i class="fas fa-city"></i>
+                <select id="city" required disabled>
+                    <option value="" selected disabled>اختر المدينة</option>
+                </select>
+            </div>
+        </div>
+        <div class="input-group">
+            <label>العنوان بالتفصيل</label>
+            <div class="input-icon">
+                <i class="fas fa-home"></i>
+                <input id="address" type="text" placeholder="اسم الشارع - رقم المنزل - الدور">
+            </div>
+        </div>
+        <div id="shippingDiscountMessage" style="display:none; background:#e8f5e9; border-right:3px solid #2ecc71; padding:10px; border-radius:12px; margin:10px 0; text-align:center;">
+            🎉 <strong>تهانينا!</strong> حصلت على شحن مخفض (أو مجاني) لأن طلبك تجاوز الحد الأدنى.
+        </div>
+        <button class="btn-primary checkout-btn" onclick="checkout()">
+            <i class="fas fa-check-circle"></i> تأكيد الطلب
+        </button>
+        <button class="btn-secondary checkout-btn" onclick="closeCheckout()">
+            رجوع للتسوق
+        </button>
+    </div>
+</div>
 
 <!-- ============================================
      FOOTER
@@ -2384,6 +2563,596 @@ document.head.appendChild(styleShake);
 
 console.log('✅ VANTÉ Product Page loaded successfully');
 </script>
+
+<script>
+// =====================================================
+//   SYSTEM: CART, CHECKOUT, COUPONS (من الصفحة الرئيسية)
+// =====================================================
+
+// ----- متغيرات عامة -----
+let cart = JSON.parse(localStorage.getItem('vante_cart') || '[]');
+let appliedCoupon = null;
+let discountAmount = 0;
+
+// ----- تحديث السلة وعناصر الواجهة -----
+function updateCart() {
+    let total = 0, count = 0;
+    const html = cart.map((item, index) => {
+        total += item.price * item.qty;
+        count += item.qty;
+        const product = window.allProducts ? window.allProducts.find(p => p.id === item.id) : null;
+        let maxStock = -1; // -1 = غير محدود
+        if (product && product.stockBySize && item.size) {
+            const stockValue = product.stockBySize[item.size];
+            if (stockValue !== null && stockValue !== undefined) maxStock = stockValue;
+        }
+        const isUnlimited = (maxStock === -1);
+        const maxedOut = (!isUnlimited && item.qty >= maxStock);
+
+        return `<div class="cart-item">
+            <div class="cart-item-details">
+                <strong>${item.name}</strong>
+                <small>المقاس: ${item.size} ${isUnlimited ? '<span style="color:#800080;"> (كمية غير محدودة)</span>' : ''}</small>
+            </div>
+            <div class="qty-controls">
+                <button class="qty-btn" onclick="changeQty(${index},-1)">−</button>
+                <span class="qty-value">${item.qty}</span>
+                <button class="qty-btn" onclick="changeQty(${index},1)" ${maxedOut ? 'disabled style="opacity:0.4; cursor:not-allowed; background:#eee; color:#999;"' : ''}>+</button>
+            </div>
+            <div class="cart-item-price" style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
+                ${(item.comparePrice && item.comparePrice > item.price) ? `
+                    <span style="color:#D4AF37; font-weight:900; font-size: 18px;">${item.price * item.qty} EGP</span>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <span style="text-decoration:line-through; color:#999; font-size: 12px;">${item.comparePrice * item.qty} EGP</span>
+                        <span style="background:#D4AF37; padding: 2px 6px; border-radius: 12px; font-size: 10px; color:#000;">-${Math.round((1 - item.price / item.comparePrice) * 100)}%</span>
+                    </div>
+                ` : `
+                    <span style="color:#D4AF37; font-weight:900; font-size: 18px;">${item.price * item.qty} EGP</span>
+                `}
+            </div>
+        </div>`;
+    }).join("");
+
+    document.getElementById("cartItems").innerHTML = html || "السلة فارغة";
+    document.getElementById("total").innerText = total;
+    document.getElementById("cartCount").innerText = count;
+    localStorage.setItem('vante_cart', JSON.stringify(cart));
+    updateCartWithCoupon(); // تطبيق الخصم إن وجد
+}
+
+// ----- تغيير الكمية -----
+function changeQty(index, change) {
+    const item = cart[index];
+    if (!item) return;
+    if (change > 0) {
+        const product = window.allProducts ? window.allProducts.find(p => p.id === item.id) : null;
+        if (product && product.stockBySize && product.stockBySize[item.size] !== undefined) {
+            const stockValue = product.stockBySize[item.size];
+            if (stockValue !== null && stockValue !== undefined && item.qty + change > stockValue) {
+                showToast(`❌ الكمية المتاحة لمقاس ${item.size} هي ${stockValue} قطعة فقط.`, 'error');
+                return;
+            }
+        }
+    }
+    item.qty += change;
+    if (item.qty <= 0) cart.splice(index, 1);
+    updateCart();
+}
+
+// ----- فتح/إغلاق السلة -----
+function openCart() {
+    document.getElementById("cartDrawer").classList.add("active");
+    document.getElementById("overlay").classList.add("active");
+    document.body.style.overflow = 'hidden';
+}
+function closeCart() {
+    document.getElementById("cartDrawer").classList.remove("active");
+    document.getElementById("overlay").classList.remove("active");
+    document.body.style.overflow = '';
+}
+
+// ----- فتح/إغلاق مودال الدفع -----
+function openCheckout() {
+    document.getElementById("checkoutModal").classList.add("active");
+    document.getElementById("overlay").classList.add("active");
+}
+function closeCheckout() {
+    document.getElementById("checkoutModal").classList.remove("active");
+    document.getElementById("overlay").classList.remove("active");
+}
+
+// ----- تحديث السلة مع الكوبونات -----
+function updateCartWithCoupon() {
+    if (appliedCoupon) {
+        const now = new Date();
+        if (appliedCoupon.expiryDate?.toDate && appliedCoupon.expiryDate.toDate() < now) {
+            appliedCoupon = null;
+            discountAmount = 0;
+            document.getElementById("couponMessage").innerHTML = "⚠️ انتهت صلاحية الكوبون";
+        } else if (appliedCoupon.maxUses && appliedCoupon.usedCount >= appliedCoupon.maxUses) {
+            appliedCoupon = null;
+            discountAmount = 0;
+            document.getElementById("couponMessage").innerHTML = "⚠️ تم استخدام هذا الكوبون أقصى عدد من المرات";
+        }
+    }
+
+    let subtotal = 0;
+    let subtotalDiscountable = 0;
+    cart.forEach(item => {
+        subtotal += item.price * item.qty;
+        const product = window.allProducts ? window.allProducts.find(p => p.id === item.id) : null;
+        if (product && product.discountable !== false) subtotalDiscountable += item.price * item.qty;
+    });
+
+    let finalTotal = subtotal;
+    discountAmount = 0;
+    if (appliedCoupon && appliedCoupon.isActive !== false) {
+        let isValid = true;
+        if (appliedCoupon.expiryDate?.toDate && appliedCoupon.expiryDate.toDate() < new Date()) isValid = false;
+        if (isValid && appliedCoupon.maxUses && appliedCoupon.usedCount >= appliedCoupon.maxUses) isValid = false;
+
+        if (isValid) {
+            if (appliedCoupon.appliesTo === "all") {
+                if (appliedCoupon.discountType === "percentage") {
+                    discountAmount = (subtotalDiscountable * appliedCoupon.discountValue) / 100;
+                } else {
+                    discountAmount = appliedCoupon.discountValue;
+                }
+                discountAmount = Math.min(discountAmount, subtotalDiscountable);
+            }
+            else if (appliedCoupon.appliesTo === "random") {
+                if (!appliedCoupon.randomProductId) {
+                    const eligibleItems = cart.filter(item => {
+                        const product = window.allProducts ? window.allProducts.find(p => p.id === item.id) : null;
+                        return item.id && product && product.discountable !== false;
+                    });
+                    if (eligibleItems.length === 0) {
+                        discountAmount = 0;
+                        appliedCoupon = null;
+                        document.getElementById("couponMessage").innerHTML = "⚠️ لا يوجد منتج قابل للخصم لتطبيق الخصم العشوائي";
+                    } else {
+                        const randomIndex = Math.floor(Math.random() * eligibleItems.length);
+                        const randomItem = eligibleItems[randomIndex];
+                        appliedCoupon.randomProductId = randomItem.id;
+                    }
+                }
+                if (appliedCoupon.randomProductId) {
+                    let productUnitPrice = 0;
+                    for (let item of cart) {
+                        if (item.id === appliedCoupon.randomProductId) {
+                            productUnitPrice = item.price;
+                            break;
+                        }
+                    }
+                    if (productUnitPrice > 0) {
+                        if (appliedCoupon.discountType === "percentage") {
+                            discountAmount = (productUnitPrice * appliedCoupon.discountValue) / 100;
+                        } else {
+                            discountAmount = Math.min(appliedCoupon.discountValue, productUnitPrice);
+                        }
+                        discountAmount = Math.min(discountAmount, productUnitPrice);
+                    } else {
+                        discountAmount = 0;
+                    }
+                } else {
+                    discountAmount = 0;
+                }
+            }
+        } else {
+            appliedCoupon = null;
+        }
+    }
+
+    finalTotal = subtotal - discountAmount;
+    const totalEl = document.getElementById("total");
+    if (totalEl) totalEl.innerText = finalTotal.toFixed(2);
+
+    const couponMsg = document.getElementById("couponMessage");
+    if (couponMsg) {
+        if (appliedCoupon && discountAmount > 0) {
+            if (appliedCoupon.appliesTo === "random" && appliedCoupon.randomProductId) {
+                const product = window.allProducts ? window.allProducts.find(p => p.id === appliedCoupon.randomProductId) : null;
+                const productName = product ? product.name : "منتج غير معروف";
+                couponMsg.innerHTML = `🎟️ كود "${appliedCoupon.code}" خصم ${discountAmount.toFixed(2)} جنيه على منتج عشوائي: ${productName} <button onclick="removeCoupon()" style="background:none; border:none; color:#c0392b; cursor:pointer;">❌</button>`;
+            } else {
+                couponMsg.innerHTML = `🎟️ كود "${appliedCoupon.code}" خصم ${discountAmount.toFixed(2)} جنيه <button onclick="removeCoupon()" style="background:none; border:none; color:#c0392b; cursor:pointer;">❌</button>`;
+            }
+        } else if (appliedCoupon && discountAmount === 0) {
+            couponMsg.innerHTML = `⚠️ الكود غير صالح لهذه السلة (قد تكون المنتجات غير قابلة للخصم)`;
+        } else {
+            couponMsg.innerHTML = "";
+        }
+    }
+    return finalTotal;
+}
+
+// ----- تطبيق الكوبون -----
+async function applyCoupon(code) {
+    if (!code) { showToast("أدخل كود الخصم أولاً", "warning"); return false; }
+    try {
+        const { collection, query, where, getDocs } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+        const q = query(collection(db, "coupons"), where("code", "==", code.toUpperCase()));
+        const snapshot = await getDocs(q);
+        if (snapshot.empty) {
+            showToast("❌ كود الخصم غير صالح", "error");
+            return false;
+        }
+        const coupon = { id: snapshot.docs[0].id, ...snapshot.docs[0].data() };
+        const now = new Date();
+        if (!coupon.isActive) { showToast("الكود غير نشط حالياً", "error"); return false; }
+        if (coupon.expiryDate?.toDate && coupon.expiryDate.toDate() < now) { showToast("انتهت صلاحية الكود", "error"); return false; }
+        if (coupon.maxUses && coupon.usedCount >= coupon.maxUses) { showToast("تم استخدام هذا الكود أقصى عدد مرات", "error"); return false; }
+        
+        appliedCoupon = coupon;
+        if (appliedCoupon.appliesTo === "random") appliedCoupon.randomProductId = null;
+        discountAmount = 0;
+        updateCartWithCoupon();
+        showToast(`✅ تم تطبيق كود ${coupon.code}`, "success");
+        return true;
+    } catch (e) {
+        console.error(e);
+        showToast("❌ حدث خطأ أثناء تطبيق الكود", "error");
+        return false;
+    }
+}
+
+function removeCoupon() {
+    appliedCoupon = null;
+    discountAmount = 0;
+    updateCartWithCoupon();
+    document.getElementById("couponMessage").innerHTML = "";
+    showToast("تم إلغاء الخصم", "info");
+}
+
+// ----- ربط زر تطبيق الكوبون -----
+document.addEventListener("DOMContentLoaded", function() {
+    const applyBtn = document.getElementById("applyCouponBtn");
+    if (applyBtn) {
+        applyBtn.addEventListener("click", async function() {
+            const code = document.getElementById("couponInput").value.trim();
+            if (await applyCoupon(code)) {
+                document.getElementById("couponInput").value = "";
+            }
+        });
+    }
+});
+
+// ----- إتمام الطلب (Checkout) مع مودال التأكيد -----
+async function checkout() {
+    if (!cart.length) { showToast("السلة فارغة", "warning"); return; }
+    const name = document.getElementById("name").value.trim();
+    const phone = document.getElementById("phone").value.trim();
+    const gov = document.getElementById("governorate").value;
+    const city = document.getElementById("city").value;
+    const address = document.getElementById("address").value.trim();
+
+    if (!name || !phone || !gov || !city || !address) {
+        showToast("يرجى استكمال جميع بيانات الطلب", "warning");
+        return;
+    }
+    const phoneRegex = /^01[0125][0-9]{8}$/;
+    if (!phoneRegex.test(phone)) {
+        showToast("يرجى إدخال رقم هاتف مصري صحيح (11 رقم، يبدأ بـ 01)", "error");
+        return;
+    }
+
+    // عرض مودال التأكيد
+    return new Promise((resolve) => {
+        const modal = document.getElementById("customConfirmModal");
+        const confirmBtn = document.getElementById("confirmOkBtn");
+        const cancelBtn = document.getElementById("confirmCancelBtn");
+
+        const cleanup = () => {
+            modal.classList.remove("active");
+            confirmBtn.removeEventListener("click", handleConfirm);
+            cancelBtn.removeEventListener("click", handleCancel);
+            document.removeEventListener("click", outsideClick);
+        };
+
+        const handleConfirm = () => { cleanup(); resolve(true); executeCheckout(); };
+        const handleCancel = () => { cleanup(); resolve(false); };
+        const outsideClick = (e) => { if (e.target === modal) handleCancel(); };
+
+        confirmBtn.addEventListener("click", handleConfirm);
+        cancelBtn.addEventListener("click", handleCancel);
+        document.addEventListener("click", outsideClick);
+        modal.classList.add("active");
+    });
+}
+
+async function executeCheckout() {
+    const btn = document.querySelector("#checkoutModal .btn-primary");
+    const name = document.getElementById("name").value.trim();
+    const phone = document.getElementById("phone").value.trim();
+    const gov = document.getElementById("governorate").value;
+    const city = document.getElementById("city").value;
+    const address = document.getElementById("address").value.trim();
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التحويل إلى واتساب...';
+
+    try {
+        // تحديث productId في السلة
+        for (let item of cart) {
+            if (!item.id && item.name) {
+                const product = window.allProducts ? window.allProducts.find(p => p.name === item.name) : null;
+                if (product) item.id = product.id;
+            }
+        }
+        localStorage.setItem('vante_cart', JSON.stringify(cart));
+
+        const savedCoupon = appliedCoupon ? { ...appliedCoupon } : null;
+        const savedDiscount = discountAmount;
+        const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+
+        // حساب الشحن
+        let customerShippingFee = 70;
+        let storeShippingCost = 70;
+        let discountApplied = false;
+        try {
+            const { getDocs, query, where, doc, getDoc, collection } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+            const shippingRateSnap = await getDocs(query(collection(db, "shippingRates"), where("gov", "==", gov)));
+            if (!shippingRateSnap.empty) {
+                const rate = shippingRateSnap.docs[0].data();
+                customerShippingFee = rate.customerFee || 70;
+                storeShippingCost = rate.costForStore || 70;
+            }
+            const discountSettingsSnap = await getDoc(doc(db, "settings", "shipping_discount"));
+            if (discountSettingsSnap.exists()) {
+                const settings = discountSettingsSnap.data();
+                if (settings.enabled === true && subtotal >= (Number(settings.threshold) || 0)) {
+                    customerShippingFee = Number(settings.discounted_shipping) ?? 0;
+                    discountApplied = true;
+                }
+            }
+        } catch(e) { console.warn(e); }
+
+        if (discountApplied) {
+            const msgDiv = document.getElementById("shippingDiscountMessage");
+            if (msgDiv) msgDiv.style.display = "block";
+        }
+
+        const finalTotalBefore = subtotal + customerShippingFee;
+        const finalTotalAfter = finalTotalBefore - savedDiscount;
+
+        // إنشاء رقم الطلب
+        const { collection: coll, addDoc, serverTimestamp, getDocs: getDocs2, query: query2, where: where2, doc: doc2, setDoc, updateDoc, increment: inc, getDoc: getDoc2 } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+        const ordersRef = coll(db, "orders");
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        const dateStr = `${yyyy}${mm}${dd}`;
+
+        const qCustomer = query2(ordersRef, where2("phone", "==", phone));
+        const customerSnapshot = await getDocs2(qCustomer);
+        const customerOrderCount = customerSnapshot.size + 1;
+
+        const qToday = query2(ordersRef, where2("date", "==", dateStr));
+        const todaySnapshot = await getDocs2(qToday);
+        const dailyOrderCount = todaySnapshot.size + 1;
+
+        const customersRef = coll(db, "customers");
+        const qCustomerDoc = query2(customersRef, where2("phone", "==", phone));
+        const customerDocSnap = await getDocs2(qCustomerDoc);
+
+        let customerCode;
+        if (!customerDocSnap.empty) {
+            customerCode = customerDocSnap.docs[0].data().customerCode;
+        } else {
+            const counterRef = doc2(db, "counters", "customers");
+            const counterSnap = await getDoc2(counterRef);
+            if (!counterSnap.exists()) await setDoc(counterRef, { value: 0 });
+            await updateDoc(counterRef, { value: inc(1) });
+            const newCustomerNumber = (await getDoc2(counterRef)).data().value;
+            customerCode = `V${newCustomerNumber}`;
+            await setDoc(doc2(db, "customers", phone), {
+                phone, name, customerCode, createdAt: serverTimestamp()
+            });
+        }
+
+        const orderID = `${customerCode}-${dateStr}${customerOrderCount}${String(dailyOrderCount).padStart(3, '0')}`;
+
+        const orderDetails = cart.map(item => ({
+            productId: item.id,
+            sku: item.sku || null,
+            name: item.name,
+            size: item.size || "",
+            qty: item.qty,
+            price: item.price,
+            image: item.image || "",
+            costPrice: 0
+        }));
+
+        const totalCost = 0;
+
+        let message = `🛍️ طلب جديد - VANTÉ\n\n`;
+        message += `📦 رقم الطلب: ${orderID}\n`;
+        message += `👤 الاسم: ${name}\n`;
+        message += `📱 الهاتف: ${phone}\n`;
+        message += `📍 المحافظة: ${gov}\n`;
+        message += `🏙️ المدينة: ${city}\n`;
+        message += `🏠 العنوان: ${address}\n\n`;
+
+        cart.forEach(item => {
+            message += `• ${item.name}\n`;
+            if (item.sku) message += `🔖 SKU: ${item.sku}\n`;
+            message += `المقاس: ${item.size}\n`;
+            message += `الكمية: ${item.qty}\n`;
+            message += `السعر: ${item.price * item.qty} جنيه\n\n`;
+        });
+
+        message += `🚚 الشحن: ${customerShippingFee} جنيه\n`;
+        if (savedCoupon && savedDiscount > 0) {
+            message += `🎟️ خصم (${savedCoupon.code}): -${savedDiscount} جنيه\n`;
+            message += `💰 الإجمالي بعد الخصم: ${finalTotalAfter} جنيه\n`;
+        } else {
+            message += `💰 الإجمالي: ${finalTotalBefore} جنيه\n`;
+        }
+
+        // حفظ الطلب
+        const orderData = {
+            orderID,
+            customerName: name,
+            phone,
+            gov,
+            city,
+            address,
+            orderDetails,
+            quantity: cart.reduce((sum, i) => sum + i.qty, 0),
+            price: subtotal,
+            shipping: customerShippingFee,
+            shippingCostPaid: storeShippingCost,
+            finalTotal: finalTotalAfter,
+            status: "new",
+            date: dateStr,
+            stockDeducted: true,
+            stockRestored: false,
+            createdAt: serverTimestamp(),
+            originalCreatedAt: serverTimestamp(),
+            totalCost: totalCost,
+            profit: finalTotalAfter - totalCost - storeShippingCost
+        };
+        if (savedCoupon) {
+            orderData.coupon = {
+                code: savedCoupon.code,
+                discountType: savedCoupon.discountType,
+                discountValue: savedCoupon.discountValue,
+                appliesTo: savedCoupon.appliesTo,
+                productId: savedCoupon.productId || null,
+                discountAmount: savedDiscount,
+                finalTotal: finalTotalAfter
+            };
+        }
+        await addDoc(ordersRef, orderData);
+
+        // تحديث استخدام الكوبون
+        if (appliedCoupon) {
+            const couponRef = doc2(db, "coupons", appliedCoupon.id);
+            await updateDoc(couponRef, { usedCount: inc(1) });
+            appliedCoupon = null;
+            discountAmount = 0;
+        }
+
+        // خصم المخزون
+        const stockUpdates = {};
+        cart.forEach(item => {
+            const product = window.allProducts ? window.allProducts.find(p => p.id === item.id) : null;
+            if (product && product.stockBySize && product.stockBySize[item.size] !== undefined) {
+                const currentStock = product.stockBySize[item.size];
+                if (currentStock === null || currentStock === undefined) return;
+                if (!stockUpdates[item.id]) stockUpdates[item.id] = {};
+                stockUpdates[item.id][item.size] = (stockUpdates[item.id][item.size] || 0) + item.qty;
+            }
+        });
+        for (const [productId, sizes] of Object.entries(stockUpdates)) {
+            const product = window.allProducts ? window.allProducts.find(p => p.id === productId) : null;
+            if (!product) continue;
+            const newStockBySize = { ...product.stockBySize };
+            for (const [size, qty] of Object.entries(sizes)) {
+                if (newStockBySize[size] !== null && newStockBySize[size] !== undefined) {
+                    newStockBySize[size] = Math.max(0, (newStockBySize[size] || 0) - qty);
+                }
+            }
+            await updateDoc(doc2(db, "products", productId), { stockBySize: newStockBySize });
+        }
+        for (const [productId, sizes] of Object.entries(stockUpdates)) {
+            const totalQty = Object.values(sizes).reduce((sum, q) => sum + q, 0);
+            await updateDoc(doc2(db, "products", productId), { salesCount: inc(totalQty) });
+        }
+
+        // إرسال واتساب
+        const phoneNumber = "201106018685";
+        const encodedMessage = encodeURIComponent(message);
+        const appUrl = `whatsapp://send?phone=${phoneNumber}&text=${encodedMessage}`;
+        const webUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
+
+        showToast("✅ تم حفظ طلبك بنجاح! سيتم تحويلك إلى واتساب.", "success");
+        window.location.href = appUrl;
+        setTimeout(() => {
+            if (!document.hidden) window.open(webUrl, "_blank");
+        }, 2500);
+
+        cart = [];
+        localStorage.removeItem('vante_cart');
+        updateCart();
+        closeCheckout();
+        closeCart();
+
+    } catch (error) {
+        console.error(error);
+        showToast("❌ حدث خطأ أثناء إرسال الطلب. حاول مرة أخرى.", "error");
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-check-circle"></i> تأكيد الطلب';
+    }
+}
+
+// ----- دوال مساعدة (مودال تأكيد، تواصل، دليل) -----
+// (يجب أن تكون موجودة بالفعل من القائمة الجديدة، لكن نضيفها للاحتياط)
+function openContactModal(e) {
+    if (e) e.preventDefault();
+    // سيتم استدعاؤها من القائمة، لكن لا يوجد مودال تواصل في Product.html
+    // يمكنك إضافته إذا أردت، أو توجيه المستخدم إلى الصفحة الرئيسية
+    window.location.href = 'index.html';
+}
+function openInfoModal() {
+    window.location.href = 'index.html';
+}
+function toggleCollections(e) {
+    if (e) e.preventDefault();
+    const mobileSub = document.getElementById("collectionsSub");
+    if (mobileSub) mobileSub.classList.toggle("active");
+    const desktopSub = document.getElementById("collectionsSubDesktop");
+    if (desktopSub) desktopSub.classList.toggle("active");
+}
+function closeMobileMenu() {
+    document.getElementById("mobileMenu").classList.remove("active");
+    document.getElementById("menuOverlay").classList.remove("active");
+    document.body.style.overflow = "";
+}
+function openSearch() {
+    window.location.href = 'index.html';
+}
+
+// ----- استدعاء updateCart عند التحميل -----
+document.addEventListener("DOMContentLoaded", function() {
+    updateCart();
+    // ربط دوال المحافظات والمدن (مستوردة من index.html)
+    // إذا كنت تريدها تعمل محلياً، أنسخ دوال المحافظات من index.html هنا.
+    // لكن بما أننا نستخدم نفس الـ Firebase وكل شيء، يمكن تركها كما هي.
+});
+
+// لتجنب الأخطاء في حالة عدم وجود db (سيتم تعيينه من loadProduct)
+if (typeof db === 'undefined') {
+    var db = null;
+}
+</script>
+<!-- Custom Confirm Modal -->
+<div id="customConfirmModal" class="confirm-modal">
+    <div class="confirm-modal-content">
+        <div class="confirm-modal-header">
+            <div class="icon-circle">
+                <i class="fas fa-shopping-bag"></i>
+            </div>
+            <h3>تأكيد الطلب</h3>
+        </div>
+        <div class="confirm-modal-body">
+            <p>سيتم تحويلك إلى <strong style="color:#25D366;">واتساب</strong> لإرسال الطلب وتأكيده.</p>
+            <div class="whatsapp-note">
+                <i class="fab fa-whatsapp"></i>
+                <div>
+                    <strong>⚠️ مهم جداً:</strong> بعد التحويل، يرجى الضغط على زر الإرسال <strong style="background:#25D366; color:#fff; padding:2px 8px; border-radius:20px;">➤</strong> في واتساب لتأكيد طلبك.
+                </div>
+            </div>
+            <p>هل أنت مستعد لإتمام الطلب؟</p>
+        </div>
+        <div class="confirm-modal-buttons">
+            <button class="confirm-btn-cancel" id="confirmCancelBtn">إلغاء</button>
+            <button class="confirm-btn-confirm" id="confirmOkBtn">✅ نعم، أكمل الطلب</button>
+        </div>
+    </div>
+</div>
 
 </body>
 </html>
