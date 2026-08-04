@@ -2417,6 +2417,8 @@ async function loadProduct() {
         await loadApprovedReviews(db);
         displayReviews(product.id);
         updateReviewBadges();
+        // ==== تحديث السلة بعد تحميل المنتجات ====
+updateCart();
 
         // ===== المقاسات =====
         const sizes = product.sizes || ['7', '8', '9'];
@@ -3429,15 +3431,24 @@ const infoContent = {
     shipping: `
         <h4>📦 سياسة الشحن</h4>
         <p>نشحن إلى جميع محافظات مصر عبر شركات شحن موثوقة. مدة التوصيل من 3 إلى 7 أيام عمل حسب المحافظة.</p>
-        <p>تكلفة الشحن: (مجاني للطلبات فوق 1000 جنيه).</p>
-        <h4>🔄 سياسة الإرجاع والاستبدال</h4>
+        <p><strong>تكلفة الشحن:</strong> (مجاني للطلبات فوق 1000 جنيه).</p>
+        <h4 style="margin-top:25px;">🔄 سياسة الإرجاع والاستبدال</h4>
         <p>يحق لك استبدال أو إرجاع المنتج خلال 14 يومًا من تاريخ الاستلام بشرط أن يكون بحالته الأصلية والتغليف سليم.</p>
         <p>لبدء عملية الإرجاع، يرجى التواصل مع خدمة العملاء عبر رقم الواتساب او "تواصل مع المسئول".</p>
-        <p>ملاحظة: تكاليف الشحن للإرجاع يتحملها العميل إلا في حالة وجود عيب صناعي.</p>
+        <p><strong>ملاحظة:</strong> تكاليف الشحن للإرجاع يتحملها العميل إلا في حالة وجود عيب صناعي.</p>
     `,
     size: `
         <h4>📏 دليل المقاسات</h4>
-        <p>يمكنك الاطلاع على دليل المقاسات في تبويب "المقاسات" أسفل المنتج.</p>
+        <p>يمكنك الاطلاع على دليل المقاسات المفصل في تبويب <strong>"المقاسات"</strong> أسفل المنتج.</p>
+        <p>إذا كنت غير متأكد من المقاس المناسب، يمكنك التواصل معنا وسنساعدك في الاختيار.</p>
+        <div style="background:#f9f8f6; border-radius:12px; padding:15px; margin-top:15px; border-right:3px solid #D4AF37;">
+            <p><strong>💡 نصيحة سريعة:</strong></p>
+            <ul style="padding-right:20px; margin:10px 0;">
+                <li>الخواتم: قيسي قطر الخاتم المناسب ليدك.</li>
+                <li>الأساور: قيسي محيط رسغك.</li>
+                <li>السلاسل: اختاري الطول المناسب حسب رغبتك.</li>
+            </ul>
+        </div>
     `,
     packaging: `
         <h4>🎁 تغليف فاخر</h4>
@@ -3446,7 +3457,12 @@ const infoContent = {
             <li>✨ <strong>علبة فاخرة بملمس مخملي</strong> تمنح إحساسًا بالترف الحقيقي.</li>
             <li>🎨 <strong>تصميم داخلي أنيق</strong> يثبت القطعة بأمان ويبرز جمالها.</li>
             <li>🛡️ <strong>خامات قوية عالية الجودة</strong> لحماية المجوهرات من الخدوش.</li>
+            <li>🎁 <strong>تجربة فتح مميزة</strong> تضيف لمسة فخامة مثالية للهدايا.</li>
         </ul>
+        <div style="background:#f9f8f6; border-radius:12px; padding:15px; margin-top:15px; text-align:center; border:1px dashed #D4AF37;">
+            <i class="fas fa-gift" style="font-size:48px; color:#D4AF37; margin-bottom:10px; display:block;"></i>
+            <p style="color:#888; font-size:13px;">تغليف فاخر يناسب جميع المناسبات</p>
+        </div>
     `,
     faq: `
         <div class="faq-item">
@@ -3469,14 +3485,32 @@ const infoContent = {
             <div class="faq-question">❓ هل يمكن تغيير المقاس بعد الشراء؟ <i class="fas fa-chevron-down"></i></div>
             <div class="faq-answer">نعم، يمكنك استبدال المقاس خلال 14 يومًا من الاستلام بشرط أن يكون المنتج غير مستخدم، مع تحمل مصاريف الشحن.</div>
         </div>
+        <div class="faq-item">
+            <div class="faq-question">❓ كيف يمكنني التواصل مع الدعم؟ <i class="fas fa-chevron-down"></i></div>
+            <div class="faq-answer">يمكنك التواصل عبر زر "تواصل مع المسئول" في القائمة، أو عبر واتساب على الرقم <strong dir="ltr">+20 110 601 8685</strong>.</div>
+        </div>
     `
 };
 
 let currentTab = 'shipping';
 function renderInfoTab(tabId) {
     const body = document.getElementById('infoBody');
-    if (!body) return;
-    body.innerHTML = infoContent[tabId] || infoContent.shipping;
+    if (!body) {
+        console.warn('⚠️ عنصر infoBody غير موجود');
+        return;
+    }
+    
+    // التأكد من وجود محتوى للتبويب المطلوب
+    const content = infoContent[tabId];
+    if (!content) {
+        console.warn(`⚠️ لا يوجد محتوى للتبويب: ${tabId}`);
+        body.innerHTML = `<p style="color:#888;">المحتوى غير متوفر حالياً</p>`;
+        return;
+    }
+    
+    body.innerHTML = content;
+    
+    // إذا كان التبويب هو الأسئلة الشائعة، نربط الأحداث
     if (tabId === 'faq') {
         document.querySelectorAll('.faq-question').forEach(q => {
             q.addEventListener('click', function() {
@@ -3605,20 +3639,23 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
 
-    // ربط التبويبات في دليل المتسوق
-    document.querySelectorAll('.info-tab').forEach(tab => {
-        tab.addEventListener('click', function() {
-            document.querySelectorAll('.info-tab').forEach(t => t.classList.remove('active'));
-            this.classList.add('active');
-            currentTab = this.dataset.tab;
-            renderInfoTab(currentTab);
-        });
+// ربط التبويبات في دليل المتسوق
+document.querySelectorAll('.info-tab').forEach(tab => {
+    tab.addEventListener('click', function() {
+        document.querySelectorAll('.info-tab').forEach(t => t.classList.remove('active'));
+        this.classList.add('active');
+        currentTab = this.dataset.tab;
+        renderInfoTab(currentTab);
     });
-    
-    // تعبئة المحتوى الافتراضي
-    if (document.getElementById('infoBody')) {
-        renderInfoTab('shipping');
-    }
+});
+
+// تعبئة المحتوى الافتراضي للتبويب النشط
+const activeTab = document.querySelector('.info-tab.active');
+if (activeTab) {
+    renderInfoTab(activeTab.dataset.tab || 'shipping');
+} else {
+    renderInfoTab('shipping');
+}
     
     // تحديث السلة
     updateCart();
