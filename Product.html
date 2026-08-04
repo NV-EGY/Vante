@@ -2841,6 +2841,12 @@ let discountAmount = 0;
 
 // ----- تحديث السلة وعناصر الواجهة -----
 function updateCart() {
+    // ✅ التحقق من وجود المنتجات قبل التحديث
+    if (!window.allProducts || window.allProducts.length === 0) {
+        console.log('⏳ المنتجات لم تكتمل تحميلها بعد، تأجيل تحديث السلة');
+        return;
+    }
+    
     let total = 0, count = 0;
     const html = cart.map((item, index) => {
         total += item.price * item.qty;
@@ -3655,8 +3661,6 @@ if (activeTab) {
 } else {
     renderInfoTab('shipping');
 }
-    
-});
 
 // لتجنب الأخطاء في حالة عدم وجود db (سيتم تعيينه من loadProduct)
 if (typeof db === 'undefined') {
