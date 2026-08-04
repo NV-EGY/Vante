@@ -2831,7 +2831,7 @@ console.log('✅ VANTÉ Product Page loaded successfully');
 
 <script>
 // =====================================================
-//   SYSTEM: CART, CHECKOUT, COUPONS
+//   SYSTEM: CART, CHECKOUT, COUPONS - النسخة المستقرة
 // =====================================================
 
 // ----- متغيرات عامة -----
@@ -2839,7 +2839,7 @@ let cart = JSON.parse(localStorage.getItem('vante_cart') || '[]');
 let appliedCoupon = null;
 let discountAmount = 0;
 
-// ----- تحديث السلة وعناصر الواجهة -----
+// ----- تحديث السلة وعناصر الواجهة (مع التحقق) -----
 function updateCart() {
     // ✅ التحقق من وجود المنتجات قبل التحديث
     if (!window.allProducts || window.allProducts.length === 0) {
@@ -2851,7 +2851,7 @@ function updateCart() {
     const html = cart.map((item, index) => {
         total += item.price * item.qty;
         count += item.qty;
-        const product = window.allProducts ? window.allProducts.find(p => p.id === item.id) : null;
+        const product = window.allProducts.find(p => p.id === item.id);
         let maxStock = -1;
         if (product && product.stockBySize && item.size) {
             const stockValue = product.stockBySize[item.size];
@@ -3370,7 +3370,6 @@ window.executeCheckout = executeCheckout;
 
 // ========== دوال القائمة والمودالات ==========
 
-// دوال القائمة
 function toggleCollections(e) {
     if (e) e.preventDefault();
     const mobileSub = document.getElementById("collectionsSub");
@@ -3392,7 +3391,7 @@ function openSearch() {
 }
 window.openSearch = openSearch;
 
-// ========== دوال التواصل ودليل المتسوق (نسخة واحدة فقط) ==========
+// ========== دوال التواصل ودليل المتسوق ==========
 function openContactModal(e) {
     if (e) e.preventDefault();
     const modal = document.getElementById("contactModal");
@@ -3498,24 +3497,26 @@ const infoContent = {
 };
 
 let currentTab = 'shipping';
+
 function renderInfoTab(tabId) {
     const body = document.getElementById('infoBody');
     if (!body) {
         console.warn('⚠️ عنصر infoBody غير موجود');
+        setTimeout(() => {
+            const retryBody = document.getElementById('infoBody');
+            if (retryBody) renderInfoTab(tabId);
+        }, 150);
         return;
     }
     
-    // التأكد من وجود محتوى للتبويب المطلوب
     const content = infoContent[tabId];
     if (!content) {
-        console.warn(`⚠️ لا يوجد محتوى للتبويب: ${tabId}`);
         body.innerHTML = `<p style="color:#888;">المحتوى غير متوفر حالياً</p>`;
         return;
     }
     
     body.innerHTML = content;
     
-    // إذا كان التبويب هو الأسئلة الشائعة، نربط الأحداث
     if (tabId === 'faq') {
         document.querySelectorAll('.faq-question').forEach(q => {
             q.addEventListener('click', function() {
@@ -3615,54 +3616,59 @@ const govData = {
     "جنوب سيناء":["دهب","شرم الشيخ","نويبع","طابا","سانت كاترين","الطور","رأس سدر","أحياء أخرى"]
 };
 
-// ربط القوائم المنسدلة
+// ربط القوائم المنسدلة والتبويبات - يتم تنفيذه مرة واحدة فقط
 document.addEventListener("DOMContentLoaded", function() {
+    // ربط المحافظات والمدن
     const govSelect = document.getElementById("governorate");
     const citySelect = document.getElementById("city");
-    if (!govSelect || !citySelect) return;
+    if (govSelect && citySelect) {
+        Object.keys(govData).forEach(g => {
+            let opt = document.createElement("option");
+            opt.value = g;
+            opt.textContent = g;
+            govSelect.appendChild(opt);
+        });
 
-    Object.keys(govData).forEach(g => {
-        let opt = document.createElement("option");
-        opt.value = g;
-        opt.textContent = g;
-        govSelect.appendChild(opt);
+        govSelect.addEventListener("change", function() {
+            citySelect.innerHTML = `<option value="" selected disabled>اختر المدينة</option>`;
+            citySelect.value = "";
+            if (govData[this.value]) {
+                govData[this.value].forEach(city => {
+                    let opt = document.createElement("option");
+                    opt.value = city;
+                    opt.textContent = city;
+                    citySelect.appendChild(opt);
+                });
+                citySelect.disabled = false;
+            } else {
+                citySelect.disabled = true;
+            }
+        });
+    }
+
+    // ربط التبويبات في دليل المتسوق
+    document.querySelectorAll('.info-tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            document.querySelectorAll('.info-tab').forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            currentTab = this.dataset.tab;
+            renderInfoTab(currentTab);
+        });
     });
 
-    govSelect.addEventListener("change", function() {
-        citySelect.innerHTML = `<option value="" selected disabled>اختر المدينة</option>`;
-        citySelect.value = "";
-        if (govData[this.value]) {
-            govData[this.value].forEach(city => {
-                let opt = document.createElement("option");
-                opt.value = city;
-                opt.textContent = city;
-                citySelect.appendChild(opt);
-            });
-            citySelect.disabled = false;
-        } else {
-            citySelect.disabled = true;
-        }
-    });
+    // تعبئة المحتوى الافتراضي للتبويب النشط
+    const activeTab = document.querySelector('.info-tab.active');
+    if (activeTab) {
+        renderInfoTab(activeTab.dataset.tab || 'shipping');
+    } else {
+        renderInfoTab('shipping');
+    }
 
-// ربط التبويبات في دليل المتسوق
-document.querySelectorAll('.info-tab').forEach(tab => {
-    tab.addEventListener('click', function() {
-        document.querySelectorAll('.info-tab').forEach(t => t.classList.remove('active'));
-        this.classList.add('active');
-        currentTab = this.dataset.tab;
-        renderInfoTab(currentTab);
-    });
+    // ❌ لا تستدعي updateCart() هنا
+    // ✅ سيتم استدعاؤها من loadProduct بعد تحميل المنتجات
 });
 
-// تعبئة المحتوى الافتراضي للتبويب النشط
-const activeTab = document.querySelector('.info-tab.active');
-if (activeTab) {
-    renderInfoTab(activeTab.dataset.tab || 'shipping');
-} else {
-    renderInfoTab('shipping');
-}
-
-// لتجنب الأخطاء في حالة عدم وجود db (سيتم تعيينه من loadProduct)
+// لتجنب الأخطاء في حالة عدم وجود db
 if (typeof db === 'undefined') {
     var db = null;
 }
