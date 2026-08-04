@@ -3430,7 +3430,7 @@ function closeInfoModal() {
 }
 window.closeInfoModal = closeInfoModal;
 
-// ========== محتوى دليل المتسوق ==========
+// ========== محتوى دليل المتسوق (نسخة كاملة من الصفحة الرئيسية) ==========
 const infoContent = {
     shipping: `
         <h4>📦 سياسة الشحن</h4>
@@ -3442,15 +3442,115 @@ const infoContent = {
         <p><strong>ملاحظة:</strong> تكاليف الشحن للإرجاع يتحملها العميل إلا في حالة وجود عيب صناعي.</p>
     `,
     size: `
-        <h4>📏 دليل المقاسات</h4>
-        <p>يمكنك الاطلاع على دليل المقاسات المفصل في تبويب <strong>"المقاسات"</strong> أسفل المنتج.</p>
-        <p>إذا كنت غير متأكد من المقاس المناسب، يمكنك التواصل معنا وسنساعدك في الاختيار.</p>
-        <div style="background:#f9f8f6; border-radius:12px; padding:15px; margin-top:15px; border-right:3px solid #D4AF37;">
-            <p><strong>💡 نصيحة سريعة:</strong></p>
-            <ul style="padding-right:20px; margin:10px 0;">
-                <li>الخواتم: قيسي قطر الخاتم المناسب ليدك.</li>
-                <li>الأساور: قيسي محيط رسغك.</li>
-                <li>السلاسل: اختاري الطول المناسب حسب رغبتك.</li>
+        <h4>📏 دليل المقاسات حسب نوع المنتج</h4>
+        <div class="size-tabs">
+            <button class="size-subtab active" data-subtab="rings">💍 الخواتم / الدبل (Rings)</button>
+            <button class="size-subtab" data-subtab="bracelets">📿 الغوايش / الأساور (Bangles)</button>
+            <button class="size-subtab" data-subtab="necklaces">✨ السلاسل (Necklaces)</button>
+        </div>
+
+        <!-- خواتم -->
+        <div id="ringsTab" class="size-subcontent active">
+            <h5>📏 قياس الخواتم</h5>
+            <p><strong>الطريقة الأولى (القطر الداخلي):</strong> ضعي خاتم مناسب على يدك، ثم قيسي المسافة من الداخل باستخدام مسطرة.</p>
+            <div style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: space-between;">
+                <div style="flex: 1; min-width: 200px;">
+                    <table class="size-guide-table">
+                        <thead><tr><th>القطر (مم)</th><th>القطر (سم)</th><th>المقاس</th></tr></thead>
+                        <tbody>
+                            <tr><td>16</td><td>1.6 سم</td><td>16</td></tr>
+                            <tr><td>17</td><td>1.7 سم</td><td>17</td></tr>
+                            <tr><td>18</td><td>1.8 سم</td><td>18</td></tr>
+                            <tr><td>19</td><td>1.9 سم</td><td>19</td></tr>
+                            <tr><td>20</td><td>2.0 سم</td><td>20</td></tr>
+                            <tr><td>21</td><td>2.1 سم</td><td>21</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <p><strong>الطريقة الثانية (محيط الخيط):</strong> لفي خيطاً حول اصبعك (بدون شد)، ضعي علامة عند نقطة الالتقاء، ثم قيسي الطول.</p>
+            <div style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: space-between;">
+                <div style="flex: 1; min-width: 200px;">
+                    <table class="size-guide-table">
+                        <thead><tr><th>طول الخيط (سم)</th><th>المقاس</th></tr></thead>
+                        <tbody>
+                            <tr><td>5.0 سم</td><td>16</td></tr>
+                            <tr><td>5.3 سم</td><td>17</td></tr>
+                            <tr><td>5.7 سم</td><td>18</td></tr>
+                            <tr><td>6.0 سم</td><td>19</td></tr>
+                            <tr><td>6.3 سم</td><td>20</td></tr>
+                            <tr><td>6.6 سم</td><td>21</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="size-img-placeholder">
+                <i class="fas fa-gem"></i>
+                <p>صورة توضيحية لقياس الخواتم <img src="images/ring-guide1.jpg" alt="دليل قياس الخواتم" style="max-width:100%; border-radius: 12px;"></p>
+            </div>
+        </div>
+
+        <!-- غوايش / أساور -->
+        <div id="braceletsTab" class="size-subcontent">
+            <h5>📏 قياس الغوايش (الأساور المغلقة)</h5>
+            <p><strong>الطريقة الأولى (القطر الداخلي):</strong> ضعي غويشة مناسبة على يدك، ثم قيسي المسافة من الداخل باستخدام مسطرة.</p>
+            <table class="size-guide-table">
+                <thead><tr><th>المقاس</th><th>القطر الداخلي (سم)</th></tr></thead>
+                <tbody>
+                    <tr><td>60</td><td>6.0 سم</td></tr>
+                    <tr><td>65</td><td>6.5 سم</td></tr>
+                    <tr><td>70</td><td>7.0 سم</td></tr>
+                </tbody>
+            </table>
+
+            <p><strong>الطريقة الثانية (محيط الخيط):</strong> لفي خيطاً حول رسغك (بدون شد)، ضعي علامة عند نقطة الالتقاء، ثم قيسي الطول.</p>
+            <table class="size-guide-table">
+                <thead><tr><th>المقاس</th><th>طول الخيط (سم)</th></tr></thead>
+                <tbody>
+                    <tr><td>60</td><td>≈ 18.8 سم</td></tr>
+                    <tr><td>65</td><td>≈ 20.4 سم</td></tr>
+                    <tr><td>70</td><td>≈ 22.0 سم</td></tr>
+                </tbody>
+            </table>
+
+            <div class="size-img-placeholder">
+                <i class="fas fa-hand-peace"></i>
+                <p>صورة توضيحية لقياس الغوايش <img src="images/ring-guide2.jpg" alt="دليل قياس الغوايش" style="max-width:100%; border-radius: 12px;"></p>
+            </div>
+        </div>
+
+        <!-- سلاسل -->
+        <div id="necklacesTab" class="size-subcontent">
+            <h5>📏 قياس السلاسل (طول الخيط)</h5>
+            <p>استخدم خيطاً لقياس محيط رقبتك، ثم اختر الطول المناسب حسب الجدول التالي:</p>
+            <table class="size-guide-table">
+                <thead><tr><th>طول السلسلة (سم)</th><th>المناسبة</th></tr></thead>
+                <tbody>
+                    <tr><td>45 سم</td><td>تشغيل حول الرقبة (Choker)</td></tr>
+                    <tr><td>50 سم</td><td>يصل إلى عظمة الترقوة</td></tr>
+                    <tr><td>55 سم</td><td>أسفل الترقوة قليلاً</td></tr>
+                    <tr><td>60 سم</td><td>على الصدر</td></tr>
+                    <tr><td>70 سم</td><td>سلسلة طويلة (أوبرا)</td></tr>
+                    <tr><td>80 سم</td><td>سلسلة طويلة جداً (لاريات)</td></tr>
+                </tbody>
+            </table>
+            <p><strong>نصيحة:</strong> إذا كنت غير متأكد، اختاري الطول الأطول قليلاً ليكون أكثر راحة.</p>
+            <div class="size-img-placeholder">
+                <i class="fas fa-female"></i>
+                <p>صورة توضيحية لقياس السلاسل <img src="images/ring-guide3.jpg" alt="دليل قياس السلاسل" style="max-width:100%; border-radius: 12px;"></p>
+            </div>
+        </div>
+
+        <!-- ملاحظات عامة -->
+        <div style="margin-top: 25px; padding: 15px; background: #f9f9f9; border-radius: 16px; border-right: 4px solid #D4AF37;">
+            <h5 style="color: #D4AF37; margin-bottom: 10px;">📌 نصائح هامة للقياس بالخيط:</h5>
+            <ul style="margin: 0; padding-right: 20px;">
+                <li>✅ لفي الخيط أو الشريط بدون شد (فقط ملامس للجلد).</li>
+                <li>✅ علّمي مكان القفلة أو نقطة الالتقاء بدقة.</li>
+                <li>✅ قيسي الطول بالمليمتر (مم) أو بالسنتيمتر (سم) بدقة.</li>
+                <li>✅ لو قياسك بين مقاسين، اختاري الأكبر (مراعاة للحرارة وتورم اليد).</li>
             </ul>
         </div>
     `,
@@ -3458,14 +3558,16 @@ const infoContent = {
         <h4>🎁 تغليف فاخر</h4>
         <p>نحرص على تقديم تجربة فاخرة منذ لحظة استلامك للطلب:</p>
         <ul>
-            <li>✨ <strong>علبة فاخرة بملمس مخملي</strong> تمنح إحساسًا بالترف الحقيقي.</li>
-            <li>🎨 <strong>تصميم داخلي أنيق</strong> يثبت القطعة بأمان ويبرز جمالها.</li>
-            <li>🛡️ <strong>خامات قوية عالية الجودة</strong> لحماية المجوهرات من الخدوش.</li>
-            <li>🎁 <strong>تجربة فتح مميزة</strong> تضيف لمسة فخامة مثالية للهدايا.</li>
+            <li>✨ <strong>علبة فاخرة بملمس مخملي فاخر ولمسات سوداء راقية</strong> تمنح إحساسًا بالترف الحقيقي.</li>
+            <li>🎨 <strong>تصميم داخلي أنيق</strong> يثبت القطعة بأمان ويبرز جمالها بطريقة احترافية.</li>
+            <li>🛡️ <strong>خامات قوية عالية الجودة</strong> لحماية المجوهرات من الخدوش والصدمات أثناء النقل.</li>
+            <li>✨ <strong>تفاصيل دقيقة وتشطيب فاخر</strong> يعكسان هوية VANTÉ الراقية.</li>
+            <li>🎁 <strong>تجربة فتح مميزة</strong> تضيف لمسة فخامة مثالية للهدايا والمناسبات الخاصة.</li>
         </ul>
-        <div style="background:#f9f8f6; border-radius:12px; padding:15px; margin-top:15px; text-align:center; border:1px dashed #D4AF37;">
-            <i class="fas fa-gift" style="font-size:48px; color:#D4AF37; margin-bottom:10px; display:block;"></i>
-            <p style="color:#888; font-size:13px;">تغليف فاخر يناسب جميع المناسبات</p>
+        <p style="color: #D4AF37; font-weight: bold; text-align: center; margin: 20px 0;">✨ لأن كل قطعة مميزة… تستحق تغليفًا يليق بها.</p>
+        <div class="size-img-placeholder">
+            <i class="fas fa-gift" style="font-size: 48px; color: #D4AF37; margin-bottom: 10px;"></i>
+            <p>صورة توضيحية للبوكس الفاخر <img src="images/luxury-packaging.jpg" alt="تغليف VANTÉ الفاخر" style="max-width:100%; border-radius: 12px; margin-top: 10px;"></p>
         </div>
     `,
     faq: `
