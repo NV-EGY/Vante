@@ -2358,6 +2358,7 @@ async function loadProduct() {
         const productsCollection = collection(db, "products");
         const productsSnapshot = await getDocs(productsCollection);
         window.allProducts = productsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        updateCart();
 
         const productRef = doc(db, "products", productId);
         const productSnap = await getDoc(productRef);
@@ -2417,8 +2418,6 @@ async function loadProduct() {
         await loadApprovedReviews(db);
         displayReviews(product.id);
         updateReviewBadges();
-        // ==== تحديث السلة بعد تحميل المنتجات ====
-updateCart();
 
         // ===== المقاسات =====
         const sizes = product.sizes || ['7', '8', '9'];
