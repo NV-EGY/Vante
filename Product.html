@@ -191,11 +191,11 @@
         
         @media (max-width: 768px) {
             .nav-bar { padding: 15px 18px; }
-            .mobile-actions { display: block; order: 1; }
+            .mobile-actions { display: block; order: 3; }
             .logo { order: 2; font-size: 28px; margin: 0 auto; }
-            .icons { order: 3; display: flex; align-items: center; gap: 0; }
+            .icons { order: 1; display: flex; align-items: center; gap: 0; }
             .menu { display: none !important; }
-            .icons button:not(:last-child) { display: none; }
+            .icons button:not(:first-child) { display: none; }
             
             .mobile-btn {
                 width: 46px;
@@ -1583,89 +1583,94 @@ button:active,
 <!-- ============================================
      NAVBAR
 ============================================ -->
+<!-- استبدال قسم navbar بالكامل -->
 <header class="nav-bar">
+    <!-- ✅ أيقونة السلة أصبحت في البداية (الجهة اليمنى) -->
+    <div class="icons">
+        <button onclick="openCart()">
+            <i class="fas fa-shopping-bag"></i>
+            <span class="cart-count" id="cartCount">0</span>
+        </button>
+        <button onclick="window.location.href='index.html'"><i class="fas fa-home"></i></button>
+    </div>
+
     <div class="logo" onclick="window.location.href='index.html'">VANTÉ</div>
 
+    <!-- ✅ أيقونة القائمة (الهامبرغر) أصبحت في النهاية (الجهة اليسرى) -->
     <div class="mobile-actions">
         <button class="mobile-btn" onclick="toggleMobileMenu(event)"><i class="fas fa-bars"></i></button>
     </div>
     <div id="menuOverlay" onclick="toggleMobileMenu(event)"></div>
 
-    <nav class="mobile-menu" id="mobileMenu">
-    <div class="mobile-menu-header">
-        <div class="mobile-icons-row">
-            <button class="mobile-icon" onclick="window.location.href='index.html'"><i class="fas fa-home"></i></button>
-            <button class="mobile-icon" onclick="openSearch(); closeMobileMenu()"><i class="fas fa-search"></i></button>
-        </div>
-        <button class="close-menu" onclick="closeMobileMenu()"><i class="fas fa-times"></i></button>
-    </div>
-
-    <a href="index.html?category=all" data-category="all" onclick="event.preventDefault(); closeMobileMenu(); window.location.href='index.html?category=all';">الصفحة الرئيسية</a>
-
-    <div class="menu-item">
-        <a href="#" class="collection-toggle" onclick="toggleCollections(event)">الأقسام <i class="fas fa-chevron-down"></i></a>
-        <div id="collectionsSub" class="collections-sub">
-            <a href="index.html?category=all" data-category="all" onclick="event.preventDefault(); closeMobileMenu(); window.location.href='index.html?category=all';">كل الأقسام</a>
-            <a href="index.html?category=necklaces" data-category="necklaces" onclick="event.preventDefault(); closeMobileMenu(); window.location.href='index.html?category=necklaces';">سلاسل & كوليهات</a>
-            <a href="index.html?category=bracelets" data-category="bracelets" onclick="event.preventDefault(); closeMobileMenu(); window.location.href='index.html?category=bracelets';">أساور & غوايش</a>
-            <a href="index.html?category=rings" data-category="rings" onclick="event.preventDefault(); closeMobileMenu(); window.location.href='index.html?category=rings';">دبل & خواتم</a>
-            <a href="index.html?category=earrings" data-category="earrings" onclick="event.preventDefault(); closeMobileMenu(); window.location.href='index.html?category=earrings';">حلقان</a>
-            <a href="index.html?category=sets" data-category="sets" onclick="event.preventDefault(); closeMobileMenu(); window.location.href='index.html?category=sets';">اطقم</a>
-            <a href="index.html?category=anklets" data-category="anklets" onclick="event.preventDefault(); closeMobileMenu(); window.location.href='index.html?category=anklets';">خلخال</a>
-        </div>
-    </div>
-
-    <a href="#" onclick="openContactModal(event); closeMobileMenu(); return false;">تواصل مع المسئول</a>
-<a href="#" onclick="openInfoModal(); closeMobileMenu(); return false;">دليل المتسوق</a>
-    
-    <div style="background: #faf7f0; border-radius: 16px; padding: 12px; margin: 15px 0 5px; border-right: 3px solid #D4AF37;">
-        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
-            <div style="background: linear-gradient(135deg, #D4AF37, #B8860B); width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                <i class="fas fa-crown" style="color: #000; font-size: 16px;"></i>
-            </div>
-            <div>
-                <div style="font-weight: 800; color: #B8860B; font-size: 14px;">سلاسل بالأسماء</div>
-                <div style="font-size: 11px; color: #888;">صناعة يدوية حسب الطلب</div>
-            </div>
-        </div>
-        <a href="https://taswekshope-gif.github.io/DAHAP/" target="_blank" rel="noopener noreferrer" onclick="closeMobileMenu()" style="background: linear-gradient(135deg, #D4AF37, #B8860B); color: #000; border-radius: 40px; text-align: center; padding: 8px 12px; display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 700; font-size: 13px; text-decoration: none; width: 100%;">
-            <i class="fas fa-eye"></i> تصفح التصاميم
-            <i class="fas fa-arrow-left"></i>
-        </a>
-    </div>
-</nav>
-
+    <!-- القائمة Desktop (بدون تغيير) -->
     <nav class="menu">
-    <a href="index.html?category=all" data-category="all">كل الأقسام</a>
-    <div class="menu-item desktop-dropdown">
-        <a href="#" onclick="event.preventDefault(); toggleCollections(event)">الأقسام <i class="fas fa-chevron-down"></i></a>
-        <div id="collectionsSubDesktop" class="collections-sub desktop-sub">
-            <a href="index.html?category=all" data-category="all">الأقسام</a>
-            <a href="index.html?category=necklaces" data-category="necklaces">سلاسل & كوليهات</a>
-            <a href="index.html?category=bracelets" data-category="bracelets">أساور & غوايش</a>
-            <a href="index.html?category=rings" data-category="rings">دبل & خواتم</a>
-            <a href="index.html?category=earrings" data-category="earrings">حلقان</a>
-            <a href="index.html?category=sets" data-category="sets">اطقم</a>
-            <a href="index.html?category=anklets" data-category="anklets">خلخال</a>
+        <a href="index.html?category=all" data-category="all">كل الأقسام</a>
+        <div class="menu-item desktop-dropdown">
+            <a href="#" onclick="event.preventDefault(); toggleCollections(event)">الأقسام <i class="fas fa-chevron-down"></i></a>
+            <div id="collectionsSubDesktop" class="collections-sub desktop-sub">
+                <a href="index.html?category=all" data-category="all">الأقسام</a>
+                <a href="index.html?category=necklaces" data-category="necklaces">سلاسل & كوليهات</a>
+                <a href="index.html?category=bracelets" data-category="bracelets">أساور & غوايش</a>
+                <a href="index.html?category=rings" data-category="rings">دبل & خواتم</a>
+                <a href="index.html?category=earrings" data-category="earrings">حلقان</a>
+                <a href="index.html?category=sets" data-category="sets">اطقم</a>
+                <a href="index.html?category=anklets" data-category="anklets">خلخال</a>
+            </div>
         </div>
-    </div>
-    <a href="#" onclick="openContactModal(event)">تواصل مع المسئول</a>
-<a href="#" onclick="openInfoModal()">دليل المتسوق</a>
-    <a href="https://taswekshope-gif.github.io/DAHAP/" target="_blank" rel="noopener noreferrer" class="marketing-link" style="position: relative;">
-        <i class="fas fa-crown"></i> سلاسل بالأسماء
-        <span style="position: absolute; top: -8px; left: -5px; background: #e74c3c; color: #fff; font-size: 9px; padding: 2px 6px; border-radius: 20px; white-space: nowrap;">
-            حسب الطلب
-        </span>
-    </a>
-</nav>
+        <a href="#" onclick="openContactModal(event)">تواصل مع المسئول</a>
+        <a href="#" onclick="openInfoModal()">دليل المتسوق</a>
+        <a href="https://taswekshope-gif.github.io/DAHAP/" target="_blank" rel="noopener noreferrer" class="marketing-link" style="position: relative;">
+            <i class="fas fa-crown"></i> سلاسل بالأسماء
+            <span style="position: absolute; top: -8px; left: -5px; background: #e74c3c; color: #fff; font-size: 9px; padding: 2px 6px; border-radius: 20px; white-space: nowrap;">
+                حسب الطلب
+            </span>
+        </a>
+    </nav>
 
-    <div class="icons">
-        <button onclick="window.location.href='index.html'"><i class="fas fa-home"></i></button>
-        <button onclick="openCart()">
-    <i class="fas fa-shopping-bag"></i>
-    <span class="cart-count" id="cartCount">0</span>
-</button>
-    </div>
+    <!-- القائمة الموبايل (بدون تغيير في المحتوى) -->
+    <nav class="mobile-menu" id="mobileMenu">
+        <div class="mobile-menu-header">
+            <div class="mobile-icons-row">
+                <button class="mobile-icon" onclick="window.location.href='index.html'"><i class="fas fa-home"></i></button>
+                <button class="mobile-icon" onclick="openSearch(); closeMobileMenu()"><i class="fas fa-search"></i></button>
+            </div>
+            <button class="close-menu" onclick="closeMobileMenu()"><i class="fas fa-times"></i></button>
+        </div>
+
+        <a href="index.html?category=all" data-category="all" onclick="event.preventDefault(); closeMobileMenu(); window.location.href='index.html?category=all';">الصفحة الرئيسية</a>
+
+        <div class="menu-item">
+            <a href="#" class="collection-toggle" onclick="toggleCollections(event)">الأقسام <i class="fas fa-chevron-down"></i></a>
+            <div id="collectionsSub" class="collections-sub">
+                <a href="index.html?category=all" data-category="all" onclick="event.preventDefault(); closeMobileMenu(); window.location.href='index.html?category=all';">كل الأقسام</a>
+                <a href="index.html?category=necklaces" data-category="necklaces" onclick="event.preventDefault(); closeMobileMenu(); window.location.href='index.html?category=necklaces';">سلاسل & كوليهات</a>
+                <a href="index.html?category=bracelets" data-category="bracelets" onclick="event.preventDefault(); closeMobileMenu(); window.location.href='index.html?category=bracelets';">أساور & غوايش</a>
+                <a href="index.html?category=rings" data-category="rings" onclick="event.preventDefault(); closeMobileMenu(); window.location.href='index.html?category=rings';">دبل & خواتم</a>
+                <a href="index.html?category=earrings" data-category="earrings" onclick="event.preventDefault(); closeMobileMenu(); window.location.href='index.html?category=earrings';">حلقان</a>
+                <a href="index.html?category=sets" data-category="sets" onclick="event.preventDefault(); closeMobileMenu(); window.location.href='index.html?category=sets';">اطقم</a>
+                <a href="index.html?category=anklets" data-category="anklets" onclick="event.preventDefault(); closeMobileMenu(); window.location.href='index.html?category=anklets';">خلخال</a>
+            </div>
+        </div>
+
+        <a href="#" onclick="openContactModal(event); closeMobileMenu(); return false;">تواصل مع المسئول</a>
+        <a href="#" onclick="openInfoModal(); closeMobileMenu(); return false;">دليل المتسوق</a>
+        
+        <div style="background: #faf7f0; border-radius: 16px; padding: 12px; margin: 15px 0 5px; border-right: 3px solid #D4AF37;">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                <div style="background: linear-gradient(135deg, #D4AF37, #B8860B); width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-crown" style="color: #000; font-size: 16px;"></i>
+                </div>
+                <div>
+                    <div style="font-weight: 800; color: #B8860B; font-size: 14px;">سلاسل بالأسماء</div>
+                    <div style="font-size: 11px; color: #888;">صناعة يدوية حسب الطلب</div>
+                </div>
+            </div>
+            <a href="https://taswekshope-gif.github.io/DAHAP/" target="_blank" rel="noopener noreferrer" onclick="closeMobileMenu()" style="background: linear-gradient(135deg, #D4AF37, #B8860B); color: #000; border-radius: 40px; text-align: center; padding: 8px 12px; display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 700; font-size: 13px; text-decoration: none; width: 100%;">
+                <i class="fas fa-eye"></i> تصفح التصاميم
+                <i class="fas fa-arrow-left"></i>
+            </a>
+        </div>
+    </nav>
 </header>
 
 <!-- ============================================
