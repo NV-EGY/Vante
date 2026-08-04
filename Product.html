@@ -3302,6 +3302,124 @@ if (typeof db === 'undefined') {
         </div>
     </div>
 </div>
+<script>
+// ============================================================
+//   FIX: جعل جميع الدوال في النطاق العام وتوحيدها
+// ============================================================
+
+// إعادة تعريف دوال السلة
+window.openCart = function() {
+    const drawer = document.getElementById("cartDrawer");
+    const overlay = document.getElementById("overlay");
+    if (drawer) drawer.classList.add("active");
+    if (overlay) overlay.classList.add("active");
+    document.body.style.overflow = 'hidden';
+};
+
+window.closeCart = function() {
+    const drawer = document.getElementById("cartDrawer");
+    const overlay = document.getElementById("overlay");
+    if (drawer) drawer.classList.remove("active");
+    if (overlay) overlay.classList.remove("active");
+    document.body.style.overflow = '';
+};
+
+window.openCheckout = function() {
+    const modal = document.getElementById("checkoutModal");
+    const overlay = document.getElementById("overlay");
+    if (modal) modal.classList.add("active");
+    if (overlay) overlay.classList.add("active");
+};
+
+window.closeCheckout = function() {
+    const modal = document.getElementById("checkoutModal");
+    const overlay = document.getElementById("overlay");
+    if (modal) modal.classList.remove("active");
+    if (overlay) overlay.classList.remove("active");
+};
+
+// دوال التواصل ودليل المتسوق (باستخدام المودالات المضافة)
+window.openContactModal = function(e) {
+    if (e) e.preventDefault();
+    const modal = document.getElementById('contactModal');
+    const overlay = document.getElementById('overlay');
+    if (!modal) {
+        // إذا لم يكن المودال موجوداً، نوجه إلى index.html
+        window.location.href = 'index.html';
+        return;
+    }
+    modal.classList.add('active');
+    if (overlay) overlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
+};
+
+window.closeContactModal = function() {
+    const modal = document.getElementById('contactModal');
+    const overlay = document.getElementById('overlay');
+    if (modal) modal.classList.remove('active');
+    if (overlay) overlay.classList.remove('active');
+    document.body.style.overflow = '';
+};
+
+window.openInfoModal = function() {
+    const modal = document.getElementById('infoModal');
+    const overlay = document.getElementById('overlay');
+    if (!modal) {
+        window.location.href = 'index.html';
+        return;
+    }
+    modal.classList.add('active');
+    if (overlay) overlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    // يمكنك ملء المحتوى هنا إذا أردت
+};
+
+window.closeInfoModal = function() {
+    const modal = document.getElementById('infoModal');
+    const overlay = document.getElementById('overlay');
+    if (modal) modal.classList.remove('active');
+    if (overlay) overlay.classList.remove('active');
+    document.body.style.overflow = '';
+};
+
+// دوال القائمة المنسدلة
+window.toggleCollections = function(e) {
+    if (e) e.preventDefault();
+    const mobileSub = document.getElementById("collectionsSub");
+    const desktopSub = document.getElementById("collectionsSubDesktop");
+    if (mobileSub) mobileSub.classList.toggle("active");
+    if (desktopSub) desktopSub.classList.toggle("active");
+};
+
+window.closeMobileMenu = function() {
+    const menu = document.getElementById("mobileMenu");
+    const overlay = document.getElementById("menuOverlay");
+    if (menu) menu.classList.remove("active");
+    if (overlay) overlay.classList.remove("active");
+    document.body.style.overflow = "";
+};
+
+window.openSearch = function() {
+    // توجيه إلى الصفحة الرئيسية مع تفعيل البحث
+    window.location.href = 'index.html';
+};
+
+// ربط دوال السلة والكوبونات إذا كانت معرفة
+if (typeof changeQty !== 'undefined') window.changeQty = changeQty;
+if (typeof updateCart !== 'undefined') window.updateCart = updateCart;
+if (typeof applyCoupon !== 'undefined') window.applyCoupon = applyCoupon;
+if (typeof removeCoupon !== 'undefined') window.removeCoupon = removeCoupon;
+
+// تأكد من أن دالة updateCartCount تعمل
+window.updateCartCount = function() {
+    const cart = JSON.parse(localStorage.getItem('vante_cart') || '[]');
+    const count = cart.reduce((sum, item) => sum + (item.qty || 1), 0);
+    const el = document.getElementById('cartCount');
+    if (el) el.textContent = count;
+};
+
+console.log('✅ تم إصلاح جميع الدوال في Product.html');
+</script>
 
 </body>
 </html>
