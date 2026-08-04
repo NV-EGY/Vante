@@ -2830,11 +2830,10 @@ console.log('✅ VANTÉ Product Page loaded successfully');
 
 <script>
 // =====================================================
-//   SYSTEM: CART, CHECKOUT, COUPONS (من الصفحة الرئيسية)
+//   SYSTEM: CART, CHECKOUT, COUPONS
 // =====================================================
 
 // ----- متغيرات عامة -----
-let db = null;
 let cart = JSON.parse(localStorage.getItem('vante_cart') || '[]');
 let appliedCoupon = null;
 let discountAmount = 0;
@@ -2846,7 +2845,7 @@ function updateCart() {
         total += item.price * item.qty;
         count += item.qty;
         const product = window.allProducts ? window.allProducts.find(p => p.id === item.id) : null;
-        let maxStock = -1; // -1 = غير محدود
+        let maxStock = -1;
         if (product && product.stockBySize && item.size) {
             const stockValue = product.stockBySize[item.size];
             if (stockValue !== null && stockValue !== undefined) maxStock = stockValue;
@@ -2882,7 +2881,7 @@ function updateCart() {
     document.getElementById("total").innerText = total;
     document.getElementById("cartCount").innerText = count;
     localStorage.setItem('vante_cart', JSON.stringify(cart));
-    updateCartWithCoupon(); // تطبيق الخصم إن وجد
+    updateCartWithCoupon();
 }
 
 // ----- تغيير الكمية -----
@@ -2906,25 +2905,39 @@ function changeQty(index, change) {
 
 // ----- فتح/إغلاق السلة -----
 function openCart() {
-    document.getElementById("cartDrawer").classList.add("active");
-    document.getElementById("overlay").classList.add("active");
+    const drawer = document.getElementById("cartDrawer");
+    const overlay = document.getElementById("overlay");
+    if (drawer) drawer.classList.add("active");
+    if (overlay) overlay.classList.add("active");
     document.body.style.overflow = 'hidden';
 }
+window.openCart = openCart;
+
 function closeCart() {
-    document.getElementById("cartDrawer").classList.remove("active");
-    document.getElementById("overlay").classList.remove("active");
+    const drawer = document.getElementById("cartDrawer");
+    const overlay = document.getElementById("overlay");
+    if (drawer) drawer.classList.remove("active");
+    if (overlay) overlay.classList.remove("active");
     document.body.style.overflow = '';
 }
+window.closeCart = closeCart;
 
 // ----- فتح/إغلاق مودال الدفع -----
 function openCheckout() {
-    document.getElementById("checkoutModal").classList.add("active");
-    document.getElementById("overlay").classList.add("active");
+    const modal = document.getElementById("checkoutModal");
+    const overlay = document.getElementById("overlay");
+    if (modal) modal.classList.add("active");
+    if (overlay) overlay.classList.add("active");
 }
+window.openCheckout = openCheckout;
+
 function closeCheckout() {
-    document.getElementById("checkoutModal").classList.remove("active");
-    document.getElementById("overlay").classList.remove("active");
+    const modal = document.getElementById("checkoutModal");
+    const overlay = document.getElementById("overlay");
+    if (modal) modal.classList.remove("active");
+    if (overlay) overlay.classList.remove("active");
 }
+window.closeCheckout = closeCheckout;
 
 // ----- تحديث السلة مع الكوبونات -----
 function updateCartWithCoupon() {
@@ -3068,6 +3081,7 @@ function removeCoupon() {
     document.getElementById("couponMessage").innerHTML = "";
     showToast("تم إلغاء الخصم", "info");
 }
+window.removeCoupon = removeCoupon;
 
 // ----- ربط زر تطبيق الكوبون -----
 document.addEventListener("DOMContentLoaded", function() {
@@ -3101,7 +3115,6 @@ async function checkout() {
         return;
     }
 
-    // عرض مودال التأكيد
     return new Promise((resolve) => {
         const modal = document.getElementById("customConfirmModal");
         const confirmBtn = document.getElementById("confirmOkBtn");
@@ -3124,6 +3137,7 @@ async function checkout() {
         modal.classList.add("active");
     });
 }
+window.checkout = checkout;
 
 async function executeCheckout() {
     const btn = document.querySelector("#checkoutModal .btn-primary");
@@ -3137,7 +3151,6 @@ async function executeCheckout() {
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التحويل إلى واتساب...';
 
     try {
-        // تحديث productId في السلة
         for (let item of cart) {
             if (!item.id && item.name) {
                 const product = window.allProducts ? window.allProducts.find(p => p.name === item.name) : null;
@@ -3150,7 +3163,6 @@ async function executeCheckout() {
         const savedDiscount = discountAmount;
         const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
 
-        // حساب الشحن
         let customerShippingFee = 70;
         let storeShippingCost = 70;
         let discountApplied = false;
@@ -3180,7 +3192,6 @@ async function executeCheckout() {
         const finalTotalBefore = subtotal + customerShippingFee;
         const finalTotalAfter = finalTotalBefore - savedDiscount;
 
-        // إنشاء رقم الطلب
         const { collection: coll, addDoc, serverTimestamp, getDocs: getDocs2, query: query2, where: where2, doc: doc2, setDoc, updateDoc, increment: inc, getDoc: getDoc2 } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
         const ordersRef = coll(db, "orders");
         const today = new Date();
@@ -3255,7 +3266,6 @@ async function executeCheckout() {
             message += `💰 الإجمالي: ${finalTotalBefore} جنيه\n`;
         }
 
-        // حفظ الطلب
         const orderData = {
             orderID,
             customerName: name,
@@ -3291,7 +3301,6 @@ async function executeCheckout() {
         }
         await addDoc(ordersRef, orderData);
 
-        // تحديث استخدام الكوبون
         if (appliedCoupon) {
             const couponRef = doc2(db, "coupons", appliedCoupon.id);
             await updateDoc(couponRef, { usedCount: inc(1) });
@@ -3299,7 +3308,6 @@ async function executeCheckout() {
             discountAmount = 0;
         }
 
-        // خصم المخزون
         const stockUpdates = {};
         cart.forEach(item => {
             const product = window.allProducts ? window.allProducts.find(p => p.id === item.id) : null;
@@ -3326,7 +3334,6 @@ async function executeCheckout() {
             await updateDoc(doc2(db, "products", productId), { salesCount: inc(totalQty) });
         }
 
-        // إرسال واتساب
         const phoneNumber = "201106018685";
         const encodedMessage = encodeURIComponent(message);
         const appUrl = `whatsapp://send?phone=${phoneNumber}&text=${encodedMessage}`;
@@ -3352,7 +3359,11 @@ async function executeCheckout() {
         btn.innerHTML = '<i class="fas fa-check-circle"></i> تأكيد الطلب';
     }
 }
+window.executeCheckout = executeCheckout;
 
+// ========== دوال القائمة والمودالات ==========
+
+// دوال القائمة
 function toggleCollections(e) {
     if (e) e.preventDefault();
     const mobileSub = document.getElementById("collectionsSub");
@@ -3360,41 +3371,60 @@ function toggleCollections(e) {
     const desktopSub = document.getElementById("collectionsSubDesktop");
     if (desktopSub) desktopSub.classList.toggle("active");
 }
+window.toggleCollections = toggleCollections;
+
 function closeMobileMenu() {
     document.getElementById("mobileMenu").classList.remove("active");
     document.getElementById("menuOverlay").classList.remove("active");
     document.body.style.overflow = "";
 }
+window.closeMobileMenu = closeMobileMenu;
+
 function openSearch() {
     window.location.href = 'index.html';
 }
+window.openSearch = openSearch;
 
-// ========== دوال التواصل ودليل المتسوق ==========
+// ========== دوال التواصل ودليل المتسوق (نسخة واحدة فقط) ==========
 function openContactModal(e) {
     if (e) e.preventDefault();
-    document.getElementById('contactModal').classList.add('active');
-    document.getElementById('overlay').classList.add('active');
+    const modal = document.getElementById("contactModal");
+    const overlay = document.getElementById("overlay");
+    if (modal) modal.classList.add("active");
+    if (overlay) overlay.classList.add("active");
     document.body.style.overflow = 'hidden';
 }
+window.openContactModal = openContactModal;
+
 function closeContactModal() {
-    document.getElementById('contactModal').classList.remove('active');
-    document.getElementById('overlay').classList.remove('active');
+    const modal = document.getElementById("contactModal");
+    const overlay = document.getElementById("overlay");
+    if (modal) modal.classList.remove("active");
+    if (overlay) overlay.classList.remove("active");
     document.body.style.overflow = '';
 }
+window.closeContactModal = closeContactModal;
+
 function openInfoModal() {
-    document.getElementById('infoModal').classList.add('active');
-    document.getElementById('overlay').classList.add('active');
+    const modal = document.getElementById("infoModal");
+    const overlay = document.getElementById("overlay");
+    if (modal) modal.classList.add("active");
+    if (overlay) overlay.classList.add("active");
     document.body.style.overflow = 'hidden';
-    // تعبئة المحتوى
     renderInfoTab('shipping');
 }
+window.openInfoModal = openInfoModal;
+
 function closeInfoModal() {
-    document.getElementById('infoModal').classList.remove('active');
-    document.getElementById('overlay').classList.remove('active');
+    const modal = document.getElementById("infoModal");
+    const overlay = document.getElementById("overlay");
+    if (modal) modal.classList.remove("active");
+    if (overlay) overlay.classList.remove("active");
     document.body.style.overflow = '';
 }
+window.closeInfoModal = closeInfoModal;
 
-// محتوى دليل المتسوق
+// ========== محتوى دليل المتسوق ==========
 const infoContent = {
     shipping: `
         <h4>📦 سياسة الشحن</h4>
@@ -3444,7 +3474,9 @@ const infoContent = {
 
 let currentTab = 'shipping';
 function renderInfoTab(tabId) {
-    document.getElementById('infoBody').innerHTML = infoContent[tabId] || infoContent.shipping;
+    const body = document.getElementById('infoBody');
+    if (!body) return;
+    body.innerHTML = infoContent[tabId] || infoContent.shipping;
     if (tabId === 'faq') {
         document.querySelectorAll('.faq-question').forEach(q => {
             q.addEventListener('click', function() {
@@ -3453,23 +3485,10 @@ function renderInfoTab(tabId) {
         });
     }
 }
+window.renderInfoTab = renderInfoTab;
 
-// ربط التبويبات
-document.addEventListener("DOMContentLoaded", function() {
-    document.querySelectorAll('.info-tab').forEach(tab => {
-        tab.addEventListener('click', function() {
-            document.querySelectorAll('.info-tab').forEach(t => t.classList.remove('active'));
-            this.classList.add('active');
-            currentTab = this.dataset.tab;
-            renderInfoTab(currentTab);
-        });
-    });
-    // تعبئة المحتوى الافتراضي
-    if (document.getElementById('infoBody')) {
-        renderInfoTab('shipping');
-    }
-});
-window.sendContactMessage = async function() {
+// ========== إرسال رسالة التواصل ==========
+async function sendContactMessage() {
     const name = document.getElementById('contactName').value.trim();
     const phone = document.getElementById('contactPhone').value.trim();
     const message = document.getElementById('contactMessage').value.trim();
@@ -3523,44 +3542,38 @@ window.sendContactMessage = async function() {
         btn.disabled = false;
         btn.innerHTML = '<i class="fas fa-paper-plane"></i> إرسال الرسالة';
     }
-};
+}
+window.sendContactMessage = sendContactMessage;
 
-// ----- استدعاء updateCart عند التحميل -----
-document.addEventListener("DOMContentLoaded", function() {
-    updateCart();
-    // ربط دوال المحافظات والمدن (مستوردة من index.html)
-    // إذا كنت تريدها تعمل محلياً، أنسخ دوال المحافظات من index.html هنا.
-    // لكن بما أننا نستخدم نفس الـ Firebase وكل شيء، يمكن تركها كما هي.
-});
 // ========== المحافظات والمدن ==========
 const govData = {
- "القاهرة": ["مدينة نصر","مصر الجديدة","مصر القديمة","التجمع الأول","التجمع الثالث","التجمع الخامس","الرحاب","مدينتي","الشروق","بدر","المعادي","زهراء المعادي","حلوان","15 مايو","عين شمس","المطرية","السلام","المرج","الزيتون","حدائق القبة","روض الفرج","شبرا مصر","وسط البلد","القاهرة الجديدة","القطامية","المقطم","هليوبوليس الجديدة","مدينة المستقبل","أحياء أخرى"],
- "الجيزة": ["الجيزة","الدقي","العجوزة","إمبابة","بولاق الدكرور","الهرم","فيصل","الطالبية","العمرانية","حدائق الاهرام","6 أكتوبر","الشيخ زايد","حدائق أكتوبر","الحوامدية","البدرشين","العياط","أوسيم","كرداسة","الصف","دهشور","ناهيا","المنصورية","ألبراجيل","أبو رواش","منشأة القناطر","المنيب","أبو النمرس","شبرامنت","سقارة","نكلة","أطفيح","أحياء أخرى"],
- "القليوبية": ["بنها","شبرا الخيمة","قليوب","القناطر الخيرية","ابو زعبل","الخانكة","العبور","الخصوص","كفر شكر","طوخ","شبين القناطر","أحياء أخرى"],
- "الإسكندرية": ["الإسكندرية","العجمي","الدخيلة","برج العرب","سيدي جابر","محرم بك","العصافرة","المنتزه","أحياء أخرى"],
- "الدقهلية": ["المنصورة","طلخا","ميت غمر","دكرنس","أجا","السنبلاوين","بلقاس","نبروه","تمي الأمديد","الجمالية","المنزلة","شربين","ميت سلسيل","أحياء أخرى"],
- "الشرقية": ["الزقازيق","بلبيس","العاشر من رمضان","منيا القمح","فاقوس","أبو حماد","الحسينية","أولاد صقر","كفر صقر","ديرب نجم","الإبراهيمية","ههيا","مشتول السوق","أحياء أخرى"],
- "الغربية": ["طنطا","المحلة الكبرى","كفر الزيات","زفتى","سمنود","قطور","بسيون","أحياء أخرى"],
- "المنوفية": ["شبين الكوم","السادات","منوف","أشمون","الباجور","قويسنا","تلا","بركة السبع","الشهداء","أحياء أخرى"],
- "البحيرة": ["دمنهور","كفر الدوار","رشيد","إدكو","أبو حمص","الدلنجات","إيتاي البارود","حوش عيسى","شبراخيت","كوم حمادة","بدر","وادي النطرون","أحياء أخرى"],
- "كفر الشيخ": ["كفر الشيخ","دسوق","فوه","مطوبس","بلطيم","الحامول","بيلا","قلين","سيدي سالم","أحياء أخرى"],
- "دمياط": ["دمياط","رأس البر","فارسكور","الزرقا","كفر سعد","أحياء أخرى"],
- "بورسعيد": ["بورسعيد","بورفؤاد","أحياء أخرى"],
- "الإسماعيلية": ["الإسماعيلية","فايد","القنطرة شرق","القنطرة غرب","التل الكبير","أبو صوير","أحياء أخرى"],
- "السويس": ["السويس","الأربعين","عتاقة","الجناين","العين السخنة","أحياء أخرى"],
- "بني سويف": ["بني سويف","الواسطى","ناصر","إهناسيا","ببا","سمسطا","الفشن","أحياء أخرى"],
- "الفيوم": ["الفيوم","سنورس","إطسا","إبشواي","يوسف الصديق","أحياء أخرى"],
- "المنيا": ["المنيا","سمالوط","بني مزار","مطاي","مغاغة","ملوي","أبو قرقاص","دير مواس","العدوة","أحياء أخرى"],
- "أسيوط": ["أسيوط","ديروط","القوصية","منفلوط","أبنوب","أبو تيج","الغنايم","ساحل سليم","البداري","صدفا","أحياء أخرى"],
- "سوهاج": ["سوهاج","أخميم","طهطا","المراغة","البلينا","جرجا","جهينة","دار السلام","ساقلته","المنشأة","أحياء أخرى"],
- "قنا": ["قنا","نجع حمادي","دشنا","قفط","قوص","نقادة","فرشوط","أبو تشت","أحياء أخرى"],
- "الأقصر": ["الأقصر","إسنا","أرمنت","الطود","البياضية","القرنة","أحياء أخرى"],
- "أسوان": ["أسوان","إدفو","كوم أمبو","دراو","نصر النوبة","أحياء أخرى"],
- "البحر الأحمر": ["الغردقة","رأس غارب","سفاجا","القصير","مرسى علم","حلايب","شلاتين","أحياء أخرى"],
- "الوادي الجديد": ["الخارجة","الداخلة","الفرافرة","باريس","موط","أحياء أخرى"],
- "مطروح": ["مرسى مطروح","الحمام","العلمين","الضبعة","سيوة","النجيلة","براني","السلوم","أحياء أخرى"],
- "شمال سيناء":["العريش","رفح","الشيخ زويد","بئر العبد","أحياء أخرى"],
- "جنوب سيناء":["دهب","شرم الشيخ","نويبع","طابا","سانت كاترين","الطور","رأس سدر","أحياء أخرى"]
+    "القاهرة": ["مدينة نصر","مصر الجديدة","مصر القديمة","التجمع الأول","التجمع الثالث","التجمع الخامس","الرحاب","مدينتي","الشروق","بدر","المعادي","زهراء المعادي","حلوان","15 مايو","عين شمس","المطرية","السلام","المرج","الزيتون","حدائق القبة","روض الفرج","شبرا مصر","وسط البلد","القاهرة الجديدة","القطامية","المقطم","هليوبوليس الجديدة","مدينة المستقبل","أحياء أخرى"],
+    "الجيزة": ["الجيزة","الدقي","العجوزة","إمبابة","بولاق الدكرور","الهرم","فيصل","الطالبية","العمرانية","حدائق الاهرام","6 أكتوبر","الشيخ زايد","حدائق أكتوبر","الحوامدية","البدرشين","العياط","أوسيم","كرداسة","الصف","دهشور","ناهيا","المنصورية","ألبراجيل","أبو رواش","منشأة القناطر","المنيب","أبو النمرس","شبرامنت","سقارة","نكلة","أطفيح","أحياء أخرى"],
+    "القليوبية": ["بنها","شبرا الخيمة","قليوب","القناطر الخيرية","ابو زعبل","الخانكة","العبور","الخصوص","كفر شكر","طوخ","شبين القناطر","أحياء أخرى"],
+    "الإسكندرية": ["الإسكندرية","العجمي","الدخيلة","برج العرب","سيدي جابر","محرم بك","العصافرة","المنتزه","أحياء أخرى"],
+    "الدقهلية": ["المنصورة","طلخا","ميت غمر","دكرنس","أجا","السنبلاوين","بلقاس","نبروه","تمي الأمديد","الجمالية","المنزلة","شربين","ميت سلسيل","أحياء أخرى"],
+    "الشرقية": ["الزقازيق","بلبيس","العاشر من رمضان","منيا القمح","فاقوس","أبو حماد","الحسينية","أولاد صقر","كفر صقر","ديرب نجم","الإبراهيمية","ههيا","مشتول السوق","أحياء أخرى"],
+    "الغربية": ["طنطا","المحلة الكبرى","كفر الزيات","زفتى","سمنود","قطور","بسيون","أحياء أخرى"],
+    "المنوفية": ["شبين الكوم","السادات","منوف","أشمون","الباجور","قويسنا","تلا","بركة السبع","الشهداء","أحياء أخرى"],
+    "البحيرة": ["دمنهور","كفر الدوار","رشيد","إدكو","أبو حمص","الدلنجات","إيتاي البارود","حوش عيسى","شبراخيت","كوم حمادة","بدر","وادي النطرون","أحياء أخرى"],
+    "كفر الشيخ": ["كفر الشيخ","دسوق","فوه","مطوبس","بلطيم","الحامول","بيلا","قلين","سيدي سالم","أحياء أخرى"],
+    "دمياط": ["دمياط","رأس البر","فارسكور","الزرقا","كفر سعد","أحياء أخرى"],
+    "بورسعيد": ["بورسعيد","بورفؤاد","أحياء أخرى"],
+    "الإسماعيلية": ["الإسماعيلية","فايد","القنطرة شرق","القنطرة غرب","التل الكبير","أبو صوير","أحياء أخرى"],
+    "السويس": ["السويس","الأربعين","عتاقة","الجناين","العين السخنة","أحياء أخرى"],
+    "بني سويف": ["بني سويف","الواسطى","ناصر","إهناسيا","ببا","سمسطا","الفشن","أحياء أخرى"],
+    "الفيوم": ["الفيوم","سنورس","إطسا","إبشواي","يوسف الصديق","أحياء أخرى"],
+    "المنيا": ["المنيا","سمالوط","بني مزار","مطاي","مغاغة","ملوي","أبو قرقاص","دير مواس","العدوة","أحياء أخرى"],
+    "أسيوط": ["أسيوط","ديروط","القوصية","منفلوط","أبنوب","أبو تيج","الغنايم","ساحل سليم","البداري","صدفا","أحياء أخرى"],
+    "سوهاج": ["سوهاج","أخميم","طهطا","المراغة","البلينا","جرجا","جهينة","دار السلام","ساقلته","المنشأة","أحياء أخرى"],
+    "قنا": ["قنا","نجع حمادي","دشنا","قفط","قوص","نقادة","فرشوط","أبو تشت","أحياء أخرى"],
+    "الأقصر": ["الأقصر","إسنا","أرمنت","الطود","البياضية","القرنة","أحياء أخرى"],
+    "أسوان": ["أسوان","إدفو","كوم أمبو","دراو","نصر النوبة","أحياء أخرى"],
+    "البحر الأحمر": ["الغردقة","رأس غارب","سفاجا","القصير","مرسى علم","حلايب","شلاتين","أحياء أخرى"],
+    "الوادي الجديد": ["الخارجة","الداخلة","الفرافرة","باريس","موط","أحياء أخرى"],
+    "مطروح": ["مرسى مطروح","الحمام","العلمين","الضبعة","سيوة","النجيلة","براني","السلوم","أحياء أخرى"],
+    "شمال سيناء":["العريش","رفح","الشيخ زويد","بئر العبد","أحياء أخرى"],
+    "جنوب سيناء":["دهب","شرم الشيخ","نويبع","طابا","سانت كاترين","الطور","رأس سدر","أحياء أخرى"]
 };
 
 // ربط القوائم المنسدلة
@@ -3569,7 +3582,6 @@ document.addEventListener("DOMContentLoaded", function() {
     const citySelect = document.getElementById("city");
     if (!govSelect || !citySelect) return;
 
-    // ملء المحافظات
     Object.keys(govData).forEach(g => {
         let opt = document.createElement("option");
         opt.value = g;
@@ -3577,7 +3589,6 @@ document.addEventListener("DOMContentLoaded", function() {
         govSelect.appendChild(opt);
     });
 
-    // حدث تغيير المحافظة
     govSelect.addEventListener("change", function() {
         citySelect.innerHTML = `<option value="" selected disabled>اختر المدينة</option>`;
         citySelect.value = "";
@@ -3593,6 +3604,24 @@ document.addEventListener("DOMContentLoaded", function() {
             citySelect.disabled = true;
         }
     });
+
+    // ربط التبويبات في دليل المتسوق
+    document.querySelectorAll('.info-tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            document.querySelectorAll('.info-tab').forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            currentTab = this.dataset.tab;
+            renderInfoTab(currentTab);
+        });
+    });
+    
+    // تعبئة المحتوى الافتراضي
+    if (document.getElementById('infoBody')) {
+        renderInfoTab('shipping');
+    }
+    
+    // تحديث السلة
+    updateCart();
 });
 
 // لتجنب الأخطاء في حالة عدم وجود db (سيتم تعيينه من loadProduct)
