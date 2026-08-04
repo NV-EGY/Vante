@@ -2095,6 +2095,11 @@ async function loadProduct() {
         db = getFirestore(app);
         window._db = db;
 
+        // ==== جلب جميع المنتجات لتكون متاحة للسلة ====
+        const productsCollection = collection(db, "products");
+        const productsSnapshot = await getDocs(productsCollection);
+        window.allProducts = productsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
         const productRef = doc(db, "products", productId);
         const productSnap = await getDoc(productRef);
         if (!productSnap.exists()) {
@@ -2570,6 +2575,7 @@ console.log('✅ VANTÉ Product Page loaded successfully');
 // =====================================================
 
 // ----- متغيرات عامة -----
+let db = null;
 let cart = JSON.parse(localStorage.getItem('vante_cart') || '[]');
 let appliedCoupon = null;
 let discountAmount = 0;
@@ -3115,12 +3121,98 @@ function openSearch() {
     window.location.href = 'index.html';
 }
 
+// ========== دوال التواصل ودليل المتسوق ==========
+function openContactModal(e) {
+    if (e) e.preventDefault();
+    document.getElementById('contactModal').classList.add('active');
+    document.getElementById('overlay').classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+function closeContactModal() {
+    document.getElementById('contactModal').classList.remove('active');
+    document.getElementById('overlay').classList.remove('active');
+    document.body.style.overflow = '';
+}
+function openInfoModal() {
+    document.getElementById('infoModal').classList.add('active');
+    document.getElementById('overlay').classList.add('active');
+    document.body.style.overflow = 'hidden';
+    // يمكنك ملء المحتوى هنا إذا أردت
+}
+function closeInfoModal() {
+    document.getElementById('infoModal').classList.remove('active');
+    document.getElementById('overlay').classList.remove('active');
+    document.body.style.overflow = '';
+}
+
 // ----- استدعاء updateCart عند التحميل -----
 document.addEventListener("DOMContentLoaded", function() {
     updateCart();
     // ربط دوال المحافظات والمدن (مستوردة من index.html)
     // إذا كنت تريدها تعمل محلياً، أنسخ دوال المحافظات من index.html هنا.
     // لكن بما أننا نستخدم نفس الـ Firebase وكل شيء، يمكن تركها كما هي.
+});
+// ========== المحافظات والمدن ==========
+const govData = {
+ "القاهرة": ["مدينة نصر","مصر الجديدة","مصر القديمة","التجمع الأول","التجمع الثالث","التجمع الخامس","الرحاب","مدينتي","الشروق","بدر","المعادي","زهراء المعادي","حلوان","15 مايو","عين شمس","المطرية","السلام","المرج","الزيتون","حدائق القبة","روض الفرج","شبرا مصر","وسط البلد","القاهرة الجديدة","القطامية","المقطم","هليوبوليس الجديدة","مدينة المستقبل","أحياء أخرى"],
+ "الجيزة": ["الجيزة","الدقي","العجوزة","إمبابة","بولاق الدكرور","الهرم","فيصل","الطالبية","العمرانية","حدائق الاهرام","6 أكتوبر","الشيخ زايد","حدائق أكتوبر","الحوامدية","البدرشين","العياط","أوسيم","كرداسة","الصف","دهشور","ناهيا","المنصورية","ألبراجيل","أبو رواش","منشأة القناطر","المنيب","أبو النمرس","شبرامنت","سقارة","نكلة","أطفيح","أحياء أخرى"],
+ "القليوبية": ["بنها","شبرا الخيمة","قليوب","القناطر الخيرية","ابو زعبل","الخانكة","العبور","الخصوص","كفر شكر","طوخ","شبين القناطر","أحياء أخرى"],
+ "الإسكندرية": ["الإسكندرية","العجمي","الدخيلة","برج العرب","سيدي جابر","محرم بك","العصافرة","المنتزه","أحياء أخرى"],
+ "الدقهلية": ["المنصورة","طلخا","ميت غمر","دكرنس","أجا","السنبلاوين","بلقاس","نبروه","تمي الأمديد","الجمالية","المنزلة","شربين","ميت سلسيل","أحياء أخرى"],
+ "الشرقية": ["الزقازيق","بلبيس","العاشر من رمضان","منيا القمح","فاقوس","أبو حماد","الحسينية","أولاد صقر","كفر صقر","ديرب نجم","الإبراهيمية","ههيا","مشتول السوق","أحياء أخرى"],
+ "الغربية": ["طنطا","المحلة الكبرى","كفر الزيات","زفتى","سمنود","قطور","بسيون","أحياء أخرى"],
+ "المنوفية": ["شبين الكوم","السادات","منوف","أشمون","الباجور","قويسنا","تلا","بركة السبع","الشهداء","أحياء أخرى"],
+ "البحيرة": ["دمنهور","كفر الدوار","رشيد","إدكو","أبو حمص","الدلنجات","إيتاي البارود","حوش عيسى","شبراخيت","كوم حمادة","بدر","وادي النطرون","أحياء أخرى"],
+ "كفر الشيخ": ["كفر الشيخ","دسوق","فوه","مطوبس","بلطيم","الحامول","بيلا","قلين","سيدي سالم","أحياء أخرى"],
+ "دمياط": ["دمياط","رأس البر","فارسكور","الزرقا","كفر سعد","أحياء أخرى"],
+ "بورسعيد": ["بورسعيد","بورفؤاد","أحياء أخرى"],
+ "الإسماعيلية": ["الإسماعيلية","فايد","القنطرة شرق","القنطرة غرب","التل الكبير","أبو صوير","أحياء أخرى"],
+ "السويس": ["السويس","الأربعين","عتاقة","الجناين","العين السخنة","أحياء أخرى"],
+ "بني سويف": ["بني سويف","الواسطى","ناصر","إهناسيا","ببا","سمسطا","الفشن","أحياء أخرى"],
+ "الفيوم": ["الفيوم","سنورس","إطسا","إبشواي","يوسف الصديق","أحياء أخرى"],
+ "المنيا": ["المنيا","سمالوط","بني مزار","مطاي","مغاغة","ملوي","أبو قرقاص","دير مواس","العدوة","أحياء أخرى"],
+ "أسيوط": ["أسيوط","ديروط","القوصية","منفلوط","أبنوب","أبو تيج","الغنايم","ساحل سليم","البداري","صدفا","أحياء أخرى"],
+ "سوهاج": ["سوهاج","أخميم","طهطا","المراغة","البلينا","جرجا","جهينة","دار السلام","ساقلته","المنشأة","أحياء أخرى"],
+ "قنا": ["قنا","نجع حمادي","دشنا","قفط","قوص","نقادة","فرشوط","أبو تشت","أحياء أخرى"],
+ "الأقصر": ["الأقصر","إسنا","أرمنت","الطود","البياضية","القرنة","أحياء أخرى"],
+ "أسوان": ["أسوان","إدفو","كوم أمبو","دراو","نصر النوبة","أحياء أخرى"],
+ "البحر الأحمر": ["الغردقة","رأس غارب","سفاجا","القصير","مرسى علم","حلايب","شلاتين","أحياء أخرى"],
+ "الوادي الجديد": ["الخارجة","الداخلة","الفرافرة","باريس","موط","أحياء أخرى"],
+ "مطروح": ["مرسى مطروح","الحمام","العلمين","الضبعة","سيوة","النجيلة","براني","السلوم","أحياء أخرى"],
+ "شمال سيناء":["العريش","رفح","الشيخ زويد","بئر العبد","أحياء أخرى"],
+ "جنوب سيناء":["دهب","شرم الشيخ","نويبع","طابا","سانت كاترين","الطور","رأس سدر","أحياء أخرى"]
+};
+
+// ربط القوائم المنسدلة
+document.addEventListener("DOMContentLoaded", function() {
+    const govSelect = document.getElementById("governorate");
+    const citySelect = document.getElementById("city");
+    if (!govSelect || !citySelect) return;
+
+    // ملء المحافظات
+    Object.keys(govData).forEach(g => {
+        let opt = document.createElement("option");
+        opt.value = g;
+        opt.textContent = g;
+        govSelect.appendChild(opt);
+    });
+
+    // حدث تغيير المحافظة
+    govSelect.addEventListener("change", function() {
+        citySelect.innerHTML = `<option value="" selected disabled>اختر المدينة</option>`;
+        citySelect.value = "";
+        if (govData[this.value]) {
+            govData[this.value].forEach(city => {
+                let opt = document.createElement("option");
+                opt.value = city;
+                opt.textContent = city;
+                citySelect.appendChild(opt);
+            });
+            citySelect.disabled = false;
+        } else {
+            citySelect.disabled = true;
+        }
+    });
 });
 
 // لتجنب الأخطاء في حالة عدم وجود db (سيتم تعيينه من loadProduct)
@@ -3150,6 +3242,63 @@ if (typeof db === 'undefined') {
         <div class="confirm-modal-buttons">
             <button class="confirm-btn-cancel" id="confirmCancelBtn">إلغاء</button>
             <button class="confirm-btn-confirm" id="confirmOkBtn">✅ نعم، أكمل الطلب</button>
+        </div>
+    </div>
+</div>
+<!-- مودال تواصل مع المسئول -->
+<div id="contactModal" class="contact-modal">
+    <div class="contact-modal-content">
+        <div class="contact-modal-header">
+            <h3><i class="fas fa-headset"></i> تواصل مع المسئول</h3>
+            <button class="close-contact-modal" onclick="closeContactModal()">&times;</button>
+        </div>
+        <div class="contact-modal-body">
+            <div class="input-group">
+                <label>الاسم كامل</label>
+                <div class="input-icon">
+                    <i class="fas fa-user"></i>
+                    <input type="text" id="contactName" placeholder="أدخل اسمك الكامل">
+                </div>
+                <div id="contactNameError" class="error-msg"></div>
+            </div>
+            <div class="input-group">
+                <label>رقم الهاتف</label>
+                <div class="input-icon">
+                    <i class="fas fa-phone"></i>
+                    <input type="tel" id="contactPhone" placeholder="01XXXXXXXXX">
+                </div>
+                <div id="contactPhoneError" class="error-msg"></div>
+            </div>
+            <div class="input-group">
+                <label>الرسالة</label>
+                <div class="input-icon">
+                    <i class="fas fa-envelope"></i>
+                    <textarea id="contactMessage" rows="4" placeholder="اكتب رسالتك هنا..."></textarea>
+                </div>
+                <div id="contactMsgError" class="error-msg"></div>
+            </div>
+            <button class="btn-primary contact-submit" onclick="sendContactMessage()">
+                <i class="fas fa-paper-plane"></i> إرسال الرسالة
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- مودال دليل المتسوق -->
+<div id="infoModal" class="info-modal">
+    <div class="info-modal-content">
+        <div class="info-modal-header">
+            <h3><i class="fas fa-info-circle"></i> دليل المتسوق</h3>
+            <button class="close-info-modal" onclick="closeInfoModal()">&times;</button>
+        </div>
+        <div class="info-tabs">
+            <div class="info-tab active" data-tab="shipping">🚚 الشحن والإرجاع</div>
+            <div class="info-tab" data-tab="size">📏 دليل المقاسات</div>
+            <div class="info-tab" data-tab="packaging">🎁 تغليف المنتج</div>
+            <div class="info-tab" data-tab="faq">❓ أسئلة شائعة</div>
+        </div>
+        <div class="info-body" id="infoBody">
+            <!-- المحتوى سيتم تعبئته بواسطة JavaScript -->
         </div>
     </div>
 </div>
