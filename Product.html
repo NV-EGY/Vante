@@ -5,12 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title id="productTitle">VANTÉ - منتج</title>
     
-    <!-- تحسين SEO -->
-    <meta name="description" content="اكتشف منتجات VANTÉ الفاخرة من الإكسسوارات الحريمي المصنوعة من الدهب الاستانلس.">
-    <meta name="robots" content="index, follow">
-    <meta property="og:title" content="VANTÉ - إكسسوارات فاخرة">
-    <meta property="og:type" content="product">
-    <meta property="og:image" content="https://Vante.sbs/images/preview.jpg">
+<!-- تحسين SEO -->
+<meta name="description" id="metaDescription" content="اكتشف منتجات VANTÉ الفاخرة من الإكسسوارات الحريمي المصنوعة من الدهب الاستانلس.">
+<meta name="robots" content="index, follow">
+<meta property="og:title" id="ogTitle" content="VANTÉ - إكسسوارات فاخرة">
+<meta property="og:type" content="product">
+<meta property="og:image" id="ogImage" content="https://Vante.sbs/images/preview.jpg">
+<meta property="og:url" id="ogUrl" content="https://Vante.sbs/Product.html">
     
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -2614,6 +2615,11 @@ updateCart();  // <--- تأكد من وجود هذا السطر
             </div>
         `).join('');
         // تحديث العنوان
+        // ===== تحديث Meta Tags لمشاركة المنتج =====
+document.getElementById('metaDescription').content = product.description || 'اكتشف منتجات VANTÉ الفاخرة';
+document.getElementById('ogTitle').content = `VANTÉ - ${product.name}`;
+document.getElementById('ogImage').content = product.image || 'https://Vante.sbs/images/preview.jpg';
+document.getElementById('ogUrl').content = window.location.href;
 document.title = `VANTÉ - ${product.name}`;
 document.getElementById('productTitle').textContent = `VANTÉ - ${product.name}`;
 document.getElementById('breadcrumbName').textContent = product.name;
