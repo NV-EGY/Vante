@@ -2497,10 +2497,18 @@ function initReadMore() {
     descContainer.innerHTML = '';
     descContainer.appendChild(wrapper);
     
-    // إنشاء زر "عرض المزيد"
+    // إنشاء زر "عرض المزيد" - بنية منفصلة للنص والأيقونة
     const btn = document.createElement('button');
     btn.className = 'read-more-btn';
-    btn.innerHTML = 'عرض المزيد <i class="fas fa-chevron-down"></i>';
+    
+    // استخدام عنصرين منفصلين
+    const btnText = document.createElement('span');
+    btnText.textContent = 'عرض المزيد';
+    const btnIcon = document.createElement('i');
+    btnIcon.className = 'fas fa-chevron-down';
+    
+    btn.appendChild(btnText);
+    btn.appendChild(btnIcon);
     descContainer.appendChild(btn);
     
     // إضافة تأثير التلاشي في الأسفل
@@ -2537,13 +2545,15 @@ function initReadMore() {
         if (isExpanded) {
             // طي الوصف
             wrapper.style.maxHeight = '120px';
-            btn.innerHTML = 'عرض المزيد <i class="fas fa-chevron-down"></i>';
+            btnText.textContent = 'عرض المزيد';
+            btnIcon.className = 'fas fa-chevron-down';
             fade.classList.add('show');
             btn.classList.remove('expanded');
         } else {
             // توسيع الوصف
             wrapper.style.maxHeight = fullHeight + 20 + 'px';
-            btn.innerHTML = 'عرض أقل <i class="fas fa-chevron-up"></i>';
+            btnText.textContent = 'عرض أقل';
+            btnIcon.className = 'fas fa-chevron-up';
             fade.classList.remove('show');
             btn.classList.add('expanded');
         }
