@@ -614,14 +614,6 @@
             transform: none !important;
             box-shadow: none !important;
         }
-        
-        .btn-secondary:hover {
-            border-color: #D4AF37;
-            color: #D4AF37;
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.06);
-        }
-        
 
         /* ============================================
            PRODUCT TABS
@@ -1728,7 +1720,7 @@ button:active,
             <!-- خانة كتابة الرأي -->
             <div class="review-input-area" id="reviewInputArea">
                 <textarea id="reviewText" placeholder="اكتب رأيك في المنتج..."></textarea>
-                <button class="btn-primary" onclick="openRatingModal()" style="margin-top:10px; width:100%;">
+                <button class="btn-primary" onclick="openRatingModal()" style="width:100% !important; display: block !important; min-width: unset !important; flex: none !important; background: #111; color: #fff; border-radius: 16px; padding: 16px; font-size: 16px; font-weight: 800; border: none; cursor: pointer; transition: 0.3s; text-align: center;">
                     <i class="fas fa-paper-plane"></i> إرسال التقييم
                 </button>
             </div>
