@@ -1082,15 +1082,15 @@
             .thumbnail-wrapper { width: 72px; height: 72px; }
         }
         @media (max-width: 768px) {
-            .product-container { padding: 18px; border-radius: 20px; }
-            .product-gallery-page .main-image { height: 300px; }
-            .products-grid { grid-template-columns: repeat(2, 1fr); gap: 14px; }
-            .product-info-page h1 { font-size: 22px; }
-            .product-price .current { font-size: 24px; }
-            .thumbnail-wrapper { width: 64px; height: 64px; }
+    .product-container { padding: 18px; border-radius: 20px; }
+    .product-gallery-page .main-image { height: 300px; }
+    .products-grid { grid-template-columns: repeat(2, 1fr); gap: 14px; }
+    .product-info-page h1 { font-size: 22px; }
+    .product-price .current { font-size: 24px; }
+    .thumbnail-wrapper { width: 64px; height: 64px; }
     .action-buttons {
-        flex-direction: row !important;  /* ✅ يلغي التراص العمودي */
-        flex-wrap: nowrap !important;    /* ✅ يمنع النزول لسطر جديد */
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
         gap: 8px !important;
     }
     .btn-primary {
@@ -1100,16 +1100,15 @@
         padding: 12px 16px !important;
         font-size: 14px !important;
     }
+    .product-tabs .tabs-header button { padding: 12px 16px; font-size: 13px; }
+    .product-tabs .tab-content { padding: 20px; }
+    .breadcrumb { font-size: 12px; margin-top: 12px; }
+    .image-modal .nav-modal { width: 40px; height: 40px; font-size: 18px; }
+    .image-modal .nav-modal.prev-modal { left: 10px; }
+    .image-modal .nav-modal.next-modal { right: 10px; }
+    .image-modal .close-modal { width: 44px; height: 44px; font-size: 22px; top: 15px; left: 15px; }
+    .stars-container span { font-size: 24px; }
 }
-            .product-tabs .tabs-header button { padding: 12px 16px; font-size: 13px; }
-            .product-tabs .tab-content { padding: 20px; }
-            .breadcrumb { font-size: 12px; margin-top: 12px; }
-            .image-modal .nav-modal { width: 40px; height: 40px; font-size: 18px; }
-            .image-modal .nav-modal.prev-modal { left: 10px; }
-            .image-modal .nav-modal.next-modal { right: 10px; }
-            .image-modal .close-modal { width: 44px; height: 44px; font-size: 22px; top: 15px; left: 15px; }
-            .stars-container span { font-size: 24px; }
-        }
         @media (max-width: 480px) {
             .products-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
             .product-card { padding: 12px 10px; }
@@ -2526,15 +2525,15 @@ async function loadProduct() {
         displayReviews(product.id);
         updateReviewBadges();
 
-        // ===== المقاسات =====
-        const sizes = product.sizes || ['7', '8', '9'];
-        const stockBySize = product.stockBySize || {};
-        sizeContainer.innerHTML = sizes.map(s => {
+// ===== المقاسات =====
+const sizes = product.sizes || ['7', '8', '9'];
+const stockBySize = product.stockBySize || {};
+const sizeContainer = document.getElementById('sizeOptions'); // ✅ تعريف المتغير
+sizeContainer.innerHTML = sizes.map(s => {
     const qty = stockBySize[s] !== undefined ? stockBySize[s] : null;
     const isDisabled = (qty === 0);
     const isUnlimited = (qty === null || qty === undefined);
     
-    // ✅ تنسيق المقاس الجديد: "المقاس: 60 (باقى 15 قطعه)"
     let label = `المقاس: ${s}`;
     if (isUnlimited) {
         label += ' (غير محدود)';
@@ -2551,6 +2550,27 @@ async function loadProduct() {
                 ${label}
             </button>`;
 }).join('');
+
+// ===== عرض المقاسات في تبويب المقاسات =====
+const sizeListContainer = document.getElementById('sizeListContainer');
+if (sizeListContainer) {
+    sizeListContainer.innerHTML = sizes.map(s => {
+        const qty = stockBySize[s] !== undefined ? stockBySize[s] : null;
+        const isUnlimited = (qty === null || qty === undefined);
+        let label = `المقاس: ${s}`;
+        if (isUnlimited) {
+            label += ' (غير محدود)';
+        } else if (qty !== null && qty > 0) {
+            label += ` (باقى ${qty} قطعه)`;
+        } else if (qty === 0) {
+            label += ' (نفذ)';
+        }
+        const isOutOfStock = (qty === 0);
+        return `<span style="padding:8px 16px; border-radius:12px; border:1px solid ${isOutOfStock ? '#e74c3c' : '#D4AF37'}; background:${isOutOfStock ? '#fde8e8' : '#faf9f7'}; font-weight:600; font-size:14px; color:${isOutOfStock ? '#c0392b' : '#111'};">
+            ${label}
+        </span>`;
+    }).join('');
+}
 
         // ===== المخزون =====
         updateStockDisplay(product);
@@ -4025,26 +4045,6 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // ❌ لا تستدعي updateCart() هنا - سيتم استدعاؤها من loadProduct
 });
-// ===== عرض المقاسات في تبويب المقاسات =====
-const sizeListContainer = document.getElementById('sizeListContainer');
-if (sizeListContainer) {
-    sizeListContainer.innerHTML = sizes.map(s => {
-        const qty = stockBySize[s] !== undefined ? stockBySize[s] : null;
-        const isUnlimited = (qty === null || qty === undefined);
-        let label = `المقاس: ${s}`;
-        if (isUnlimited) {
-            label += ' (غير محدود)';
-        } else if (qty !== null && qty > 0) {
-            label += ` (باقى ${qty} قطعه)`;
-        } else if (qty === 0) {
-            label += ' (نفذ)';
-        }
-        const isOutOfStock = (qty === 0);
-        return `<span style="padding:8px 16px; border-radius:12px; border:1px solid ${isOutOfStock ? '#e74c3c' : '#D4AF37'}; background:${isOutOfStock ? '#fde8e8' : '#faf9f7'}; font-weight:600; font-size:14px; color:${isOutOfStock ? '#c0392b' : '#111'};">
-            ${label}
-        </span>`;
-    }).join('');
-}
 
 // ✅ تعريف updateCart كدالة عامة
 window.updateCart = updateCart;
