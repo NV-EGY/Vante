@@ -1576,6 +1576,36 @@ button:active,
     color: #D4AF37;
     margin-bottom: 10px;
 }
+.share-btn-small {
+    width: 50px !important;
+    min-width: 50px !important;
+    height: 50px !important;
+    padding: 0 !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 18px !important;
+    background: #f5f5f5 !important;
+    color: #111 !important;
+    border: none !important;
+    cursor: pointer !important;
+    transition: 0.3s !important;
+    flex: 0 0 auto !important;
+}
+.share-btn-small:hover {
+    background: #D4AF37 !important;
+    color: #000 !important;
+    transform: translateY(-2px) !important;
+}
+@media (max-width: 480px) {
+    .share-btn-small {
+        width: 44px !important;
+        min-width: 44px !important;
+        height: 44px !important;
+        font-size: 16px !important;
+    }
+}
     </style>
 </head>
 <body>
@@ -1713,15 +1743,12 @@ button:active,
     <div class="size-options" id="sizeOptions"></div>
 </div>
 
-<div class="action-buttons">
-    <button class="btn-primary" id="addToCartBtn" onclick="addToCartFromPage()">
+    <div class="modal-footer" id="modalFooter">
+    <button class="btn-primary modal-add-btn" onclick="addCurrentProductToCart(event)">
         <i class="fas fa-shopping-bag"></i> أضف للسلة
     </button>
-    <button class="btn-secondary share-btn" onclick="shareProduct()" title="مشاركة">
+    <button class="btn-secondary share-btn-small" onclick="shareProduct()" title="مشاركة">
         <i class="fas fa-share-alt"></i>
-    </button>
-    <button class="btn-secondary" onclick="window.location.href='index.html'" title="العودة للتسوق">
-        <i class="fas fa-arrow-right"></i>
     </button>
 </div>
                 <div class="stars-container" id="starsContainer">
@@ -1865,7 +1892,9 @@ button:active,
 <div id="cartDrawer" class="drawer">
     <h2>🛒 سلة التسوق</h2>
     <div id="cartItems">السلة فارغة</div>
-    <div class="total">الإجمالي: <span id="total">0</span> جنيه</div>
+    <div class="total" style="background: linear-gradient(135deg, #D4AF37, #FFD700, #B8860B); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 28px; font-weight: 900; text-shadow: none;">
+    الإجمالي: <span id="total">0</span> جنيه
+</div>
     <!-- كوبون الخصم -->
     <div style="margin: 15px 0;">
         <div style="display: flex; gap: 10px; align-items: center; justify-content: space-between; background: #f5f5f5; padding: 8px; border-radius: 40px;">
@@ -1993,18 +2022,36 @@ button:active,
 ============================================ -->
 <script>
 // ========== MOBILE MENU ==========
-function toggleMobileMenu(e) {
+window.toggleMobileMenu = function (e) {
     if (e) e.preventDefault();
     const menu = document.getElementById("mobileMenu");
     const overlay = document.getElementById("menuOverlay");
     menu.classList.toggle("active");
     overlay.classList.toggle("active");
     document.body.style.overflow = menu.classList.contains("active") ? "hidden" : "";
-}
-function closeMobileMenu() {
-    document.getElementById("mobileMenu").classList.remove("active");
-    document.getElementById("menuOverlay").classList.remove("active");
-    document.body.style.overflow = "";
+
+    if (menu.classList.contains("active")) {
+        document.getElementById('collectionsSub').classList.remove('active');
+        // إضافة مستمع لإغلاق القائمة عند النقر خارجها
+        setTimeout(() => {
+            document.addEventListener('click', closeMenuOnOutsideClick);
+        }, 100);
+    } else {
+        document.removeEventListener('click', closeMenuOnOutsideClick);
+    }
+};
+
+function closeMenuOnOutsideClick(e) {
+    const menu = document.getElementById("mobileMenu");
+    const menuBtn = document.querySelector('.mobile-btn');
+    if (!menu || !menu.classList.contains('active')) {
+        document.removeEventListener('click', closeMenuOnOutsideClick);
+        return;
+    }
+    if (!menu.contains(e.target) && !menuBtn.contains(e.target)) {
+        window.closeMobileMenu();
+        document.removeEventListener('click', closeMenuOnOutsideClick);
+    }
 }
 
 // ========== TOAST SYSTEM ==========
