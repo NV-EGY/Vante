@@ -2,8 +2,8 @@ name: Generate Product Pages
 
 on:
   schedule:
-    - cron: '*/15 * * * *'  # يعمل تلقائياً كل 15 دقيقة
-  workflow_dispatch:        # يتيح لك تشغيله يدوياً من GitHub (للاختبار)
+    - cron: '*/30 * * * *'  # يعمل تلقائياً كل 30 دقيقة
+  workflow_dispatch:        # يسمح لك بتشغيله يدوياً من موقع GitHub
 
 jobs:
   build:
