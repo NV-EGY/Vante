@@ -1596,6 +1596,56 @@ button:active,
 .btn-be-first-review i {
     font-size: 14px;
 }
+/* ===== READ MORE / SHOW LESS ===== */
+.product-description-wrapper {
+    position: relative;
+    overflow: hidden;
+    transition: max-height 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    max-height: 120px; /* الارتفاع الأولي للمختصر */
+}
+.product-description-wrapper.expanded {
+    max-height: 2000px; /* ارتفاع كافٍ لاستيعاب النص الطويل */
+}
+.read-more-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #D4AF37;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 12px;
+    font-size: 14px;
+    transition: 0.3s;
+    background: none;
+    border: none;
+    padding: 5px 0;
+    font-family: 'Cairo', sans-serif;
+    letter-spacing: 0.5px;
+}
+.read-more-btn:hover {
+    color: #B8860B;
+    transform: translateX(-4px);
+}
+.read-more-btn i {
+    transition: transform 0.3s ease;
+}
+.read-more-btn.expanded i {
+    transform: rotate(180deg);
+}
+.desc-fade {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 40px;
+    background: linear-gradient(to top, #faf9f7, transparent);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+.desc-fade.show {
+    opacity: 1;
+}
     </style>
 </head>
 <body>
@@ -2420,6 +2470,87 @@ window.scrollToStars = function() {
     document.getElementById('reviewText').scrollIntoView({ behavior: 'smooth', block: 'center' });
 };
 
+// ========== خاصية عرض المزيد للوصف ==========
+function initReadMore() {
+    const descContainer = document.getElementById('productDescription');
+    if (!descContainer) return;
+
+    // منع إعادة التطبيق أكثر من مرة على نفس العنصر
+    if (descContainer.dataset.readmore === 'true') return;
+    
+    const originalHTML = descContainer.innerHTML;
+    
+    // استخراج النص النقي لتحديد طوله
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = originalHTML;
+    const textContent = tempDiv.textContent || tempDiv.innerText;
+    
+    // إذا كان النص أقل من 120 حرف، لا داعي للميزة
+    if (textContent.length < 120) return;
+
+    // لف المحتوى في حاوية جديدة
+    const wrapper = document.createElement('div');
+    wrapper.className = 'product-description-wrapper';
+    wrapper.innerHTML = originalHTML;
+    
+    // تفريغ الحاوية الأصلية وإضافة الهيكل الجديد
+    descContainer.innerHTML = '';
+    descContainer.appendChild(wrapper);
+    
+    // إنشاء زر "عرض المزيد"
+    const btn = document.createElement('button');
+    btn.className = 'read-more-btn';
+    btn.innerHTML = 'عرض المزيد <i class="fas fa-chevron-down"></i>';
+    descContainer.appendChild(btn);
+    
+    // إضافة تأثير التلاشي في الأسفل
+    const fade = document.createElement('div');
+    fade.className = 'desc-fade show';
+    wrapper.appendChild(fade);
+    
+    let isExpanded = false;
+    
+    // حساب الارتفاع الكامل للمحتوى
+    function getFullHeight() {
+        wrapper.style.maxHeight = 'none';
+        const full = wrapper.scrollHeight;
+        wrapper.style.maxHeight = '120px';
+        return full;
+    }
+    
+    const fullHeight = getFullHeight();
+    
+    // إذا كان الارتفاع الكامل أقل من 120، نلغي الميزة
+    if (fullHeight <= 120) {
+        wrapper.style.maxHeight = 'none';
+        btn.style.display = 'none';
+        fade.classList.remove('show');
+        descContainer.dataset.readmore = 'true';
+        return;
+    }
+    
+    wrapper.style.maxHeight = '120px';
+    descContainer.dataset.readmore = 'true';
+
+    // حدث النقر على الزر
+    btn.addEventListener('click', function() {
+        if (isExpanded) {
+            // طي الوصف
+            wrapper.style.maxHeight = '120px';
+            btn.innerHTML = 'عرض المزيد <i class="fas fa-chevron-down"></i>';
+            fade.classList.add('show');
+            btn.classList.remove('expanded');
+        } else {
+            // توسيع الوصف
+            wrapper.style.maxHeight = fullHeight + 20 + 'px';
+            btn.innerHTML = 'عرض أقل <i class="fas fa-chevron-up"></i>';
+            fade.classList.remove('show');
+            btn.classList.add('expanded');
+        }
+        isExpanded = !isExpanded;
+    });
+}
+
 // ========== تحميل المنتج ==========
 async function loadProduct() {
     const params = new URLSearchParams(window.location.search);
@@ -2505,6 +2636,9 @@ updateCart();  // <--- تأكد من وجود هذا السطر
 
         const desc = product.description || 'منتج فاخر من VANTÉ';
         document.getElementById('productDescription').innerHTML = desc;
+
+// ✅ تفعيل خاصية عرض المزيد بعد تعيين الوصف
+setTimeout(initReadMore, 150);
 
         // ===== التقييمات =====
         await loadApprovedReviews(db);
