@@ -7395,7 +7395,7 @@ window.openProduct = function(id, name, price, image, sizes = [], description = 
         displayReviewsInModal(id);
         setTimeout(enableSwipe, 100);
     } else {
-        window.location.href = `/p/${id}.html`;
+        window.location.href = `/Product.html?id=${id}`;
     }
 };
 
@@ -8625,7 +8625,6 @@ console.log('✅ تم تفعيل تحديث الحالات التلقائي في
 
     console.log('✅ [Pixel] جاهز - ID:', PIXEL_ID);
 })();
-
 </script>
 </body>
 </html>
