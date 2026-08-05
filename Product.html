@@ -614,21 +614,7 @@
             transform: none !important;
             box-shadow: none !important;
         }
-        .btn-secondary {
-            padding: 16px 24px;
-            border: 2px solid #e5e5e5;
-            border-radius: 16px;
-            background: #fff;
-            color: #111;
-            font-size: 16px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
+        
         .btn-secondary:hover {
             border-color: #D4AF37;
             color: #D4AF37;
@@ -2988,7 +2974,10 @@ document.addEventListener('DOMContentLoaded', loadProduct);
 
 // ========== تحديث السلة عند العودة للصفحة ==========
 document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) updateCartCount();
+    if (!document.hidden) {
+        updateCartCount();
+        updateCart(); // ✅ تحديث محتوى السلة أيضاً
+    }
 });
 
 // ========== إضافة تأثير shake للكارت ==========
@@ -3139,8 +3128,10 @@ function changeQty(index, change) {
 }
 window.changeQty = changeQty;
 
-// ----- فتح/إغلاق السلة -----
 function openCart() {
+    // ✅ تحديث محتوى السلة قبل فتحها
+    updateCart();
+    
     const drawer = document.getElementById("cartDrawer");
     const overlay = document.getElementById("overlay");
     if (drawer) drawer.classList.add("active");
