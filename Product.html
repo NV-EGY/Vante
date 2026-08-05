@@ -1717,7 +1717,6 @@ button:active,
             <div style="text-align:center; margin: 10px 0 5px;">
               <!-- المقاسات وزر الإضافة (في الأعلى) -->
 <div class="size-selector">
-    <label>اختر المقاس</label>
     <div class="size-options" id="sizeOptions"></div>
 </div>
 
@@ -2438,11 +2437,11 @@ async function loadProduct() {
         db = getFirestore(app);
         window._db = db;
 
-        // ==== جلب جميع المنتجات لتكون متاحة للسلة ====
-        const productsCollection = collection(db, "products");
-        const productsSnapshot = await getDocs(productsCollection);
-        window.allProducts = productsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        updateCart();
+// ==== جلب جميع المنتجات لتكون متاحة للسلة ====
+const productsCollection = collection(db, "products");
+const productsSnapshot = await getDocs(productsCollection);
+window.allProducts = productsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+updateCart();  // <--- تأكد من وجود هذا السطر
 
         const productRef = doc(db, "products", productId);
         const productSnap = await getDoc(productRef);
@@ -2847,7 +2846,7 @@ window.addToCartFromPage = function() {
     const stockBySize = product.stockBySize || {};
     const sizes = product.sizes || ['7', '8', '9'];
     
-    // ✅ فلترة المقاسات المتوفرة فقط (التي لها كمية > 0 أو غير محدودة)
+    // ✅ فلترة المقاسات المتوفرة (كمية > 0 أو غير محدودة)
     const availableSizes = sizes.filter(s => {
         const qty = stockBySize[s];
         return qty === null || qty === undefined || qty > 0;
@@ -2867,19 +2866,22 @@ window.addToCartFromPage = function() {
     // ✅ إذا كان هناك مقاس واحد فقط -> يضاف تلقائياً
     if (availableSizes.length === 1) {
         const size = availableSizes[0];
-        // إضافة المنتج مباشرة
         let cart = JSON.parse(localStorage.getItem('vante_cart') || '[]');
         const existing = cart.find(item => item.id === product.id && item.size === size);
+        
+        // التحقق من المخزون
+        const currentQty = stockBySize[size];
         if (existing) {
-            const currentQty = stockBySize[size];
             if (currentQty !== null && currentQty !== undefined && existing.qty + 1 > currentQty) {
                 showToast(`❌ الكمية المتاحة لمقاس ${size} هي ${currentQty} قطعة فقط`, 'error');
                 return;
             }
             existing.qty += 1;
         } else {
+            // ✅ حفظ جميع بيانات المنتج المهمة
             cart.push({
                 id: product.id,
+                productId: product.id,   // <--- مفتاح مهم للبحث في allProducts
                 name: product.name,
                 price: product.price,
                 size: size,
@@ -2904,7 +2906,6 @@ window.addToCartFromPage = function() {
     }
     
     // ✅ إذا كان هناك أكثر من مقاس -> نطلب اختيار المقاس
-    // التحقق من اختيار المقاس
     if (sizes.length > 0 && !selectedSize) {
         showToast('⚠️ يرجى اختيار المقاس أولاً', 'info');
         document.querySelector('.size-selector')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -2929,7 +2930,6 @@ window.addToCartFromPage = function() {
     const existing = cart.find(item => item.id === product.id && item.size === size);
     
     if (existing) {
-        // التحقق من المخزون للكمية الجديدة
         const currentQty = stockBySize[size];
         if (currentQty !== null && currentQty !== undefined && existing.qty + 1 > currentQty) {
             showToast(`❌ الكمية المتاحة لمقاس ${size} هي ${currentQty} قطعة فقط`, 'error');
@@ -2937,9 +2937,10 @@ window.addToCartFromPage = function() {
         }
         existing.qty += 1;
     } else {
-        // إضافة منتج جديد
+        // ✅ إضافة منتج جديد مع جميع البيانات
         cart.push({
             id: product.id,
+            productId: product.id,   // <--- مفتاح مهم للبحث في allProducts
             name: product.name,
             price: product.price,
             size: size,
@@ -3016,40 +3017,57 @@ let cart = JSON.parse(localStorage.getItem('vante_cart') || '[]');
 let appliedCoupon = null;
 let discountAmount = 0;
 
-// ========== تحديث السلة (نسخة مستقلة تعتمد على localStorage فقط) ==========
-function updateCart() {
-    // ✅ قراءة البيانات من localStorage مباشرة
+// ========== تحديث السلة (نسخة متقدمة مع خصم ومخزون) ==========
+window.updateCart = function() {
+    // ✅ قراءة البيانات من localStorage
     const cartData = JSON.parse(localStorage.getItem('vante_cart') || '[]');
+    window.cart = cartData;
     
     // ✅ تحديث المتغير العام cart
-    window.cart = cartData;
-    cart = cartData; // المتغير المحلي
+    if (typeof cart !== 'undefined') cart = cartData;
     
     let total = 0, count = 0;
     
-    // ✅ بناء واجهة السلة مباشرة من localStorage
+    // ✅ بناء واجهة السلة
     const html = cartData.map((item, index) => {
         total += (item.price || 0) * (item.qty || 1);
         count += (item.qty || 1);
         
-        // جلب بيانات المنتج إن وجدت (للمخزون والخصم)
-        const product = window.allProducts ? window.allProducts.find(p => p.id === item.id) : null;
-        let maxStock = -1;
+        // ✅ البحث عن المنتج في allProducts (باستخدام productId أو الاسم)
+        let product = null;
+        if (item.productId) {
+            product = window.allProducts?.find(p => p.id === item.productId);
+        }
+        if (!product && item.name) {
+            product = window.allProducts?.find(p => p.name === item.name);
+        }
+        
+        // ===== جلب بيانات المخزون =====
+        let maxStock = -1; // -1 يعني غير محدود
         if (product && product.stockBySize && item.size) {
             const stockValue = product.stockBySize[item.size];
-            if (stockValue !== null && stockValue !== undefined) maxStock = stockValue;
+            if (stockValue !== null && stockValue !== undefined) {
+                maxStock = stockValue;
+            }
         }
         const isUnlimited = (maxStock === -1);
         const maxedOut = (!isUnlimited && item.qty >= maxStock);
         
-        // التحقق من وجود خصم على المنتج
-        const hasDiscount = product && product.comparePrice && product.comparePrice > product.price;
-        const discountPercent = hasDiscount ? Math.round((1 - product.price / product.comparePrice) * 100) : 0;
+        // ===== جلب بيانات الخصم =====
+        let hasDiscount = false;
+        let discountPercent = 0;
+        let comparePrice = item.comparePrice || product?.comparePrice || null;
+        if (comparePrice && comparePrice > item.price) {
+            hasDiscount = true;
+            discountPercent = Math.round((1 - item.price / comparePrice) * 100);
+        }
         
+        // ===== عرض المنتج في السلة =====
         return `<div class="cart-item">
             <div class="cart-item-details">
                 <strong>${item.name || 'منتج'}</strong>
                 <small>المقاس: ${item.size || 'غير محدد'} ${isUnlimited ? ' <span style="color:#800080;">(كمية غير محدودة)</span>' : ''}</small>
+                ${item.sku ? `<small style="display:block;color:#999;font-size:11px;">SKU: ${item.sku}</small>` : ''}
             </div>
             <div class="qty-controls">
                 <button class="qty-btn" onclick="changeQty(${index},-1)">−</button>
@@ -3060,7 +3078,7 @@ function updateCart() {
                 ${hasDiscount ? `
                     <span style="color:#D4AF37; font-weight:900; font-size:16px;">${(item.price * item.qty).toFixed(0)} EGP</span>
                     <div style="display: flex; align-items: center; gap: 4px;">
-                        <span style="text-decoration:line-through; color:#999; font-size:11px;">${(product.comparePrice * item.qty).toFixed(0)} EGP</span>
+                        <span style="text-decoration:line-through; color:#999; font-size:11px;">${(comparePrice * item.qty).toFixed(0)} EGP</span>
                         <span style="background:#D4AF37; padding:0 6px; border-radius:12px; font-size:9px; color:#000;">-${discountPercent}%</span>
                     </div>
                 ` : `
@@ -3070,19 +3088,19 @@ function updateCart() {
         </div>`;
     }).join('');
     
-    // تحديث عناصر الواجهة
+    // تحديث واجهة السلة
     const cartItemsEl = document.getElementById("cartItems");
     if (cartItemsEl) cartItemsEl.innerHTML = html || "🛒 السلة فارغة";
     
-    // ✅ تحديث الإجمالي مع الخصومات
+    // ✅ تحديث الإجمالي مع الخصومات (استدعاء دالة الكوبون)
     updateCartWithCoupon();
     
-    // تحديث العداد
+    // ✅ تحديث العداد
     const countEl = document.getElementById("cartCount");
     if (countEl) countEl.innerText = count;
     
     return cartData;
-}
+};
 
 // ✅ تعيين الدالة كدالة عامة
 window.updateCart = updateCart;
