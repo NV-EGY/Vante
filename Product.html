@@ -2475,50 +2475,42 @@ function initReadMore() {
     const descContainer = document.getElementById('productDescription');
     if (!descContainer) return;
 
-    // منع إعادة التطبيق أكثر من مرة على نفس العنصر
     if (descContainer.dataset.readmore === 'true') return;
     
     const originalHTML = descContainer.innerHTML;
-    
-    // استخراج النص النقي لتحديد طوله
     const tempDiv = document.createElement('div');
     tempDiv.innerHTML = originalHTML;
     const textContent = tempDiv.textContent || tempDiv.innerText;
     
-    // إذا كان النص أقل من 120 حرف، لا داعي للميزة
     if (textContent.length < 120) return;
 
-    // لف المحتوى في حاوية جديدة
     const wrapper = document.createElement('div');
     wrapper.className = 'product-description-wrapper';
     wrapper.innerHTML = originalHTML;
     
-    // تفريغ الحاوية الأصلية وإضافة الهيكل الجديد
     descContainer.innerHTML = '';
     descContainer.appendChild(wrapper);
     
-    // إنشاء زر "عرض المزيد" - بنية منفصلة للنص والأيقونة
+    // زر العرض
     const btn = document.createElement('button');
     btn.className = 'read-more-btn';
     
-    // استخدام عنصرين منفصلين
     const btnText = document.createElement('span');
     btnText.textContent = 'عرض المزيد';
     const btnIcon = document.createElement('i');
-    btnIcon.className = 'fas fa-chevron-down';
+    btnIcon.className = 'fas fa-chevron-down'; // ثابت
     
     btn.appendChild(btnText);
     btn.appendChild(btnIcon);
     descContainer.appendChild(btn);
     
-    // إضافة تأثير التلاشي في الأسفل
+    // تأثير التلاشي
     const fade = document.createElement('div');
     fade.className = 'desc-fade show';
     wrapper.appendChild(fade);
     
     let isExpanded = false;
     
-    // حساب الارتفاع الكامل للمحتوى
     function getFullHeight() {
         wrapper.style.maxHeight = 'none';
         const full = wrapper.scrollHeight;
@@ -2528,7 +2520,6 @@ function initReadMore() {
     
     const fullHeight = getFullHeight();
     
-    // إذا كان الارتفاع الكامل أقل من 120، نلغي الميزة
     if (fullHeight <= 120) {
         wrapper.style.maxHeight = 'none';
         btn.style.display = 'none';
@@ -2540,22 +2531,19 @@ function initReadMore() {
     wrapper.style.maxHeight = '120px';
     descContainer.dataset.readmore = 'true';
 
-    // حدث النقر على الزر
     btn.addEventListener('click', function() {
         if (isExpanded) {
-            // طي الوصف
+            // طي
             wrapper.style.maxHeight = '120px';
             btnText.textContent = 'عرض المزيد';
-            btnIcon.className = 'fas fa-chevron-down';
             fade.classList.add('show');
-            btn.classList.remove('expanded');
+            btn.classList.remove('expanded');   // يزيل الكلاس → السهم يعود للأسفل
         } else {
-            // توسيع الوصف
+            // توسيع
             wrapper.style.maxHeight = fullHeight + 20 + 'px';
             btnText.textContent = 'عرض أقل';
-            btnIcon.className = 'fas fa-chevron-up';
             fade.classList.remove('show');
-            btn.classList.add('expanded');
+            btn.classList.add('expanded');     // يضيف الكلاس → السهم يدور 180°
         }
         isExpanded = !isExpanded;
     });
