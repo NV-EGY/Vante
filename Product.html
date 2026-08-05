@@ -2783,6 +2783,12 @@ window.addToCartFromPage = function() {
     const stockBySize = product.stockBySize || {};
     const sizes = product.sizes || ['7', '8', '9'];
     
+    // ✅ فلترة المقاسات المتوفرة فقط (التي لها كمية > 0 أو غير محدودة)
+    const availableSizes = sizes.filter(s => {
+        const qty = stockBySize[s];
+        return qty === null || qty === undefined || qty > 0;
+    });
+    
     // التحقق من وجود مخزون
     let hasStock = false;
     for (const s of sizes) {
@@ -2794,6 +2800,46 @@ window.addToCartFromPage = function() {
         return;
     }
     
+    // ✅ إذا كان هناك مقاس واحد فقط -> يضاف تلقائياً
+    if (availableSizes.length === 1) {
+        const size = availableSizes[0];
+        // إضافة المنتج مباشرة
+        let cart = JSON.parse(localStorage.getItem('vante_cart') || '[]');
+        const existing = cart.find(item => item.id === product.id && item.size === size);
+        if (existing) {
+            const currentQty = stockBySize[size];
+            if (currentQty !== null && currentQty !== undefined && existing.qty + 1 > currentQty) {
+                showToast(`❌ الكمية المتاحة لمقاس ${size} هي ${currentQty} قطعة فقط`, 'error');
+                return;
+            }
+            existing.qty += 1;
+        } else {
+            cart.push({
+                id: product.id,
+                name: product.name,
+                price: product.price,
+                size: size,
+                image: product.image || '',
+                qty: 1,
+                sku: product.sku || null,
+                comparePrice: product.comparePrice || null
+            });
+        }
+        localStorage.setItem('vante_cart', JSON.stringify(cart));
+        updateCart();
+        updateCartCount();
+        showToast(`✅ تم إضافة ${product.name} إلى السلة`, 'success');
+        
+        // تأثير الاهتزاز
+        const cartIcon = document.querySelector('.icons button:first-child');
+        if (cartIcon) {
+            cartIcon.style.animation = 'none';
+            setTimeout(() => cartIcon.style.animation = 'shake 0.5s ease', 10);
+        }
+        return;
+    }
+    
+    // ✅ إذا كان هناك أكثر من مقاس -> نطلب اختيار المقاس
     // التحقق من اختيار المقاس
     if (sizes.length > 0 && !selectedSize) {
         showToast('⚠️ يرجى اختيار المقاس أولاً', 'info');
@@ -2843,21 +2889,19 @@ window.addToCartFromPage = function() {
     // حفظ في localStorage
     localStorage.setItem('vante_cart', JSON.stringify(cart));
     
-    // ✅ تحديث السلة فوراً (الدالة الجديدة تعتمد على localStorage فقط)
+    // ✅ تحديث السلة فوراً
     updateCart();
-    
-    // ✅ تحديث العداد
     updateCartCount();
     
     // رسالة نجاح
     showToast(`✅ تم إضافة ${product.name} إلى السلة`, 'success');
     
-// تأثير الاهتزاز على أيقونة السلة
-const cartIcon = document.querySelector('.icons button:first-child');
-if (cartIcon) {
-    cartIcon.style.animation = 'none';
-    setTimeout(() => cartIcon.style.animation = 'shake 0.5s ease', 10);
-}
+    // تأثير الاهتزاز على أيقونة السلة
+    const cartIcon = document.querySelector('.icons button:first-child');
+    if (cartIcon) {
+        cartIcon.style.animation = 'none';
+        setTimeout(() => cartIcon.style.animation = 'shake 0.5s ease', 10);
+    }
 };
 // ========== مشاركة المنتج ==========
 window.shareProduct = function() {
@@ -3818,7 +3862,7 @@ async function sendContactMessage() {
 window.sendContactMessage = sendContactMessage;
 
 // ========== إغلاق القائمة عند الضغط خارجها ==========
-document.addEventListener('click', function(e) {
+document.addEventListener('clik', function(e) {
     const menu = document.getElementById('mobileMenu');
     const menuBtn = document.querySelector('.mobile-btn');
     const overlay = document.getElementById('menuOverlay');
