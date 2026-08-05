@@ -5983,13 +5983,30 @@ document.head.appendChild(style);
         return;
     }
     
-    const size = document.getElementById("modalSize")?.value;
+    const product = allProducts.find(p => p.id === currentProduct.id);
+    const stockBySize = product?.stockBySize || {};
+    const sizes = product?.sizes || ['7', '8', '9'];
+    
+    // ✅ حساب المقاسات المتوفرة
+    const availableSizes = sizes.filter(s => {
+        const qty = stockBySize[s];
+        return qty === null || qty === undefined || qty > 0;
+    });
+    
+    let size = document.getElementById("modalSize")?.value;
+    
+    // ✅ إذا كان هناك مقاس واحد فقط -> يضاف تلقائياً
+    if (availableSizes.length === 1) {
+        size = availableSizes[0];
+        // نضبط القائمة المنسدلة على هذا المقاس تلقائياً
+        const sizeSelect = document.getElementById("modalSize");
+        if (sizeSelect) sizeSelect.value = size;
+    }
+    
     if (!size) {
         customAlert("⚠️ اختر المقاس أولاً", 'warning');
         return;
     }
-    
-    const product = allProducts.find(p => p.id === currentProduct.id);
     
     if (product && product.stockBySize) {
         const stockForSize = product.stockBySize[size];
@@ -6013,20 +6030,17 @@ document.head.appendChild(style);
     if (addResult !== false) {
         updateCart();
         
-        // إغلاق المودال
         const modal = document.getElementById("productModal");
         modal.classList.remove("active");
         document.body.classList.remove("modal-open");
         disableSwipe();
         
-        // إعادة ضبط الـ overlay
         const overlay = document.getElementById("overlay");
         overlay.style.transition = 'none';
         overlay.classList.remove("active");
         void overlay.offsetHeight;
         overlay.style.transition = '';
         
-        // ✅ تأخير ثم فتح السلة
         setTimeout(() => {
             window.openCart();
         }, 100);
@@ -6083,14 +6097,36 @@ if (typeof updateCart === 'function') updateCart();
 
     window.addToCartFromCard = function(productId, name, price, image) {
     const select = document.querySelector(`.size-select[data-product-id="${productId}"]`);
+    const product = window.allProducts.find(p => p.id === productId);
+    
+    // ✅ حساب المقاسات المتوفرة
+    const stockBySize = product?.stockBySize || {};
+    const sizes = product?.sizes || ['7', '8', '9'];
+    const availableSizes = sizes.filter(s => {
+        const qty = stockBySize[s];
+        return qty === null || qty === undefined || qty > 0;
+    });
+    
+    // ✅ إذا كان هناك مقاس واحد فقط -> يضاف تلقائياً
+    if (availableSizes.length === 1) {
+        const size = availableSizes[0];
+        const comparePrice = product?.comparePrice || null;
+        const sku = product?.sku || null;
+        const addResult = window.addToCart(name, Number(price), size, image, comparePrice, productId, sku);
+        if (addResult !== false) {
+            updateCart();
+            setTimeout(() => window.openCart(), 50);
+        }
+        return true;
+    }
+    
+    // ✅ إذا كان هناك أكثر من مقاس -> نطلب اختيار المقاس من القائمة المنسدلة
     if (!select || !select.value) {
         customAlert("⚠️ الرجاء اختيار المقاس أولاً", 'warning');
         return false;
     }
     
     const size = select.value;
-    const product = window.allProducts.find(p => p.id === productId);
-    
     const selectedOption = select.options[select.selectedIndex];
     if (selectedOption && selectedOption.disabled) {
         customAlert(`❌ عذراً، مقاس ${size} غير متوفر حالياً.`, 'error');
@@ -6114,15 +6150,12 @@ if (typeof updateCart === 'function') updateCart();
     }
     
     const comparePrice = product?.comparePrice || null;
-    // ✅ تمرير SKU
     const sku = product?.sku || null;
     const addResult = window.addToCart(name, Number(price), size, image, comparePrice, productId, sku);
     
     if (addResult !== false) {
         updateCart();
-        setTimeout(() => {
-            window.openCart();
-        }, 50);
+        setTimeout(() => window.openCart(), 50);
     }
     return true;
 };
@@ -6581,18 +6614,8 @@ window.shareProduct = function() {
     }
     const productId = currentProduct.id;
     const productName = currentProduct.name;
-    
-    // ✅ بناء المسار الصحيح - يعمل مع أي مسار فرعي
-    let basePath = window.location.pathname;
-    // إذا كان المسار ينتهي بـ index.html أو /، نأخذ المجلد
-    if (basePath.endsWith('/index.html') || basePath.endsWith('/')) {
-        basePath = basePath.replace(/\/[^/]*$/, '/');
-    } else {
-        // إذا كان المسار مثل /some/path/ (بدون index)، نأخذ المجلد
-        basePath = basePath.substring(0, basePath.lastIndexOf('/') + 1);
-    }
-    // استخدام المسار النسبي
-    const shareUrl = basePath + 'Product.html?id=' + encodeURIComponent(productId);
+    // ✅ الرابط المباشر لصفحة المنتج
+    const shareUrl = window.location.origin + '/Product.html?id=' + encodeURIComponent(productId);
     
     const shareText = `🛍️ ${productName} من VANTÉ\n${shareUrl}`;
 
