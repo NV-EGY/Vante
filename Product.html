@@ -661,10 +661,7 @@
             transform: translateY(-3px);
             box-shadow: 0 8px 20px rgba(0,0,0,0.06);
         }
-        .btn-secondary.share-btn {
-            min-width: 60px;
-            padding: 16px 20px;
-        }
+        
 
         /* ============================================
            PRODUCT TABS
@@ -1091,8 +1088,19 @@
             .product-info-page h1 { font-size: 22px; }
             .product-price .current { font-size: 24px; }
             .thumbnail-wrapper { width: 64px; height: 64px; }
-            .action-buttons { flex-direction: column; }
-            .btn-primary, .btn-secondary { width: 100%; justify-content: center; }
+    .action-buttons {
+        flex-direction: row !important;  /* ✅ يلغي التراص العمودي */
+        flex-wrap: nowrap !important;    /* ✅ يمنع النزول لسطر جديد */
+        gap: 8px !important;
+    }
+    .btn-primary {
+        flex: 1 !important;
+        min-width: 0 !important;
+        width: auto !important;
+        padding: 12px 16px !important;
+        font-size: 14px !important;
+    }
+}
             .product-tabs .tabs-header button { padding: 12px 16px; font-size: 13px; }
             .product-tabs .tab-content { padding: 20px; }
             .breadcrumb { font-size: 12px; margin-top: 12px; }
@@ -1576,33 +1584,30 @@ button:active,
     color: #D4AF37;
     margin-bottom: 10px;
 }
-.share-btn-small {
-    width: 50px !important;
-    min-width: 50px !important;
-    height: 50px !important;
-    padding: 0 !important;
-    border-radius: 50% !important;
+.share-btn {
+    min-width: 60px !important;
+    padding: 16px 28px !important;
+    border-radius: 16px !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     font-size: 18px !important;
-    background: #f5f5f5 !important;
+    border: 2px solid #e5e5e5 !important;
+    background: #fff !important;
     color: #111 !important;
-    border: none !important;
     cursor: pointer !important;
-    transition: 0.3s !important;
-    flex: 0 0 auto !important;
+    transition: all 0.3s ease !important;
 }
-.share-btn-small:hover {
-    background: #D4AF37 !important;
-    color: #000 !important;
-    transform: translateY(-2px) !important;
+.share-btn:hover {
+    border-color: #D4AF37 !important;
+    color: #D4AF37 !important;
+    transform: translateY(-3px) !important;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.06) !important;
 }
 @media (max-width: 480px) {
-    .share-btn-small {
-        width: 44px !important;
-        min-width: 44px !important;
-        height: 44px !important;
+    .share-btn {
+        min-width: 50px !important;
+        padding: 12px 14px !important;
         font-size: 16px !important;
     }
 }
@@ -1743,14 +1748,15 @@ button:active,
     <div class="size-options" id="sizeOptions"></div>
 </div>
 
-    <div class="modal-footer" id="modalFooter">
-    <button class="btn-primary modal-add-btn" onclick="addCurrentProductToCart(event)">
+    <div class="action-buttons" style="display: flex; gap: 10px; align-items: center; flex-wrap: nowrap;">
+    <button class="btn-primary" onclick="addToCartFromPage()" id="addToCartBtn" style="flex: 1; min-width: 140px;">
         <i class="fas fa-shopping-bag"></i> أضف للسلة
     </button>
-    <button class="btn-secondary share-btn-small" onclick="shareProduct()" title="مشاركة">
+    <button class="share-btn" onclick="shareProduct()" title="مشاركة المنتج" style="flex-shrink: 0;">
         <i class="fas fa-share-alt"></i>
     </button>
 </div>
+
                 <div class="stars-container" id="starsContainer">
                     <span data-rate="1" onclick="selectStar(1)">☆</span>
                     <span data-rate="2" onclick="selectStar(2)">☆</span>
@@ -1837,7 +1843,11 @@ button:active,
     <div class="tab-content">
 <div class="tab-pane" id="tab-sizes">
     <div id="sizeGuideContent">
-        <!-- المحتوى سيتغير حسب نوع المنتج -->
+        <!-- يتم تعبئته تلقائياً بالـ JavaScript -->
+    </div>
+    <div id="sizeList" style="margin-top: 20px;">
+        <h4 style="color:#D4AF37; font-size:16px; margin-bottom:12px;">📏 المقاسات المتوفرة</h4>
+        <div id="sizeListContainer" style="display:flex; flex-wrap:wrap; gap:10px;"></div>
     </div>
 </div>
 
@@ -2519,19 +2529,28 @@ async function loadProduct() {
         // ===== المقاسات =====
         const sizes = product.sizes || ['7', '8', '9'];
         const stockBySize = product.stockBySize || {};
-        const sizeContainer = document.getElementById('sizeOptions');
         sizeContainer.innerHTML = sizes.map(s => {
-            const qty = stockBySize[s] !== undefined ? stockBySize[s] : null;
-            const isDisabled = (qty === 0);
-            const label = qty !== null && qty > 0 ? `${s} (${qty})` : qty === 0 ? `${s} (نفذ)` : `${s}`;
-            const isUnlimited = (qty === null || qty === undefined);
-            return `<button class="${selectedSize === s ? 'active' : ''}" 
+    const qty = stockBySize[s] !== undefined ? stockBySize[s] : null;
+    const isDisabled = (qty === 0);
+    const isUnlimited = (qty === null || qty === undefined);
+    
+    // ✅ تنسيق المقاس الجديد: "المقاس: 60 (باقى 15 قطعه)"
+    let label = `المقاس: ${s}`;
+    if (isUnlimited) {
+        label += ' (غير محدود)';
+    } else if (qty !== null && qty > 0) {
+        label += ` (باقى ${qty} قطعه)`;
+    } else if (qty === 0) {
+        label += ' (نفذ)';
+    }
+    
+    return `<button class="${selectedSize === s ? 'active' : ''}" 
                             data-size="${s}" 
                             ${isDisabled ? 'disabled' : ''}
                             onclick="selectSize('${s}')">
-                ${label} ${isUnlimited ? '♾️' : ''}
+                ${label}
             </button>`;
-        }).join('');
+}).join('');
 
         // ===== المخزون =====
         updateStockDisplay(product);
@@ -4006,6 +4025,26 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // ❌ لا تستدعي updateCart() هنا - سيتم استدعاؤها من loadProduct
 });
+// ===== عرض المقاسات في تبويب المقاسات =====
+const sizeListContainer = document.getElementById('sizeListContainer');
+if (sizeListContainer) {
+    sizeListContainer.innerHTML = sizes.map(s => {
+        const qty = stockBySize[s] !== undefined ? stockBySize[s] : null;
+        const isUnlimited = (qty === null || qty === undefined);
+        let label = `المقاس: ${s}`;
+        if (isUnlimited) {
+            label += ' (غير محدود)';
+        } else if (qty !== null && qty > 0) {
+            label += ` (باقى ${qty} قطعه)`;
+        } else if (qty === 0) {
+            label += ' (نفذ)';
+        }
+        const isOutOfStock = (qty === 0);
+        return `<span style="padding:8px 16px; border-radius:12px; border:1px solid ${isOutOfStock ? '#e74c3c' : '#D4AF37'}; background:${isOutOfStock ? '#fde8e8' : '#faf9f7'}; font-weight:600; font-size:14px; color:${isOutOfStock ? '#c0392b' : '#111'};">
+            ${label}
+        </span>`;
+    }).join('');
+}
 
 // ✅ تعريف updateCart كدالة عامة
 window.updateCart = updateCart;
