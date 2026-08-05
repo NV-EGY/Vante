@@ -2614,41 +2614,6 @@ updateCart();  // <--- تأكد من وجود هذا السطر
                 <img src="${img}" alt="صورة مصغرة ${idx + 1}" loading="lazy">
             </div>
         `).join('');
-        // تحديث العنوان
-        // ===== تحديث Meta Tags لمشاركة المنتج =====
-document.getElementById('metaDescription').content = product.description || 'اكتشف منتجات VANTÉ الفاخرة';
-document.getElementById('ogTitle').content = `VANTÉ - ${product.name}`;
-document.getElementById('ogImage').content = product.image || 'https://Vante.sbs/images/preview.jpg';
-document.getElementById('ogUrl').content = window.location.href;
-document.title = `VANTÉ - ${product.name}`;
-document.getElementById('productTitle').textContent = `VANTÉ - ${product.name}`;
-document.getElementById('breadcrumbName').textContent = product.name;
-
-// ===== تحديث Meta Tags لمشاركة المنتج =====
-function updateMetaTags(product) {
-    let ogTitle = document.querySelector('meta[property="og:title"]');
-    if (ogTitle) ogTitle.content = `VANTÉ - ${product.name}`;
-    
-    let ogDescription = document.querySelector('meta[property="og:description"]');
-    if (ogDescription) ogDescription.content = product.description || 'اكتشف منتجات VANTÉ الفاخرة';
-    
-    let ogImage = document.querySelector('meta[property="og:image"]');
-    if (ogImage) ogImage.content = product.image || 'https://Vante.sbs/images/preview.jpg';
-    
-    let ogUrl = document.querySelector('meta[property="og:url"]');
-    if (ogUrl) ogUrl.content = window.location.href;
-    
-    let twitterImage = document.querySelector('meta[name="twitter:image"]');
-    if (twitterImage) twitterImage.content = product.image || 'https://Vante.sbs/images/preview.jpg';
-    
-    let twitterTitle = document.querySelector('meta[name="twitter:title"]');
-    if (twitterTitle) twitterTitle.content = `VANTÉ - ${product.name}`;
-    
-    let desc = document.querySelector('meta[name="description"]');
-    if (desc) desc.content = product.description || 'اكتشف منتجات VANTÉ الفاخرة';
-}
-
-updateMetaTags(product);
 
         // ===== المعلومات =====
         document.getElementById('productCategory').textContent = product.category || 'منتج فاخر';
