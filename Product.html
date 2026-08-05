@@ -1570,6 +1570,32 @@ button:active,
         font-size: 16px !important;
     }
 }
+/* زر كن أول من يقيم */
+.btn-be-first-review {
+    margin-top: 12px;
+    padding: 10px 24px;
+    border-radius: 30px;
+    font-size: 13px;
+    cursor: pointer;
+    border: 1px solid #D4AF37;
+    background: transparent;
+    color: #D4AF37;
+    transition: 0.3s;
+    font-family: 'Cairo', sans-serif;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+.btn-be-first-review:hover {
+    background: #D4AF37;
+    color: #000;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(212, 175, 55, 0.25);
+}
+.btn-be-first-review i {
+    font-size: 14px;
+}
     </style>
 </head>
 <body>
@@ -1821,19 +1847,21 @@ button:active,
             <p style="margin-top:8px; color:#888; font-size:14px; line-height:1.8;">ملاحظة: تكاليف الشحن للإرجاع يتحملها العميل إلا في حالة وجود عيب صناعي.</p>
         </div>
 
-<!-- التقييمات -->
-<div class="tab-pane" id="tab-reviews">
-    <h4 style="text-align:center; margin-bottom:15px; color:#D4AF37; font-size:18px;">⭐ تقييمات العملاء</h4>
-    <div id="productReviewsContainer">
-        <div style="text-align:center; padding:30px 20px; color:#888;">
-            <i class="fas fa-star" style="font-size:40px; color:#ddd; margin-bottom:12px; display:block;"></i>
-            <p style="font-size:16px;">لا توجد تقييمات لهذا المنتج بعد</p>
-            <button class="btn-secondary" onclick="scrollToStars()" style="margin-top:12px; width:auto; min-width:160px; display:inline-flex;">
-                <i class="fas fa-pen"></i> كن أول من يقيم
-            </button>
+        <!-- التقييمات -->
+        <div class="tab-pane" id="tab-reviews">
+            <h4 style="text-align:center; margin-bottom:15px; color:#D4AF37; font-size:18px;">⭐ تقييمات العملاء</h4>
+            <div id="productReviewsContainer">
+                <div style="text-align:center; padding:30px 20px; color:#888;">
+    <i class="fas fa-star" style="font-size:40px; color:#ddd; margin-bottom:12px; display:block;"></i>
+    <p style="font-size:16px;">لا توجد تقييمات لهذا المنتج بعد</p>
+    <button class="btn-be-first-review" onclick="scrollToStars()">
+        <i class="fas fa-pen"></i> كن أول من يقيم
+    </button>
+</div>
+            </div>
         </div>
     </div>
-</div>
+</section>
 
 <!-- ============================================
      RELATED PRODUCTS
@@ -2231,17 +2259,17 @@ function displayReviews(productId) {
     const productReviews = allReviews.filter(r => r.productId === productId);
     
     if (productReviews.length === 0) {
-    container.innerHTML = `
-        <div style="text-align:center; padding:30px 20px; color:#888;">
-            <i class="fas fa-star" style="font-size:40px; color:#ddd; margin-bottom:12px; display:block;"></i>
-            <p>لا توجد تقييمات لهذا المنتج بعد</p>
-            <button class="btn-secondary" onclick="scrollToStars()" style="margin-top:12px; width:auto; min-width:160px; display:inline-flex;">
-                <i class="fas fa-pen"></i> كن أول من يقيم
-            </button>
-        </div>
-    `;
-    return;
-}
+        container.innerHTML = `
+            <div style="text-align:center; padding:30px 20px; color:#888;">
+                <i class="fas fa-star" style="font-size:40px; color:#ddd; margin-bottom:12px; display:block;"></i>
+                <p>لا توجد تقييمات لهذا المنتج بعد</p>
+                <button class="btn-secondary" style="margin-top:12px; padding:10px 24px; border-radius:30px; font-size:13px;" onclick="scrollToStars()">
+                    كن أول من يقيم
+                </button>
+            </div>
+        `;
+        return;
+    }
     
     container.innerHTML = productReviews.map(review => `
         <div style="padding:14px 0; border-bottom:1px solid #f0f0f0;">
