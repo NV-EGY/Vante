@@ -4648,6 +4648,7 @@ const firebaseConfig = {
     measurementId: "G-56ZC1RW0T7"
 };
 
+
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 window.db = db;
@@ -5366,6 +5367,40 @@ if (loadMoreContainer) {
             </div>`;
         }
 
+        // ===== ✅ الجزء المعدل: إنشاء قائمة المقاسات =====
+        const availableSizes = sizes.filter(s => {
+            const qty = stockBySize[s];
+            return qty === null || qty === undefined || qty > 0;
+        });
+
+        let sizeOptionsHtml = '';
+        if (availableSizes.length === 1) {
+            const size = availableSizes[0];
+            const qty = stockBySize[size];
+            const label = (qty !== null && qty !== undefined && qty > 0)
+                ? `مقاس: ${size} (باقى ${qty} قطعه)`
+                : `مقاس: ${size}`;
+            sizeOptionsHtml = `<option value="${size}" selected>${label}</option>`;
+        } else if (availableSizes.length > 1) {
+            sizeOptionsHtml = `<option value="" disabled selected>اختر المقاس</option>`;
+            sizes.forEach(s => {
+                const qty = stockBySize[s] !== undefined ? stockBySize[s] : null;
+                let label = `مقاس: ${s}`;
+                let isDisabled = false;
+                if (qty !== null) {
+                    if (qty > 0) {
+                        label += ` (باقى ${qty} قطعه)`;
+                    } else {
+                        label += ` (نفذ)`;
+                        isDisabled = true;
+                    }
+                }
+                sizeOptionsHtml += `<option value="${s}" ${isDisabled ? 'disabled' : ''}>${label}</option>`;
+            });
+        } else {
+            sizeOptionsHtml = `<option value="" disabled selected>🚫 نفذت الكمية</option>`;
+        }
+
         return `
         <div class="product ${outOfStock ? 'out-of-stock' : ''}" style="position: relative;" onclick='openProduct("${p.id}", ${JSON.stringify(p.name)}, ${Number(p.price)}, ${JSON.stringify(p.image)}, ${JSON.stringify(sizes)}, ${JSON.stringify(p.description || "")})'>
             ${discountBadgeHtml}
@@ -5384,26 +5419,8 @@ if (loadMoreContainer) {
             
             <div class="size-selector-wrapper" onclick="event.stopPropagation()">
                 <select class="size-select" data-product-id="${p.id}">
-    <option value="" disabled selected>اختر المقاس</option>
-    ${sizes.map(s => {
-        const qty = p.stockBySize && p.stockBySize[s] !== undefined ? p.stockBySize[s] : null;
-        let label = `مقاس: ${s}`;
-        let isDisabled = false;
-        if (qty === null) {
-            label += ` (كمية غير محدودة)`;
-            isDisabled = false;
-        } else if (qty !== null) {
-            if (qty > 0) {
-                label += ` (باقى ${qty} قطعه)`;
-                isDisabled = false;
-            } else {
-                label += ` (نفذ)`;
-                isDisabled = true;
-            }
-        }
-        return `<option value="${s}" ${isDisabled ? 'disabled' : ''}>${label}</option>`;
-    }).join('')}
-</select>
+                    ${sizeOptionsHtml}
+                </select>
             </div>
             
             ${stockHtml}
@@ -7277,11 +7294,9 @@ window.lightboxNav = function(direction) {
 // openProduct - نظام مزدوج (مودال سريع + صفحة كاملة)
 // ============================================================
 window.openProduct = function(id, name, price, image, sizes = [], description = "") {
-    // ✅ تحديد نوع الفتح: مودال (سريع) أم صفحة كاملة
     const openAsModal = !window.location.pathname.includes('/Product.html');
     
     if (openAsModal) {
-        // ✅ الوضع السريع: فتح مودال (كما كان يعمل)
         const product = allProducts.find(p => p.id === id);
         const stockBySize = product ? product.stockBySize || {} : {};
         const allImages = [image, ...(product?.additionalImages || [])].filter(Boolean);
@@ -7321,15 +7336,41 @@ window.openProduct = function(id, name, price, image, sizes = [], description = 
         
         const sizeSelect = document.getElementById("modalSize");
         sizeSelect.innerHTML = "";
-        sizes.forEach(size => {
-            const qty = stockBySize[size] !== undefined ? stockBySize[size] : null;
-            let label = `مقاس: ${size}`;
-            if (qty !== null) {
-                label += qty > 0 ? ` (باقى ${qty} قطعه)` : ' (نفذت الكميه)';
-            }
-            const isDisabled = (qty !== null && qty === 0);
-            sizeSelect.innerHTML += `<option value="${size}" ${isDisabled ? 'disabled' : ''}>${label}</option>`;
+        
+        // ✅ حساب المقاسات المتوفرة (التي لها كمية > 0 أو غير محدودة)
+        const availableSizes = sizes.filter(s => {
+            const qty = stockBySize[s];
+            return qty === null || qty === undefined || qty > 0;
         });
+        
+        // ✅ إذا كان هناك مقاس واحد متوفر -> نختاره تلقائياً
+        if (availableSizes.length === 1) {
+            const size = availableSizes[0];
+            const qty = stockBySize[size];
+            const label = qty !== null && qty !== undefined && qty > 0 ? `مقاس: ${size} (باقى ${qty} قطعه)` : `مقاس: ${size}`;
+            sizeSelect.innerHTML = `<option value="${size}" selected>${label}</option>`;
+        } 
+        // ✅ إذا كان هناك أكثر من مقاس -> نضيف خيار "اختر المقاس"
+        else if (availableSizes.length > 1) {
+            // ✅ إضافة خيار "اختر المقاس" كقيمة افتراضية
+            let optionsHtml = `<option value="" disabled selected>اختر المقاس</option>`;
+            sizes.forEach(size => {
+                const qty = stockBySize[size] !== undefined ? stockBySize[size] : null;
+                let label = `مقاس: ${size}`;
+                if (qty !== null) {
+                    label += qty > 0 ? ` (باقى ${qty} قطعه)` : ' (نفذت الكميه)';
+                }
+                const isDisabled = (qty !== null && qty === 0);
+                optionsHtml += `<option value="${size}" ${isDisabled ? 'disabled' : ''}>${label}</option>`;
+            });
+            sizeSelect.innerHTML = optionsHtml;
+            // ✅ نترك القيمة فارغة حتى يضطر المستخدم للاختيار
+            sizeSelect.value = '';
+        }
+        // ✅ لا يوجد مقاسات متوفرة (كلها نفذت)
+        else {
+            sizeSelect.innerHTML = `<option value="" disabled selected>🚫 نفذت الكمية</option>`;
+        }
         
         updateModalStockDisplay();
         sizeSelect.onchange = updateModalStockDisplay;
@@ -7337,13 +7378,19 @@ window.openProduct = function(id, name, price, image, sizes = [], description = 
         document.getElementById("reviewText").value = "";
         document.getElementById("reviewText").style.display = "none";
         document.querySelectorAll(".rating-stars span").forEach(s => s.classList.remove("active"));
+        
+        // ✅ إعادة تعيين التمرير إلى الأعلى عند فتح المودال
+        const modalContent = document.querySelector("#productModal .modal-content");
+        if (modalContent) {
+            modalContent.scrollTop = 0;
+        }
+        
         document.getElementById("productModal").classList.add("active");
         document.getElementById("overlay").classList.add("active");
         document.body.classList.add("modal-open");
         displayReviewsInModal(id);
         setTimeout(enableSwipe, 100);
     } else {
-        // ✅ الوضع الكامل: فتح صفحة المنتج
         window.location.href = `/Product.html?id=${id}`;
     }
 };
