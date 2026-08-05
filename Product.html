@@ -508,32 +508,6 @@
             color: #888;
         }
         
-        .product-price {
-            display: flex;
-            align-items: center;
-            gap: 18px;
-            flex-wrap: wrap;
-            margin-bottom: 12px;
-        }
-        .product-price .current {
-            font-size: 34px;
-            font-weight: 900;
-            color: #D4AF37;
-        }
-        .product-price .old {
-            font-size: 20px;
-            color: #999;
-            text-decoration: line-through;
-            font-weight: 400;
-        }
-        .product-price .discount-badge {
-            background: linear-gradient(135deg, #D4AF37, #FFD700);
-            color: #1a1a00;
-            padding: 4px 12px;
-            border-radius: 30px;
-            font-size: 13px;
-            font-weight: 800;
-        }
         .stock-info {
             display: inline-flex;
             align-items: center;
@@ -1913,7 +1887,7 @@ button:active,
         <button onclick="removeCoupon()" style="background: none; border: none; color: #c0392b; font-size: 12px;">إلغاء الخصم</button>
         <div id="couponMessage" style="font-size: 12px; margin-top: 6px; color: #D4AF37;"></div>
     </div>
-    <button class="btn-primary" onclick="openCheckout()" style="width:100%; background: #111; color: #fff; border-radius: 16px; padding: 16px; font-size: 16px; font-weight: 800; border: none; cursor: pointer; transition: 0.3s;">
+   <button class="btn-primary" onclick="openCheckout()" style="width:100% !important; display: block !important; min-width: unset !important; flex: none !important; background: #111; color: #fff; border-radius: 16px; padding: 16px; font-size: 16px; font-weight: 800; border: none; cursor: pointer; transition: 0.3s; text-align: center;">
     تأكيد الطلب
 </button>
 <button class="btn-secondary" onclick="closeCart()" style="width:100%;">إغلاق</button>
