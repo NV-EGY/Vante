@@ -3,17 +3,14 @@ const fs = require('fs');
 const path = require('path');
 
 // ✅ إعدادات Firebase الخاصة بك
-const serviceAccount = {
-  "type": "service_account",
-  "project_id": "vante-orders",
-  "private_key_id": "YOUR_PRIVATE_KEY_ID",
-  "private_key": "-----BEGIN PRIVATE KEY-----\nYOUR_PRIVATE_KEY\n-----END PRIVATE KEY-----\n",
-  "client_email": "YOUR_CLIENT_EMAIL",
-  "client_id": "YOUR_CLIENT_ID",
-  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-  "token_uri": "https://oauth2.googleapis.com/token",
-  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-  "client_x509_cert_url": "YOUR_CERT_URL"
+const firebaseConfig = {
+    apiKey: "AIzaSyCotT8EP2uy_HsgHknxeGBorKoEUORPtmU",
+    authDomain: "vante-orders.firebaseapp.com",
+    projectId: "vante-orders",
+    storageBucket: "vante-orders.firebasestorage.app",
+    messagingSenderId: "842319700646",
+    appId: "1:842319700646:web:f6afd78ef7038c3be4ca67",
+    measurementId: "G-56ZC1RW0T7"
 };
 
 admin.initializeApp({
