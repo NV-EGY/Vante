@@ -5708,9 +5708,13 @@ function stopAutoplay() {
 let startX = 0;
 let isDragging = false;
 
+let galleryEventsBound = false;
+
 function bindGalleryEvents() {
     const track = document.getElementById("track");
     if (!track) return;
+    if (galleryEventsBound) return; // منع تكرار ربط المستمعين مع كل render
+    galleryEventsBound = true;
 
     let startX = 0, startY = 0;
     let isHorizontalSwipe = false;
