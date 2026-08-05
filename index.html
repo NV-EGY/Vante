@@ -5998,7 +5998,6 @@ document.head.appendChild(style);
     // ✅ إذا كان هناك مقاس واحد فقط -> يضاف تلقائياً
     if (availableSizes.length === 1) {
         size = availableSizes[0];
-        // نضبط القائمة المنسدلة على هذا المقاس تلقائياً
         const sizeSelect = document.getElementById("modalSize");
         if (sizeSelect) sizeSelect.value = size;
     }
