@@ -2903,7 +2903,7 @@ window.addToCartFromPage = function() {
         localStorage.setItem('vante_cart', JSON.stringify(cart));
         updateCart();
         updateCartCount();
-        showToast(`✅ تم إضافة ${product.name} إلى السلة`, 'success');
+        showToast(`✅ تم إضافة ${product.name} - مقاس ${size} إلى السلة`, 'success'); 
         
         // تأثير الاهتزاز
         const cartIcon = document.querySelector('.icons button:first-child');
@@ -2968,7 +2968,7 @@ window.addToCartFromPage = function() {
     updateCartCount();
     
     // رسالة نجاح
-    showToast(`✅ تم إضافة ${product.name} إلى السلة`, 'success');
+    showToast(`✅ تم إضافة ${product.name} - مقاس ${size} إلى السلة`, 'success'); 
     
     // تأثير الاهتزاز على أيقونة السلة
     const cartIcon = document.querySelector('.icons button:first-child');
