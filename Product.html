@@ -2270,8 +2270,9 @@ function renderStars(rating) {
 
   let bestSellersConfig = { mode: "sales", limit: 10, manualIds: [], fillMode: "random" };
 
-// دالة تحميل الإعدادات من Firestore مع onSnapshot للتحديث الفوري
-function loadBestSellersConfig() {
+async function loadBestSellersConfig() {
+    // استيراد doc و onSnapshot ديناميكياً
+    const { doc, onSnapshot } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
     const configRef = doc(db, "settings", "bestSellersConfig");
     onSnapshot(configRef, (docSnap) => {
         if (docSnap.exists()) {
@@ -2283,10 +2284,9 @@ function loadBestSellersConfig() {
                 fillMode: data.fillMode || "random"
             };
         } else {
-            // إعدادات افتراضية
             bestSellersConfig = { mode: "sales", limit: 10, manualIds: [], fillMode: "random" };
         }
-        // إعادة تحميل الأكثر مبيعاً بعد تحديث الإعدادات
+        // إعادة تحميل الأكثر مبيعاً إذا كان المنتج الحالي موجوداً
         if (window.currentProduct) {
             loadBestSellers(window.currentProduct.id, db);
         }
@@ -2716,7 +2716,7 @@ const productsSnapshot = await getDocs(productsCollection);
 window.allProducts = productsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 updateCart();  // <--- تأكد من وجود هذا السطر
 loadCategories();
-loadBestSellersConfig();
+
         const productRef = doc(db, "products", productId);
         const productSnap = await getDoc(productRef);
         if (!productSnap.exists()) {
@@ -2731,6 +2731,7 @@ loadBestSellersConfig();
         document.title = `VANTÉ - ${product.name}`;
         document.getElementById('productTitle').textContent = `VANTÉ - ${product.name}`;
         document.getElementById('breadcrumbName').textContent = product.name;
+      
 
         // ===== الصور =====
         const allImages = [product.image, ...(product.additionalImages || [])].filter(Boolean);
@@ -2740,6 +2741,29 @@ loadBestSellersConfig();
 
         const mainImg = document.getElementById('productImage');
         if (mainImg && allImages.length) mainImg.src = allImages[0];
+
+      // داخل loadProduct بعد تعيين db
+const { doc, onSnapshot } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+
+// تعريف الدالة هنا (داخل النطاق)
+let bestSellersConfig = { mode: "sales", limit: 10, manualIds: [], fillMode: "random" };
+const configRef = doc(db, "settings", "bestSellersConfig");
+onSnapshot(configRef, (docSnap) => {
+    if (docSnap.exists()) {
+        const data = docSnap.data();
+        bestSellersConfig = {
+            mode: data.mode || "sales",
+            limit: data.limit || 10,
+            manualIds: data.manualIds || [],
+            fillMode: data.fillMode || "random"
+        };
+    } else {
+        bestSellersConfig = { mode: "sales", limit: 10, manualIds: [], fillMode: "random" };
+    }
+    if (window.currentProduct) {
+        loadBestSellers(window.currentProduct.id, db);
+    }
+});
 
         // ===== عرض المصغرات =====
         const thumbsContainer = document.getElementById('thumbnails');
@@ -3183,6 +3207,63 @@ async function loadCategories() {
         </div>
     `).join('');
     initCarousel('categoriesCarousel', 'categoriesDots');
+}
+
+  function initCarousel(containerId, dotsId) {
+    const container = document.getElementById(containerId);
+    const dotsContainer = document.getElementById(dotsId);
+    if (!container) return;
+    
+    const updateDots = () => {
+        if (!dotsContainer) return;
+        const track = container.querySelector('.carousel-track');
+        const cards = track?.querySelectorAll('.product-card');
+        if (!cards || cards.length === 0) return;
+        const containerWidth = container.clientWidth;
+        const cardWidth = cards[0].offsetWidth + 16;
+        const visible = Math.floor(containerWidth / cardWidth);
+        const totalPages = Math.ceil(cards.length / visible);
+        dotsContainer.innerHTML = '';
+        for (let i = 0; i < totalPages; i++) {
+            const dot = document.createElement('span');
+            dot.dataset.index = i;
+            dot.addEventListener('click', () => {
+                const scrollAmount = i * containerWidth;
+                container.scrollTo({ left: scrollAmount, behavior: 'smooth' });
+            });
+            dotsContainer.appendChild(dot);
+        }
+        const firstDot = dotsContainer.querySelector('span');
+        if (firstDot) firstDot.classList.add('active');
+    };
+
+    container.addEventListener('scroll', () => {
+        if (!dotsContainer) return;
+        const scrollLeft = container.scrollLeft;
+        const containerWidth = container.clientWidth;
+        const page = Math.round(scrollLeft / containerWidth);
+        const dots = dotsContainer.querySelectorAll('span');
+        dots.forEach((dot, idx) => dot.classList.toggle('active', idx === page));
+    });
+
+    const wrapper = container.closest('.carousel-wrapper');
+    if (wrapper) {
+        const prevBtn = wrapper.querySelector('.prev');
+        const nextBtn = wrapper.querySelector('.next');
+        if (prevBtn) {
+            prevBtn.addEventListener('click', () => {
+                container.scrollBy({ left: -container.clientWidth, behavior: 'smooth' });
+            });
+        }
+        if (nextBtn) {
+            nextBtn.addEventListener('click', () => {
+                container.scrollBy({ left: container.clientWidth, behavior: 'smooth' });
+            });
+        }
+    }
+
+    updateDots();
+    window.addEventListener('resize', updateDots);
 }
 
 // ========== إضافة للسلة من صفحة المنتج ==========
