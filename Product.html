@@ -2268,6 +2268,31 @@ function renderStars(rating) {
     return html;
 }
 
+  let bestSellersConfig = { mode: "sales", limit: 10, manualIds: [], fillMode: "random" };
+
+// دالة تحميل الإعدادات من Firestore مع onSnapshot للتحديث الفوري
+function loadBestSellersConfig() {
+    const configRef = doc(db, "settings", "bestSellersConfig");
+    onSnapshot(configRef, (docSnap) => {
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            bestSellersConfig = {
+                mode: data.mode || "sales",
+                limit: data.limit || 10,
+                manualIds: data.manualIds || [],
+                fillMode: data.fillMode || "random"
+            };
+        } else {
+            // إعدادات افتراضية
+            bestSellersConfig = { mode: "sales", limit: 10, manualIds: [], fillMode: "random" };
+        }
+        // إعادة تحميل الأكثر مبيعاً بعد تحديث الإعدادات
+        if (window.currentProduct) {
+            loadBestSellers(window.currentProduct.id, db);
+        }
+    });
+}
+
 // ========== التنقل في الجاليري ==========
 function navigateGallery(dir) {
     if (!currentImages.length) return;
@@ -2691,6 +2716,7 @@ const productsSnapshot = await getDocs(productsCollection);
 window.allProducts = productsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 updateCart();  // <--- تأكد من وجود هذا السطر
 loadCategories();
+loadBestSellersConfig();
         const productRef = doc(db, "products", productId);
         const productSnap = await getDoc(productRef);
         if (!productSnap.exists()) {
@@ -3074,76 +3100,69 @@ async function loadSimilarProducts(category, excludeId, database) {
 // تحميل الأكثر مبيعاً
 async function loadBestSellers(excludeId, database) {
     try {
-        const { collection, query, orderBy, getDocs, limit } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+        const { collection, getDocs, query, orderBy, limit } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
         const productsRef = collection(database, "products");
-        const q = query(productsRef, orderBy("salesCount", "desc"), limit(10));
-        const snapshot = await getDocs(q);
-        const products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })).filter(p => p.id !== excludeId);
+        const snapshot = await getDocs(productsRef);
+        let allProducts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+        let selectedProducts = [];
+        const config = bestSellersConfig;
+        const limitCount = Math.min(config.limit || 10, 20);
+
+        if (config.mode === "manual" && config.manualIds && config.manualIds.length) {
+            // 1. المنتجات المختارة يدوياً (ثابتة)
+            const fixedPart = [];
+            for (let id of config.manualIds) {
+                const product = allProducts.find(p => p.id === id);
+                if (product) fixedPart.push(product);
+            }
+            // 2. ملء الباقي (حسب fillMode)
+            const remaining = limitCount - fixedPart.length;
+            let dynamicPart = [];
+            if (remaining > 0) {
+                const excludedIds = fixedPart.map(p => p.id);
+                let candidates = allProducts.filter(p => !excludedIds.includes(p.id));
+                if (config.fillMode === "random") {
+                    // عشوائي
+                    for (let i = candidates.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [candidates[i], candidates[j]] = [candidates[j], candidates[i]];
+                    }
+                    dynamicPart = candidates.slice(0, remaining);
+                } else { // sales
+                    candidates.sort((a,b) => (b.salesCount || 0) - (a.salesCount || 0));
+                    dynamicPart = candidates.slice(0, remaining);
+                }
+            }
+            selectedProducts = [...fixedPart, ...dynamicPart];
+        } else if (config.mode === "random") {
+            // عشوائي كامل
+            const shuffled = [...allProducts];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            selectedProducts = shuffled.slice(0, limitCount);
+        } else { // mode === "sales"
+            // ترتيب حسب المبيعات
+            const sorted = [...allProducts].sort((a,b) => (b.salesCount || 0) - (a.salesCount || 0));
+            selectedProducts = sorted.slice(0, limitCount);
+        }
+
+        // استبعاد المنتج الحالي (إذا وجد)
+        if (excludeId) {
+            selectedProducts = selectedProducts.filter(p => p.id !== excludeId);
+        }
+
         const track = document.getElementById('bestSellersTrack');
         if (!track) return;
-        if (products.length === 0) {
+        if (selectedProducts.length === 0) {
             track.innerHTML = '<div style="padding:20px;color:#888;">لا توجد منتجات</div>';
             return;
         }
-        track.innerHTML = products.map(p => createProductCard(p)).join('');
+        track.innerHTML = selectedProducts.map(p => createProductCard(p)).join('');
         initCarousel('bestSellersCarousel', 'bestSellersDots');
-    } catch (e) { console.error(e); }
-}
-
-function initCarousel(containerId, dotsId) {
-    const container = document.getElementById(containerId);
-    const dotsContainer = document.getElementById(dotsId);
-    if (!container || !dotsContainer) return;
-    
-    // حساب عدد الصفحات (بناءً على عرض العناصر)
-    const updateDots = () => {
-        const track = container.querySelector('.carousel-track');
-        const cards = track?.querySelectorAll('.product-card');
-        if (!cards || cards.length === 0) return;
-        const containerWidth = container.clientWidth;
-        const cardWidth = cards[0].offsetWidth + 16; // عرض + gap
-        const visible = Math.floor(containerWidth / cardWidth);
-        const totalPages = Math.ceil(cards.length / visible);
-        dotsContainer.innerHTML = '';
-        for (let i = 0; i < totalPages; i++) {
-            const dot = document.createElement('span');
-            dot.dataset.index = i;
-            dot.addEventListener('click', () => {
-                const scrollAmount = i * containerWidth;
-                container.scrollTo({ left: scrollAmount, behavior: 'smooth' });
-            });
-            dotsContainer.appendChild(dot);
-        }
-        // تفعيل النقطة الأولى
-        const firstDot = dotsContainer.querySelector('span');
-        if (firstDot) firstDot.classList.add('active');
-    };
-
-    // تحديث النقاط عند التمرير
-    container.addEventListener('scroll', () => {
-        const scrollLeft = container.scrollLeft;
-        const containerWidth = container.clientWidth;
-        const page = Math.round(scrollLeft / containerWidth);
-        const dots = dotsContainer.querySelectorAll('span');
-        dots.forEach((dot, idx) => dot.classList.toggle('active', idx === page));
-    });
-
-    // ربط أزرار التنقل
-    const wrapper = container.closest('.carousel-wrapper');
-    if (wrapper) {
-        const prevBtn = wrapper.querySelector('.prev');
-        const nextBtn = wrapper.querySelector('.next');
-        if (prevBtn) prevBtn.addEventListener('click', () => {
-            container.scrollBy({ left: -container.clientWidth, behavior: 'smooth' });
-        });
-        if (nextBtn) nextBtn.addEventListener('click', () => {
-            container.scrollBy({ left: container.clientWidth, behavior: 'smooth' });
-        });
-    }
-
-    updateDots();
-    // إعادة حساب النقاط عند تغيير الحجم
-    window.addEventListener('resize', updateDots);
+    } catch (e) { console.error('خطأ في تحميل الأكثر مبيعاً:', e); }
 }
 
 async function loadCategories() {
