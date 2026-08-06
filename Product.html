@@ -1646,6 +1646,76 @@ button:active,
 .desc-fade.show {
     opacity: 1;
 }
+.carousel-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 20px 0;
+}
+.carousel-container {
+    flex: 1;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+    padding: 10px 0;
+}
+.carousel-track {
+    display: flex;
+    gap: 16px;
+    width: max-content;
+}
+.carousel-track .product-card {
+    flex: 0 0 180px;
+    scroll-snap-align: start;
+    transition: transform 0.2s;
+}
+.carousel-track .product-card:hover {
+    transform: scale(1.02);
+}
+.carousel-btn {
+    background: rgba(255,255,255,0.85);
+    border: 1px solid #D4AF37;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    font-size: 24px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.3s;
+    color: #D4AF37;
+    flex-shrink: 0;
+}
+.carousel-btn:hover {
+    background: #D4AF37;
+    color: #000;
+}
+.carousel-dots {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 12px;
+}
+.carousel-dots span {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #ccc;
+    cursor: pointer;
+    transition: 0.3s;
+}
+.carousel-dots span.active {
+    background: #D4AF37;
+    width: 24px;
+    border-radius: 12px;
+}
+/* إخفاء الأزرار على الموبايل إن أردت */
+@media (max-width: 600px) {
+    .carousel-btn { display: none; }
+}
     </style>
 </head>
 <body>
@@ -1914,11 +1984,35 @@ button:active,
 </section>
 
 <!-- ============================================
+     ALL PRODUCTS (قسم كل المنتجات)
+============================================ -->
+<section class="related-section">
+    <div style="text-align:center; padding:30px 20px; background:linear-gradient(135deg, #faf7f0, #fff); border-radius:28px; border:2px solid #D4AF37; box-shadow:0 10px 30px rgba(212,175,55,0.08);">
+        <h2 style="font-size:28px; font-weight:900; color:#111; margin-bottom:10px;">
+            🛍️ اكتشفي تشكيلتنا الكاملة
+        </h2>
+        <p style="color:#666; font-size:16px; margin-bottom:20px;">
+            تصفحي جميع الإكسسوارات الفاخرة من VANTÉ
+        </p>
+        <button onclick="window.location.href='index.html'" style="background:linear-gradient(135deg, #D4AF37, #B8860B); color:#fff; border:none; border-radius:60px; padding:16px 50px; font-size:20px; font-weight:800; cursor:pointer; transition:all 0.3s ease; box-shadow:0 8px 25px rgba(212,175,55,0.35);">
+            <i class="fas fa-th-list"></i> كل المنتجات
+        </button>
+    </div>
+</section>
+
+<!-- ============================================
      RELATED PRODUCTS
 ============================================ -->
 <section class="related-section">
     <h2 class="flame-title">🔥 منتجات مشابهة</h2>
-    <div class="products-grid" id="similarProducts"></div>
+    <div class="carousel-wrapper">
+        <button class="carousel-btn prev" data-target="similarCarousel">‹</button>
+        <div class="carousel-container" id="similarCarousel">
+            <div class="carousel-track" id="similarTrack"></div>
+        </div>
+        <button class="carousel-btn next" data-target="similarCarousel">›</button>
+    </div>
+    <div class="carousel-dots" id="similarDots"></div>
 </section>
 
 <!-- ============================================
@@ -1926,7 +2020,26 @@ button:active,
 ============================================ -->
 <section class="related-section">
     <h2 class="flame-title">✨ الأكثر مبيعاً</h2>
-    <div class="products-grid" id="bestSellers"></div>
+    <div class="carousel-wrapper">
+        <button class="carousel-btn prev" data-target="bestSellersCarousel">‹</button>
+        <div class="carousel-container" id="bestSellersCarousel">
+            <div class="carousel-track" id="bestSellersTrack"></div>
+        </div>
+        <button class="carousel-btn next" data-target="bestSellersCarousel">›</button>
+    </div>
+    <div class="carousel-dots" id="bestSellersDots"></div>
+</section>
+
+<section class="related-section">
+    <h2 class="flame-title">📂 اكتشفي الأقسام</h2>
+    <div class="carousel-wrapper">
+        <button class="carousel-btn prev" data-target="categoriesCarousel">‹</button>
+        <div class="carousel-container" id="categoriesCarousel">
+            <div class="carousel-track" id="categoriesTrack"></div>
+        </div>
+        <button class="carousel-btn next" data-target="categoriesCarousel">›</button>
+    </div>
+    <div class="carousel-dots" id="categoriesDots"></div>
 </section>
 
 <!-- Cart Drawer -->
@@ -2580,7 +2693,7 @@ const productsCollection = collection(db, "products");
 const productsSnapshot = await getDocs(productsCollection);
 window.allProducts = productsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 updateCart();  // <--- تأكد من وجود هذا السطر
-
+loadCategories();
         const productRef = doc(db, "products", productId);
         const productSnap = await getDoc(productRef);
         if (!productSnap.exists()) {
@@ -2918,62 +3031,133 @@ function selectSize(size) {
 }
 window.selectSize = selectSize;
 
-// ========== تحميل المنتجات المشابهة ==========
+// دالة مساعدة لإنشاء بطاقة منتج
+function createProductCard(product) {
+    const hasDiscount = product.comparePrice && product.comparePrice > product.price;
+    return `
+        <div class="product-card" onclick="window.location.href='/Product.html?id=${product.id}'">
+            <img src="${product.image}" alt="${product.name}" loading="lazy">
+            <h3>${product.name}</h3>
+            <div>
+                ${hasDiscount ? `<span class="old-price">${product.comparePrice} جنيه</span>` : ''}
+                <span class="price">${product.price} جنيه</span>
+            </div>
+        </div>
+    `;
+}
+
+// تحميل المنتجات المشابهة (معرض أفقي)
 async function loadSimilarProducts(category, excludeId, database) {
     try {
         const { collection, query, where, getDocs, limit } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
         const productsRef = collection(database, "products");
-        const q = query(productsRef, where("category", "==", category), limit(8));
+        const q = query(productsRef, where("category", "==", category), limit(10));
         const snapshot = await getDocs(q);
         const products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })).filter(p => p.id !== excludeId);
-        
-        const container = document.getElementById('similarProducts');
+        const track = document.getElementById('similarTrack');
+        if (!track) return;
         if (products.length === 0) {
-            container.innerHTML = '<p style="text-align:center; color:#888; grid-column:1/-1;">لا توجد منتجات مشابهة</p>';
+            track.innerHTML = '<div style="padding:20px;color:#888;">لا توجد منتجات مشابهة</div>';
             return;
         }
-        container.innerHTML = products.map(p => `
-            <div class="product-card" onclick="window.location.href='/Product.html?id=${p.id}'">
-                <img src="${p.image}" alt="${p.name}" loading="lazy">
-                <h3>${p.name}</h3>
-                <div>
-                    ${p.comparePrice && p.comparePrice > p.price ? `<span class="old-price">${p.comparePrice} جنيه</span>` : ''}
-                    <span class="price">${p.price} جنيه</span>
-                </div>
-            </div>
-        `).join('');
-    } catch (error) {
-        console.error('خطأ في تحميل المنتجات المشابهة:', error);
-    }
+        track.innerHTML = products.map(p => createProductCard(p)).join('');
+        initCarousel('similarCarousel', 'similarDots');
+    } catch (e) { console.error(e); }
 }
 
-// ========== تحميل الأكثر مبيعاً ==========
+// تحميل الأكثر مبيعاً
 async function loadBestSellers(excludeId, database) {
     try {
         const { collection, query, orderBy, getDocs, limit } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
         const productsRef = collection(database, "products");
-        const q = query(productsRef, orderBy("salesCount", "desc"), limit(6));
+        const q = query(productsRef, orderBy("salesCount", "desc"), limit(10));
         const snapshot = await getDocs(q);
         const products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })).filter(p => p.id !== excludeId);
-        
-        const container = document.getElementById('bestSellers');
+        const track = document.getElementById('bestSellersTrack');
+        if (!track) return;
         if (products.length === 0) {
-            container.innerHTML = '<p style="text-align:center; color:#888; grid-column:1/-1;">لا توجد منتجات</p>';
+            track.innerHTML = '<div style="padding:20px;color:#888;">لا توجد منتجات</div>';
             return;
         }
-        container.innerHTML = products.map(p => `
-            <div class="product-card" onclick="window.location.href='/Product.html?id=${p.id}'">
-                <img src="${p.image}" alt="${p.name}" loading="lazy">
-                <h3>${p.name}</h3>
-                <div>
-                    ${p.comparePrice && p.comparePrice > p.price ? `<span class="old-price">${p.comparePrice} جنيه</span>` : ''}
-                    <span class="price">${p.price} جنيه</span>
-                </div>
-            </div>
-        `).join('');
-    } catch (error) {
-        console.error('خطأ في تحميل الأكثر مبيعاً:', error);
+        track.innerHTML = products.map(p => createProductCard(p)).join('');
+        initCarousel('bestSellersCarousel', 'bestSellersDots');
+    } catch (e) { console.error(e); }
+}
+
+function initCarousel(containerId, dotsId) {
+    const container = document.getElementById(containerId);
+    const dotsContainer = document.getElementById(dotsId);
+    if (!container || !dotsContainer) return;
+    
+    // حساب عدد الصفحات (بناءً على عرض العناصر)
+    const updateDots = () => {
+        const track = container.querySelector('.carousel-track');
+        const cards = track?.querySelectorAll('.product-card');
+        if (!cards || cards.length === 0) return;
+        const containerWidth = container.clientWidth;
+        const cardWidth = cards[0].offsetWidth + 16; // عرض + gap
+        const visible = Math.floor(containerWidth / cardWidth);
+        const totalPages = Math.ceil(cards.length / visible);
+        dotsContainer.innerHTML = '';
+        for (let i = 0; i < totalPages; i++) {
+            const dot = document.createElement('span');
+            dot.dataset.index = i;
+            dot.addEventListener('click', () => {
+                const scrollAmount = i * containerWidth;
+                container.scrollTo({ left: scrollAmount, behavior: 'smooth' });
+            });
+            dotsContainer.appendChild(dot);
+        }
+        // تفعيل النقطة الأولى
+        const firstDot = dotsContainer.querySelector('span');
+        if (firstDot) firstDot.classList.add('active');
+    };
+
+    // تحديث النقاط عند التمرير
+    container.addEventListener('scroll', () => {
+        const scrollLeft = container.scrollLeft;
+        const containerWidth = container.clientWidth;
+        const page = Math.round(scrollLeft / containerWidth);
+        const dots = dotsContainer.querySelectorAll('span');
+        dots.forEach((dot, idx) => dot.classList.toggle('active', idx === page));
+    });
+
+    // ربط أزرار التنقل
+    const wrapper = container.closest('.carousel-wrapper');
+    if (wrapper) {
+        const prevBtn = wrapper.querySelector('.prev');
+        const nextBtn = wrapper.querySelector('.next');
+        if (prevBtn) prevBtn.addEventListener('click', () => {
+            container.scrollBy({ left: -container.clientWidth, behavior: 'smooth' });
+        });
+        if (nextBtn) nextBtn.addEventListener('click', () => {
+            container.scrollBy({ left: container.clientWidth, behavior: 'smooth' });
+        });
     }
+
+    updateDots();
+    // إعادة حساب النقاط عند تغيير الحجم
+    window.addEventListener('resize', updateDots);
+}
+
+async function loadCategories() {
+    const categories = [
+        { id: 'necklaces', name: 'سلاسل & كوليهات', icon: 'fa-gem' },
+        { id: 'bracelets', name: 'أساور & غوايش', icon: 'fa-hand-peace' },
+        { id: 'rings', name: 'دبل & خواتم', icon: 'fa-ring' },
+        { id: 'earrings', name: 'حلقان', icon: 'fa-ear-deaf' },
+        { id: 'sets', name: 'أطقم', icon: 'fa-crown' },
+        { id: 'anklets', name: 'خلخال', icon: 'fa-shoe-prints' }
+    ];
+    const track = document.getElementById('categoriesTrack');
+    if (!track) return;
+    track.innerHTML = categories.map(cat => `
+        <div class="product-card" onclick="window.location.href='index.html?category=${cat.id}'" style="flex:0 0 150px; text-align:center; padding:10px;">
+            <i class="fas ${cat.icon}" style="font-size:48px; color:#D4AF37; margin-bottom:8px;"></i>
+            <h3 style="font-size:14px;">${cat.name}</h3>
+        </div>
+    `).join('');
+    initCarousel('categoriesCarousel', 'categoriesDots');
 }
 
 // ========== إضافة للسلة من صفحة المنتج ==========
