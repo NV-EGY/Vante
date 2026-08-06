@@ -1666,51 +1666,32 @@ button:active,
     gap: 16px;
     width: max-content;
 }
+/* ===== تبسيط بطاقات المعرض ===== */
 .carousel-track .product-card {
-    flex: 0 0 180px;
-    scroll-snap-align: start;
-    transition: transform 0.2s;
+    flex: 0 0 150px !important;  /* أصغر من 180 */
+    padding: 12px 8px !important;
+    border-radius: 14px !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.04) !important;
+    border: 1px solid #f0f0f0 !important;
+    transition: all 0.25s ease !important;
 }
 .carousel-track .product-card:hover {
-    transform: scale(1.02);
+    transform: translateY(-4px) !important;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08) !important;
 }
-.carousel-btn {
-    background: rgba(255,255,255,0.85);
-    border: 1px solid #D4AF37;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    font-size: 24px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: 0.3s;
-    color: #D4AF37;
-    flex-shrink: 0;
+.carousel-track .product-card img {
+    height: 120px !important;  /* أصغر */
+    border-radius: 10px !important;
 }
-.carousel-btn:hover {
-    background: #D4AF37;
-    color: #000;
+.carousel-track .product-card h3 {
+    font-size: 13px !important;
+    margin: 6px 0 2px !important;
 }
-.carousel-dots {
-    display: flex;
-    justify-content: center;
-    gap: 8px;
-    margin-top: 12px;
+.carousel-track .product-card .price {
+    font-size: 14px !important;
 }
-.carousel-dots span {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: #ccc;
-    cursor: pointer;
-    transition: 0.3s;
-}
-.carousel-dots span.active {
-    background: #D4AF37;
-    width: 24px;
-    border-radius: 12px;
+.carousel-track .product-card .old-price {
+    font-size: 11px !important;
 }
 /* إخفاء الأزرار على الموبايل إن أردت */
 @media (max-width: 600px) {
@@ -2004,10 +1985,10 @@ button:active,
 <!-- ============================================
      زر كل المنتجات
 ============================================ -->
-<div style="text-align:center; margin:30px auto;">
-    <button onclick="window.location.href='index.html'" style="background:linear-gradient(135deg, #D4AF37, #B8860B); color:#fff; border:none; border-radius:60px; padding:14px 45px; font-size:18px; font-weight:800; cursor:pointer; transition:all 0.3s ease; box-shadow:0 6px 20px rgba(212,175,55,0.3);">
-        <i class="fas fa-th-list"></i> كل المنتجات
-    </button>
+<div style="text-align:center; margin:20px auto;">
+    <a href="index.html" style="display:inline-block; background:#D4AF37; color:#000; padding:10px 35px; border-radius:30px; font-weight:700; font-size:14px; text-decoration:none;">
+        <i class="fas fa-store"></i> كل المنتجات
+    </a>
 </div>
 
 <!-- ============================================
@@ -2015,7 +1996,7 @@ button:active,
 ============================================ -->
 <section class="related-section">
     <div style="position:relative; margin-bottom:5px;">
-        <h2 class="flame-title" style="margin-bottom:8px; font-size:24px;">🔥 منتجات مشابهة</h2>
+        <h2 class="flame-title" style="margin-bottom:8px; font-size:24px;">🔥 قد تعجبك أيضاً</h2>
         <div style="width:60px; height:3px; background:linear-gradient(90deg, #D4AF37, transparent); margin:0 auto; border-radius:4px;"></div>
     </div>
     <div class="carousel-wrapper" style="margin-top:10px;">
@@ -3062,18 +3043,27 @@ function createProductCard(product) {
     `;
 }
 
-// تحميل المنتجات المشابهة (معرض أفقي)
+// تحميل منتجات عشوائية (قد تعجبك أيضاً)
 async function loadSimilarProducts(category, excludeId, database) {
     try {
-        const { collection, query, where, getDocs, limit } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+        const { collection, getDocs } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
         const productsRef = collection(database, "products");
-        const q = query(productsRef, where("category", "==", category), limit(10));
-        const snapshot = await getDocs(q);
-        const products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })).filter(p => p.id !== excludeId);
+        const snapshot = await getDocs(productsRef);
+        let products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+            .filter(p => p.id !== excludeId);
+        
+        // ترتيب عشوائي
+        for (let i = products.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [products[i], products[j]] = [products[j], products[i]];
+        }
+        
+        products = products.slice(0, 10); // خذ 10 منتجات عشوائية
+        
         const track = document.getElementById('similarTrack');
         if (!track) return;
         if (products.length === 0) {
-            track.innerHTML = '<div style="padding:20px;color:#888;">لا توجد منتجات مشابهة</div>';
+            track.innerHTML = '<div style="padding:20px;color:#888;">لا توجد منتجات</div>';
             return;
         }
         track.innerHTML = products.map(p => createProductCard(p)).join('');
@@ -3158,19 +3148,19 @@ function initCarousel(containerId, dotsId) {
 
 async function loadCategories() {
     const categories = [
-        { id: 'necklaces', name: 'سلاسل & كوليهات', icon: 'fa-gem' },
-        { id: 'bracelets', name: 'أساور & غوايش', icon: 'fa-hand-peace' },
-        { id: 'rings', name: 'دبل & خواتم', icon: 'fa-ring' },
-        { id: 'earrings', name: 'حلقان', icon: 'fa-ear-deaf' },
-        { id: 'sets', name: 'أطقم', icon: 'fa-crown' },
-        { id: 'anklets', name: 'خلخال', icon: 'fa-shoe-prints' }
+        { id: 'necklaces', name: 'سلاسل & كوليهات', image: 'images/category-necklaces.jpg' },
+        { id: 'bracelets', name: 'أساور & غوايش', image: 'images/category-bracelets.jpg' },
+        { id: 'rings', name: 'دبل & خواتم', image: 'images/category-rings.jpg' },
+        { id: 'earrings', name: 'حلقان', image: 'images/category-earrings.jpg' },
+        { id: 'sets', name: 'أطقم', image: 'images/category-sets.jpg' },
+        { id: 'anklets', name: 'خلخال', image: 'images/category-anklets.jpg' }
     ];
     const track = document.getElementById('categoriesTrack');
     if (!track) return;
     track.innerHTML = categories.map(cat => `
-        <div class="product-card" onclick="window.location.href='index.html?category=${cat.id}'" style="flex:0 0 150px; text-align:center; padding:10px;">
-            <i class="fas ${cat.icon}" style="font-size:48px; color:#D4AF37; margin-bottom:8px;"></i>
-            <h3 style="font-size:14px;">${cat.name}</h3>
+        <div class="product-card" onclick="window.location.href='index.html?category=${cat.id}'" style="flex:0 0 140px; text-align:center; padding:8px; border-radius:14px;">
+            <img src="${cat.image}" alt="${cat.name}" style="width:100%; height:100px; object-fit:cover; border-radius:10px; margin-bottom:6px;">
+            <h3 style="font-size:13px; margin:4px 0;">${cat.name}</h3>
         </div>
     `).join('');
     initCarousel('categoriesCarousel', 'categoriesDots');
