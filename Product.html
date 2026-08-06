@@ -1702,19 +1702,33 @@ button:active,
     font-size: 24px !important;
     font-weight: 900;
     text-align: center;
-    margin-bottom: 4px !important;
-    color: #B8860B;
-    background: linear-gradient(90deg, #B8860B, #D4AF37, #FFF8DC, #D4AF37, #B8860B);
-    background-size: 200% auto;
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    filter: drop-shadow(0 1px 3px rgba(180,130,0,0.15));
-    animation: shimmerClear 4s ease-in-out infinite;
-    letter-spacing: 2px;
+    margin-bottom: 12px !important;
+    color: #111; /* لون غامق واضح */
+    letter-spacing: 1px;
     display: inline-block;
     padding: 0 10px;
+    background: none; /* إزالة الخلفية المتدرجة */
+    -webkit-text-fill-color: #111; /* إلغاء التدرج */
+    filter: none; /* إزالة الظل */
+    animation: none; /* إيقاف حركة التوهج */
 }
+      .btn-all-products {
+    display: inline-block;
+    background: #111;
+    color: #fff;
+    padding: 12px 40px;
+    border-radius: 30px;
+    font-weight: 700;
+    font-size: 15px;
+    text-decoration: none;
+    border: 1px solid #D4AF37;
+    transition: 0.3s;
+}
+.btn-all-products:hover {
+    background: #D4AF37;
+    color: #000;
+    transform: translateY(-2px);
+              }
     </style>
 </head>
 <body>
@@ -1986,9 +2000,9 @@ button:active,
      زر كل المنتجات
 ============================================ -->
 <div style="text-align:center; margin:20px auto;">
-    <a href="index.html" style="display:inline-block; background:#D4AF37; color:#000; padding:10px 35px; border-radius:30px; font-weight:700; font-size:14px; text-decoration:none;">
-        <i class="fas fa-store"></i> كل المنتجات
-    </a>
+    <a href="index.html" class="btn-all-products">
+    <i class="fas fa-store"></i> كل المنتجات
+</a>
 </div>
 
 <!-- ============================================
