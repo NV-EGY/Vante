@@ -2268,31 +2268,6 @@ function renderStars(rating) {
     return html;
 }
 
-  let bestSellersConfig = { mode: "sales", limit: 10, manualIds: [], fillMode: "random" };
-
-async function loadBestSellersConfig() {
-    // استيراد doc و onSnapshot ديناميكياً
-    const { doc, onSnapshot } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
-    const configRef = doc(db, "settings", "bestSellersConfig");
-    onSnapshot(configRef, (docSnap) => {
-        if (docSnap.exists()) {
-            const data = docSnap.data();
-            bestSellersConfig = {
-                mode: data.mode || "sales",
-                limit: data.limit || 10,
-                manualIds: data.manualIds || [],
-                fillMode: data.fillMode || "random"
-            };
-        } else {
-            bestSellersConfig = { mode: "sales", limit: 10, manualIds: [], fillMode: "random" };
-        }
-        // إعادة تحميل الأكثر مبيعاً إذا كان المنتج الحالي موجوداً
-        if (window.currentProduct) {
-            loadBestSellers(window.currentProduct.id, db);
-        }
-    });
-}
-
 // ========== التنقل في الجاليري ==========
 function navigateGallery(dir) {
     if (!currentImages.length) return;
@@ -2716,7 +2691,6 @@ const productsSnapshot = await getDocs(productsCollection);
 window.allProducts = productsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 updateCart();  // <--- تأكد من وجود هذا السطر
 loadCategories();
-
         const productRef = doc(db, "products", productId);
         const productSnap = await getDoc(productRef);
         if (!productSnap.exists()) {
@@ -2731,7 +2705,6 @@ loadCategories();
         document.title = `VANTÉ - ${product.name}`;
         document.getElementById('productTitle').textContent = `VANTÉ - ${product.name}`;
         document.getElementById('breadcrumbName').textContent = product.name;
-      
 
         // ===== الصور =====
         const allImages = [product.image, ...(product.additionalImages || [])].filter(Boolean);
@@ -2741,29 +2714,6 @@ loadCategories();
 
         const mainImg = document.getElementById('productImage');
         if (mainImg && allImages.length) mainImg.src = allImages[0];
-
-      // داخل loadProduct بعد تعيين db
-const { doc, onSnapshot } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
-
-// تعريف الدالة هنا (داخل النطاق)
-let bestSellersConfig = { mode: "sales", limit: 10, manualIds: [], fillMode: "random" };
-const configRef = doc(db, "settings", "bestSellersConfig");
-onSnapshot(configRef, (docSnap) => {
-    if (docSnap.exists()) {
-        const data = docSnap.data();
-        bestSellersConfig = {
-            mode: data.mode || "sales",
-            limit: data.limit || 10,
-            manualIds: data.manualIds || [],
-            fillMode: data.fillMode || "random"
-        };
-    } else {
-        bestSellersConfig = { mode: "sales", limit: 10, manualIds: [], fillMode: "random" };
-    }
-    if (window.currentProduct) {
-        loadBestSellers(window.currentProduct.id, db);
-    }
-});
 
         // ===== عرض المصغرات =====
         const thumbsContainer = document.getElementById('thumbnails');
@@ -3121,26 +3071,36 @@ async function loadSimilarProducts(category, excludeId, database) {
     } catch (e) { console.error(e); }
 }
 
-// تحميل الأكثر مبيعاً
+// ===== تحميل الأكثر مبيعاً مع دعم إعدادات لوحة التحكم =====
 async function loadBestSellers(excludeId, database) {
     try {
-        const { collection, getDocs, query, orderBy, limit } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+        // 1. جلب إعدادات الأكثر مبيعاً من Firestore
+        const { doc, getDoc } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+        const configRef = doc(database, "settings", "bestSellersConfig");
+        const configSnap = await getDoc(configRef);
+        
+        let config = { mode: 'sales', limit: 10, fillMode: 'random', manualIds: [] };
+        if (configSnap.exists()) {
+            config = configSnap.data();
+        }
+
+        // 2. جلب جميع المنتجات
+        const { collection, getDocs } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
         const productsRef = collection(database, "products");
         const snapshot = await getDocs(productsRef);
         let allProducts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
         let selectedProducts = [];
-        const config = bestSellersConfig;
         const limitCount = Math.min(config.limit || 10, 20);
 
         if (config.mode === "manual" && config.manualIds && config.manualIds.length) {
-            // 1. المنتجات المختارة يدوياً (ثابتة)
+            // المنتجات المختارة يدوياً (ثابتة)
             const fixedPart = [];
             for (let id of config.manualIds) {
                 const product = allProducts.find(p => p.id === id);
                 if (product) fixedPart.push(product);
             }
-            // 2. ملء الباقي (حسب fillMode)
+            // ملء الباقي حسب fillMode
             const remaining = limitCount - fixedPart.length;
             let dynamicPart = [];
             if (remaining > 0) {
@@ -3186,7 +3146,11 @@ async function loadBestSellers(excludeId, database) {
         }
         track.innerHTML = selectedProducts.map(p => createProductCard(p)).join('');
         initCarousel('bestSellersCarousel', 'bestSellersDots');
-    } catch (e) { console.error('خطأ في تحميل الأكثر مبيعاً:', e); }
+    } catch (e) {
+        console.error('خطأ في تحميل الأكثر مبيعاً:', e);
+        const track = document.getElementById('bestSellersTrack');
+        if (track) track.innerHTML = '<div style="padding:20px;color:#999;text-align:center;">⚠️ حدث خطأ في تحميل المنتجات</div>';
+    }
 }
 
 async function loadCategories() {
@@ -3207,63 +3171,6 @@ async function loadCategories() {
         </div>
     `).join('');
     initCarousel('categoriesCarousel', 'categoriesDots');
-}
-
-  function initCarousel(containerId, dotsId) {
-    const container = document.getElementById(containerId);
-    const dotsContainer = document.getElementById(dotsId);
-    if (!container) return;
-    
-    const updateDots = () => {
-        if (!dotsContainer) return;
-        const track = container.querySelector('.carousel-track');
-        const cards = track?.querySelectorAll('.product-card');
-        if (!cards || cards.length === 0) return;
-        const containerWidth = container.clientWidth;
-        const cardWidth = cards[0].offsetWidth + 16;
-        const visible = Math.floor(containerWidth / cardWidth);
-        const totalPages = Math.ceil(cards.length / visible);
-        dotsContainer.innerHTML = '';
-        for (let i = 0; i < totalPages; i++) {
-            const dot = document.createElement('span');
-            dot.dataset.index = i;
-            dot.addEventListener('click', () => {
-                const scrollAmount = i * containerWidth;
-                container.scrollTo({ left: scrollAmount, behavior: 'smooth' });
-            });
-            dotsContainer.appendChild(dot);
-        }
-        const firstDot = dotsContainer.querySelector('span');
-        if (firstDot) firstDot.classList.add('active');
-    };
-
-    container.addEventListener('scroll', () => {
-        if (!dotsContainer) return;
-        const scrollLeft = container.scrollLeft;
-        const containerWidth = container.clientWidth;
-        const page = Math.round(scrollLeft / containerWidth);
-        const dots = dotsContainer.querySelectorAll('span');
-        dots.forEach((dot, idx) => dot.classList.toggle('active', idx === page));
-    });
-
-    const wrapper = container.closest('.carousel-wrapper');
-    if (wrapper) {
-        const prevBtn = wrapper.querySelector('.prev');
-        const nextBtn = wrapper.querySelector('.next');
-        if (prevBtn) {
-            prevBtn.addEventListener('click', () => {
-                container.scrollBy({ left: -container.clientWidth, behavior: 'smooth' });
-            });
-        }
-        if (nextBtn) {
-            nextBtn.addEventListener('click', () => {
-                container.scrollBy({ left: container.clientWidth, behavior: 'smooth' });
-            });
-        }
-    }
-
-    updateDots();
-    window.addEventListener('resize', updateDots);
 }
 
 // ========== إضافة للسلة من صفحة المنتج ==========
@@ -4477,6 +4384,23 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // ❌ لا تستدعي updateCart() هنا - سيتم استدعاؤها من loadProduct
 });
+  function initCarousel(containerId, dotsId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    // التنقل بالأزرار
+    const wrapper = container.closest('.carousel-wrapper');
+    if (!wrapper) return;
+    const prevBtn = wrapper.querySelector('.carousel-btn.prev');
+    const nextBtn = wrapper.querySelector('.carousel-btn.next');
+    if (prevBtn && nextBtn) {
+        prevBtn.onclick = () => {
+            container.scrollLeft -= 200;
+        };
+        nextBtn.onclick = () => {
+            container.scrollLeft += 200;
+        };
+    }
+  }
 
 // ✅ تعريف updateCart كدالة عامة
 window.updateCart = updateCart;
