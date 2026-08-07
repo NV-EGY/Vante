@@ -1712,6 +1712,65 @@ button:active,
     animation: none;
 }
 
+/* ===== عنوان مميز لأقسام VANTÉ ===== */
+.section-title-gold {
+    font-size: 26px !important;
+    font-weight: 900 !important;
+    text-align: center !important;
+    margin: 0 auto 18px auto !important;
+    display: inline-block !important;
+    width: auto !important;
+    padding: 10px 40px !important;
+    background: linear-gradient(145deg, #1a1a1a, #0a0a0a) !important;
+    border: 2px solid #D4AF37 !important;
+    border-radius: 50px !important;
+    color: #D4AF37 !important;
+    letter-spacing: 2px !important;
+    text-shadow: 0 0 20px rgba(212, 175, 55, 0.25) !important;
+    box-shadow: 0 6px 25px rgba(212, 175, 55, 0.15) !important;
+    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+    position: relative !important;
+    font-family: 'Cairo', sans-serif !important;
+}
+/* خط ذهبي متوهج أسفل العنوان */
+.section-title-gold::after {
+    content: '' !important;
+    position: absolute !important;
+    bottom: -4px !important;
+    left: 20% !important;
+    width: 60% !important;
+    height: 3px !important;
+    background: linear-gradient(90deg, transparent, #D4AF37, #FFD700, #D4AF37, transparent) !important;
+    border-radius: 4px !important;
+    opacity: 0.8 !important;
+    filter: blur(1px);
+}
+/* تأثير hover أنيق */
+.section-title-gold:hover {
+    transform: translateY(-3px) scale(1.03) !important;
+    box-shadow: 0 12px 40px rgba(212, 175, 55, 0.4) !important;
+    border-color: #FFD700 !important;
+    text-shadow: 0 0 30px rgba(212, 175, 55, 0.5) !important;
+}
+/* أيقونة خاصة ذهبية */
+.section-title-gold i {
+    color: #FFD700 !important;
+    margin-left: 8px !important;
+}
+/* استجابة للموبايل */
+@media (max-width: 600px) {
+    .section-title-gold {
+        font-size: 18px !important;
+        padding: 8px 20px !important;
+        border-width: 1.5px !important;
+        letter-spacing: 1px !important;
+    }
+    .section-title-gold::after {
+        width: 40% !important;
+        left: 30% !important;
+    }
+          }
+
 .btn-all-products {
     display: inline-block;
     background: #D4AF37;
@@ -2039,7 +2098,7 @@ button:active,
 
 <section class="related-section">
     <div style="position:relative; margin-bottom:5px;">
-        <h2 class="flame-title" style="margin-bottom:8px; font-size:24px;">📂 اكتشفي الأقسام</h2>
+        <h2 class="section-title-gold"><i class="fas fa-gem"></i> اكتشفي الأقسام</h2>
     </div>
     <div class="carousel-wrapper" style="margin-top:10px;">
         <button class="carousel-btn prev" data-target="categoriesCarousel">‹</button>
@@ -3180,7 +3239,7 @@ async function loadCategories() {
     const style = document.createElement('style');
     style.textContent = `
         .category-card {
-            flex: 0 0 180px !important;
+            flex: 0 0 200px !important;
             text-align: center !important;
             padding: 8px 8px 12px !important;
             border-radius: 18px !important;
