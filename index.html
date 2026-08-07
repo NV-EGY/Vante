@@ -39,10 +39,12 @@ src="https://www.facebook.com/tr?id=1361900332752731&ev=PageView&noscript=1"
     <meta name="twitter:image" content="https://Vante.sbs/images/preview.jpg">
 
 <script>
-    // إذا كان الجهاز كمبيوتر (عرض الشاشة > 768 بكسل) -> انتقل إلى desktop.html
-    if (window.innerWidth > 768) {
-        window.location.href = "desktop.html";
-    }
+    // تأكد من تحميل الصفحة بالكامل قبل التوجيه لتجنب أخطاء GitHub Pages
+    window.addEventListener('load', function() {
+        if (window.innerWidth > 768) {
+            window.location.href = "desktop.html";
+        }
+    });
 </script>
  <!-- Favicon - الحل النهائي المضمون -->
 <link rel="icon" type="image/png" sizes="32x32" href="images/favicon.png">
