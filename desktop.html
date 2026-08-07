@@ -1,350 +1,425 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>VANTÉ | إكسسوارات حريمي دهب استانلس فاخرة</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VANTÉ | إكسسوارات حريمي دهب استانلس فاخرة</title>
 
-  <!-- SEO -->
-  <meta name="description" content="اكتشفي تشكيلة فانتي VANTÉ الفاخرة من الإكسسوارات الحريمي المصنوعة من الدهب الاستانلس. خواتم، سلاسل، أساور، حلقان بجودة ممتازة وأسعار تنافسية." />
-  <meta name="keywords" content="فانتي, VANTÉ, دهب استانلس, اكسسوارات حريمي, خواتم, سلاسل, أساور, حلقان" />
-  <meta name="theme-color" content="#D4AF37" />
+    <!-- SEO -->
+    <meta name="description" content="اكتشفي تشكيلة فانتي VANTÉ الفاخرة من الإكسسوارات الحريمي المصنوعة من الدهب الاستانلس. خواتم، سلاسل، أساور، حلقان بجودة ممتازة وأسعار تنافسية.">
+    <meta name="keywords" content="فانتي, VANTÉ, دهب استانلس, اكسسوارات حريمي, خواتم, سلاسل, أساور, حلقان">
+    <meta name="theme-color" content="#D4AF37">
 
-  <!-- Open Graph -->
-  <meta property="og:title" content="VANTÉ - إكسسوارات حريمي دهب استانلس فاخرة" />
-  <meta property="og:description" content="أحدث تشكيلة من الإكسسوارات الحريمي الفاخرة من فانتي VANTÉ." />
-  <meta property="og:image" content="https://Vante.sbs/images/preview.jpg" />
-  <meta property="og:url" content="https://Vante.sbs" />
-  <meta property="og:type" content="website" />
+    <!-- Open Graph -->
+    <meta property="og:title" content="VANTÉ - إكسسوارات حريمي دهب استانلس فاخرة">
+    <meta property="og:description" content="أحدث تشكيلة من الإكسسوارات الحريمي الفاخرة من فانتي VANTÉ.">
+    <meta property="og:image" content="https://Vante.sbs/images/preview.jpg">
+    <meta property="og:url" content="https://Vante.sbs">
+    <meta property="og:type" content="website">
 
-  <!-- Favicon -->
-  <link rel="icon" type="image/png" href="images/favicon.png" />
-  <link rel="apple-touch-icon" href="images/icon-192x192.png" />
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="images/favicon.png">
+    <link rel="apple-touch-icon" href="images/icon-192x192.png">
 
-  <!-- Fonts & Icons -->
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;700;900&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
-  <!-- CSS -->
-  <link rel="stylesheet" href="css/desktop.css" />
-  <link rel="stylesheet" href="css/components.css" />
-  <link rel="stylesheet" href="css/responsive.css" />
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/desktop.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/responsive.css">
 
-  <!-- JSON-LD -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "WebSite",
-    "name": "VANTÉ",
-    "alternateName": "فانتي",
-    "url": "https://vante.sbs/"
-  }
-  </script>
+    <!-- JSON-LD -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "VANTÉ",
+        "alternateName": "فانتي",
+        "url": "https://vante.sbs/",
+        "description": "متجر إلكتروني متخصص في الإكسسوارات الحريمي الفاخرة المصنوعة من الدهب الاستانلس."
+    }
+    </script>
 </head>
 <body>
 
-  <!-- ===== TOP BAR ===== -->
-  <div class="top-bar">
-    <div class="top-bar-content">
-      <span class="offer-text">✨ خصومات حصرية لفترة محدودة</span>
-      <span class="offer-timer" id="offerTimer">
-        <span id="h">00</span>h <span id="m">00</span>m <span id="s">00</span>s
-      </span>
-    </div>
-  </div>
-
-  <!-- ===== HEADER / NAV ===== -->
-  <header class="main-header">
-    <div class="header-inner">
-      <div class="logo">VANTÉ</div>
-
-      <nav class="main-nav">
-        <a href="#" data-category="all" class="active">الرئيسية</a>
-        <div class="dropdown">
-          <a href="#">الأقسام <i class="fas fa-chevron-down"></i></a>
-          <div class="dropdown-menu">
-            <a href="#" data-category="necklaces">سلاسل &amp; كوليهات</a>
-            <a href="#" data-category="bracelets">أساور &amp; غوايش</a>
-            <a href="#" data-category="rings">خواتم &amp; دبل</a>
-            <a href="#" data-category="earrings">حلقان</a>
-            <a href="#" data-category="sets">أطقم</a>
-            <a href="#" data-category="anklets">خلخال</a>
-          </div>
+    <!-- ===== TOP BAR ===== -->
+    <div class="top-bar">
+        <div class="top-bar-content">
+            <span class="offer-text">✨ عروض حصرية لفترة محدودة</span>
+            <div class="offer-timer">
+                تنتهي خلال: <span id="h">00</span>h <span id="m">00</span>m <span id="s">00</span>s
+            </div>
         </div>
-        <a href="#" onclick="openContactModal()">تواصل معنا</a>
-        <a href="#" onclick="openInfoModal()">دليل المتسوق</a>
-      </nav>
-
-      <div class="header-actions">
-        <button class="icon-btn" onclick="openSearch()"><i class="fas fa-search"></i></button>
-        <button class="icon-btn" onclick="openCart()">
-          <i class="fas fa-shopping-bag"></i>
-          <span class="cart-badge" id="cartCount">0</span>
-        </button>
-      </div>
     </div>
-  </header>
 
-  <!-- ===== HERO ===== -->
-  <section class="hero-section">
-    <img src="images/header.webp" alt="VANTÉ Banner" />
-  </section>
+    <!-- ===== HEADER ===== -->
+    <header class="main-header">
+        <div class="header-inner">
+            <div class="logo" onclick="window.location.href='/'">VANTÉ</div>
 
-  <!-- ===== BEST SELLERS ===== -->
-  <section class="best-sellers">
-    <h2 class="section-title">✨ الأكثر مبيعاً ✨</h2>
-    <div class="best-sellers-grid" id="bestSellersGrid"></div>
-  </section>
+            <nav class="main-nav">
+                <a href="#" data-category="all" class="active">الرئيسية</a>
+                <div class="dropdown">
+                    <a href="#">الأقسام <i class="fas fa-chevron-down"></i></a>
+                    <div class="dropdown-menu">
+                        <a href="#" data-category="necklaces">سلاسل &amp; كوليهات</a>
+                        <a href="#" data-category="bracelets">أساور &amp; غوايش</a>
+                        <a href="#" data-category="rings">خواتم &amp; دبل</a>
+                        <a href="#" data-category="earrings">حلقان</a>
+                        <a href="#" data-category="sets">أطقم</a>
+                        <a href="#" data-category="anklets">خلخال</a>
+                    </div>
+                </div>
+                <a href="#" onclick="openContactModal()">تواصل معنا</a>
+                <a href="#" onclick="openInfoModal()">دليل المتسوق</a>
+                <a href="https://taswekshope-gif.github.io/DAHAP/" target="_blank" rel="noopener noreferrer" class="marketing-link">
+                    <i class="fas fa-crown"></i> سلاسل بالأسماء
+                    <span class="badge">حسب الطلب</span>
+                </a>
+            </nav>
 
-  <!-- ===== PRODUCTS ===== -->
-  <section class="products-section">
-    <div class="products-header">
-      <div class="filter-bar">
-        <div class="filter-dropdown" id="filterDropdown">
-          <button class="filter-btn" id="filterBtn">الأقسام <i class="fas fa-chevron-down"></i></button>
-          <div class="filter-menu" id="filterMenu">
-            <button data-category="all" class="active">كل الأقسام</button>
-            <button data-category="necklaces">سلاسل &amp; كوليهات</button>
-            <button data-category="bracelets">أساور &amp; غوايش</button>
-            <button data-category="rings">خواتم &amp; دبل</button>
-            <button data-category="earrings">حلقان</button>
-            <button data-category="sets">أطقم</button>
-            <button data-category="anklets">خلخال</button>
-          </div>
+            <div class="header-actions">
+                <button class="icon-btn" onclick="openSearch()"><i class="fas fa-search"></i></button>
+                <button class="icon-btn" onclick="openCart()">
+                    <i class="fas fa-shopping-bag"></i>
+                    <span class="cart-badge" id="cartCount">0</span>
+                </button>
+            </div>
+
+            <!-- Mobile Toggle -->
+            <button class="mobile-toggle" onclick="toggleMobileMenu()">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- ===== MOBILE MENU ===== -->
+    <div class="mobile-menu-overlay" id="menuOverlay" onclick="closeMobileMenu()"></div>
+    <nav class="mobile-menu" id="mobileMenu">
+        <div class="mobile-menu-header">
+            <span class="logo-sm">VANTÉ</span>
+            <button class="close-menu-btn" onclick="closeMobileMenu()"><i class="fas fa-times"></i></button>
+        </div>
+        <a href="#" data-category="all" onclick="setCategory('all'); closeMobileMenu();">الصفحة الرئيسية</a>
+        <div>
+            <a href="#" class="collection-toggle" onclick="toggleMobileSub(event)">
+                الأقسام <i class="fas fa-chevron-down"></i>
+            </a>
+            <div class="mobile-sub" id="mobileSub">
+                <a href="#" data-category="necklaces" onclick="setCategory('necklaces'); closeMobileMenu();">سلاسل &amp; كوليهات</a>
+                <a href="#" data-category="bracelets" onclick="setCategory('bracelets'); closeMobileMenu();">أساور &amp; غوايش</a>
+                <a href="#" data-category="rings" onclick="setCategory('rings'); closeMobileMenu();">خواتم &amp; دبل</a>
+                <a href="#" data-category="earrings" onclick="setCategory('earrings'); closeMobileMenu();">حلقان</a>
+                <a href="#" data-category="sets" onclick="setCategory('sets'); closeMobileMenu();">أطقم</a>
+                <a href="#" data-category="anklets" onclick="setCategory('anklets'); closeMobileMenu();">خلخال</a>
+            </div>
+        </div>
+        <a href="#" onclick="openContactModal(); closeMobileMenu();">تواصل معنا</a>
+        <a href="#" onclick="openInfoModal(); closeMobileMenu();">دليل المتسوق</a>
+    </nav>
+
+    <!-- ===== HERO ===== -->
+    <section class="hero-section">
+        <img src="images/header.webp" alt="VANTÉ Banner">
+    </section>
+
+    <!-- ===== BEST SELLERS ===== -->
+    <section class="best-sellers">
+        <h2 class="section-title">✨ الأكثر مبيعاً ✨</h2>
+        <div class="best-sellers-grid" id="bestSellersGrid"></div>
+    </section>
+
+    <!-- ===== PRODUCTS ===== -->
+    <section class="products-section">
+        <div class="products-header">
+            <div class="filter-bar">
+                <div class="filter-dropdown" id="filterDropdown">
+                    <button class="filter-btn" id="filterBtn">
+                        <span id="filterLabel">الأقسام</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="filter-menu" id="filterMenu">
+                        <button data-category="all" class="active">كل الأقسام</button>
+                        <button data-category="necklaces">سلاسل &amp; كوليهات</button>
+                        <button data-category="bracelets">أساور &amp; غوايش</button>
+                        <button data-category="rings">خواتم &amp; دبل</button>
+                        <button data-category="earrings">حلقان</button>
+                        <button data-category="sets">أطقم</button>
+                        <button data-category="anklets">خلخال</button>
+                    </div>
+                </div>
+
+                <div class="sort-wrapper" id="sortWrapper">
+                    <button class="sort-btn" id="sortBtn">
+                        <span id="sortLabel">📊 ترتيب حسب</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="sort-menu" id="sortMenu">
+                        <button data-sort="random" class="active">🎲 عشوائي</button>
+                        <button data-sort="latest">✨ الأحدث</button>
+                        <button data-sort="price_asc">💰 الأقل سعراً</button>
+                        <button data-sort="price_desc">💰 الأعلى سعراً</button>
+                        <button data-sort="best_selling">🔥 الأكثر مبيعاً</button>
+                        <button data-sort="top_rated">⭐ الأعلى تقييماً</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="products-counter" id="productsCounter">🛍️ عرض 0 من 0 منتج</div>
         </div>
 
-        <div class="sort-wrapper">
-          <button class="sort-btn" id="sortBtn">
-            <span id="sortLabel">ترتيب حسب</span>
-            <i class="fas fa-chevron-down"></i>
-          </button>
-          <div class="sort-menu" id="sortMenu">
-            <button data-sort="random" class="active">🎲 عشوائي</button>
-            <button data-sort="latest">✨ الأحدث</button>
-            <button data-sort="price_asc">💰 الأقل سعراً</button>
-            <button data-sort="price_desc">💰 الأعلى سعراً</button>
-            <button data-sort="best_selling">🔥 الأكثر مبيعاً</button>
-            <button data-sort="top_rated">⭐ الأعلى تقييماً</button>
-          </div>
+        <div class="products-grid" id="productsGrid"></div>
+
+        <div class="load-more" id="loadMoreContainer">
+            <button class="load-more-btn" id="loadMoreBtn">
+                <i class="fas fa-arrow-down"></i> عرض المزيد
+            </button>
         </div>
-      </div>
+    </section>
 
-      <div class="products-counter" id="productsCounter">🛍️ عرض 0 من 0 منتج</div>
-    </div>
-
-    <div class="products-grid" id="productsGrid"></div>
-
-    <div class="load-more" id="loadMoreContainer">
-      <button class="load-more-btn" id="loadMoreBtn">
-        <i class="fas fa-arrow-down"></i> عرض المزيد
-      </button>
-    </div>
-  </section>
-
-  <!-- ===== FOOTER ===== -->
-  <footer class="main-footer">
-    <div class="footer-inner">
-      <div class="footer-col">
-        <h3>VANTÉ</h3>
-        <p>مجوهرات فاخرة تعكس أناقتك الخاصة. كل قطعة تحكي قصة.</p>
-        <div class="social-links">
-          <a href="#"><i class="fab fa-instagram"></i></a>
-          <a href="#"><i class="fab fa-facebook-f"></i></a>
-          <a href="#"><i class="fab fa-tiktok"></i></a>
-          <a href="#"><i class="fab fa-whatsapp"></i></a>
+    <!-- ===== FOOTER ===== -->
+    <footer class="main-footer">
+        <div class="footer-inner">
+            <div class="footer-col">
+                <h3>VANTÉ</h3>
+                <p>مجوهرات فاخرة تعكس أناقتك الخاصة. كل قطعة تحكي قصة.</p>
+                <div class="social-links">
+                    <a href="https://www.instagram.com/vante_store2" target="_blank"><i class="fab fa-instagram"></i></a>
+                    <a href="https://www.facebook.com/share/1GGCQ2LTsg/" target="_blank"><i class="fab fa-facebook-f"></i></a>
+                    <a href="https://tiktok.com/@vante_store1" target="_blank"><i class="fab fa-tiktok"></i></a>
+                    <a href="https://wa.me/201106018685" target="_blank"><i class="fab fa-whatsapp"></i></a>
+                </div>
+            </div>
+            <div class="footer-col">
+                <h3>التسوق</h3>
+                <ul>
+                    <li><a href="#" data-category="all" onclick="setCategory('all')">جميع الأقسام</a></li>
+                    <li><a href="#" data-category="necklaces" onclick="setCategory('necklaces')">سلاسل &amp; كوليهات</a></li>
+                    <li><a href="#" data-category="bracelets" onclick="setCategory('bracelets')">أساور &amp; غوايش</a></li>
+                    <li><a href="#" data-category="rings" onclick="setCategory('rings')">خواتم &amp; دبل</a></li>
+                    <li><a href="#" data-category="earrings" onclick="setCategory('earrings')">حلقان</a></li>
+                    <li><a href="#" data-category="sets" onclick="setCategory('sets')">أطقم</a></li>
+                    <li><a href="#" data-category="anklets" onclick="setCategory('anklets')">خلخال</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h3>خدمة العملاء</h3>
+                <ul>
+                    <li><a href="#" onclick="openContactModal()">تواصل معنا</a></li>
+                    <li><a href="#" onclick="openInfoModal()">سياسة الشحن والإرجاع</a></li>
+                    <li><a href="#" onclick="openInfoModal()">دليل المقاسات</a></li>
+                    <li><a href="#" onclick="openInfoModal()">الأسئلة الشائعة</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h3>تواصل معنا</h3>
+                <ul class="contact-info">
+                    <li><i class="fas fa-phone"></i> +20 110 601 8685</li>
+                    <li><i class="fab fa-whatsapp"></i> +20 110 601 8685</li>
+                    <li><i class="fas fa-envelope"></i> vantestore1@gmail.com</li>
+                </ul>
+            </div>
         </div>
-      </div>
-      <div class="footer-col">
-        <h3>التسوق</h3>
-        <ul>
-          <li><a href="#" data-category="all">جميع الأقسام</a></li>
-          <li><a href="#" data-category="necklaces">سلاسل &amp; كوليهات</a></li>
-          <li><a href="#" data-category="bracelets">أساور &amp; غوايش</a></li>
-          <li><a href="#" data-category="rings">خواتم &amp; دبل</a></li>
-          <li><a href="#" data-category="earrings">حلقان</a></li>
-          <li><a href="#" data-category="sets">أطقم</a></li>
-          <li><a href="#" data-category="anklets">خلخال</a></li>
-        </ul>
-      </div>
-      <div class="footer-col">
-        <h3>خدمة العملاء</h3>
-        <ul>
-          <li><a href="#" onclick="openContactModal()">تواصل معنا</a></li>
-          <li><a href="#" onclick="openInfoModal()">سياسة الشحن والإرجاع</a></li>
-          <li><a href="#" onclick="openInfoModal()">دليل المقاسات</a></li>
-          <li><a href="#" onclick="openInfoModal()">الأسئلة الشائعة</a></li>
-        </ul>
-      </div>
-      <div class="footer-col">
-        <h3>تواصل معنا</h3>
-        <ul class="contact-info">
-          <li><i class="fas fa-phone"></i> +20 110 601 8685</li>
-          <li><i class="fab fa-whatsapp"></i> +20 110 601 8685</li>
-          <li><i class="fas fa-envelope"></i> vantestore1@gmail.com</li>
-        </ul>
-      </div>
-    </div>
-    <div class="footer-bottom">
-      <p>© 2026 VANTÉ. جميع الحقوق محفوظة</p>
-    </div>
-  </footer>
-
-  <!-- ===== CART DRAWER ===== -->
-  <div class="cart-drawer" id="cartDrawer">
-    <div class="cart-header">
-      <h2>🛒 سلة التسوق</h2>
-      <button class="close-drawer" onclick="closeCart()">&times;</button>
-    </div>
-    <div class="cart-body" id="cartItems">السلة فارغة</div>
-    <div class="cart-footer">
-      <div class="coupon-section">
-        <input type="text" id="couponInput" placeholder="كود الخصم" />
-        <button id="applyCouponBtn">تطبيق</button>
-      </div>
-      <div class="cart-total">الإجمالي: <span id="total">0</span> جنيه</div>
-      <button class="btn-primary" onclick="openCheckout()">تأكيد الطلب</button>
-      <button class="btn-secondary" onclick="closeCart()">إغلاق</button>
-    </div>
-  </div>
-
-  <!-- ===== PRODUCT MODAL ===== -->
-  <div class="modal-overlay" id="modalOverlay"></div>
-  <div class="product-modal" id="productModal">
-    <button class="modal-close" onclick="closeProduct()">&times;</button>
-    <div class="modal-content">
-      <div class="modal-gallery">
-        <div class="modal-main-image" id="modalMainImage">
-          <img id="modalImg" alt="Product Image" />
+        <div class="footer-bottom">
+            <p>© 2026 VANTÉ. جميع الحقوق محفوظة</p>
         </div>
-        <div class="modal-thumbs" id="modalThumbs"></div>
-      </div>
-      <div class="modal-info">
-        <h2 id="modalTitle"></h2>
-        <p id="modalDesc" class="modal-desc"></p>
-        <div class="modal-price">
-          <span id="modalPrice"></span>
-          <span id="modalOldPrice" class="old-price"></span>
+    </footer>
+
+    <!-- ===== CART DRAWER ===== -->
+    <div class="cart-drawer" id="cartDrawer">
+        <div class="cart-header">
+            <h2>🛒 سلة التسوق</h2>
+            <button class="close-drawer" onclick="closeCart()">&times;</button>
         </div>
-        <div id="modalStockInfo" class="stock-info"></div>
-        <div class="modal-size">
-          <label>اختر المقاس</label>
-          <select id="modalSize"></select>
+        <div class="cart-body" id="cartItems">السلة فارغة</div>
+        <div class="cart-footer">
+            <div class="coupon-section">
+                <input type="text" id="couponInput" placeholder="كود الخصم">
+                <button id="applyCouponBtn">تطبيق</button>
+            </div>
+            <div id="couponMessage" class="coupon-message"></div>
+            <div class="cart-total">الإجمالي: <span id="total">0</span> جنيه</div>
+            <button class="btn-primary" onclick="openCheckout()">تأكيد الطلب</button>
+            <button class="btn-secondary" onclick="closeCart()">إغلاق</button>
         </div>
-        <div class="modal-actions">
-          <button class="btn-primary" onclick="addCurrentProductToCart()">أضف للسلة</button>
-          <button class="btn-secondary" onclick="shareProduct()">مشاركة</button>
+    </div>
+
+    <!-- ===== OVERLAY ===== -->
+    <div class="modal-overlay" id="modalOverlay" onclick="closeAllModals()"></div>
+
+    <!-- ===== PRODUCT MODAL ===== -->
+    <div class="product-modal" id="productModal">
+        <button class="modal-close" onclick="closeProduct()">&times;</button>
+        <div class="modal-content">
+            <div class="modal-gallery">
+                <div class="modal-main-image" id="modalMainImage">
+                    <img id="modalImg" alt="صورة المنتج">
+                </div>
+                <div class="modal-thumbs" id="modalThumbs"></div>
+            </div>
+            <div class="modal-info">
+                <h2 id="modalTitle"></h2>
+                <p id="modalDesc" class="modal-desc"></p>
+                <div class="modal-price">
+                    <span id="modalPrice" class="current-price"></span>
+                    <span id="modalOldPrice" class="old-price"></span>
+                </div>
+                <div id="modalStockInfo" class="stock-info"></div>
+                <div class="modal-size">
+                    <label>اختر المقاس</label>
+                    <select id="modalSize"></select>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn-primary" onclick="addCurrentToCart()">أضف للسلة</button>
+                    <button class="btn-secondary" onclick="shareProduct()">مشاركة</button>
+                </div>
+                <div class="rating-section">
+                    <div class="rating-stars" id="stars">
+                        <span data-rate="1">★</span>
+                        <span data-rate="2">★</span>
+                        <span data-rate="3">★</span>
+                        <span data-rate="4">★</span>
+                        <span data-rate="5">★</span>
+                    </div>
+                    <textarea id="reviewText" placeholder="اكتب رأيك..."></textarea>
+                    <button class="btn-primary" onclick="submitReview()">إرسال التقييم</button>
+                </div>
+                <div id="productReviewsContainer" class="reviews-container"></div>
+            </div>
         </div>
-        <div class="rating-section">
-          <div class="rating-stars" id="stars">
-            <span data-rate="1">★</span><span data-rate="2">★</span>
-            <span data-rate="3">★</span><span data-rate="4">★</span>
-            <span data-rate="5">★</span>
-          </div>
-          <textarea id="reviewText" placeholder="اكتب رأيك..."></textarea>
-          <button class="btn-primary" onclick="submitReview()">إرسال التقييم</button>
+    </div>
+
+    <!-- ===== CHECKOUT MODAL ===== -->
+    <div class="checkout-modal" id="checkoutModal">
+        <div class="checkout-header">
+            <h2>إتمام الطلب</h2>
+            <button class="close-modal" onclick="closeCheckout()">&times;</button>
         </div>
-        <div id="productReviewsContainer" class="reviews-container"></div>
-      </div>
+        <div class="checkout-body">
+            <div class="form-group">
+                <label>الاسم كامل</label>
+                <input id="name" type="text" placeholder="أدخل اسمك الكامل">
+            </div>
+            <div class="form-group">
+                <label>رقم الهاتف</label>
+                <input id="phone" type="tel" placeholder="01XXXXXXXXX">
+            </div>
+            <div class="form-group">
+                <label>المحافظة</label>
+                <select id="governorate"><option value="">اختر المحافظة</option></select>
+            </div>
+            <div class="form-group">
+                <label>المدينة</label>
+                <select id="city" disabled><option value="">اختر المدينة</option></select>
+            </div>
+            <div class="form-group">
+                <label>العنوان بالتفصيل</label>
+                <input id="address" type="text" placeholder="اسم الشارع - رقم المنزل">
+            </div>
+            <div id="shippingDiscountMessage" class="shipping-discount-msg" style="display:none;">
+                🎉 <strong>تهانينا!</strong> حصلت على شحن مخفض لأن طلبك تجاوز الحد الأدنى.
+            </div>
+            <button class="btn-primary" onclick="checkout()">تأكيد الطلب</button>
+            <button class="btn-secondary" onclick="closeCheckout()">رجوع</button>
+        </div>
     </div>
-  </div>
 
-  <!-- ===== CHECKOUT MODAL ===== -->
-  <div class="checkout-modal" id="checkoutModal">
-    <div class="checkout-header">
-      <h2>إتمام الطلب</h2>
-      <button onclick="closeCheckout()">&times;</button>
+    <!-- ===== CONTACT MODAL ===== -->
+    <div class="contact-modal" id="contactModal">
+        <div class="contact-modal-content">
+            <div class="contact-header">
+                <h3>تواصل مع المسئول</h3>
+                <button onclick="closeContactModal()">&times;</button>
+            </div>
+            <div class="contact-body">
+                <div class="form-group">
+                    <label>الاسم</label>
+                    <input id="contactName" placeholder="أدخل اسمك">
+                    <div class="error-msg" id="contactNameError"></div>
+                </div>
+                <div class="form-group">
+                    <label>الهاتف</label>
+                    <input id="contactPhone" placeholder="01XXXXXXXXX">
+                    <div class="error-msg" id="contactPhoneError"></div>
+                </div>
+                <div class="form-group">
+                    <label>الرسالة</label>
+                    <textarea id="contactMessage" rows="4" placeholder="اكتب رسالتك هنا..."></textarea>
+                    <div class="error-msg" id="contactMsgError"></div>
+                </div>
+                <button class="btn-primary" onclick="sendContactMessage()">إرسال</button>
+            </div>
+        </div>
     </div>
-    <div class="checkout-body">
-      <div class="form-group">
-        <label>الاسم كامل</label>
-        <input id="name" type="text" placeholder="أدخل اسمك الكامل" />
-      </div>
-      <div class="form-group">
-        <label>رقم الهاتف</label>
-        <input id="phone" type="tel" placeholder="01XXXXXXXXX" />
-      </div>
-      <div class="form-group">
-        <label>المحافظة</label>
-        <select id="governorate"><option value="">اختر المحافظة</option></select>
-      </div>
-      <div class="form-group">
-        <label>المدينة</label>
-        <select id="city" disabled><option value="">اختر المدينة</option></select>
-      </div>
-      <div class="form-group">
-        <label>العنوان بالتفصيل</label>
-        <input id="address" type="text" placeholder="اسم الشارع - رقم المنزل" />
-      </div>
-      <button class="btn-primary" onclick="checkout()">تأكيد الطلب</button>
-      <button class="btn-secondary" onclick="closeCheckout()">رجوع</button>
+
+    <!-- ===== INFO MODAL ===== -->
+    <div class="info-modal" id="infoModal">
+        <div class="info-modal-content">
+            <div class="info-header">
+                <h3>دليل المتسوق</h3>
+                <button onclick="closeInfoModal()">&times;</button>
+            </div>
+            <div class="info-tabs">
+                <button class="active" data-tab="shipping">🚚 الشحن والإرجاع</button>
+                <button data-tab="size">📏 دليل المقاسات</button>
+                <button data-tab="packaging">🎁 تغليف المنتج</button>
+                <button data-tab="faq">❓ أسئلة شائعة</button>
+            </div>
+            <div class="info-body" id="infoBody"></div>
+        </div>
     </div>
-  </div>
 
-  <!-- ===== CONTACT MODAL ===== -->
-  <div class="contact-modal" id="contactModal">
-    <div class="contact-modal-content">
-      <div class="contact-header">
-        <h3>تواصل مع المسئول</h3>
-        <button onclick="closeContactModal()">&times;</button>
-      </div>
-      <div class="contact-body">
-        <div class="form-group"><label>الاسم</label><input id="contactName" /></div>
-        <div class="form-group"><label>الهاتف</label><input id="contactPhone" /></div>
-        <div class="form-group"><label>الرسالة</label><textarea id="contactMessage" rows="4"></textarea></div>
-        <button class="btn-primary" onclick="sendContactMessage()">إرسال</button>
-      </div>
+    <!-- ===== SEARCH BAR ===== -->
+    <div class="search-bar" id="searchBar">
+        <input type="text" id="searchInput" placeholder="ابحث عن منتج..." autocomplete="off">
+        <button onclick="applySearch()">بحث</button>
+        <button onclick="closeSearch()"><i class="fas fa-times"></i></button>
+        <div class="search-suggestions" id="searchSuggestions"></div>
     </div>
-  </div>
 
-  <!-- ===== INFO MODAL ===== -->
-  <div class="info-modal" id="infoModal">
-    <div class="info-modal-content">
-      <div class="info-header">
-        <h3>دليل المتسوق</h3>
-        <button onclick="closeInfoModal()">&times;</button>
-      </div>
-      <div class="info-tabs">
-        <button class="active" data-tab="shipping">الشحن والإرجاع</button>
-        <button data-tab="size">دليل المقاسات</button>
-        <button data-tab="packaging">تغليف المنتج</button>
-        <button data-tab="faq">أسئلة شائعة</button>
-      </div>
-      <div class="info-body" id="infoBody"></div>
+    <!-- ===== CONFIRM MODAL ===== -->
+    <div class="confirm-modal" id="customConfirmModal">
+        <div class="confirm-modal-content">
+            <div class="confirm-header">
+                <i class="fas fa-shopping-bag"></i>
+                <h3>تأكيد الطلب</h3>
+            </div>
+            <p>سيتم تحويلك إلى <strong style="color:#25D366;">واتساب</strong> لإتمام الطلب.</p>
+            <div class="whatsapp-note">
+                <i class="fab fa-whatsapp"></i>
+                <span>⚠️ بعد التحويل، اضغط على زر الإرسال لتأكيد طلبك.</span>
+            </div>
+            <div class="confirm-buttons">
+                <button class="btn-secondary" id="confirmCancelBtn">إلغاء</button>
+                <button class="btn-primary" id="confirmOkBtn">نعم، أكمل</button>
+            </div>
+        </div>
     </div>
-  </div>
 
-  <!-- ===== SEARCH BAR ===== -->
-  <div class="search-bar" id="searchBar">
-    <input type="text" id="searchInput" placeholder="ابحث عن منتج..." />
-    <button onclick="applySearch()">بحث</button>
-    <button onclick="closeSearch()"><i class="fas fa-times"></i></button>
-  </div>
-
-  <!-- ===== CONFIRM MODAL ===== -->
-  <div class="confirm-modal" id="customConfirmModal">
-    <div class="confirm-modal-content">
-      <div class="confirm-header">
-        <i class="fas fa-shopping-bag"></i>
-        <h3>تأكيد الطلب</h3>
-      </div>
-      <p>سيتم تحويلك إلى واتساب لإتمام الطلب.</p>
-      <div class="confirm-buttons">
-        <button class="btn-secondary" id="confirmCancelBtn">إلغاء</button>
-        <button class="btn-primary" id="confirmOkBtn">نعم، أكمل</button>
-      </div>
+    <!-- ===== TOAST ===== -->
+    <div class="vante-toast" id="vanteToast" style="display:none;">
+        <span id="toastMessage"></span>
+        <button class="toast-close" onclick="closeToast()">&times;</button>
     </div>
-  </div>
 
-  <!-- ===== SCRIPTS ===== -->
-  <script type="importmap">
-  {
-    "imports": {
-      "firebase-app": "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js",
-      "firebase-firestore": "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"
+    <!-- ===== SCRIPTS ===== -->
+    <script type="importmap">
+    {
+        "imports": {
+            "firebase-app": "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js",
+            "firebase-firestore": "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"
+        }
     }
-  }
-  </script>
+    </script>
 
-  <script type="module" src="js/app.js"></script>
+    <script type="module" src="js/app.js"></script>
+    <script type="module" src="js/products.js"></script>
+    <script type="module" src="js/cart.js"></script>
+    <script type="module" src="js/search.js"></script>
+    <script type="module" src="js/modal.js"></script>
+    <script type="module" src="js/checkout.js"></script>
+
 </body>
 </html>
