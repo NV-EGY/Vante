@@ -3176,11 +3176,57 @@ async function loadCategories() {
     const track = document.getElementById('categoriesTrack');
     if (!track) return;
     track.innerHTML = categories.map(cat => `
-        <div class="product-card" onclick="window.location.href='index.html?category=${cat.id}'" style="flex:0 0 150px; text-align:center; padding:8px; border-radius:14px; background:#fff;">
-            <img src="${cat.image}" alt="${cat.name}" style="width:100%; height:100px; object-fit:contain; background:#f8f7f4; border-radius:10px; margin-bottom:6px;">
-            <h3 style="font-size:13px; margin:4px 0;">${cat.name}</h3>
+        <div class="product-card" onclick="window.location.href='index.html?category=${cat.id}'" 
+             style="flex: 0 0 150px; 
+                    text-align: center; 
+                    padding: 10px 8px 12px; 
+                    border-radius: 16px; 
+                    background: linear-gradient(145deg, #1a1a1a, #0a0a0a);
+                    border: 1.5px solid #D4AF37;
+                    box-shadow: 0 4px 20px rgba(212, 175, 55, 0.15);
+                    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+                    cursor: pointer;">
+            <img src="${cat.image}" alt="${cat.name}" 
+                 style="width: 100%; 
+                        height: 100px; 
+                        object-fit: contain; 
+                        background: #111; 
+                        border-radius: 12px; 
+                        margin-bottom: 8px;
+                        transition: transform 0.4s ease;
+                        border: 1px solid rgba(212, 175, 55, 0.2);">
+            <h3 style="font-size: 13px; 
+                       margin: 4px 0 0; 
+                       color: #D4AF37; 
+                       font-weight: 700; 
+                       letter-spacing: 1px;
+                       text-shadow: 0 0 10px rgba(212, 175, 55, 0.2);
+                       transition: all 0.3s ease;">${cat.name}</h3>
         </div>
     `).join('');
+
+    // إضافة تأثير hover ديناميكي (بما أننا استخدمنا style داخلي، نضيف استماع للماوس)
+    document.querySelectorAll('#categoriesTrack .product-card').forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-6px) scale(1.03)';
+            this.style.boxShadow = '0 12px 35px rgba(212, 175, 55, 0.4)';
+            this.style.borderColor = '#FFD700';
+            const img = this.querySelector('img');
+            if (img) img.style.transform = 'scale(1.05)';
+            const title = this.querySelector('h3');
+            if (title) title.style.textShadow = '0 0 20px rgba(212, 175, 55, 0.6)';
+        });
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0px) scale(1)';
+            this.style.boxShadow = '0 4px 20px rgba(212, 175, 55, 0.15)';
+            this.style.borderColor = '#D4AF37';
+            const img = this.querySelector('img');
+            if (img) img.style.transform = 'scale(1)';
+            const title = this.querySelector('h3');
+            if (title) title.style.textShadow = '0 0 10px rgba(212, 175, 55, 0.2)';
+        });
+    });
+
     initCarousel('categoriesCarousel', 'categoriesDots');
 }
 
