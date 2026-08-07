@@ -39,26 +39,8 @@ src="https://www.facebook.com/tr?id=1361900332752731&ev=PageView&noscript=1"
     <meta name="twitter:image" content="https://Vante.sbs/images/preview.jpg">
 
 <script>
-    // ✅ التحقق من الجهاز - كمبيوتر أو موبايل
-    function isDesktop() {
-        // 1. عرض الشاشة
-        if (window.innerWidth > 768) return true;
-        
-        // 2. كشف الـ Touch (الأجهزة التي تعمل باللمس)
-        if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
-            return false; // جهاز لمس -> موبايل/تابلت
-        }
-        
-        // 3. عرض الشاشة بين 768 و 1024 (تابلت) -> نفضل الموبايل
-        if (window.innerWidth >= 768 && window.innerWidth <= 1024) {
-            return false;
-        }
-        
-        return false;
-    }
-
-    // إذا كان جهاز كمبيوتر -> انتقل إلى desktop.html
-    if (isDesktop()) {
+    // إذا كان الجهاز كمبيوتر (عرض الشاشة > 768 بكسل) -> انتقل إلى desktop.html
+    if (window.innerWidth > 768) {
         window.location.href = "desktop.html";
     }
 </script>
@@ -2005,7 +1987,7 @@ body.modal-open{
         font-size: 13px;
         border-radius: 10px;
     }
-}
+
 /* المنتج عند نفاد الكمية */
 .product.out-of-stock {
     opacity: 0.7;
@@ -4089,39 +4071,6 @@ body.modal-open{
         font-size: 11px;
     }
 }
-  /* ===== تأثيرات الظهور ===== */
-.reveal {
-    opacity: 0;
-    transform: translateY(40px);
-    transition: opacity 0.8s cubic-bezier(0.25, 0.8, 0.25, 1),
-                transform 0.8s cubic-bezier(0.25, 0.8, 0.25, 1);
-    will-change: opacity, transform;
-}
-.reveal.visible {
-    opacity: 1;
-    transform: translateY(0);
-}
-/* تأخيرات متدرجة (Stagger) */
-.reveal:nth-child(1) { transition-delay: 0.05s; }
-.reveal:nth-child(2) { transition-delay: 0.10s; }
-.reveal:nth-child(3) { transition-delay: 0.15s; }
-.reveal:nth-child(4) { transition-delay: 0.20s; }
-.reveal:nth-child(5) { transition-delay: 0.25s; }
-.reveal:nth-child(6) { transition-delay: 0.30s; }
-.reveal:nth-child(7) { transition-delay: 0.35s; }
-.reveal:nth-child(8) { transition-delay: 0.40s; }
-/* عناصر best-seller */
-.best-seller-card.reveal { transition-delay: 0.05s; }
-.best-seller-card.reveal:nth-child(2) { transition-delay: 0.10s; }
-.best-seller-card.reveal:nth-child(3) { transition-delay: 0.15s; }
-.best-seller-card.reveal:nth-child(4) { transition-delay: 0.20s; }
-/* عناوين وأقسام */
-.section-title.reveal {
-    transform: translateY(20px);
-}
-.section-title.reveal.visible {
-    transform: translateY(0);
-}
 
     </style>
 </head>
@@ -4965,17 +4914,6 @@ onSnapshot(doc(db, "settings", "bestSellersConfig"), (docSnap) => {
     renderBestSellers();
     startRandomRefreshIfNeeded();
 });
-// أضف هذه الدالة في أعلى الـ module (بعد الاستيرادات)
-function getTotalStock(product) {
-    const stockBySize = product.stockBySize || {};
-    let total = 0;
-    let hasUnlimited = false;
-    for (let qty of Object.values(stockBySize)) {
-        if (qty === null || qty === undefined) hasUnlimited = true;
-        else total += parseInt(qty) || 0;
-    }
-    return hasUnlimited ? null : total;
-}
 
 // ========== دليل المتسوق ==========
 const infoContent = {
@@ -6620,50 +6558,6 @@ const orderData = {
         btn.innerHTML = '<i class="fas fa-check-circle"></i> تأكيد الطلب';
     }
 }
-  // ===== مراقبة الظهور =====
-function observeRevealElements() {
-    const elements = document.querySelectorAll('.reveal:not(.observed)');
-    if (!elements.length) return;
-
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('visible');
-                entry.target.classList.add('observed');
-                observer.unobserve(entry.target);
-            }
-        });
-    }, {
-        threshold: 0.15,
-        rootMargin: '0px 0px -30px 0px'
-    });
-
-    elements.forEach(el => {
-        observer.observe(el);
-        el.classList.add('observed'); // منع إعادة المراقبة
-    });
-}
-
-// استدعاء بعد كل تحديث للعناصر
-function triggerReveal() {
-    // إزالة class المراقبة المؤقتة ثم إعادة المراقبة
-    document.querySelectorAll('.reveal.observed').forEach(el => el.classList.remove('observed'));
-    observeRevealElements();
-}
-
-// ربط بعد تحميل المنتجات
-const originalRenderProducts = window.renderProducts;
-window.renderProducts = function() {
-    originalRenderProducts();
-    setTimeout(triggerReveal, 100);
-};
-
-// ربط بعد تحديث best-sellers
-const originalRenderBestSellers = window.renderBestSellers;
-window.renderBestSellers = function() {
-    originalRenderBestSellers();
-    setTimeout(triggerReveal, 100);
-};
 
 window.toggleCollections = function(e) {
     if (e) {
@@ -7490,7 +7384,7 @@ window.openProduct = function(id, name, price, image, sizes = [], description = 
         displayReviewsInModal(id);
         setTimeout(enableSwipe, 100);
     } else {
-        window.location.href = `/p/${id}.html`;
+        window.location.href = `/Product.html?id=${id}`;
     }
 };
 
@@ -8061,102 +7955,6 @@ sortOptions.forEach(opt => {
     transform: translateY(-2px);
     box-shadow: 0 8px 20px rgba(212,175,55,0.4);
     color: #000 !important;
-}
-
-/* ====================================================
-   ============  نسخة الكمبيوتر (DESKTOP EDITION)  =====
-   تحسينات مخصصة بالكامل لواجهة الكمبيوتر فقط،
-   لا تؤثر إطلاقاً على واجهة الموبايل (index.html الأصلية)
-==================================================== */
-@media (min-width: 769px) {
-
-    /* ---------- الهيرو / البانر ---------- */
-    .hero {
-        max-height: 480px;
-        display: flex;
-        justify-content: center;
-        background: #f5f5f5;
-    }
-    .hero img {
-        width: 100%;
-        height: 480px;
-        object-fit: cover;
-        object-position: center;
-    }
-
-    /* ---------- حاوية المنتجات - عرض أوسع لشاشات الكمبيوتر ---------- */
-    .container {
-        max-width: 1300px;
-        padding: 60px 30px;
-    }
-
-    /* ---------- سلة التسوق - عرض أنسب للكمبيوتر ---------- */
-    .drawer {
-        width: 420px;
-        padding: 30px;
-    }
-
-    /* ---------- مودال المنتج: تصميم عمودين (صور + تفاصيل) ---------- */
-    #productModal.modal {
-        width: min(92%, 960px);
-        max-height: 88vh;
-        border-radius: 24px;
-    }
-    #productModal .modal-content {
-        max-height: 88vh;
-        padding: 32px;
-        display: flex;
-        flex-wrap: wrap;
-        align-items: flex-start;
-        gap: 32px;
-    }
-    #productModal .gallery-main {
-        flex: 0 0 400px;
-        width: 400px;
-        height: 420px;
-        margin-bottom: 0;
-    }
-    #productModal .gallery-thumbs {
-        flex: 0 0 400px;
-        width: 400px;
-        margin: 12px 0 0;
-    }
-    #productModal .modal-info {
-        flex: 1 1 380px;
-        min-width: 320px;
-        text-align: right;
-    }
-    #productModal .modal-info h2 {
-        text-align: right;
-    }
-    #productModal .rating-stars {
-        justify-content: flex-start;
-    }
-    #productModal .modal-footer {
-        border-radius: 0 0 24px 24px;
-    }
-
-    /* ---------- المودالات العامة (تواصل، تسجيل، معلومات...) عرض أريح ---------- */
-    .contact-modal, .rating-modal {
-        max-width: 480px;
-    }
-    .info-modal {
-        width: min(90%, 720px);
-    }
-
-    /* ---------- شبكة المنتجات - 5 أعمدة على الشاشات الكبيرة جداً ---------- */
-    @media (min-width: 1440px) {
-        .products {
-            grid-template-columns: repeat(5, 1fr);
-        }
-    }
-
-    /* ---------- تحسين مؤشر الفأرة على العناصر التفاعلية ---------- */
-    .product, .icons button, .menu a, .footer-social a,
-    .btn-primary, .btn-secondary, .load-more-btn, .sort-icon-btn,
-    .filter-selected, .gallery-thumbs img {
-        cursor: pointer;
-    }
 }
 </style>
 <!-- ========== CUSTOM CONFIRM MODAL ========== -->
