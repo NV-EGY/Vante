@@ -2719,6 +2719,42 @@ button, input, select { font-family: inherit; outline: none; }
   max-height: 600px;
 }
 
+    /* ===== أكورديون الشريط الجانبي ===== */
+.accordion-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  padding: 4px 0;
+  user-select: none;
+}
+.accordion-header:hover label {
+  color: #D4AF37;
+}
+.accordion-header label {
+  cursor: pointer;
+  margin-bottom: 0 !important; /* إلغاء المسافة السفلية */
+}
+.accordion-icon {
+  transition: transform 0.35s ease;
+  color: #999;
+  font-size: 14px;
+}
+.accordion-icon.active {
+  transform: rotate(180deg);
+  color: #D4AF37;
+}
+.accordion-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  padding-top: 0;
+}
+.accordion-content.active {
+  max-height: 400px; /* كافٍ لعرض كل الخيارات */
+  padding-top: 10px;
+}
+
 </style>
 
 <!-- نهاية أنماط CSS -->
@@ -2852,17 +2888,21 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 ============================================================ -->
 <div class="container desktop-layout">
 
-  <!-- ===== الشريط الجانبي ===== -->
-<aside class="desktop-sidebar" id="desktopSidebar">
+  <aside class="desktop-sidebar" id="desktopSidebar">
   <h3><i class="fas fa-sliders-h"></i> الفلترة</h3>
 
-  <div class="filter-group">
-    <label>الأقسام</label>
-    <div id="categoryFilterOptions">
-      <!-- سيتم تعبئتها بواسطة JavaScript -->
+  <!-- ===== قسم الأقسام (مطوي) ===== -->
+  <div class="filter-group accordion">
+    <div class="accordion-header" onclick="toggleAccordion('categoryAccordion')">
+      <label>الأقسام</label>
+      <i class="fas fa-chevron-down accordion-icon" id="categoryAccordionIcon"></i>
+    </div>
+    <div class="accordion-content" id="categoryAccordion">
+      <div id="categoryFilterOptions"></div>
     </div>
   </div>
 
+  <!-- ===== قسم الترتيب (مفتوح عادي، بدون طي) ===== -->
   <div class="filter-group">
     <label>الترتيب</label>
     <select id="sortSelect" class="filter-select">
@@ -2874,10 +2914,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     </select>
   </div>
 
-  <div class="filter-group">
-    <label>التوفر</label>
-    <div id="stockFilterOptions">
-      <!-- سيتم تعبئتها بواسطة JavaScript -->
+  <!-- ===== قسم التوفر (مطوي) ===== -->
+  <div class="filter-group accordion">
+    <div class="accordion-header" onclick="toggleAccordion('stockAccordion')">
+      <label>التوفر</label>
+      <i class="fas fa-chevron-down accordion-icon" id="stockAccordionIcon"></i>
+    </div>
+    <div class="accordion-content" id="stockAccordion">
+      <div id="stockFilterOptions"></div>
     </div>
   </div>
 
@@ -4894,6 +4938,16 @@ window.changeQty = function(index, change) {
   }
   updateCart();
   localStorage.setItem('vante_cart', JSON.stringify(cart));
+};
+
+  // ===== دالة طي وفتح الأقسام في الشريط الجانبي =====
+window.toggleAccordion = function(id) {
+  const content = document.getElementById(id);
+  const icon = document.getElementById(id + 'Icon');
+  if (!content || !icon) return;
+  
+  content.classList.toggle('active');
+  icon.classList.toggle('active');
 };
 
 // ============================================================
