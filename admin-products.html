@@ -2244,6 +2244,9 @@ function convertProductsToCSV(products) {
         
         const availability = totalStock > 0 ? 'in stock' : 'out of stock';
         
+        // ✅ الرابط الصحيح
+        const productLink = `https://vante.sbs/Product.html?id=${p.id}`;
+        
         return [
             p.id || `prod-${index + 1}`,
             (p.name || 'منتج بدون اسم').replace(/,/g, ' '),
@@ -2251,7 +2254,7 @@ function convertProductsToCSV(products) {
             availability,
             'new',
             p.price || 0,
-            `https://vante.sbs/?product=${p.id}`,
+            productLink,  // ← التعديل هنا
             p.image || '',
             'VANTÉ',
             p.categoryLabel || p.category || 'عام',
