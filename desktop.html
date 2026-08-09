@@ -3105,16 +3105,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <div class="modal-left">
       <!-- العنوان والبيانات الأساسية -->
       <h2 id="modalTitle" class="modal-title"></h2>
-      
-      <!-- نجوم التقييم -->
-      <div class="rating-stars" id="stars">
-        <span data-rate="1" onclick="selectStar(1)">★</span>
-        <span data-rate="2" onclick="selectStar(2)">★</span>
-        <span data-rate="3" onclick="selectStar(3)">★</span>
-        <span data-rate="4" onclick="selectStar(4)">★</span>
-        <span data-rate="5" onclick="selectStar(5)">★</span>
-      </div>
-      <div class="rating-hint" id="ratingHint">⭐ اضغط على النجوم لتقييم المنتج</div>
 
       <!-- السعر -->
       <div class="modal-price-row">
@@ -3136,12 +3126,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <label style="font-weight:700; font-size:14px; margin-bottom:6px; display:block;">اختر المقاس</label>
         <select id="modalSize" class="size-select"></select>
       </div>
-
-      <!-- حقل التقييم ومشاركة -->
-      <div id="reviewInputArea" style="display: none; margin: 15px 0; text-align: right; width: 100%;">
-        <textarea id="reviewText" placeholder="اكتب رأيك في المنتج..." style="width:100%; min-height:80px; padding:12px; border:1.5px solid #e8e8e8; border-radius:14px; font-size:15px; font-family:'Cairo',sans-serif; transition:0.3s; resize:vertical; background:#fafafa;"></textarea>
-        <button class="btn-primary review-submit" onclick="submitReview()" style="display:none; width:100%; padding:12px; margin-top:10px; background:#111; color:#fff; border:none; border-radius:14px; font-size:15px; font-weight:800; cursor:pointer;">إرسال التقييم</button>
-      </div>
+      
 
       <!-- شريط الأزرار الرئيسية -->
       <div class="modal-footer-actions">
@@ -3152,6 +3137,22 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <i class="fas fa-share-alt"></i> مشاركة
         </button>
       </div>
+            <!-- نجوم التقييم -->
+      <div class="rating-stars" id="stars">
+        <span data-rate="1" onclick="selectStar(1)">★</span>
+        <span data-rate="2" onclick="selectStar(2)">★</span>
+        <span data-rate="3" onclick="selectStar(3)">★</span>
+        <span data-rate="4" onclick="selectStar(4)">★</span>
+        <span data-rate="5" onclick="selectStar(5)">★</span>
+      </div>
+      <div class="rating-hint" id="ratingHint">⭐ اضغط على النجوم لتقييم المنتج</div>
+
+            <!-- حقل التقييم ومشاركة -->
+      <div id="reviewInputArea" style="display: none; margin: 15px 0; text-align: right; width: 100%;">
+        <textarea id="reviewText" placeholder="اكتب رأيك في المنتج..." style="width:100%; min-height:80px; padding:12px; border:1.5px solid #e8e8e8; border-radius:14px; font-size:15px; font-family:'Cairo',sans-serif; transition:0.3s; resize:vertical; background:#fafafa;"></textarea>
+        <button class="btn-primary review-submit" onclick="submitReview()" style="display:none; width:100%; padding:12px; margin-top:10px; background:#111; color:#fff; border:none; border-radius:14px; font-size:15px; font-weight:800; cursor:pointer;">إرسال التقييم</button>
+      </div>
+      
 
       <!-- شريط SKU أسود أسفل -->
       <div class="modal-sku-bar">
