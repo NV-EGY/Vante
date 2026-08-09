@@ -3446,6 +3446,7 @@ window.closeCart = function() {
 // ===== فتح/إغلاق مودال الدفع =====
 window.openCheckout = function() {
   const modal = document.getElementById("checkoutModal");
+  fbq('track', 'InitiateCheckout');
   const overlay = document.getElementById("overlay");
   if (modal) modal.classList.add("active");
   if (overlay) overlay.classList.add("active");
@@ -4804,6 +4805,12 @@ window.addToCart = function(name, price, size, image, comparePrice = null, produ
   } else {
     cart.push({ name, price, size, image, comparePrice: productComparePrice, qty: 1, productId: finalProductId, sku: sku });
     customAlert(`✅ تم إضافة ${name} - مقاس ${size} إلى السلة`, 'success');
+    fbq('track', 'AddToCart', {
+  content_ids: [productId],
+  content_type: 'product',
+  value: price,
+  currency: 'EGP'
+});
   }
 
   updateCart();
@@ -5204,6 +5211,8 @@ async function executeCheckout() {
       return sum + (item.qty * (product?.costPrice || 0));
     }, 0);
 
+    
+
     let message = `🛍️ طلب جديد - VANTÉ\n\n`;
     message += `📦 رقم الطلب: ${orderID}\n`;
     message += `👤 الاسم: ${name}\n`;
@@ -5313,6 +5322,11 @@ async function executeCheckout() {
     setTimeout(() => {
       if (!document.hidden) window.open(webUrl, "_blank");
     }, 2500);
+
+    fbq('track', 'Purchase', {
+  value: finalTotalAfter,
+  currency: 'EGP'
+});
 
     cart = [];
     localStorage.removeItem('vante_cart');
