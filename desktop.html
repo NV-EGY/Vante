@@ -2754,6 +2754,37 @@ button, input, select { font-family: inherit; outline: none; }
   max-height: 400px; /* كافٍ لعرض كل الخيارات */
   padding-top: 10px;
 }
+    /* ===== إصلاح تمرير مودال المنتج نهائياً ===== */
+.product-modal-horizontal {
+  height: 90vh !important;           /* ارتفاع ثابت 90% من الشاشة */
+  max-height: 90vh !important;
+}
+
+.product-modal-horizontal .modal-grid {
+  height: 100% !important;           /* ياخد ارتفاع الأب بالكامل */
+  max-height: 100% !important;
+  min-height: unset !important;      /* نلغي min-height: 500px اللي كانت معمولة */
+}
+
+.product-modal-horizontal .modal-left {
+  overflow-y: auto !important;       /* تفعيل السكرول الرأسي */
+  height: 100% !important;
+  min-height: 0 !important;          /* 🔥 أهم حاجة في الـ Flex عشان ميتمددش */
+  padding-bottom: 20px;
+}
+
+/* تحسين شكل شريط التمرير (اختياري) */
+.product-modal-horizontal .modal-left::-webkit-scrollbar {
+  width: 5px;
+}
+.product-modal-horizontal .modal-left::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+.product-modal-horizontal .modal-left::-webkit-scrollbar-thumb {
+  background: #D4AF37;
+  border-radius: 10px;
+    }
 
 </style>
 
