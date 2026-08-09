@@ -2785,6 +2785,13 @@ button, input, select { font-family: inherit; outline: none; }
   background: #D4AF37;
   border-radius: 10px;
     }
+    /* ===== جعل الجانب الأيمن (الصور) قابل للتمرير عند الحاجة ===== */
+.product-modal-horizontal .modal-right {
+  overflow-y: auto;               /* تفعيل التمرير الرأسي */
+  max-height: 100%;              /* ياخذ أقصى ارتفاع متاح */
+  scroll-behavior: smooth;       /* تمرير ناعم */
+  min-height: 0;                 /* مهم عشان يشتغل مع flex */
+    }
 
 </style>
 
