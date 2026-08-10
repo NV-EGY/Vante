@@ -2230,11 +2230,13 @@ window.exportSelectedToGoogleSheets = function() {
  * تحويل المنتجات إلى CSV
  */
 function convertProductsToCSV(products) {
+    // تعريف تسميات الأعمدة المطلوبة لفيسبوك
     const headers = [
         'id', 'title', 'description', 'availability', 'condition',
         'price', 'link', 'image_link', 'brand', 'product_type', 'google_product_category'
     ];
 
+    // إنشاء صفوف البيانات (هذه المرة بدون أخطاء برمجية داخل الـ map)
     const rows = products.map((p, index) => {
         const stockBySize = p.stockBySize || {};
         const totalStock = Object.values(stockBySize).reduce((sum, qty) => {
@@ -2244,11 +2246,12 @@ function convertProductsToCSV(products) {
         
         const availability = totalStock > 0 ? 'in stock' : 'out of stock';
         
-        // ✅ الرابط الصحيح
+        // الرابط الصحيح
         const productLink = `https://vante.sbs/Product.html?id=${p.id}`;
         
+        // إرجاع صف البيانات
         return [
-            p.sku || p.id || `prod-${index + 1}`,
+            p.sku || p.id || `prod-${index + 1}`,  // ✅ نستخدم SKU في خانة الـ ID
             (p.name || 'منتج بدون اسم').replace(/,/g, ' '),
             ((p.description || 'منتج فاخر من VANTÉ').replace(/<[^>]*>/g, '').substring(0, 500)).replace(/,/g, ' '),
             availability,
@@ -2259,21 +2262,22 @@ function convertProductsToCSV(products) {
             'VANTÉ',
             p.categoryLabel || p.category || 'عام',
             'Jewelry & Watches > Jewelry'
-        ]; // ✅ تم إصلاح القوس الناقص هنا
-
-        let csv = headers.join(',') + '\n';
-        rows.forEach(row => {
-            const escapedRow = row.map(cell => {
-                if (typeof cell === 'string' && (cell.includes(',') || cell.includes('"') || cell.includes('\n'))) {
-                    return `"${cell.replace(/"/g, '""')}"`;
-                }
-                return cell;
-            });
-            csv += escapedRow.join(',') + '\n';
-        });
-
-        return csv;
+        ];
     });
+
+    // ✅ بناء ملف CSV هنا (هذا هو التصحيح: خارج حلقة الـ map)
+    let csv = headers.join(',') + '\n';
+    rows.forEach(row => {
+        const escapedRow = row.map(cell => {
+            if (typeof cell === 'string' && (cell.includes(',') || cell.includes('"') || cell.includes('\n'))) {
+                return `"${cell.replace(/"/g, '""')}"`;
+            }
+            return cell;
+        });
+        csv += escapedRow.join(',') + '\n';
+    });
+
+    return csv;
 }
 
 /**
