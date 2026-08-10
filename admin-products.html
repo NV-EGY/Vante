@@ -2248,19 +2248,18 @@ function convertProductsToCSV(products) {
         const productLink = `https://vante.sbs/Product.html?id=${p.id}`;
         
         return [
-            p.id || `prod-${index + 1}`,
-            (p.name || 'منتج بدون اسم').replace(/,/g, ' '),
-            ((p.description || 'منتج فاخر من VANTÉ').replace(/<[^>]*>/g, '').substring(0, 500)).replace(/,/g, ' '),
-            availability,
-            'new',
-            p.price || 0,
-            productLink,  // ← التعديل هنا
-            p.image || '',
-            'VANTÉ',
-            p.categoryLabel || p.category || 'عام',
-            'Jewelry & Watches > Jewelry'
-        ];
-    });
+    p.sku || p.id || `prod-${index + 1}`,  // <--- التعديل هنا
+    (p.name || 'منتج بدون اسم').replace(/,/g, ' '),
+    ((p.description || 'منتج فاخر من VANTÉ').replace(/<[^>]*>/g, '').substring(0, 500)).replace(/,/g, ' '),
+    availability,
+    'new',
+    p.price || 0,
+    productLink,
+    p.image || '',
+    'VANTÉ',
+    p.categoryLabel || p.category || 'عام',
+    'Jewelry & Watches > Jewelry'
+];
 
     let csv = headers.join(',') + '\n';
     rows.forEach(row => {
