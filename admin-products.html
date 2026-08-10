@@ -2248,31 +2248,32 @@ function convertProductsToCSV(products) {
         const productLink = `https://vante.sbs/Product.html?id=${p.id}`;
         
         return [
-    p.sku || p.id || `prod-${index + 1}`,  // <--- التعديل هنا
-    (p.name || 'منتج بدون اسم').replace(/,/g, ' '),
-    ((p.description || 'منتج فاخر من VANTÉ').replace(/<[^>]*>/g, '').substring(0, 500)).replace(/,/g, ' '),
-    availability,
-    'new',
-    p.price || 0,
-    productLink,
-    p.image || '',
-    'VANTÉ',
-    p.categoryLabel || p.category || 'عام',
-    'Jewelry & Watches > Jewelry'
-];
+            p.sku || p.id || `prod-${index + 1}`,
+            (p.name || 'منتج بدون اسم').replace(/,/g, ' '),
+            ((p.description || 'منتج فاخر من VANTÉ').replace(/<[^>]*>/g, '').substring(0, 500)).replace(/,/g, ' '),
+            availability,
+            'new',
+            p.price || 0,
+            productLink,
+            p.image || '',
+            'VANTÉ',
+            p.categoryLabel || p.category || 'عام',
+            'Jewelry & Watches > Jewelry'
+        ]; // ✅ تم إصلاح القوس الناقص هنا
 
-    let csv = headers.join(',') + '\n';
-    rows.forEach(row => {
-        const escapedRow = row.map(cell => {
-            if (typeof cell === 'string' && (cell.includes(',') || cell.includes('"') || cell.includes('\n'))) {
-                return `"${cell.replace(/"/g, '""')}"`;
-            }
-            return cell;
+        let csv = headers.join(',') + '\n';
+        rows.forEach(row => {
+            const escapedRow = row.map(cell => {
+                if (typeof cell === 'string' && (cell.includes(',') || cell.includes('"') || cell.includes('\n'))) {
+                    return `"${cell.replace(/"/g, '""')}"`;
+                }
+                return cell;
+            });
+            csv += escapedRow.join(',') + '\n';
         });
-        csv += escapedRow.join(',') + '\n';
-    });
 
-    return csv;
+        return csv;
+    });
 }
 
 /**
