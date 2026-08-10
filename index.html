@@ -6101,11 +6101,12 @@ if (typeof updateCart === 'function') updateCart();
         // ✅ إضافة SKU إلى العنصر
         cart.push({ name, price, size, image, comparePrice: productComparePrice, qty: 1, productId: finalProductId, sku: sku });
         customAlert(`✅ تم إضافة ${name} - مقاس ${size} إلى السلة`, 'success');
-      fbq('track', 'AddToCart', {
-  content_ids: [productId],
-  content_type: 'product',
-  value: price,
-  currency: 'EGP'
+      // الكود الجديد الصحيح
+fbq('track', 'AddToCart', {
+    content_ids: [sku], // <--- التعديل: نرسل SKU وليس productId
+    content_type: 'product',
+    value: price,
+    currency: 'EGP'
 });
     }
     
@@ -6514,9 +6515,19 @@ const orderData = {
 
         await addDoc(collection(db, "orders"), orderData);
       
-      fbq('track', 'Purchase', {
-  value: finalTotalAfter,
-  currency: 'EGP'
+      // تجهيز قائمة محتويات السلة لإرسالها لفيسبوك
+const purchaseContents = cart.map(item => ({
+    id: item.sku || item.productId, // نستخدم SKU أولاً، وإذا لم يوجد نستخدم ID
+    quantity: item.qty
+}));
+const purchaseContentIds = cart.map(item => item.sku || item.productId);
+
+fbq('track', 'Purchase', {
+    content_ids: purchaseContentIds,
+    contents: purchaseContents,
+    value: finalTotalAfter,
+    currency: 'EGP',
+    num_items: cart.reduce((sum, item) => sum + item.qty, 0)
 });
 
         // ========== 9. تحديث عداد استخدام الكوبون (إذا وجد) ==========
