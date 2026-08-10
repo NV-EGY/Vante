@@ -4888,11 +4888,12 @@ window.addToCart = function(name, price, size, image, comparePrice = null, produ
   } else {
     cart.push({ name, price, size, image, comparePrice: productComparePrice, qty: 1, productId: finalProductId, sku: sku });
     customAlert(`✅ تم إضافة ${name} - مقاس ${size} إلى السلة`, 'success');
-    fbq('track', 'AddToCart', {
-  content_ids: [productId],
-  content_type: 'product',
-  value: price,
-  currency: 'EGP'
+    // الكود الجديد الصحيح
+fbq('track', 'AddToCart', {
+    content_ids: [sku], // <--- التعديل: نرسل SKU وليس productId
+    content_type: 'product',
+    value: price,
+    currency: 'EGP'
 });
   }
 
@@ -5416,9 +5417,19 @@ async function executeCheckout() {
       if (!document.hidden) window.open(webUrl, "_blank");
     }, 2500);
 
-    fbq('track', 'Purchase', {
-  value: finalTotalAfter,
-  currency: 'EGP'
+    // تجهيز قائمة محتويات السلة لإرسالها لفيسبوك
+const purchaseContents = cart.map(item => ({
+    id: item.sku || item.productId, // نستخدم SKU أولاً، وإذا لم يوجد نستخدم ID
+    quantity: item.qty
+}));
+const purchaseContentIds = cart.map(item => item.sku || item.productId);
+
+fbq('track', 'Purchase', {
+    content_ids: purchaseContentIds,
+    contents: purchaseContents,
+    value: finalTotalAfter,
+    currency: 'EGP',
+    num_items: cart.reduce((sum, item) => sum + item.qty, 0)
 });
 
     cart = [];
