@@ -4081,57 +4081,72 @@ body.modal-open{
         font-size: 11px;
     }
 }
-  /* ===== عرض المزيد للوصف ===== */
+/* ===== عرض المزيد الاحترافي (بلور + سهم ثابت) ===== */
 .modal-desc-wrapper {
     position: relative;
     margin: 12px 0;
 }
-.modal-desc {
-    font-size: 15px;
-    line-height: 1.8;
-    color: #444;
-    max-height: 80px;
+
+.product-description-wrapper {
+    position: relative;
     overflow: hidden;
-    transition: max-height 0.5s ease;
+    transition: max-height 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    max-height: 85px;
 }
-.modal-desc.expanded {
-    max-height: 600px;
+
+.product-description-wrapper.expanded {
+    max-height: 2000px;
 }
+
+/* طبقة البلور السفلية - تظهر فقط عند التصغير */
+.desc-fade {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.85));
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    border-radius: 0 0 8px 8px;
+}
+
+.desc-fade.show {
+    opacity: 1;
+}
+
+/* زر عرض المزيد */
 .read-more-btn {
-    background: none;
-    border: none;
-    color: #D4AF37;
-    font-weight: 700;
-    font-size: 14px;
-    cursor: pointer;
-    padding: 6px 0;
-    transition: color 0.3s;
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
+    color: #D4AF37;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 8px;
+    font-size: 14px;
+    background: none;
+    border: none;
+    padding: 6px 0;
+    font-family: 'Cairo', sans-serif;
+    transition: color 0.3s ease;
 }
+
 .read-more-btn:hover {
     color: #B8860B;
 }
+
+/* حركة السهم (دوران 180 درجة فقط) */
 .read-more-btn i {
-    font-size: 12px;
-    transition: transform 0.3s ease;
-}
-.read-more-btn.expanded i {
-    transform: rotate(180deg);
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size: 14px;
 }
 
-  .rating-hint {
-    font-size: 14px;
-    color: #888;
-    margin: 8px 0 4px;
-    text-align: center;
-    font-weight: 400;
-    transition: 0.3s;
-}
-.rating-hint.active {
-    color: #D4AF37;
-    font-weight: 600;
+.read-more-btn.expanded i {
+    transform: rotate(180deg);
 }
 
     </style>
@@ -4441,9 +4456,13 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <h2 id="modalTitle"></h2>
             <!-- استبدال السطر الحالي الذي يحتوي على <p id="modalDesc" class="modal-desc"></p> -->
 <div class="modal-desc-wrapper">
-    <p id="modalDesc" class="modal-desc"></p>
+    <div class="product-description-wrapper" id="modalDescExpand">
+        <p id="modalDesc" class="modal-desc"></p>
+        <div class="desc-fade" id="descFade"></div>
+    </div>
     <button id="readMoreBtn" class="read-more-btn" style="display:none;">
-        عرض المزيد <i class="fas fa-chevron-down"></i>
+        <span id="readMoreText">عرض المزيد</span>
+        <i class="fas fa-chevron-down" id="readMoreIcon"></i>
     </button>
 </div>
             <div class="modal-price-row">
@@ -7499,43 +7518,75 @@ window.openProduct = function(id) {
         `).join("");
         
           document.getElementById("modalTitle").textContent = name;
-        // ===== إعداد الوصف مع زر "عرض المزيد" (مثل desktop) =====
-const descElement = document.getElementById("modalDesc");
-const fullText = description || "منتج فاخر من VANTÉ";
-const shortText = fullText.length > 100 ? fullText.slice(0, 100) + "..." : fullText;
-
-descElement.dataset.fullHtml = fullText;
-descElement.dataset.shortHtml = shortText;
-descElement.innerHTML = shortText;
-descElement.classList.remove('expanded');
-
+// ===== نظام عرض المزيد الاحترافي (بلور + سهم ثابت) =====
+const descWrapper = document.getElementById("modalDescExpand");
+const descFade = document.getElementById("descFade");
 const readMoreBtn = document.getElementById("readMoreBtn");
-if (fullText.length > 100) {
+const readMoreText = document.getElementById("readMoreText");
+const readMoreIcon = document.getElementById("readMoreIcon");
+const modalDesc = document.getElementById("modalDesc");
+
+// تعيين النص الكامل
+const fullText = product?.description || "منتج فاخر من VANTÉ";
+modalDesc.innerHTML = fullText;
+
+// إعادة ضبط الحالة الافتراضية
+descWrapper.style.maxHeight = 'none';
+descWrapper.classList.remove('expanded');
+descFade.classList.remove('show');
+readMoreBtn.style.display = 'none';
+readMoreBtn.classList.remove('expanded');
+
+// حساب الارتفاع الحقيقي للنص
+const fullHeight = descWrapper.scrollHeight;
+const collapsedHeight = 200; // الارتفاع المختصر المناسب
+
+if (fullHeight > collapsedHeight + 50) {
+    // إظهار الزر إذا كان النص طويلاً
     readMoreBtn.style.display = 'inline-flex';
-    readMoreBtn.innerHTML = 'عرض المزيد <i class="fas fa-chevron-down"></i>';
-    let expanded = false;
-    // إزالة المستمعات القديمة وتطبيق الجديد
+    readMoreText.textContent = 'عرض المزيد';
+    readMoreIcon.className = 'fas fa-chevron-down'; // أيقونة ثابتة
+    descWrapper.style.maxHeight = collapsedHeight + 'px';
+    descFade.classList.add('show'); // البلور يظهر عند التصغير
+
+    let isExpanded = false;
+
+    // منع تراكم المستمعات (استخدام استنساخ آمن)
     const newBtn = readMoreBtn.cloneNode(true);
     readMoreBtn.parentNode.replaceChild(newBtn, readMoreBtn);
+
     newBtn.addEventListener('click', function(e) {
         e.stopPropagation();
-        const desc = document.getElementById("modalDesc");
-        if (!expanded) {
-            desc.innerHTML = desc.dataset.fullHtml;
-            desc.classList.add('expanded');
-            this.innerHTML = 'عرض أقل <i class="fas fa-chevron-up"></i>';
-            this.classList.add('expanded');
-            expanded = true;
+
+        // جلب العناصر مرة أخرى (للتأكد من عدم فقدان المرجع)
+        const wrapper = document.getElementById("modalDescExpand");
+        const fade = document.getElementById("descFade");
+        const btn = this;
+        const txt = btn.querySelector('#readMoreText');
+        // لا نغير الأيقونة، بل نضيف/نزيل class expanded
+
+        if (!isExpanded) {
+            // 🔽 فتح الوصف
+            wrapper.style.maxHeight = fullHeight + 20 + 'px';
+            fade.classList.remove('show'); // إخفاء البلور
+            txt.textContent = 'عرض أقل';
+            btn.classList.add('expanded'); // السهم يدور 180 درجة
+            isExpanded = true;
         } else {
-            desc.innerHTML = desc.dataset.shortHtml;
-            desc.classList.remove('expanded');
-            this.innerHTML = 'عرض المزيد <i class="fas fa-chevron-down"></i>';
-            this.classList.remove('expanded');
-            expanded = false;
+            // 🔼 غلق الوصف
+            wrapper.style.maxHeight = collapsedHeight + 'px';
+            fade.classList.add('show'); // إظهار البلور
+            txt.textContent = 'عرض المزيد';
+            btn.classList.remove('expanded'); // السهم يعود للأسفل
+            isExpanded = false;
         }
     });
+
 } else {
+    // النص قصير: إخفاء الزر وإزالة التقييد
     readMoreBtn.style.display = 'none';
+    descWrapper.style.maxHeight = 'none';
+    descFade.classList.remove('show');
 }
       
         document.getElementById("modalPrice").textContent = Number(price) + " جنيه";
