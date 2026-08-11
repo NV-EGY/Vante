@@ -26,6 +26,15 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
 })(window,document,'script','dataLayer','GTM-TCBTDLQM');</script>
 <!-- End Google Tag Manager -->
+
+   <script>
+    // تأكد من تحميل الصفحة بالكامل قبل التوجيه لتجنب أخطاء GitHub Pages
+    window.addEventListener('load', function() {
+        if (window.innerWidth <= 768) {
+            window.location.href = "index.html";
+        }
+    });
+</script>
   
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
