@@ -4130,7 +4130,7 @@ function renderProducts() {
     }
 
     return `
-      <div class="product ${outOfStock ? 'out-of-stock' : ''}" style="position: relative;" onclick='openProduct("${p.id}", ${JSON.stringify(p.name)}, ${Number(p.price)}, ${JSON.stringify(p.image)}, ${JSON.stringify(sizes)}, ${JSON.stringify(p.description || "")})'>
+      <div class="product ${outOfStock ? 'out-of-stock' : ''}" style="position: relative;" onclick='openProduct("${p.id}")'>
         ${discountBadgeHtml}
         <div class="review-badge">
           <i class="fas fa-star"></i> <span id="reviewCount-${p.id}">0</span>
@@ -4276,7 +4276,14 @@ newNext.addEventListener('click', () => {
 // ============================================================
 // OPEN PRODUCT (نظام مزدوج: مودال + صفحة كاملة)
 // ============================================================
-window.openProduct = function(id, name, price, image, sizes = [], description = "") {
+window.openProduct = function(id) {
+  const product = allProducts.find(p => p.id === id);
+  if (!product) {
+    customAlert("⚠️ المنتج غير موجود", "error");
+    return;
+  }
+  const { name, price, image, sizes = [], description = "", stockBySize = {}, additionalImages = [] } = product;
+   
   const openAsModal = !window.location.pathname.includes('/Product.html');
 
   if (openAsModal) {
