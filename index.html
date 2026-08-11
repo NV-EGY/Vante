@@ -4081,6 +4081,58 @@ body.modal-open{
         font-size: 11px;
     }
 }
+  /* ===== عرض المزيد للوصف ===== */
+.modal-desc-wrapper {
+    position: relative;
+    margin: 12px 0;
+}
+.modal-desc {
+    font-size: 15px;
+    line-height: 1.8;
+    color: #444;
+    max-height: 80px;
+    overflow: hidden;
+    transition: max-height 0.5s ease;
+}
+.modal-desc.expanded {
+    max-height: 600px;
+}
+.read-more-btn {
+    background: none;
+    border: none;
+    color: #D4AF37;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    padding: 6px 0;
+    transition: color 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.read-more-btn:hover {
+    color: #B8860B;
+}
+.read-more-btn i {
+    font-size: 12px;
+    transition: transform 0.3s ease;
+}
+.read-more-btn.expanded i {
+    transform: rotate(180deg);
+}
+
+  .rating-hint {
+    font-size: 14px;
+    color: #888;
+    margin: 8px 0 4px;
+    text-align: center;
+    font-weight: 400;
+    transition: 0.3s;
+}
+.rating-hint.active {
+    color: #D4AF37;
+    font-weight: 600;
+}
 
     </style>
 </head>
@@ -4387,7 +4439,13 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         
         <div class="modal-info">
             <h2 id="modalTitle"></h2>
-            <p id="modalDesc" class="modal-desc"></p>
+            <!-- استبدال السطر الحالي الذي يحتوي على <p id="modalDesc" class="modal-desc"></p> -->
+<div class="modal-desc-wrapper">
+    <p id="modalDesc" class="modal-desc"></p>
+    <button id="readMoreBtn" class="read-more-btn" style="display:none;">
+        عرض المزيد <i class="fas fa-chevron-down"></i>
+    </button>
+</div>
             <div class="modal-price-row">
                 <span id="modalPrice" class="modal-price"></span>
                 <span id="modalOldPrice" class="modal-old-price"></span>
@@ -4399,11 +4457,21 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             </div>
             <!-- تم إزالة زر الإضافة من هنا -->
             
-            <div class="rating-stars" id="stars">
-                <span data-rate="1">★</span><span data-rate="2">★</span><span data-rate="3">★</span><span data-rate="4">★</span><span data-rate="5">★</span>
-            </div>
-            <textarea id="reviewText" placeholder="اكتب رأيك..."></textarea>
-            <button class="btn-primary review-submit" onclick="submitReview()">إرسال التقييم</button>
+           <!-- نجوم التقييم -->
+<div class="rating-stars" id="stars">
+    <span data-rate="1" onclick="selectStar(1)">★</span>
+    <span data-rate="2" onclick="selectStar(2)">★</span>
+    <span data-rate="3" onclick="selectStar(3)">★</span>
+    <span data-rate="4" onclick="selectStar(4)">★</span>
+    <span data-rate="5" onclick="selectStar(5)">★</span>
+</div>
+<div class="rating-hint" id="ratingHint">⭐ اضغط على النجوم لتقييم المنتج</div>
+
+<!-- حقل التقييم وزر الإرسال -->
+<div id="reviewInputArea" style="display: none; margin: 15px 0; text-align: right; width: 100%;">
+    <textarea id="reviewText" placeholder="اكتب رأيك في المنتج..." style="width:100%; min-height:80px; padding:12px; border:1.5px solid #e8e8e8; border-radius:14px; font-size:15px; font-family:'Cairo',sans-serif; transition:0.3s; resize:vertical; background:#fafafa;"></textarea>
+    <button class="btn-primary review-submit" onclick="submitReview()" style="display:none; width:100%; padding:12px; margin-top:10px; background:#111; color:#fff; border:none; border-radius:14px; font-size:15px; font-weight:800; cursor:pointer;">إرسال التقييم</button>
+</div>
             <div style="margin-top:25px; border-top:1px solid #eee; padding-top:20px;">
                 <h4 style="text-align:center; margin-bottom:15px; color:#D4AF37;">📝 آراء العملاء</h4>
                 <div id="productReviewsContainer"></div>
@@ -4715,7 +4783,76 @@ async function restoreStockForOrder(orderId, orderData) {
 
 // اجعلها متاحة عالمياً
 window.restoreStockForOrder = restoreStockForOrder;
+// ===== اختيار نجمة (مثل desktop) =====
+window.selectStar = function(rating) {
+    window.selectedRating = rating;
+    const stars = document.querySelectorAll('#stars span');
+    stars.forEach((star, index) => {
+        star.classList.toggle('active', index < rating);
+    });
 
+    showReviewInput();
+
+    const ratingHint = document.getElementById('ratingHint');
+    if (ratingHint) {
+        ratingHint.textContent = `⭐ تقييمك: ${rating} من 5 - اكتب رأيك ثم اضغط إرسال`;
+        ratingHint.className = 'rating-hint active';
+    }
+
+    const textarea = document.getElementById('reviewText');
+    if (textarea) {
+        setTimeout(() => textarea.focus(), 200);
+    }
+};
+
+// ===== إظهار خانة الكتابة وزر الإرسال =====
+function showReviewInput() {
+    const reviewInputArea = document.getElementById('reviewInputArea');
+    const submitBtn = document.querySelector('.review-submit');
+    const reviewText = document.getElementById('reviewText');
+
+    if (reviewInputArea) reviewInputArea.style.display = 'block';
+    if (submitBtn) submitBtn.style.display = 'block';
+    if (reviewText) reviewText.style.display = 'block';
+}
+
+// ===== إخفاء خانة الكتابة وزر الإرسال =====
+function hideReviewInput() {
+    const reviewInputArea = document.getElementById('reviewInputArea');
+    const submitBtn = document.querySelector('.review-submit');
+    
+    if (reviewInputArea) reviewInputArea.style.display = 'none';
+    if (submitBtn) submitBtn.style.display = 'none';
+}
+
+// ===== زر "كن أول من يقيم" =====
+window.handleBeFirstReview = function() {
+    // اختيار 5 نجوم
+    const stars = document.querySelectorAll('#stars span');
+    stars.forEach((star, index) => {
+        star.classList.toggle('active', index < 5);
+    });
+    window.selectedRating = 5;
+
+    // إظهار خانة الكتابة وزر الإرسال
+    showReviewInput();
+
+    // تحديث الرسالة
+    const ratingHint = document.getElementById('ratingHint');
+    if (ratingHint) {
+        ratingHint.textContent = '⭐ تقييمك: 5 من 5 - اكتب رأيك ثم اضغط إرسال';
+        ratingHint.className = 'rating-hint active';
+    }
+
+    // تمرير إلى خانة الكتابة مع تركيز
+    setTimeout(() => {
+        const textarea = document.getElementById('reviewText');
+        if (textarea) {
+            textarea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            textarea.focus();
+        }
+    }, 200);
+};
 // ============================================================
 // معالجة روابط التأكيد والرفض من العميل - النسخة النهائية
 // ============================================================
@@ -5869,9 +6006,9 @@ function displayReviewsInModal(productId) {
         <div style="text-align:center; padding:40px 20px;">
             <i class="fas fa-star" style="font-size: 48px; color: #ddd; margin-bottom: 15px;"></i>
             <p style="color: #888;">لا توجد تقييمات لهذا المنتج بعد</p>
-            <button class="write-review-btn" onclick="(function(){ window.selectedRating=5; document.querySelectorAll('#stars span').forEach((s,i)=>{if(i<5)s.classList.add('active');else s.classList.remove('active');}); document.getElementById('reviewText').style.display='block'; document.getElementById('reviewText').focus(); document.getElementById('reviewText').scrollIntoView({behavior:'smooth',block:'center'}); })();">
-                <i class="fas fa-pen"></i> كن أول من يقيم هذا المنتج
-            </button>
+            <button class="write-review-btn" onclick="handleBeFirstReview()">
+    <i class="fas fa-pen"></i> كن أول من يقيم
+</button>
         </div>
     `;
     return;
@@ -7361,8 +7498,46 @@ window.openProduct = function(id) {
                  alt="صورة المنتج">
         `).join("");
         
-        document.getElementById("modalTitle").textContent = name;
-        document.getElementById("modalDesc").innerHTML = description || "منتج فاخر من VANTÉ";
+          document.getElementById("modalTitle").textContent = name;
+        // ===== إعداد الوصف مع زر "عرض المزيد" (مثل desktop) =====
+const descElement = document.getElementById("modalDesc");
+const fullText = description || "منتج فاخر من VANTÉ";
+const shortText = fullText.length > 100 ? fullText.slice(0, 100) + "..." : fullText;
+
+descElement.dataset.fullHtml = fullText;
+descElement.dataset.shortHtml = shortText;
+descElement.innerHTML = shortText;
+descElement.classList.remove('expanded');
+
+const readMoreBtn = document.getElementById("readMoreBtn");
+if (fullText.length > 100) {
+    readMoreBtn.style.display = 'inline-flex';
+    readMoreBtn.innerHTML = 'عرض المزيد <i class="fas fa-chevron-down"></i>';
+    let expanded = false;
+    // إزالة المستمعات القديمة وتطبيق الجديد
+    const newBtn = readMoreBtn.cloneNode(true);
+    readMoreBtn.parentNode.replaceChild(newBtn, readMoreBtn);
+    newBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const desc = document.getElementById("modalDesc");
+        if (!expanded) {
+            desc.innerHTML = desc.dataset.fullHtml;
+            desc.classList.add('expanded');
+            this.innerHTML = 'عرض أقل <i class="fas fa-chevron-up"></i>';
+            this.classList.add('expanded');
+            expanded = true;
+        } else {
+            desc.innerHTML = desc.dataset.shortHtml;
+            desc.classList.remove('expanded');
+            this.innerHTML = 'عرض المزيد <i class="fas fa-chevron-down"></i>';
+            this.classList.remove('expanded');
+            expanded = false;
+        }
+    });
+} else {
+    readMoreBtn.style.display = 'none';
+}
+      
         document.getElementById("modalPrice").textContent = Number(price) + " جنيه";
         
         const oldPriceEl = document.getElementById("modalOldPrice");
@@ -7627,11 +7802,12 @@ window.confirmAndSubmitReview = async function() {
         // تحديث قائمة التقييمات فوراً بعد الإرسال (سيتم تحديثها تلقائياً من onSnapshot)
         
         // إعادة تعيين الحقول
-        document.getElementById("reviewText").value = "";
-        document.getElementById("reviewText").style.display = "none";
-        window.selectedRating = 0;
-        document.querySelectorAll(".rating-stars span").forEach(star => star.classList.remove("active"));
-        closeRatingModal();
+        // بعد نجاح الإرسال
+document.getElementById("reviewText").value = "";
+hideReviewInput(); // ✅ إخفاء خانة الكتابة وزر الإرسال
+window.selectedRating = 0;
+document.querySelectorAll(".rating-stars span").forEach(star => star.classList.remove("active"));
+closeRatingModal();
         
     } catch (error) {
         console.error(error);
@@ -7646,18 +7822,17 @@ window.confirmAndSubmitReview = async function() {
 // تعديل دالة submitReview لطلب كتابة الرأي أولاً
 window.submitReview = function() {
     if (!window.currentProduct) {
-        alert("يرجى اختيار منتج أولاً");
+        customAlert("يرجى اختيار منتج أولاً", "warning");
         return;
     }
     if (!window.selectedRating || window.selectedRating === 0) {
-        alert("يرجى اختيار تقييم بالنجوم أولاً");
+        customAlert("يرجى اختيار تقييم بالنجوم أولاً", "warning");
         return;
     }
     const reviewTextElement = document.getElementById("reviewText");
     const reviewText = reviewTextElement ? reviewTextElement.value.trim() : "";
     if (reviewText === "") {
-        alert("✍️ يرجى كتابة رأيك في المنتج قبل إرسال التقييم");
-        // تمييز الحقل بلون أحمر مؤقتاً
+        customAlert("✍️ يرجى كتابة رأيك في المنتج قبل إرسال التقييم", "warning");
         if (reviewTextElement) {
             reviewTextElement.style.borderColor = "#e74c3c";
             reviewTextElement.focus();
@@ -7667,7 +7842,7 @@ window.submitReview = function() {
         }
         return;
     }
-    openRatingModal(); // فتح المودال الخاص بالاسم والرقم
+    openRatingModal();
 };
 
 window.loadMoreProducts = function() {
