@@ -5741,13 +5741,13 @@ async function renderBestSellers() {
                 const hasDiscount = p.comparePrice && p.comparePrice > p.price;
                 const discountPercent = hasDiscount ? Math.round((1 - p.price / p.comparePrice) * 100) : 0;
                 const badgeHtml = hasDiscount 
-    ? `<span class="best-seller-badge">%${discountPercent} خصم</span>` 
-    : `<span class="best-seller-badge">الأكثر مبيعاً</span>`;
+                    ? `<span class="best-seller-badge">%${discountPercent} خصم</span>` 
+                    : `<span class="best-seller-badge">الأكثر مبيعاً</span>`;
                 const priceHtml = hasDiscount 
                     ? `<div class="price-wrapper"><span class="old-price">${p.comparePrice} EGP</span><span class="current-price">${p.price} EGP</span></div>`
                     : `<div class="price-wrapper"><span class="current-price">${p.price} EGP</span></div>`;
                 return `
-                <div class="best-seller-card" onclick='openProduct("${p.id}", ${JSON.stringify(p.name)}, ${Number(p.price)}, ${JSON.stringify(p.image)}, ${JSON.stringify(p.sizes || ["7","8","9"])}, ${JSON.stringify(p.description || "")})'>
+                <div class="best-seller-card" onclick='openProduct("${p.id}")'>
                     ${badgeHtml}
                     <img src="${p.image}" alt="${p.name}">
                     <div class="name">${p.name}</div>
@@ -5770,13 +5770,13 @@ async function renderBestSellers() {
             const hasDiscount = p.comparePrice && p.comparePrice > p.price;
             const discountPercent = hasDiscount ? Math.round((1 - p.price / p.comparePrice) * 100) : 0;
             const badgeHtml = hasDiscount 
-    ? `<span class="best-seller-badge">%${discountPercent} خصم</span>` 
-    : `<span class="best-seller-badge">الأكثر مبيعاً</span>`;
+                ? `<span class="best-seller-badge">%${discountPercent} خصم</span>` 
+                : `<span class="best-seller-badge">الأكثر مبيعاً</span>`;
             const priceHtml = hasDiscount 
                 ? `<div class="price-wrapper"><span class="old-price">${p.comparePrice} EGP</span><span class="current-price">${p.price} EGP</span></div>`
                 : `<div class="price-wrapper"><span class="current-price">${p.price} EGP</span></div>`;
             html += `
-            <div class="best-seller-card" onclick='openProduct("${p.id}", ${JSON.stringify(p.name)}, ${Number(p.price)}, ${JSON.stringify(p.image)}, ${JSON.stringify(p.sizes || ["7","8","9"])}, ${JSON.stringify(p.description || "")})'>
+            <div class="best-seller-card" onclick='openProduct("${p.id}")'>
                 ${badgeHtml}
                 <img src="${p.image}" alt="${p.name}">
                 <div class="name">${p.name}</div>
