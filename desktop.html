@@ -4245,7 +4245,7 @@ async function renderBestSellers() {
       ? `<div class="price-wrapper"><span class="old-price">${p.comparePrice} EGP</span><span class="current-price">${p.price} EGP</span></div>`
       : `<div class="price-wrapper"><span class="current-price">${p.price} EGP</span></div>`;
     return `
-      <div class="best-seller-card" onclick='openProduct("${p.id}", ${JSON.stringify(p.name)}, ${Number(p.price)}, ${JSON.stringify(p.image)}, ${JSON.stringify(p.sizes || ["7","8","9"])}, ${JSON.stringify(p.description || "")})'>
+      <div class="best-seller-card" onclick='openProduct("${p.id}")'>
         ${badgeHtml}
         <img src="${p.image}" alt="${p.name}" loading="lazy">
         <div class="name">${p.name}</div>
